@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>Agent与LLM：谁负责什么</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
+.slide-role-table { width:100%; border-collapse:collapse; }
+.slide-role-table th { font-size:14px; font-weight:700; padding:10px 14px; text-align:left; }
+.slide-role-table td { font-size:13px; padding:9px 14px; border-bottom:1px solid rgba(255,255,255,0.04); color:rgba(224,231,255,0.6); line-height:1.4; }
+.slide-role-table td:first-child { border-right:1px solid rgba(0,229,255,0.15); }
+.slide-vs-divider { width:3px; background:linear-gradient(to bottom, transparent, #FF6B35, transparent); }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:30px 70px;">
+  <div class="mb-2 slide-section-num">CHAPTER 04 · 关键区分</div>
+  <h1 class="mb-2">Agent与LLM：谁负责什么？</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
+
+  <div class="flex" style="gap:28px;">
+    <div style="flex:1;">
+      <!-- Analogy -->
+      <div style="display:flex; gap:16px; margin-bottom:16px;">
+        <div style="flex:1; padding:14px 16px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.15); text-align:center;">
+          <div style="font-size:28px; margin-bottom:6px;">🧑‍💼</div>
+          <div style="font-size:15px; font-weight:700; color:#00E5FF;">Agent = 秘书</div>
+          <div style="font-size:11px; color:rgba(224,231,255,0.5); margin-top:4px;">搜资料 · 排顺序 · 去重 · 摘要<br>整理好交给专家</div>
+        </div>
+        <div style="display:flex; align-items:center; font-size:24px; color:#FF6B35;">→</div>
+        <div style="flex:1; padding:14px 16px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.15); text-align:center;">
+          <div style="font-size:28px; margin-bottom:6px;">🧠</div>
+          <div style="font-size:15px; font-weight:700; color:#FF6B35;">LLM = 专家</div>
+          <div style="font-size:11px; color:rgba(224,231,255,0.5); margin-top:4px;">阅读 · 理解 · 推理 · 给建议<br>只看秘书整理好的材料</div>
+        </div>
+      </div>
+
+      <!-- Responsibility table -->
+      <table class="slide-role-table" style="margin-bottom:14px;">
+        <thead>
+          <tr>
+            <th style="color:#00E5FF; border-bottom:2px solid rgba(0,229,255,0.3); background:rgba(0,229,255,0.06);">Agent 负责（准备信息）</th>
+            <th style="color:#FF6B35; border-bottom:2px solid rgba(255,107,53,0.3); background:rgba(255,107,53,0.06);">LLM 负责（理解信息）</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>搜索信息（代码、文档、日志）</td><td>理解Context中的信息</td></tr>
+          <tr><td>读取规则（AGENTS.md、Rules、Skills）</td><td>推理：应该做什么、怎么做</td></tr>
+          <tr><td>调用工具（MCP、文件系统、Shell）</td><td>生成回答、代码、计划</td></tr>
+          <tr><td>构建Context、适配窗口容量</td><td>结合反馈调整方案</td></tr>
+        </tbody>
+      </table>
+
+      <div style="padding:12px 16px; background:rgba(0,229,255,0.06); border:2px solid rgba(0,229,255,0.2);">
+        <div style="font-size:15px; color:#00E5FF; font-weight:700; text-align:center;">Agent负责准备信息，LLM负责理解信息。</div>
+      </div>
+    </div>
+
+    <div style="flex:1;">
+      <!-- Context vs Context Window -->
+      <div style="font-size:15px; font-weight:700; color:#FF6B35; margin-bottom:12px;"><i class="fas fa-exchange-alt" style="margin-right:6px;"></i>Context ≠ Context Window</div>
+
+      <div style="display:flex; gap:14px; margin-bottom:14px;">
+        <div style="flex:1; padding:14px 16px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.12);">
+          <div style="font-size:14px; font-weight:700; color:#00E5FF; margin-bottom:8px;">Context（上下文）</div>
+          <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.6;">
+            <strong style="color:#E0E7FF;">Agent组织给模型看的所有信息</strong><br>
+            · AGENTS.md / Rules / Skills<br>
+            · Memory中的历史经验<br>
+            · 用户当前的Prompt<br>
+            · 项目代码 / Git Diff<br>
+            · MCP工具返回的结果
+          </div>
+          <div style="font-size:11px; color:#00E5FF; margin-top:8px; font-weight:600;">→ 是"内容"</div>
+        </div>
+        <div style="flex:1; padding:14px 16px; background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.12);">
+          <div style="font-size:14px; font-weight:700; color:#FF6B35; margin-bottom:8px;">Context Window（上下文窗口）</div>
+          <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.6;">
+            <strong style="color:#E0E7FF;">模型一次能够阅读的最大Token数量</strong><br>
+            · 像一本书一次最多能翻开的页数<br>
+            · 超出容量的信息模型"看不到"<br>
+            · Agent通过裁剪、摘要、RAG适配容量<br>
+            · 不同模型窗口大小不同
+          </div>
+          <div style="font-size:11px; color:#FF6B35; margin-top:8px; font-weight:600;">→ 是"容量"</div>
+        </div>
+      </div>
+
+      <div style="padding:12px 16px; background:rgba(255,107,53,0.06); border:2px solid rgba(255,107,53,0.2); margin-bottom:14px;">
+        <div style="font-size:15px; color:#FF6B35; font-weight:700; text-align:center;">Context 是内容；Context Window 是容量。</div>
+      </div>
+
+      <!-- Flow diagram -->
+      <div style="padding:14px 16px; background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.1);">
+        <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:8px;">完整的数据流</div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.6; text-align:center;">
+          <span style="color:rgba(224,231,255,0.4);">用户需求</span><br>
+          <span style="color:rgba(224,231,255,0.3);">↓</span><br>
+          <span style="color:#00E5FF; font-weight:700;">Agent</span>
+          <span style="color:rgba(224,231,255,0.3);">（搜索 · 读取 · 整理 · 裁剪 · 摘要）</span><br>
+          <span style="color:rgba(224,231,255,0.3);">↓ 构建</span><br>
+          <span style="color:#FF6B35; font-weight:700;">Context</span>
+          <span style="color:rgba(224,231,255,0.3);"> → 塞进 → </span>
+          <span style="color:#FF6B35; font-weight:700;">Context Window</span><br>
+          <span style="color:rgba(224,231,255,0.3);">↓ 交给</span><br>
+          <span style="color:#FF6B35; font-weight:700;">LLM</span>
+          <span style="color:rgba(224,231,255,0.3);">（理解 · 推理 · 生成）</span><br>
+          <span style="color:rgba(224,231,255,0.3);">↓ 输出</span><br>
+          <span style="color:#00E5FF; font-weight:700;">Agent</span>
+          <span style="color:rgba(224,231,255,0.3);"> 执行 → 工具反馈 → 继续循环</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

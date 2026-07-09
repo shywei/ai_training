@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>最终认知总图</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
+.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
+.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
+.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+</style></head><body>
+<div class="s" style="padding:36px 60px;">
+<div class="mb-2 sn">CHAPTER 07</div><h1 class="mb-2">最终认知总图</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+
+<div style="margin-bottom:10px;">
+  </div>
+<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+  <div style="padding:8px 12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:4px;">
+    <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-bottom:4px;">需求</div>
+    <div style="font-size:12px;color:rgba(224,231,255,0.6);">用户要解决什么问题？→ 拆解成Agent需要的能力</div>
+  </div>
+  <div style="text-align:center;font-size:12px;color:rgba(0,229,255,0.2);">▼</div>
+  <div style="display:flex;gap:8px;">
+    <div style="flex:1;padding:8px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
+      <div style="font-size:11px;color:#00E5FF;font-weight:600;margin-bottom:4px;">认知层</div>
+      <div style="display:flex;gap:4px;">
+        <div style="flex:1;padding:3px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:11px;color:#00E5FF;text-align:center;">Prompt</div>
+        <div style="flex:1;padding:3px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:11px;color:#00E5FF;text-align:center;">Memory</div>
+        <div style="flex:1;padding:3px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:11px;color:#00E5FF;text-align:center;">Knowledge</div>
+      </div>
+    </div>
+    <div style="flex:1;padding:8px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:4px;">
+      <div style="font-size:11px;color:#FF6B35;font-weight:600;margin-bottom:4px;">执行层</div>
+      <div style="display:flex;gap:4px;">
+        <div style="flex:1;padding:3px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.12);border-radius:2px;font-size:11px;color:#FF6B35;text-align:center;">Tool</div>
+        <div style="flex:1;padding:3px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.12);border-radius:2px;font-size:11px;color:#FF6B35;text-align:center;">MCP</div>
+        <div style="flex:1;padding:3px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.12);border-radius:2px;font-size:11px;color:#FF6B35;text-align:center;">Workflow</div>
+        <div style="flex:1;padding:3px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.12);border-radius:2px;font-size:11px;color:#FF6B35;text-align:center;">Multi-Agent</div>
+      </div>
+    </div>
+  </div>
+  <div style="text-align:center;font-size:12px;color:rgba(0,229,255,0.2);">▼</div>
+  <div style="padding:8px 12px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.08);border-radius:4px;">
+    <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-bottom:4px;">技术选型</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <div style="padding:3px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:11px;color:#00E5FF;">Spring AI</div>
+      <div style="padding:3px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:11px;color:#00E5FF;">LangGraph</div>
+      <div style="padding:3px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:11px;color:#00E5FF;">MCP SDK</div>
+      <div style="padding:3px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:11px;color:#00E5FF;">Milvus</div>
+      <div style="padding:3px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:11px;color:#00E5FF;">Redis</div>
+      <div style="padding:3px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:11px;color:#00E5FF;">Dify</div>
+      <div style="padding:3px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:11px;color:#00E5FF;">GPT/Claude</div>
+    </div>
+  </div>
+  <div style="text-align:center;font-size:12px;color:rgba(0,229,255,0.2);">▼</div>
+  <div style="padding:8px 12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:4px;">
+    <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-bottom:4px;">与现有系统集成</div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.55);">Agent不是替代已有系统，而是在已有系统之上加一层"智能"。</div>
+  </div>
+</div>
+<div style="padding:10px 14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:5px;text-align:center;">
+  <div style="font-size:13px;color:#FF6B35;font-weight:700;">示例：企业知识问答机器人</div>
+  <div style="font-size:11px;color:rgba(224,231,255,0.5);margin-top:4px;">需求 → 拆解：Knowledge(RAG)+Memory+Prompt → 不需要Tool/Workflow → 技术：Spring AI+PgVector+Redis → 集成：接入OA系统</div>
+  <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-top:6px;">Agent系统设计 = 能力拆解 + 系统组合</div>
+</div>
+
+</div></body></html>

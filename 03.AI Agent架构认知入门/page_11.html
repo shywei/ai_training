@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>Multi-Agent：原理与实现</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
+.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
+.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
+.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+</style></head><body>
+<div class="s" style="padding:36px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 04</div><h1 class="mb-2">Multi-Agent：原理与实现</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+<div style="display:flex;gap:16px;margin-bottom:12px;">
+  <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
+    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">是什么？</div>
+    <div style="font-size:13px;color:rgba(224,231,255,0.6);line-height:1.8;">多个专精Agent协作完成复杂任务。<br>Orchestrator（调度员）分配任务，专精Agent各自执行。<br>每个Agent有独立的LLM+Prompt+Tool+Memory。</div>
+  </div>
+  <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
+    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">解决什么问题？</div>
+    <div style="font-size:13px;color:rgba(224,231,255,0.6);line-height:1.8;">单Agent能力有限——一个Agent做所有事效率低。<br>复杂任务需要拆分：调研、编码、审查各由专精Agent负责。<br>从"一个人干所有"变成"团队协作"。</div>
+  </div>
+</div>
+<div style="display:flex;gap:16px;margin-bottom:12px;">
+  <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
+    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">和其他能力的边界</div>
+    <div style="font-size:13px;color:rgba(224,231,255,0.6);line-height:1.8;">单Agent内部用Workflow编排<b style="color:#E0E7FF;">步骤</b>。<br>Multi-Agent用Orchestrator编排<b style="color:#E0E7FF;">Agent</b>。<br>Workflow管"怎么做"，Multi-Agent管"谁来做"。<br>简单任务用单Agent+Workflow，复杂任务用Multi-Agent。</div>
+  </div>
+  <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
+    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">系统组成</div>
+    <div style="font-size:13px;color:rgba(224,231,255,0.6);line-height:1.8;">
+      Multi-Agent = <b style="color:#E0E7FF;">Orchestrator</b>（调度员）+ <b style="color:#E0E7FF;">Specialized Agents</b>（专精Agent）+ <b style="color:#E0E7FF;">Message Bus</b>（消息传递）+ <b style="color:#E0E7FF;">Aggregator</b>（结果汇总）
+    </div>
+    <div style="margin-top:4px;font-size:11px;color:rgba(224,231,255,0.4);">CrewAI · AutoGen · LangGraph</div>
+  </div>
+</div>
+
+<!-- Multi-Agent协作示意图 -->
+<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:16px 0;padding:14px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
+  <div style="padding:8px 14px;background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.3);border-radius:6px;text-align:center;">
+    <div style="font-size:11px;color:#FF6B35;font-weight:700;">🎯 用户任务</div>
+  </div>
+  <div style="font-size:16px;color:rgba(0,229,255,0.4);">→</div>
+  <div style="padding:8px 14px;background:rgba(255,107,53,0.1);border:2px solid #FF6B35;border-radius:6px;text-align:center;">
+    <div style="font-size:11px;color:#FF6B35;font-weight:700;">🧠 Orchestrator</div>
+    <div style="font-size:9px;color:rgba(224,231,255,0.4);">拆分+调度</div>
+  </div>
+  <div style="font-size:16px;color:rgba(0,229,255,0.4);">→</div>
+  <div style="display:flex;gap:6px;">
+    <div style="padding:6px 10px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);border-radius:4px;text-align:center;">
+      <div style="font-size:10px;color:#00E5FF;font-weight:600;">调研Agent</div>
+    </div>
+    <div style="padding:6px 10px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);border-radius:4px;text-align:center;">
+      <div style="font-size:10px;color:#00E5FF;font-weight:600;">编码Agent</div>
+    </div>
+    <div style="padding:6px 10px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);border-radius:4px;text-align:center;">
+      <div style="font-size:10px;color:#00E5FF;font-weight:600;">审查Agent</div>
+    </div>
+  </div>
+  <div style="font-size:16px;color:rgba(0,229,255,0.4);">→</div>
+  <div style="padding:8px 14px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);border-radius:6px;text-align:center;">
+    <div style="font-size:11px;color:#00E5FF;font-weight:700;">📦 汇总结果</div>
+  </div>
+</div>
+
+</div>
+
+<div style="margin-top:auto;padding:8px 12px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:5px;">
+  <div style="font-size:12px;color:#FF6B35;font-weight:700;margin-bottom:3px;">什么时候需要Multi-Agent？</div>
+  <div style="font-size:11px;color:rgba(224,231,255,0.55);">单Agent搞不定 · 需要专业分工 · 任务可并行 · 需要多视角审查</div>
+</div>
+</div></body></html>

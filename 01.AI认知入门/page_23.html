@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>AGI、世界模型与Coding的未来</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
+.slide-q { font-size:20px; color:#FF6B35; font-weight:700; padding:12px 20px; background:rgba(255,107,53,0.06); border-left:4px solid #FF6B35; margin-bottom:20px; line-height:1.4; }
+.slide-concept { display:flex; align-items:flex-start; margin-bottom:14px; padding:14px 18px; background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.1); }
+.slide-concept-badge { font-size:13px; font-weight:700; padding:4px 12px; margin-right:16px; flex-shrink:0; min-width:80px; text-align:center; }
+.slide-concept-text { flex:1; }
+.slide-concept-title { font-size:15px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
+.slide-concept-desc { font-size:13px; color:rgba(224,231,255,0.55); line-height:1.5; }
+.slide-question-block { margin-bottom:18px; }
+.slide-question-label { font-size:14px; font-weight:700; color:#00E5FF; margin-bottom:8px; }
+.slide-answer { font-size:14px; color:rgba(224,231,255,0.6); line-height:1.7; padding-left:16px; border-left:2px solid rgba(0,229,255,0.2); }
+.slide-takeaway { position:absolute; bottom:30px; left:70px; right:70px; padding:14px 24px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.12); }
+.slide-takeaway-text { font-size:14px; color:rgba(224,231,255,0.6); line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:36px 70px;">
+  <div class="mb-2 slide-section-num">CHAPTER 05 · 概念辨析</div>
+  <h1 class="mb-3">AGI、世界模型与Coding的未来</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:18px;"></div>
+
+  <div class="flex" style="gap:30px;">
+    <!-- Left: Concepts -->
+    <div style="flex:1;">
+      <div class="slide-concept">
+        <div class="slide-concept-badge" style="background:rgba(0,229,255,0.15); color:#00E5FF;">AGI</div>
+        <div class="slide-concept-text">
+          <div class="slide-concept-title">通用人工智能</div>
+          <div class="slide-concept-desc">能完成人类所能做的<strong style="color:#00E5FF;">任何</strong>智力任务的AI。目前的大模型在某些方面超越人类，但在常识推理、物理世界理解等方面仍有明显差距。ARC-AGI-3测试中，GPT-5.5仅得0.43%。</div>
+        </div>
+      </div>
+      <div class="slide-concept">
+        <div class="slide-concept-badge" style="background:rgba(255,107,53,0.15); color:#FF6B35;">ASI</div>
+        <div class="slide-concept-text">
+          <div class="slide-concept-title">超级人工智能</div>
+          <div class="slide-concept-desc">在<strong style="color:#FF6B35;">所有领域</strong>都远超人类的AI。这是AI安全研究者最关注的概念——一旦ASI出现，人类可能无法控制。目前仍是理论讨论，尚未实现。</div>
+        </div>
+      </div>
+      <div class="slide-concept">
+        <div class="slide-concept-badge" style="background:rgba(224,231,255,0.1); color:#E0E7FF;">世界模型</div>
+        <div class="slide-concept-text">
+          <div class="slide-concept-title">理解物理世界的模型</div>
+          <div class="slide-concept-desc">不仅理解语言，还能理解<strong style="color:#E0E7FF;">物理规律、空间关系、因果推理</strong>。大模型是"读了所有书的文科生"，世界模型是"理解物理定律的理科生"。具身智能需要世界模型。</div>
+        </div>
+      </div>
+      <div class="slide-concept">
+        <div class="slide-concept-badge" style="background:rgba(255,107,53,0.15); color:#FF6B35;">幻觉</div>
+        <div class="slide-concept-text">
+          <div class="slide-concept-title">AI不是先知，更不是许愿机</div>
+          <div class="slide-concept-desc">大模型的本质是<strong style="color:#FF6B35;">概率预测下一个token</strong>，不是检索事实。它会一本正经地编造不存在的论文、API、法律条文——这就是"幻觉"。AI不是在"思考"，是在"猜"。<strong style="color:#E0E7FF;">任何AI输出都必须经过人的审查和验证。</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Questions -->
+    <div style="width:480px;">
+      <div class="slide-question-block">
+        <div class="slide-question-label">
+          <i class="fas fa-question-circle" style="margin-right:6px;"></i>大模型是AGI的最终答案吗？
+        </div>
+        <div class="slide-answer">
+          <strong style="color:#FF6B35;">大概率不是。</strong>大模型擅长语言理解和生成，但缺乏真正的因果推理和物理世界理解。2026年ARC-AGI-3测试表明，当前AI与通用智能之间存在<strong style="color:#E0E7FF;">巨大差距</strong>。AGI可能需要语言模型 + 世界模型 + 其他新范式的融合。
+        </div>
+      </div>
+
+      <div class="slide-question-block">
+        <div class="slide-question-label">
+          <i class="fas fa-question-circle" style="margin-right:6px;"></i>Coding领域，LLM是终极答案吗？
+        </div>
+        <div class="slide-answer">
+          <strong style="color:#00E5FF;">短期内是，长期不确定。</strong>编程本质上是<strong style="color:#E0E7FF;">符号操作+逻辑推理</strong>，恰好是语言模型的强项。LLM在代码生成上已经非常强大，但在复杂系统架构设计、性能优化等需要"深层理解"的任务上仍有局限。未来可能出现专门的代码推理模型，或与形式化验证结合的新范式。
+        </div>
+      </div>
+
+      <div class="slide-question-block">
+        <div class="slide-question-label">
+          <i class="fas fa-question-circle" style="margin-right:6px;"></i>世界模型和编程有什么关系？
+        </div>
+        <div class="slide-answer">
+          目前关系不大。世界模型主要服务于机器人和物理仿真。但对于<strong style="color:#E0E7FF;">需要理解业务领域</strong>的编程任务（比如理解"订单流转"的业务逻辑），更强的世界理解能力会有所帮助。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-takeaway">
+    <div class="slide-takeaway-text">
+      <i class="fas fa-lightbulb" style="color:#FF6B35; margin-right:8px;"></i>
+      <strong style="color:#E0E7FF;">务实的态度：</strong>大模型不是终极答案，但它是目前最实用的答案。先把LLM用好，同时关注新范式的演进。<strong style="color:#FF6B35;">但永远记住：AI是概率机器，不是真理机器——人的监督不可缺位。</strong>
+    </div>
+  </div>
+</div>
+</body>
+</html>

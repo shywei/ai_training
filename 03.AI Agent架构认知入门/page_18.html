@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>能力边界与组件混淆</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
+.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
+.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
+.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+</style></head><body>
+<div class="s" style="padding:36px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 08</div><h1 class="mb-2">能力边界与组件混淆</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+
+<div style="flex:1;display:flex;flex-direction:column;">
+<div style="margin-bottom:10px;">
+    <div style="font-size:13px;color:rgba(224,231,255,0.4);margin-top:6px;">建立"组件级认知"，分清每个能力的边界</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:16px;flex:1;align-content:stretch;">
+  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❶ Memory、RAG、Knowledge有什么区别？</div>
+    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">Memory记"人"（用户偏好、对话历史），Knowledge记"事"（企业文档、产品信息）。RAG是Knowledge的实现方式。Memory存Redis，Knowledge存VectorDB。</div>
+  </div>
+  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❷ RAG一定需要向量数据库吗？</div>
+    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">不一定。向量数据库是最优解，但小规模场景可以用关键词检索、全文搜索。向量数据库解决的是"语义相似"问题，关键词检索解决的是"精确匹配"问题。</div>
+  </div>
+  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❸ Tool、MCP、Workflow分别解决什么问题？</div>
+    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">Tool = 单个动作（调API）。MCP = 工具协议标准（统一接口）。Workflow = 流程编排（多步骤）。三者是不同层次，不是同一层次的不同选择。</div>
+  </div>
+  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❹ Workflow是不是等于Prompt写复杂一点？</div>
+    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">不是。Prompt是单次LLM调用的指令。Workflow是多次调用的编排——有状态、有条件、有循环、有人工审批。Prompt解决"做什么"，Workflow解决"怎么做流程"。</div>
+  </div>
+  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❺ Multi-Agent和Workflow有什么本质区别？</div>
+    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">Workflow管"怎么做"（步骤编排），Multi-Agent管"谁来做"（角色分工）。Workflow是单Agent内部的流程控制，Multi-Agent是多个Agent之间的协作。</div>
+  </div>
+</div>
+</div>
+</div></body></html>

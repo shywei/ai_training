@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>提示词工程：进阶与编程场景</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
+.slide-scenario { padding:14px 18px; margin-bottom:10px; }
+.slide-scenario-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:6px; }
+.slide-scenario-prompt { font-size:12px; color:rgba(224,231,255,0.45); line-height:1.5; padding:8px 12px; background:rgba(0,0,0,0.3); font-family:monospace; border-left:2px solid #00E5FF; }
+.slide-advanced-tip { padding:12px 16px; background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.12); margin-bottom:10px; }
+.slide-advanced-title { font-size:14px; font-weight:700; color:#FF6B35; margin-bottom:4px; }
+.slide-advanced-desc { font-size:12px; color:rgba(224,231,255,0.55); line-height:1.5; }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:32px 70px;">
+  <div class="mb-2 slide-section-num">CHAPTER 03 · 深入</div>
+  <h1 class="mb-2">提示词工程：进阶与编程场景</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:18px;"></div>
+
+  <div class="flex" style="gap:30px;">
+    <div style="flex:1;">
+      <div style="font-size:15px; font-weight:700; color:#00E5FF; margin-bottom:12px;"><i class="fas fa-code" style="margin-right:6px;"></i>编程场景提示词模板</div>
+      <div class="slide-scenario" style="background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.08);">
+        <div class="slide-scenario-title">代码审查</div>
+        <div class="slide-scenario-prompt">审查以下Java代码，重点关注：<br>1. 线程安全问题<br>2. 空指针风险<br>3. SQL注入漏洞<br>4. 异常处理是否合理<br>5. 是否符合阿里巴巴Java开发手册规范<br><br>逐条列出问题并给出修复建议。</div>
+      </div>
+      <div class="slide-scenario" style="background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.08);">
+        <div class="slide-scenario-title">重构</div>
+        <div class="slide-scenario-prompt">将以下Service层代码重构为策略模式。<br>当前代码用if-else处理不同类型的订单，<br>需要拆分为独立的策略类。<br>要求：保持接口签名不变，用Spring注入策略。</div>
+      </div>
+      <div class="slide-scenario" style="background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.08);">
+        <div class="slide-scenario-title">写单元测试</div>
+        <div class="slide-scenario-prompt">为以下OrderService写单元测试。<br>框架：JUnit 5 + Mockito<br>覆盖：正常流程、参数校验异常、外部服务调用失败<br>要求：每个测试方法用中文注释说明测试意图</div>
+      </div>
+    </div>
+    <div style="flex:1;">
+      <div style="font-size:15px; font-weight:700; color:#FF6B35; margin-bottom:12px;"><i class="fas fa-graduation-cap" style="margin-right:6px;"></i>进阶技巧</div>
+      <div class="slide-advanced-tip">
+        <div class="slide-advanced-title">System Prompt（系统提示词）</div>
+        <div class="slide-advanced-desc">在对话开始前设定模型的角色、规则和约束。所有后续对话都会遵循这些设定。IDE工具和Agent框架大量使用这个机制。</div>
+      </div>
+      <div class="slide-advanced-tip">
+        <div class="slide-advanced-title">思维链（Chain of Thought）</div>
+        <div class="slide-advanced-desc">要求模型"一步步分析"再给结论。对复杂推理任务（如算法设计、架构决策）效果显著。推理模型已内置这个能力。</div>
+      </div>
+      <div class="slide-advanced-tip">
+        <div class="slide-advanced-title">自洽性（Self-Consistency）</div>
+        <div class="slide-advanced-desc">让模型生成多个答案，取共识。适用于关键决策场景——比如让模型从3个方案中选最优解。</div>
+      </div>
+      <div class="slide-advanced-tip">
+        <div class="slide-advanced-title">ReAct模式（推理+行动）</div>
+        <div class="slide-advanced-desc">让模型交替进行"思考"和"行动"。这是Agent工具的核心工作模式——模型先分析要做什么，再调用工具执行，根据结果继续思考。</div>
+      </div>
+      <div style="padding:12px 16px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.12); margin-top:10px;">
+        <div style="font-size:13px; color:#00E5FF; font-weight:700; margin-bottom:4px;"><i class="fas fa-key" style="margin-right:6px;"></i>关键认知</div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.5;">提示词工程不是"玄学"，而是<strong style="color:#E0E7FF;">用结构化的方式描述你的需求</strong>。写得越清晰、约束越明确，输出越好。这和写需求文档的逻辑是一样的。</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

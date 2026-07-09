@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>从网页对话到AI编程</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
+.slide-limit-card { padding:14px 16px; margin-bottom:10px; display:flex; align-items:flex-start; gap:12px; }
+.slide-limit-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.slide-limit-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:4px; }
+.slide-limit-desc { font-size:12px; color:rgba(224,231,255,0.55); line-height:1.5; }
+.slide-gap-arrow { text-align:center; padding:12px 0; }
+.slide-gap-text { font-size:13px; color:#FF6B35; font-weight:700; }
+.slide-agent-feature { padding:10px 14px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.1); margin-bottom:6px; display:flex; align-items:center; gap:10px; }
+.slide-agent-icon { font-size:14px; color:#00E5FF; min-width:20px; text-align:center; }
+.slide-agent-text { font-size:12px; color:rgba(224,231,255,0.6); line-height:1.4; }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:32px 70px;">
+  <div class="mb-2 slide-section-num">CHAPTER 01</div>
+  <h1 class="mb-2">从网页对话到AI编程：为什么要升级？</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:18px;"></div>
+
+  <div class="flex" style="gap:28px;">
+    <!-- Left: Web chat limitations -->
+    <div style="flex:1;">
+      <div style="font-size:15px; font-weight:700; color:#FF6B35; margin-bottom:12px;"><i class="fas fa-comment-dots" style="margin-right:6px;"></i>网页对话AI的天花板</div>
+
+      <div class="slide-limit-card" style="background:rgba(255,60,60,0.04); border:1px solid rgba(255,60,60,0.12);">
+        <div class="slide-limit-icon" style="background:rgba(255,60,60,0.15); color:rgba(255,60,60,0.7);">✂️</div>
+        <div>
+          <div class="slide-limit-title">看不到你的代码</div>
+          <div class="slide-limit-desc">你得手动复制粘贴代码到对话框。一个类500行还行，整个项目100个类？不可能全贴进去。</div>
+        </div>
+      </div>
+
+      <div class="slide-limit-card" style="background:rgba(255,60,60,0.04); border:1px solid rgba(255,60,60,0.12);">
+        <div class="slide-limit-icon" style="background:rgba(255,60,60,0.15); color:rgba(255,60,60,0.7);">🚫</div>
+        <div>
+          <div class="slide-limit-title">不能执行代码</div>
+          <div class="slide-limit-desc">它能写代码，但不能运行。你得自己跑、自己看报错、再把错误信息贴回去。来回倒腾。</div>
+        </div>
+      </div>
+
+
+      <div class="slide-limit-card" style="background:rgba(255,60,60,0.04); border:1px solid rgba(255,60,60,0.12);">
+        <div class="slide-limit-icon" style="background:rgba(255,60,60,0.15); color:rgba(255,60,60,0.7);">📋</div>
+        <div>
+          <div class="slide-limit-title">不能操作文件系统</div>
+          <div class="slide-limit-desc">不能读pom.xml、不能改代码文件、不能执行mvn test、不能git commit。它只能"说"，不能"做"。</div>
+        </div>
+      </div>
+
+
+      <div class="slide-limit-card" style="background:rgba(255,60,60,0.04); border:1px solid rgba(255,60,60,0.12);">
+        <div class="slide-limit-icon" style="background:rgba(255,60,60,0.15); color:rgba(255,60,60,0.7);">📏</div>
+        <div>
+          <div class="slide-limit-title">输出长度和上下文双重截断</div>
+          <div class="slide-limit-desc">单次回复有字数限制（通常2000-4000字），超长代码被截断。历史会话虽有上下文，但窗口很短（通常4K-8K token），聊几轮就开始"遗忘"前面的内容。</div>
+        </div>
+      </div>
+
+      <div class="slide-limit-card" style="background:rgba(255,60,60,0.04); border:1px solid rgba(255,60,60,0.12);">
+        <div class="slide-limit-icon" style="background:rgba(255,60,60,0.15); color:rgba(255,60,60,0.7);">⚠️</div>
+        <div>
+          <div class="slide-limit-title">模型版本和质量不透明</div>
+          <div class="slide-limit-desc">部分厂商网页对话实际使用的是<strong style="color:#FF6B35;">老版本模型或量化版本</strong>（降低推理精度换取速度），与API版本能力有差距。你以为用的是最新版，实际可能是缩水版。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: What Agent brings -->
+    <div style="flex:1;">
+      <div class="slide-gap-arrow">
+        <div style="font-size:28px; color:#FF6B35;"><i class="fas fa-arrow-down"></i></div>
+        <div class="slide-gap-text">你需要的不是"更好的聊天"<br>而是一个能干活的Agent</div>
+      </div>
+
+      <div style="font-size:15px; font-weight:700; color:#00E5FF; margin-bottom:12px;"><i class="fas fa-robot" style="margin-right:6px;"></i>Agent的核心能力</div>
+
+      <div class="slide-agent-feature" style="background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.15);">
+        <div class="slide-agent-icon" style="color:#00E5FF; font-size:16px;"><i class="fas fa-eye"></i></div>
+        <div class="slide-agent-text"><strong style="color:#00E5FF;">项目级感知</strong> — 自动扫描整个项目结构、依赖、代码关系。不是看一个文件，而是<strong style="color:#E0E7FF;">理解整个项目</strong>。</div>
+      </div>
+      <div class="slide-agent-feature" style="background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.15);">
+        <div class="slide-agent-icon" style="color:#00E5FF; font-size:16px;"><i class="fas fa-hands-helping"></i></div>
+        <div class="slide-agent-text"><strong style="color:#00E5FF;">自主执行闭环</strong> — 读代码→改代码→跑测试→看结果→修bug→再跑。<strong style="color:#E0E7FF;">整个循环Agent自己跑</strong>，不用你来回复制粘贴。</div>
+      </div>
+      <div class="slide-agent-feature" style="background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.15);">
+        <div class="slide-agent-icon" style="color:#00E5FF; font-size:16px;"><i class="fas fa-brain"></i></div>
+        <div class="slide-agent-text"><strong style="color:#00E5FF;">持久上下文</strong> — 项目指令文件（CLAUDE.md）+ Rules + Memory，跨会话记住你的技术栈、规范、偏好。<strong style="color:#E0E7FF;">不用每次重新交代。</strong></div>
+      </div>
+      <div class="slide-agent-feature" style="background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.15);">
+        <div class="slide-agent-icon" style="color:#00E5FF; font-size:16px;"><i class="fas fa-code-branch"></i></div>
+        <div class="slide-agent-text"><strong style="color:#00E5FF;">工程化集成</strong> — Git分支管理、自动提交、创建PR、运行CI。Agent不只是写代码，而是<strong style="color:#E0E7FF;">参与完整的工程流程</strong>。</div>
+      </div>
+
+      <div style="padding:12px 14px; background:rgba(0,229,255,0.06); border:2px solid rgba(0,229,255,0.2); margin-top:12px;">
+        <div style="font-size:13px; color:#00E5FF; font-weight:700;"><i class="fas fa-lightbulb" style="margin-right:4px;"></i>核心区别</div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.5;">网页对话：<strong style="color:#E0E7FF;">你驱动一切</strong>——你贴代码、你跑命令、你看报错、你再贴回去。<br>Agent编程：<strong style="color:#FF6B35;">你定方向，Agent执行</strong>——它自己看、自己改、自己跑、自己修。</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

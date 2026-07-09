@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>Transformer：改变一切的架构</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+*{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+</style></head><body>
+<div class="s" style="padding:38px 70px;">
+<div style="font-size:14px;color:#00E5FF;letter-spacing:4px;margin-bottom:8px;">CHAPTER 02</div>
+<h1 class="mb-2">Transformer：改变一切的架构</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:20px;"></div>
+
+<div class="flex" style="gap:28px;">
+<div style="flex:1;">
+<div style="font-size:14px;color:rgba(224,231,255,0.4);margin-bottom:12px;">2017年 · 谷歌 · 《Attention Is All You Need》</div>
+<div style="padding:18px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);margin-bottom:14px;">
+<div style="font-size:15px;font-weight:700;color:#00E5FF;margin-bottom:10px;">注意力机制（Attention）</div>
+<div style="font-size:13px;color:rgba(224,231,255,0.6);line-height:1.8;">
+每个字都在"问"其他字：<strong style="color:#00E5FF;">你跟我有多大关系？</strong><br><br>
+<strong style="color:#00E5FF;">Query（查询）</strong>= 我在找什么<br>
+<strong style="color:#E0E7FF;">Key（标签）</strong>= 你能提供什么<br>
+<strong style="color:#FF6B35;">Value（内容）</strong>= 你的实际信息<br><br>
+Q和K匹配得越好，对V的关注度越高
+</div>
+</div>
+<div style="padding:16px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);">
+<div style="font-size:12px;color:rgba(224,231,255,0.4);margin-bottom:8px;">例子："用户浏览了<strong style="color:#FF6B35;">商品A</strong>，查看了<strong style="color:#FF6B35;">评价</strong>，加入了<strong style="color:#00E5FF;">购物车</strong>"</div>
+<div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.6;">
+处理"购物车"时：<br>
+&emsp;"商品A" → 注意力 <strong style="color:#00E5FF;">0.42</strong>（很相关）<br>
+&emsp;"评价" → 注意力 <strong style="color:#00E5FF;">0.28</strong>（相关）<br>
+&emsp;"用户" → 注意力 0.03（不相关）
+</div>
+</div>
+</div>
+
+<div style="flex:1;">
+<div style="font-size:14px;font-weight:700;color:#E0E7FF;margin-bottom:12px;">RNN vs Transformer</div>
+<div style="padding:14px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);margin-bottom:10px;">
+<div style="font-size:13px;font-weight:700;color:#FF6B35;margin-bottom:6px;">RNN：逐字读</div>
+<div style="font-size:12px;color:rgba(224,231,255,0.5);line-height:1.6;">用 → 户 → 在 → 浏 → 览 → ... → 轩<br><span style="color:#FF6B35;font-weight:600;">读到后面，忘了前面</span></div>
+</div>
+<div style="padding:14px;background:rgba(0,229,255,0.04);border:2px solid rgba(0,229,255,0.2);margin-bottom:14px;">
+<div style="font-size:13px;font-weight:700;color:#00E5FF;margin-bottom:6px;">Transformer：整句一起看</div>
+<div style="font-size:12px;color:rgba(224,231,255,0.5);line-height:1.6;">用 户 在 浏 览 了 商 品 A ... 车<br><span style="color:#00E5FF;font-weight:600;">所有字同时处理，直接建立关联</span></div>
+</div>
+
+<div style="font-size:14px;font-weight:700;color:#E0E7FF;margin-bottom:10px;">三个关键突破</div>
+<div style="padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);margin-bottom:8px;">
+<div style="font-size:13px;font-weight:700;color:#00E5FF;"><i class="fas fa-bolt" style="margin-right:6px;"></i>并行计算</div>
+<div style="font-size:11px;color:rgba(224,231,255,0.5);">GPU全力工作，训练速度提升数十倍</div>
+</div>
+<div style="padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);margin-bottom:8px;">
+<div style="font-size:13px;font-weight:700;color:#00E5FF;"><i class="fas fa-link" style="margin-right:6px;"></i>长距离依赖</div>
+<div style="font-size:11px;color:rgba(224,231,255,0.5);">直接关联任意距离的信息，不再"遗忘"</div>
+</div>
+<div style="padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);">
+<div style="font-size:13px;font-weight:700;color:#00E5FF;"><i class="fas fa-chart-line" style="margin-right:6px;"></i>可扩展性</div>
+<div style="font-size:11px;color:rgba(224,231,255,0.5);">参数越多能力越强——Scaling Laws的架构基础</div>
+</div>
+</div>
+</div>
+
+<div style="position:absolute;bottom:20px;left:70px;right:70px;padding:12px 18px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.12);text-align:center;">
+<div style="font-size:13px;color:rgba(224,231,255,0.6);"><i class="fas fa-exchange-alt" style="color:#FF6B35;margin-right:6px;"></i><strong style="color:#E0E7FF;">类比：</strong>同步阻塞IO → NIO，架构层面的根本性突破</div>
+</div>
+</div></body></html>

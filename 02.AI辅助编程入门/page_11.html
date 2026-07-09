@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>Skills详解：写法、来源与实战</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
+.slide-code-block { padding:8px 12px; background:rgba(0,0,0,0.4); border:1px solid rgba(0,229,255,0.15); font-family:monospace; font-size:11px; color:rgba(224,231,255,0.7); line-height:1.5; overflow:hidden; }
+.slide-code-comment { color:rgba(0,229,255,0.5); }
+.slide-code-key { color:#FF6B35; }
+.slide-code-string { color:#00E5FF; }
+.slide-source-item { padding:6px 10px; background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.08); margin-bottom:4px; display:flex; align-items:center; gap:10px; }
+.slide-source-name { font-size:12px; font-weight:700; color:#E0E7FF; min-width:100px; }
+.slide-source-desc { font-size:11px; color:rgba(224,231,255,0.5); }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:22px 70px;">
+  <div class="mb-2 slide-section-num">CHAPTER 04 · Skills实战</div>
+  <h1 class="mb-2">Skills详解：怎么写、怎么用、去哪找</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:10px;"></div>
+
+  <div class="flex" style="gap:18px;">
+    <!-- Left: Real skill example -->
+    <div style="flex:1;">
+      <div style="font-size:14px; font-weight:700; color:#FF6B35; margin-bottom:8px;"><i class="fas fa-pen-fancy" style="margin-right:6px;"></i>真实Skill示例：TDD（测试驱动开发）</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.4); margin-bottom:8px;">来源：mattpocock/skills · 32万+安装 · skills.sh</div>
+
+      <div class="slide-code-block" style="margin-bottom:8px; max-height:260px;">
+        <div><span class="slide-code-comment"># .opencode/skills/tdd/SKILL.md</span></div>
+        <div style="margin-top:4px;"><span class="slide-code-key">---</span></div>
+        <div><span class="slide-code-string">name</span>: tdd</div>
+        <div><span class="slide-code-string">description</span>: Test-driven development with vertical slices</div>
+        <div><span class="slide-code-string">license</span>: MIT</div>
+        <div><span class="slide-code-key">---</span></div>
+        <div style="margin-top:6px;"><span class="slide-code-key">## Philosophy</span></div>
+        <div>核心原则：测试应通过公共接口验证行为，</div>
+        <div>而非验证实现细节。代码可以完全重构，</div>
+        <div>测试不应随之改变。</div>
+        <div style="margin-top:6px;"><span class="slide-code-key">## Anti-Pattern: Horizontal Slices</span></div>
+        <div>不要先写所有测试再写所有实现。</div>
+        <div>这会产出脆弱的、与实现耦合的测试。</div>
+        <div style="margin-top:6px;"><span class="slide-code-key">## Process</span></div>
+        <div>1. <span class="slide-code-string">Plan</span>：确认接口变更，列出要测的行为</div>
+        <div>2. <span class="slide-code-string">RED</span>：写一个失败的测试（只写一个）</div>
+        <div>3. <span class="slide-code-string">GREEN</span>：写最少代码让测试通过</div>
+        <div>4. <span class="slide-code-string">REFACTOR</span>：所有测试通过后，消除重复</div>
+        <div>5. 重复 2-4，垂直切片推进</div>
+        <div style="margin-top:6px;"><span class="slide-code-key">## Refactoring Rules</span></div>
+        <div>提取重复 → 模块深化 → SOLID原则</div>
+        <div>仅在所有测试通过后重构</div>
+      </div>
+
+      <div style="font-size:13px; color:rgba(224,231,255,0.6); line-height:1.7; padding:12px 16px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.15); border-left:3px solid #00E5FF;">
+        <strong style="color:#00E5FF; font-size:14px;">SKILL.md 结构拆解</strong><br>
+        <strong style="color:#FF6B35;">Frontmatter（必填）</strong> — name（小写连字符，匹配目录名）+ description（1-1024字）<br>
+        <strong style="color:#E0E7FF;">正文内容</strong> — 核心原则、流程步骤、反模式、规则约束等<br>
+        <strong style="color:#E0E7FF;">触发条件</strong> — 描述何时使用此Skill，Agent据此自动匹配<br>
+        <strong style="color:#E0E7FF;">工具权限</strong> — 可通过opencode.json配置Skill的访问控制
+      </div>
+    </div>
+
+    <!-- Right: How to use + Sources -->
+    <div style="flex:1;">
+      <div style="font-size:14px; font-weight:700; color:#00E5FF; margin-bottom:8px;"><i class="fas fa-play-circle" style="margin-right:6px;"></i>在OpenCode中使用Skills</div>
+
+      <div style="padding:8px 12px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.12); margin-bottom:8px;">
+        <div style="font-size:12px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">一键安装（推荐）</div>
+        <div class="slide-code-block" style="font-size:11px;">
+          <div><span class="slide-code-comment"># 从 skills.sh 安装</span></div>
+          <div>npx skills add mattpocock/skills <span class="slide-code-key">--skill tdd</span></div>
+          <div style="margin-top:4px;"><span class="slide-code-comment"># 安装到 OpenCode</span></div>
+          <div>npx skills add anthropics/skills <span class="slide-code-key">--skill frontend-design</span></div>
+          <div style="margin-top:4px;"><span class="slide-code-comment"># 查看已安装的 Skills</span></div>
+          <div>npx skills list</div>
+        </div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.5); margin-top:4px;">自动下载SKILL.md并配置到OpenCode的skills目录。</div>
+      </div>
+
+      <div style="padding:8px 12px; background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.12); margin-bottom:8px;">
+        <div style="font-size:12px; font-weight:700; color:#FF6B35; margin-bottom:6px;">手动创建（自定义Skill）</div>
+        <div class="slide-code-block" style="font-size:11px;">
+          <div><span class="slide-code-comment"># 存放位置（OpenCode自动扫描）</span></div>
+          <div>项目级：<span class="slide-code-string">.opencode/skills/&lt;name&gt;/SKILL.md</span></div>
+          <div>全局级：<span class="slide-code-string">~/.config/opencode/skills/&lt;name&gt;/SKILL.md</span></div>
+          <div>兼容Claude：<span class="slide-code-string">.claude/skills/&lt;name&gt;/SKILL.md</span></div>
+          <div style="margin-top:6px;"><span class="slide-code-comment"># 必须的 Frontmatter</span></div>
+          <div><span class="slide-code-key">---</span></div>
+          <div><span class="slide-code-string">name</span>: my-skill <span class="slide-code-comment"># 小写+连字符，匹配目录名</span></div>
+          <div><span class="slide-code-string">description</span>: 一句话描述做什么</div>
+          <div><span class="slide-code-key">---</span></div>
+        </div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.5); margin-top:4px;">name格式：<code style="color:#FF6B35;">^[a-z0-9]+(-[a-z0-9]+)*$</code>，必须与目录名一致。</div>
+      </div>
+
+      <div style="font-size:13px; font-weight:700; color:#FFC832; margin-bottom:6px; margin-top:8px;"><i class="fas fa-download" style="margin-right:6px;"></i>开源Skills去哪找</div>
+
+      <div class="slide-source-item">
+        <div class="slide-source-name"><i class="fas fa-star" style="color:#FFC832; margin-right:4px;"></i>skills.sh</div>
+        <div class="slide-source-desc"><strong style="color:#FFC832;">最大Skills目录</strong>，83万+安装量，支持20+Agent</div>
+      </div>
+      <div class="slide-source-item">
+        <div class="slide-source-name"><i class="fas fa-store" style="color:#FF6B35; margin-right:4px;"></i>skillsmp.com</div>
+        <div class="slide-source-desc">170万+技能，按分类/更新排序，中文友好</div>
+      </div>
+      <div class="slide-source-item">
+        <div class="slide-source-name"><i class="fab fa-github" style="color:#E0E7FF; margin-right:4px;"></i>GitHub</div>
+        <div class="slide-source-desc">anthropics/skills、mattpocock/skills（14.9万星）</div>
+      </div>
+
+      <div style="padding:6px 10px; background:rgba(0,229,255,0.06); border:2px solid rgba(0,229,255,0.2); margin-top:6px;">
+        <div style="font-size:12px; color:#00E5FF; font-weight:700;"><i class="fas fa-lightbulb" style="margin-right:4px;"></i>核心认知</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.55); line-height:1.5;">Skill的本质是<strong style="color:#E0E7FF;">把经验固化成Agent可执行的流程</strong>。团队写的Skill可以共享，新人来了直接用——这就是"知识工程"。</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

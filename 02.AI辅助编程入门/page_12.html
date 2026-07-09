@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>Rules与上下文管理</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
+.slide-rule-item { display:flex; align-items:flex-start; gap:12px; margin-bottom:10px; padding:10px 14px; }
+.slide-rule-icon { width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+.slide-rule-content { flex:1; }
+.slide-rule-name { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:2px; }
+.slide-rule-desc { font-size:12px; color:rgba(224,231,255,0.5); line-height:1.4; }
+.slide-ctx-diagram { padding:16px 20px; background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.1); }
+.slide-ctx-layer { padding:8px 14px; margin-bottom:4px; display:flex; align-items:center; gap:10px; }
+.slide-ctx-label { font-size:12px; font-weight:700; min-width:80px; text-align:right; }
+.slide-ctx-desc { font-size:12px; color:rgba(224,231,255,0.5); }
+.slide-ctx-bar { flex:1; height:16px; border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:32px 70px;">
+  <div class="mb-2 slide-section-num">CHAPTER 04</div>
+  <h1 class="mb-2">Rules与上下文管理</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:20px;"></div>
+
+  <div class="flex" style="gap:30px;">
+    <div style="flex:1;">
+      <div style="font-size:16px; font-weight:700; color:#FF6B35; margin-bottom:12px;"><i class="fas fa-list-check" style="margin-right:6px;"></i>Rules — 项目级行为约束</div>
+      <div style="font-size:13px; color:rgba(224,231,255,0.5); margin-bottom:14px; line-height:1.5;">Rules是写在项目里的配置文件，告诉Agent在这个项目中应该遵循什么规范。不遵守Rules的Agent就像不遵守代码规范的新员工——会闯祸。</div>
+
+      <div class="slide-rule-item" style="background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.08);">
+        <div class="slide-rule-icon" style="background:rgba(0,229,255,0.15); color:#00E5FF;"><i class="fas fa-code"></i></div>
+        <div class="slide-rule-content">
+          <div class="slide-rule-name">代码风格Rules</div>
+          <div class="slide-rule-desc">"使用阿里巴巴Java开发手册规范"、"所有public方法必须有Javadoc"、"禁止使用var声明变量"</div>
+        </div>
+      </div>
+      <div class="slide-rule-item" style="background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.08);">
+        <div class="slide-rule-icon" style="background:rgba(0,229,255,0.15); color:#00E5FF;"><i class="fas fa-ban"></i></div>
+        <div class="slide-rule-content">
+          <div class="slide-rule-name">禁止操作Rules</div>
+          <div class="slide-rule-desc">"禁止直接修改main分支"、"禁止删除数据库表"、"禁止在Controller层写业务逻辑"</div>
+        </div>
+      </div>
+      <div class="slide-rule-item" style="background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.08);">
+        <div class="slide-rule-icon" style="background:rgba(0,229,255,0.15); color:#00E5FF;"><i class="fas fa-sitemap"></i></div>
+        <div class="slide-rule-content">
+          <div class="slide-rule-name">架构Rules</div>
+          <div class="slide-rule-desc">"新接口必须写在api模块"、"数据库操作只能在Repository层"、"跨服务调用用Feign"</div>
+        </div>
+      </div>
+      <div class="slide-rule-item" style="background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.08);">
+        <div class="slide-rule-icon" style="background:rgba(0,229,255,0.15); color:#00E5FF;"><i class="fas fa-vial"></i></div>
+        <div class="slide-rule-content">
+          <div class="slide-rule-name">测试Rules</div>
+          <div class="slide-rule-desc">"新增Service必须有单元测试"、"测试覆盖率不低于80%"、"使用Mockito mock外部依赖"</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1;">
+      <div style="font-size:16px; font-weight:700; color:#00E5FF; margin-bottom:12px;"><i class="fas fa-brain" style="margin-right:6px;"></i>上下文管理 — Agent的"工作记忆"</div>
+      <div style="font-size:13px; color:rgba(224,231,255,0.5); margin-bottom:14px; line-height:1.5;">上下文窗口有限，Agent需要策略性地管理它能"看到"的信息。<strong style="color:#E0E7FF;">管理好坏直接决定Agent的表现。</strong></div>
+
+      <div class="slide-ctx-diagram mb-4">
+        <div style="font-size:12px; font-weight:700; color:rgba(224,231,255,0.5); margin-bottom:10px;">上下文的组成（从高到低优先级）：</div>
+        <div class="slide-ctx-layer" style="background:rgba(255,107,53,0.08);">
+          <div class="slide-ctx-label" style="color:#FF6B35;">系统提示词</div>
+          <div class="slide-ctx-bar" style="background:rgba(255,107,53,0.3); width:15%;"></div>
+          <div class="slide-ctx-desc">Agent的人格和规则，始终保留</div>
+        </div>
+        <div class="slide-ctx-layer" style="background:rgba(0,229,255,0.06);">
+          <div class="slide-ctx-label" style="color:#00E5FF;">Skills/Rules</div>
+          <div class="slide-ctx-bar" style="background:rgba(0,229,255,0.3); width:20%;"></div>
+          <div class="slide-ctx-desc">项目规范和能力定义</div>
+        </div>
+        <div class="slide-ctx-layer" style="background:rgba(224,231,255,0.04);">
+          <div class="slide-ctx-label" style="color:#E0E7FF;">当前任务</div>
+          <div class="slide-ctx-bar" style="background:rgba(224,231,255,0.2); width:30%;"></div>
+          <div class="slide-ctx-desc">用户指令+相关代码文件</div>
+        </div>
+        <div class="slide-ctx-layer" style="background:rgba(224,231,255,0.02);">
+          <div class="slide-ctx-label" style="color:rgba(224,231,255,0.4);">对话历史</div>
+          <div class="slide-ctx-bar" style="background:rgba(224,231,255,0.1); width:25%;"></div>
+          <div class="slide-ctx-desc">之前的交互记录，可能被压缩或丢弃</div>
+        </div>
+        <div class="slide-ctx-layer" style="background:rgba(224,231,255,0.01);">
+          <div class="slide-ctx-label" style="color:rgba(224,231,255,0.3);">工具结果</div>
+          <div class="slide-ctx-bar" style="background:rgba(224,231,255,0.06); width:10%;"></div>
+          <div class="slide-ctx-desc">MCP工具返回的结果，可能被截断</div>
+        </div>
+      </div>
+
+      <div style="padding:12px 16px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.12);">
+        <div style="font-size:13px; color:#FF6B35; font-weight:700; margin-bottom:6px;"><i class="fas fa-exclamation-triangle" style="margin-right:6px;"></i>上下文管理的常见问题</div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.6;">
+          <strong style="color:#E0E7FF;">上下文溢出：</strong>代码文件太大，装不进窗口 → Agent看不到完整代码<br>
+          <strong style="color:#E0E7FF;">信息丢失：</strong>对话太长，早期内容被截断 → Agent"忘记"之前的约定<br>
+          <strong style="color:#E0E7FF;">噪音干扰：</strong>无关信息太多，关键信息被淹没 → Agent做出错误决策<br>
+          <strong style="color:#FF6B35;">解决：拆分任务、精简上下文、使用文件而非对话传递信息</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>Context Engineering全景图</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
+.slide-ctx-layer { display:flex; align-items:center; gap:10px; padding:7px 14px; margin-bottom:2px; border-radius:6px; }
+.slide-ctx-label { font-size:12px; font-weight:700; min-width:110px; text-align:right; }
+.slide-ctx-desc { font-size:11px; color:rgba(224,231,255,0.5); flex:1; }
+.slide-ctx-who { font-size:10px; padding:2px 8px; border-radius:3px; min-width:70px; text-align:center; }
+.slide-ctx-arrow { text-align:center; color:rgba(0,229,255,0.3); font-size:12px; padding:1px 0; }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:22px 70px;">
+  <div class="mb-2 slide-section-num">CHAPTER 04 · 核心理念</div>
+  <h1 class="mb-2">Context Engineering — Agent真正看到的世界</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:8px;"></div>
+  <div style="font-size:12px; color:rgba(224,231,255,0.5); margin-bottom:12px;">Prompt决定AI回答得怎么样；<strong style="color:#FF6B35;">Context决定AI能完成多复杂的任务。</strong></div>
+
+  <div class="flex" style="gap:30px;">
+    <!-- Left: Context layers diagram -->
+    <div style="flex:1;">
+      <div style="font-size:13px; font-weight:700; color:#00E5FF; margin-bottom:8px;"><i class="fas fa-layer-group" style="margin-right:6px;"></i>Agent真正看到的上下文（从高到低）</div>
+
+      <div class="slide-ctx-layer" style="background:rgba(255,107,53,0.08); border:1px solid rgba(255,107,53,0.2);">
+        <div class="slide-ctx-label" style="color:#FF6B35;">System Prompt</div>
+        <div class="slide-ctx-desc">Agent的人格、能力边界、安全规则</div>
+        <div class="slide-ctx-who" style="background:rgba(255,107,53,0.15); color:#FF6B35;">框架内置</div>
+      </div>
+      <div class="slide-ctx-arrow"><i class="fas fa-arrow-down"></i></div>
+
+      <div class="slide-ctx-layer" style="background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.15);">
+        <div class="slide-ctx-label" style="color:#00E5FF;">AGENTS.md</div>
+        <div class="slide-ctx-desc">项目技术栈、规范、架构说明 — <strong style="color:#E0E7FF;">你写的</strong></div>
+        <div class="slide-ctx-who" style="background:rgba(0,229,255,0.15); color:#00E5FF;">项目级</div>
+      </div>
+      <div class="slide-ctx-arrow"><i class="fas fa-arrow-down"></i></div>
+
+      <div class="slide-ctx-layer" style="background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.15);">
+        <div class="slide-ctx-label" style="color:#00E5FF;">Rules</div>
+        <div class="slide-ctx-desc">代码风格、禁止操作、架构约束 — <strong style="color:#E0E7FF;">你定的</strong></div>
+        <div class="slide-ctx-who" style="background:rgba(0,229,255,0.15); color:#00E5FF;">项目级</div>
+      </div>
+      <div class="slide-ctx-arrow"><i class="fas fa-arrow-down"></i></div>
+
+      <div class="slide-ctx-layer" style="background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.15);">
+        <div class="slide-ctx-label" style="color:#00E5FF;">Skills</div>
+        <div class="slide-ctx-desc">可复用的任务流程、审查清单、工作流 — <strong style="color:#E0E7FF;">你编的</strong></div>
+        <div class="slide-ctx-who" style="background:rgba(0,229,255,0.15); color:#00E5FF;">项目级</div>
+      </div>
+      <div class="slide-ctx-arrow"><i class="fas fa-arrow-down"></i></div>
+
+      <div class="slide-ctx-layer" style="background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.15);">
+        <div class="slide-ctx-label" style="color:#00E5FF;">Memory</div>
+        <div class="slide-ctx-desc">历史决策、踩坑记录、你的偏好 — <strong style="color:#E0E7FF;">Agent积累的</strong></div>
+        <div class="slide-ctx-who" style="background:rgba(0,229,255,0.15); color:#00E5FF;">跨会话</div>
+      </div>
+      <div class="slide-ctx-arrow"><i class="fas fa-arrow-down"></i></div>
+
+      <div class="slide-ctx-layer" style="background:rgba(224,231,255,0.04); border:1px solid rgba(224,231,255,0.1);">
+        <div class="slide-ctx-label" style="color:#E0E7FF;">用户Prompt</div>
+        <div class="slide-ctx-desc">你当前的指令</div>
+        <div class="slide-ctx-who" style="background:rgba(224,231,255,0.1); color:#E0E7FF;">本次任务</div>
+      </div>
+      <div class="slide-ctx-arrow"><i class="fas fa-arrow-down"></i></div>
+
+      <div class="slide-ctx-layer" style="background:rgba(224,231,255,0.04); border:1px solid rgba(224,231,255,0.1);">
+        <div class="slide-ctx-label" style="color:#E0E7FF;">当前代码 + Git Diff</div>
+        <div class="slide-ctx-desc">Agent正在操作的文件、最近的变更</div>
+        <div class="slide-ctx-who" style="background:rgba(224,231,255,0.1); color:#E0E7FF;">实时</div>
+      </div>
+      <div class="slide-ctx-arrow"><i class="fas fa-arrow-down"></i></div>
+
+      <div class="slide-ctx-layer" style="background:rgba(224,231,255,0.02); border:1px solid rgba(224,231,255,0.06);">
+        <div class="slide-ctx-label" style="color:rgba(224,231,255,0.5);">MCP结果 + 历史对话</div>
+        <div class="slide-ctx-desc">工具返回值、之前的交互（可能被截断）</div>
+        <div class="slide-ctx-who" style="background:rgba(224,231,255,0.05); color:rgba(224,231,255,0.4);">易丢失</div>
+      </div>
+    </div>
+
+    <!-- Right: Key insight -->
+    <div style="flex:1;">
+      <div style="font-size:14px; font-weight:700; color:#FF6B35; margin-bottom:8px;"><i class="fas fa-lightbulb" style="margin-right:6px;"></i>关键认知</div>
+
+      <div style="padding:12px 14px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.12); margin-bottom:10px;">
+        <div style="font-size:14px; color:#E0E7FF; font-weight:700; margin-bottom:8px;">Prompt Engineering vs Context Engineering</div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.7;">
+          <strong style="color:#FF6B35;">Prompt Engineering</strong>：优化你写的那一句话<br>
+          <strong style="color:#00E5FF;">Context Engineering</strong>：优化Agent看到的所有信息<br><br>
+          Prompt只是上下文的<strong style="color:#E0E7FF;">冰山一角</strong>。Agent的输出质量，<br>
+          80%取决于它能看到多少项目信息，20%取决于你怎么问。
+        </div>
+      </div>
+
+      <div style="padding:12px 14px; background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.12); margin-bottom:10px;">
+        <div style="font-size:14px; color:#FF6B35; font-weight:700; margin-bottom:8px;">为什么Agent比网页对话强？</div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.7;">
+          网页对话：只有 <strong style="color:#E0E7FF;">Prompt + 历史对话</strong>（最下面两层）<br>
+          Agent编程：<strong style="color:#FF6B35;">全部8层上下文</strong>都能看到<br><br>
+          这就是为什么同一个模型，Agent能完成网页对话做不到的事。
+        </div>
+      </div>
+
+      <div style="padding:12px 14px; background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.1);">
+        <div style="font-size:14px; color:#E0E7FF; font-weight:700; margin-bottom:8px;">你的工作：管理上下文</div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.7;">
+          <strong style="color:#00E5FF;">AGENTS.md</strong> — 告诉Agent"你是谁、在什么项目里"<br>
+          <strong style="color:#00E5FF;">Rules</strong> — 告诉Agent"什么能做、什么不能做"<br>
+          <strong style="color:#00E5FF;">Skills</strong> — 告诉Agent"这个任务怎么做"<br>
+          <strong style="color:#00E5FF;">Memory</strong> — 让Agent记住"之前发生过什么"<br><br>
+          <strong style="color:#FF6B35;">写好这四个文件，比写好一个Prompt重要10倍。</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

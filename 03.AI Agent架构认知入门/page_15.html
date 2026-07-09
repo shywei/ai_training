@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>Agent能力选择决策树</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
+.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
+.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
+.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+</style></head><body>
+<div class="s" style="padding:36px 60px;">
+<div class="mb-2 sn">CHAPTER 07</div><h1 class="mb-2">Agent能力选择决策树</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+
+<div style="margin-bottom:8px;">
+  </div>
+<div style="font-size:12px;color:rgba(224,231,255,0.5);margin-bottom:10px;">拿到一个AI需求，按顺序问五个问题：</div>
+<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+  <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
+    <div style="font-size:18px;color:#00E5FF;font-weight:700;width:24px;">①</div>
+    <div style="flex:1;font-size:13px;color:#E0E7FF;">用户是否需要连续对话或个性化？</div>
+    <div style="font-size:12px;color:#00E5FF;font-weight:600;width:80px;text-align:right;">→ Memory</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
+    <div style="font-size:18px;color:#00E5FF;font-weight:700;width:24px;">②</div>
+    <div style="flex:1;font-size:13px;color:#E0E7FF;">是否需要查文档、查政策、查产品信息？</div>
+    <div style="font-size:12px;color:#00E5FF;font-weight:600;width:80px;text-align:right;">→ Knowledge (RAG)</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
+    <div style="font-size:18px;color:#00E5FF;font-weight:700;width:24px;">③</div>
+    <div style="flex:1;font-size:13px;color:#E0E7FF;">是否需要调API、查库存、操作系统？</div>
+    <div style="font-size:12px;color:#FF6B35;font-weight:600;width:80px;text-align:right;">→ Tool + MCP</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
+    <div style="font-size:18px;color:#00E5FF;font-weight:700;width:24px;">④</div>
+    <div style="flex:1;font-size:13px;color:#E0E7FF;">是否多步骤、有条件分支、需要人工审批？</div>
+    <div style="font-size:12px;color:#FF6B35;font-weight:600;width:80px;text-align:right;">→ Workflow</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
+    <div style="font-size:18px;color:#00E5FF;font-weight:700;width:24px;">⑤</div>
+    <div style="flex:1;font-size:13px;color:#E0E7FF;">是否需要不同专业能力协作？</div>
+    <div style="font-size:12px;color:#FF6B35;font-weight:600;width:80px;text-align:right;">→ Multi-Agent</div>
+  </div>
+</div>
+<div style="padding:10px 12px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);border-radius:5px;margin-bottom:8px;">
+  <div style="font-size:12px;color:#FF6B35;font-weight:700;margin-bottom:4px;">三层执行体系</div>
+  <div style="display:flex;gap:12px;">
+    <div style="flex:1;text-align:center;padding:6px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
+      <div style="font-size:13px;color:#00E5FF;font-weight:700;">Tool</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.5);">= 单个动作</div>
+    </div>
+    <div style="flex:1;text-align:center;padding:6px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
+      <div style="font-size:13px;color:#00E5FF;font-weight:700;">Workflow</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.5);">= 流程编排</div>
+    </div>
+    <div style="flex:1;text-align:center;padding:6px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
+      <div style="font-size:13px;color:#00E5FF;font-weight:700;">Multi-Agent</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.5);">= 角色编排</div>
+    </div>
+  </div>
+</div>
+<div style="padding:6px 12px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.08);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.45);text-align:center;">Prompt是起点 · 不需要的能力不要加 · 按需组合</div>
+
+</div></body></html>

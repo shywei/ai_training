@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>提示词工程</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
+.slide-tip { display:flex; align-items:flex-start; margin-bottom:14px; padding:12px 16px; background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.1); }
+.slide-tip-num { width:32px; height:32px; border-radius:50%; background:rgba(0,229,255,0.15); color:#00E5FF; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; flex-shrink:0; margin-right:14px; }
+.slide-tip-content { flex:1; }
+.slide-tip-title { font-size:15px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
+.slide-tip-desc { font-size:12px; color:rgba(224,231,255,0.55); line-height:1.5; }
+.slide-bad-good { display:flex; gap:16px; margin-top:6px; }
+.slide-bad { flex:1; padding:8px 12px; background:rgba(255,60,60,0.06); border-left:3px solid rgba(255,60,60,0.4); }
+.slide-good { flex:1; padding:8px 12px; background:rgba(0,229,255,0.06); border-left:3px solid #00E5FF; }
+.slide-example-label { font-size:11px; font-weight:700; margin-bottom:4px; }
+.slide-example-text { font-size:11px; color:rgba(224,231,255,0.5); line-height:1.4; }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:32px 70px;">
+  <div class="mb-2 slide-section-num">CHAPTER 03</div>
+  <h1 class="mb-2">提示词工程：基础技巧</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:18px;"></div>
+
+  <div class="flex" style="gap:30px;">
+    <div style="flex:1;">
+      <div class="slide-tip">
+        <div class="slide-tip-num">1</div>
+        <div class="slide-tip-content">
+          <div class="slide-tip-title">明确角色和任务</div>
+          <div class="slide-tip-desc">告诉模型它是什么角色、要做什么事。角色设定直接影响输出风格和专业度。</div>
+          <div class="slide-bad-good">
+            <div class="slide-bad"><div class="slide-example-label" style="color:rgba(255,60,60,0.6);">差</div><div class="slide-example-text">"帮我写个接口"</div></div>
+            <div class="slide-good"><div class="slide-example-label" style="color:#00E5FF;">好</div><div class="slide-example-text">"你是一个Spring Boot高级工程师，帮我写一个RESTful接口，要求..."</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-tip">
+        <div class="slide-tip-num">2</div>
+        <div class="slide-tip-content">
+          <div class="slide-tip-title">提供上下文和约束</div>
+          <div class="slide-tip-desc">模型不知道你的项目背景。给它技术栈、代码规范、已有代码片段等上下文。</div>
+          <div class="slide-bad-good">
+            <div class="slide-bad"><div class="slide-example-label" style="color:rgba(255,60,60,0.6);">差</div><div class="slide-example-text">"优化这段代码"</div></div>
+            <div class="slide-good"><div class="slide-example-label" style="color:#00E5FF;">好</div><div class="slide-example-text">"项目用Java 17 + Spring Boot 3，优化以下代码的性能，不要改变接口签名"</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-tip">
+        <div class="slide-tip-num">3</div>
+        <div class="slide-tip-content">
+          <div class="slide-tip-title">给出输出格式要求</div>
+          <div class="slide-tip-desc">明确你要什么格式的输出——代码、表格、列表、JSON、步骤说明等。</div>
+        </div>
+      </div>
+    </div>
+    <div style="flex:1;">
+      <div class="slide-tip">
+        <div class="slide-tip-num">4</div>
+        <div class="slide-tip-content">
+          <div class="slide-tip-title">Few-shot：给例子</div>
+          <div class="slide-tip-desc">给1-3个输入→输出的例子，模型会模仿你的格式和风格。这是最有效的技巧之一。</div>
+        </div>
+      </div>
+      <div class="slide-tip">
+        <div class="slide-tip-num">5</div>
+        <div class="slide-tip-content">
+          <div class="slide-tip-title">Chain of Thought：让模型分步思考</div>
+          <div class="slide-tip-desc">加一句"请一步步分析"或"先列出思路再给答案"，复杂任务准确率显著提升。</div>
+        </div>
+      </div>
+      <div class="slide-tip">
+        <div class="slide-tip-num">6</div>
+        <div class="slide-tip-content">
+          <div class="slide-tip-title">迭代优化</div>
+          <div class="slide-tip-desc">第一次输出不满意很正常。根据结果调整提示词，逐步逼近理想输出。<strong style="color:#E0E7FF;">提示词工程是迭代过程，不是一次写对。</strong></div>
+        </div>
+      </div>
+      <div style="padding:14px 16px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.15); margin-top:8px;">
+        <div style="font-size:13px; color:#FF6B35; font-weight:700; margin-bottom:4px;"><i class="fas fa-star" style="margin-right:6px;"></i>编程场景的核心提示词</div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.5;">
+          代码审查："审查以下代码，重点关注线程安全、空指针、SQL注入"<br>
+          重构："将以下代码重构为策略模式，保持行为不变"<br>
+          写单测："为以下Service写单元测试，覆盖正常/异常/边界场景，用Mockito"<br>
+          排错："以下代码运行时报NullPointerException，分析原因并修复"
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

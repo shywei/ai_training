@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>总结</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
+.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
+.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
+.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+</style></head><body>
+<div class="s" style="padding:36px 60px;display:flex;flex-direction:column;">
+<h1 class="mb-2">总结</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+
+<div style="flex:1;display:flex;flex-direction:column;">
+<div style="margin-bottom:10px;">
+  </div>
+<div style="display:flex;gap:16px;margin-bottom:14px;flex:1;">
+  <div style="flex:1;padding:16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:8px;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:28px;color:#00E5FF;margin-bottom:4px;text-align:center;">①</div>
+    <div style="font-size:15px;color:#E0E7FF;font-weight:600;margin-bottom:6px;text-align:center;">知道Agent是什么</div>
+    <div style="font-size:12px;color:rgba(224,231,255,0.5);line-height:1.6;text-align:center;">不是模型，是系统<br>LLM是大脑，Agent还有手、脚和记忆<br>Agent = LLM + Memory + Knowledge<br>+ Tool + Workflow</div>
+  </div>
+  <div style="flex:1;padding:16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:8px;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:28px;color:#00E5FF;margin-bottom:4px;text-align:center;">②</div>
+    <div style="font-size:15px;color:#E0E7FF;font-weight:600;margin-bottom:6px;text-align:center;">知道能力体系</div>
+    <div style="font-size:12px;color:rgba(224,231,255,0.5);line-height:1.6;text-align:center;">认知层：Prompt + Memory + Knowledge<br>执行层：Tool + MCP + Workflow + Multi-Agent<br>每层解决不同问题，按需组合</div>
+  </div>
+  <div style="flex:1;padding:16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:8px;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:28px;color:#00E5FF;margin-bottom:4px;text-align:center;">③</div>
+    <div style="font-size:15px;color:#E0E7FF;font-weight:600;margin-bottom:6px;text-align:center;">会拆需求</div>
+    <div style="font-size:12px;color:rgba(224,231,255,0.5);line-height:1.6;text-align:center;">需求 → 需要什么能力<br>→ 用什么技术 → 怎么集成<br>不要从技术出发，要从问题出发</div>
+  </div>
+</div>
+
+<!-- 快速决策表 -->
+<div style="display:flex;gap:10px;margin-bottom:14px;">
+  <div style="flex:1;padding:8px 12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:5px;text-align:center;">
+    <div style="font-size:11px;color:#00E5FF;font-weight:700;">需要记用户？</div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.5);">→ Memory</div>
+  </div>
+  <div style="flex:1;padding:8px 12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:5px;text-align:center;">
+    <div style="font-size:11px;color:#00E5FF;font-weight:700;">需要查文档？</div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.5);">→ Knowledge (RAG)</div>
+  </div>
+  <div style="flex:1;padding:8px 12px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:5px;text-align:center;">
+    <div style="font-size:11px;color:#FF6B35;font-weight:700;">需要调系统？</div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.5);">→ Tool + MCP</div>
+  </div>
+  <div style="flex:1;padding:8px 12px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:5px;text-align:center;">
+    <div style="font-size:11px;color:#FF6B35;font-weight:700;">多步骤有审批？</div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.5);">→ Workflow</div>
+  </div>
+  <div style="flex:1;padding:8px 12px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:5px;text-align:center;">
+    <div style="font-size:11px;color:#FF6B35;font-weight:700;">需要专业分工？</div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.5);">→ Multi-Agent</div>
+  </div>
+</div>
+
+<!-- 后续学习路线 -->
+<div style="display:flex;gap:8px;margin-bottom:14px;">
+  <div style="flex:1;padding:8px 10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
+    <div style="font-size:11px;color:#00E5FF;font-weight:700;margin-bottom:3px;">🧠 深入Memory</div>
+    <div style="font-size:10px;color:rgba(224,231,255,0.45);line-height:1.5;">Mem0 · Zep · 向量化记忆<br>长期记忆压缩与检索策略</div>
+  </div>
+  <div style="flex:1;padding:8px 10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
+    <div style="font-size:11px;color:#00E5FF;font-weight:700;margin-bottom:3px;">📚 深入RAG</div>
+    <div style="font-size:10px;color:rgba(224,231,255,0.45);line-height:1.5;">LlamaIndex · Haystack · Spring AI RAG<br>Embedding选型 · ReRank优化 · 多路召回</div>
+  </div>
+  <div style="flex:1;padding:8px 10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
+    <div style="font-size:11px;color:#00E5FF;font-weight:700;margin-bottom:3px;">⚙️ 深入Workflow</div>
+    <div style="font-size:10px;color:rgba(224,231,255,0.45);line-height:1.5;">LangGraph · Dify · n8n<br>状态机设计 · 人机协作节点</div>
+  </div>
+  <div style="flex:1;padding:8px 10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
+    <div style="font-size:11px;color:#00E5FF;font-weight:700;margin-bottom:3px;">🔌 深入MCP</div>
+    <div style="font-size:10px;color:rgba(224,231,255,0.45);line-height:1.5;">Spring AI MCP · MCP SDK<br>自定义MCP Server开发</div>
+  </div>
+  <div style="flex:1;padding:8px 10px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:5px;">
+    <div style="font-size:11px;color:#FF6B35;font-weight:700;margin-bottom:3px;">🤖 深入Agent</div>
+    <div style="font-size:10px;color:rgba(224,231,255,0.45);line-height:1.5;">OpenClaw · CrewAI · AutoGen<br>Multi-Agent协作模式实战</div>
+  </div>
+</div>
+
+<div style="padding:12px 16px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;text-align:center;">
+  <div style="font-size:16px;color:#FF6B35;font-weight:700;">Agent不是模型，Agent是系统。</div>
+  <div style="font-size:13px;color:rgba(224,231,255,0.5);margin-top:6px;">Agent系统设计 = 能力拆解 + 系统组合 · 不需要的能力不要加 · 从最小架构开始</div>
+  </div>
+</div>
+</div></body></html>

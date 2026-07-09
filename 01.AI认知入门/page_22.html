@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>为什么Coding最先大规模落地</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
+.slide-q { font-size:22px; color:#FF6B35; font-weight:700; padding:14px 24px; background:rgba(255,107,53,0.06); border-left:4px solid #FF6B35; margin-bottom:24px; }
+.slide-reason { display:flex; align-items:flex-start; margin-bottom:16px; }
+.slide-reason-num { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; flex-shrink:0; margin-right:14px; }
+.slide-reason-content { flex:1; }
+.slide-reason-title { font-size:15px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
+.slide-reason-desc { font-size:13px; color:rgba(224,231,255,0.55); line-height:1.5; }
+.slide-domain-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-top:16px; }
+.slide-domain-card { padding:14px 16px; text-align:center; }
+.slide-domain-icon { font-size:24px; margin-bottom:8px; }
+.slide-domain-name { font-size:14px; font-weight:600; color:#E0E7FF; margin-bottom:4px; }
+.slide-domain-status { font-size:12px; }
+.slide-takeaway { position:absolute; bottom:30px; left:70px; right:70px; padding:14px 24px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.12); }
+.slide-takeaway-text { font-size:14px; color:rgba(224,231,255,0.6); line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:45px 70px;">
+  <div class="mb-2 slide-section-num">CHAPTER 05 · 概念辨析</div>
+  <h1 class="mb-4">为什么Coding最先大规模落地？</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:20px;"></div>
+
+  <div class="slide-q">
+    <i class="fas fa-question-circle" style="margin-right:10px;"></i>
+    AI能做的事情很多，为什么编程领域最先跑通了商业闭环？
+  </div>
+
+  <div class="flex" style="gap:40px;">
+    <div style="flex:1;">
+      <div class="slide-reason">
+        <div class="slide-reason-num" style="background:rgba(0,229,255,0.15); color:#00E5FF;">1</div>
+        <div class="slide-reason-content">
+          <div class="slide-reason-title">代码是"可验证"的</div>
+          <div class="slide-reason-desc">生成的代码能不能用，<strong style="color:#00E5FF;">编译器和测试会告诉你</strong>。不像写文章或画图那样主观，代码有明确的对错标准——这大大降低了AI出错的风险。</div>
+        </div>
+      </div>
+      <div class="slide-reason">
+        <div class="slide-reason-num" style="background:rgba(0,229,255,0.15); color:#00E5FF;">2</div>
+        <div class="slide-reason-content">
+          <div class="slide-reason-title">训练数据极其充足</div>
+          <div class="slide-reason-desc">GitHub上有<strong style="color:#00E5FF;">数十亿行开源代码</strong>，覆盖几乎所有编程语言和场景。代码本身就是文字，天然适合语言模型学习。</div>
+        </div>
+      </div>
+      <div class="slide-reason">
+        <div class="slide-reason-num" style="background:rgba(0,229,255,0.15); color:#00E5FF;">3</div>
+        <div class="slide-reason-content">
+          <div class="slide-reason-title">开发者付费意愿高</div>
+          <div class="slide-reason-desc">程序员薪资高、工具付费习惯好。Cursor每月$20，但能节省数小时——<strong style="color:#00E5FF;">ROI极其清晰</strong>，企业采购决策快。</div>
+        </div>
+      </div>
+      <div class="slide-reason">
+        <div class="slide-reason-num" style="background:rgba(0,229,255,0.15); color:#00E5FF;">4</div>
+        <div class="slide-reason-content">
+          <div class="slide-reason-title">反馈闭环快</div>
+          <div class="slide-reason-desc">写代码 → 运行 → 看结果，<strong style="color:#00E5FF;">几秒钟就能验证对错</strong>。这种快速迭代的反馈循环，让AI编程工具能持续优化，用户体验提升极快。</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="width:380px;">
+      <div style="font-size:14px; color:rgba(224,231,255,0.4); margin-bottom:10px; letter-spacing:2px;">各领域AI落地进度</div>
+      <div class="slide-domain-grid" style="gap:10px;">
+        <div class="slide-domain-card" style="background:rgba(0,229,255,0.08); border:1px solid rgba(0,229,255,0.2); padding:10px 12px;">
+          <div class="slide-domain-icon" style="color:#00E5FF; font-size:20px; margin-bottom:4px;"><i class="fas fa-code"></i></div>
+          <div class="slide-domain-name" style="font-size:13px;">编程</div>
+          <div class="slide-domain-status" style="color:#00E5FF; font-size:11px;">已大规模落地</div>
+          <div style="font-size:10px; color:rgba(224,231,255,0.35); margin-top:2px;">Cursor、Copilot</div>
+        </div>
+        <div class="slide-domain-card" style="background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.12); padding:10px 12px;">
+          <div class="slide-domain-icon" style="color:rgba(0,229,255,0.6); font-size:20px; margin-bottom:4px;"><i class="fas fa-headset"></i></div>
+          <div class="slide-domain-name" style="font-size:13px;">客服</div>
+          <div class="slide-domain-status" style="color:rgba(0,229,255,0.6); font-size:11px;">快速渗透中</div>
+          <div style="font-size:10px; color:rgba(224,231,255,0.35); margin-top:2px;">智能问答机器人</div>
+        </div>
+        <div class="slide-domain-card" style="background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.12); padding:10px 12px;">
+          <div class="slide-domain-icon" style="color:rgba(0,229,255,0.6); font-size:20px; margin-bottom:4px;"><i class="fas fa-pen-nib"></i></div>
+          <div class="slide-domain-name" style="font-size:13px;">内容创作</div>
+          <div class="slide-domain-status" style="color:rgba(0,229,255,0.6); font-size:11px;">快速渗透中</div>
+          <div style="font-size:10px; color:rgba(224,231,255,0.35); margin-top:2px;">文案、图片、视频</div>
+        </div>
+        <div class="slide-domain-card" style="background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.1); padding:10px 12px;">
+          <div class="slide-domain-icon" style="color:rgba(255,107,53,0.5); font-size:20px; margin-bottom:4px;"><i class="fas fa-stethoscope"></i></div>
+          <div class="slide-domain-name" style="font-size:13px;">医疗</div>
+          <div class="slide-domain-status" style="color:rgba(255,107,53,0.5); font-size:11px;">探索阶段</div>
+          <div style="font-size:10px; color:rgba(224,231,255,0.35); margin-top:2px;">辅助诊断、影像</div>
+        </div>
+        <div class="slide-domain-card" style="background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.1); padding:10px 12px;">
+          <div class="slide-domain-icon" style="color:rgba(255,107,53,0.5); font-size:20px; margin-bottom:4px;"><i class="fas fa-gavel"></i></div>
+          <div class="slide-domain-name" style="font-size:13px;">法律</div>
+          <div class="slide-domain-status" style="color:rgba(255,107,53,0.5); font-size:11px;">探索阶段</div>
+          <div style="font-size:10px; color:rgba(224,231,255,0.35); margin-top:2px;">合同审查、检索</div>
+        </div>
+        <div class="slide-domain-card" style="background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.1); padding:10px 12px;">
+          <div class="slide-domain-icon" style="color:rgba(255,107,53,0.5); font-size:20px; margin-bottom:4px;"><i class="fas fa-robot"></i></div>
+          <div class="slide-domain-name" style="font-size:13px;">具身智能</div>
+          <div class="slide-domain-status" style="color:rgba(255,107,53,0.5); font-size:11px;">早期阶段</div>
+          <div style="font-size:10px; color:rgba(224,231,255,0.35); margin-top:2px;">机器人、自动驾驶</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-takeaway">
+    <div class="slide-takeaway-text">
+      <i class="fas fa-lightbulb" style="color:#FF6B35; margin-right:8px;"></i>
+      <strong style="color:#E0E7FF;">本质原因：</strong>Coding领域同时满足了四个条件——可自动验证、训练数据充足、用户付费意愿强、反馈闭环快。其他领域往往只满足其中一两个。
+    </div>
+  </div>
+</div>
+</body>
+</html>

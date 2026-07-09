@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>从回答问题到执行任务：Agent时代</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:13px; color:#00E5FF; letter-spacing:4px; }
+.slide-compare-box { flex:1; padding:16px 20px; }
+.slide-compare-label { font-size:12px; font-weight:600; letter-spacing:2px; margin-bottom:10px; }
+.slide-flow { display:flex; align-items:center; gap:0; flex-wrap:wrap; }
+.slide-flow-step { padding:6px 14px; font-size:12px; font-weight:600; text-align:center; }
+.slide-flow-arrow { font-size:16px; padding:0 4px; }
+.slide-agent-table { width:100%; border-collapse:collapse; }
+.slide-agent-table th { font-size:11px; font-weight:700; padding:7px 10px; text-align:left; border-bottom:2px solid rgba(0,229,255,0.2); color:#00E5FF; }
+.slide-agent-table td { font-size:11px; padding:6px 10px; border-bottom:1px solid rgba(255,255,255,0.04); color:rgba(224,231,255,0.6); line-height:1.3; vertical-align:top; }
+.slide-agent-table .slide-an { font-weight:700; color:#E0E7FF; font-size:12px; }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:26px 60px;">
+  <div class="mb-1 slide-section-num">CHAPTER 04 · Agent时代</div>
+  <h1 class="mb-1">从回答问题到执行任务：Agent时代</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
+
+  <!-- 对比 -->
+  <div class="flex" style="gap:16px; margin-bottom:16px;">
+    <div class="slide-compare-box" style="border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.02);">
+      <div class="slide-compare-label" style="color:rgba(224,231,255,0.4);">传统AI（被动响应）</div>
+      <div class="slide-flow">
+        <div class="slide-flow-step" style="background:rgba(255,255,255,0.05); color:rgba(224,231,255,0.5);">人提问</div>
+        <div class="slide-flow-arrow" style="color:rgba(255,255,255,0.2);"><i class="fas fa-arrow-right"></i></div>
+        <div class="slide-flow-step" style="background:rgba(255,255,255,0.05); color:rgba(224,231,255,0.5);">AI回答</div>
+        <div class="slide-flow-arrow" style="color:rgba(255,255,255,0.2);"><i class="fas fa-arrow-right"></i></div>
+        <div class="slide-flow-step" style="background:rgba(255,255,255,0.05); color:rgba(224,231,255,0.5);">人执行</div>
+      </div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.3); margin-top:6px;">ChatGPT对话模式：AI只负责输出文字，执行靠人</div>
+    </div>
+    <div style="display:flex; align-items:center; font-size:24px; color:#00E5FF;">
+      <i class="fas fa-chevron-right"></i>
+    </div>
+    <div class="slide-compare-box" style="border:2px solid #00E5FF; background:rgba(0,229,255,0.05);">
+      <div class="slide-compare-label" style="color:#00E5FF;">Agent AI（主动完成）</div>
+      <div class="slide-flow">
+        <div class="slide-flow-step" style="background:rgba(0,229,255,0.15); color:#00E5FF;">人定目标</div>
+        <div class="slide-flow-arrow" style="color:#00E5FF;"><i class="fas fa-arrow-right"></i></div>
+        <div class="slide-flow-step" style="background:rgba(0,229,255,0.15); color:#00E5FF;">AI规划</div>
+        <div class="slide-flow-arrow" style="color:#00E5FF;"><i class="fas fa-arrow-right"></i></div>
+        <div class="slide-flow-step" style="background:rgba(0,229,255,0.15); color:#00E5FF;">AI执行</div>
+        <div class="slide-flow-arrow" style="color:#00E5FF;"><i class="fas fa-arrow-right"></i></div>
+        <div class="slide-flow-step" style="background:rgba(255,107,53,0.15); color:#FF6B35;">人审查</div>
+      </div>
+      <div style="font-size:11px; color:rgba(0,229,255,0.5); margin-top:6px;">Agent模式：AI自主规划+执行+调用工具，人负责验收</div>
+    </div>
+  </div>
+
+  <!-- Agent产品生态 -->
+  <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:8px;">
+    <i class="fas fa-robot" style="color:#00E5FF; margin-right:6px;"></i>通用 Agent 产品生态
+  </div>
+  <div style="font-size:11px; color:rgba(224,231,255,0.4); margin-bottom:8px;">Coding Agent之外，一批通用Agent平台正在崛起——它们不只写代码，而是连接一切工具执行任意任务。</div>
+
+  <table class="slide-agent-table">
+    <thead>
+      <tr>
+        <th style="width:120px;">产品</th>
+        <th style="width:90px;">厂商</th>
+        <th>核心定位</th>
+        <th>关键能力</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><div class="slide-an">OpenClaw</div></td>
+        <td style="color:rgba(224,231,255,0.5);">开源社区</td>
+        <td>开源AI Agent框架，35万+ GitHub Stars</td>
+        <td>连接50+平台（微信、Telegram、Discord等），自动执行任务、管理日程、代码部署，支持私有化</td>
+      </tr>
+      <tr>
+        <td><div class="slide-an">Coze</div></td>
+        <td style="color:rgba(224,231,255,0.5);">字节跳动</td>
+        <td>低代码Agent搭建平台</td>
+        <td>可视化编排工作流，插件市场丰富，一键发布到豆包/飞书/微信</td>
+      </tr>
+      <tr>
+        <td><div class="slide-an">Dify</div></td>
+        <td style="color:rgba(224,231,255,0.5);">开源社区</td>
+        <td>开源LLM应用开发平台</td>
+        <td>RAG引擎、Agent编排、API输出，私有化部署，企业级知识库场景首选</td>
+      </tr>
+      <tr>
+        <td><div class="slide-an">Manus</div></td>
+        <td style="color:rgba(224,231,255,0.5);">Butterfly Effect</td>
+        <td>通用任务执行Agent</td>
+        <td>端到端完成复杂任务（调研、写报告、做PPT），多Agent协作，云端执行</td>
+      </tr>
+      <tr>
+        <td><div class="slide-an">AutoGLM</div></td>
+        <td style="color:rgba(224,231,255,0.5);">智谱</td>
+        <td>手机/电脑操控Agent</td>
+        <td>操作手机App和电脑桌面，模拟人类点击滑动，跨应用自动执行</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="position:absolute; bottom:16px; left:60px; right:60px; text-align:center; padding:10px 0;">
+    <div style="font-size:15px; font-weight:700; color:#E0E7FF;">
+      Agent的本质 = 把<span style="color:rgba(224,231,255,0.4);">"回答问题"</span>变成<span style="color:#00E5FF;">"执行目标"</span>
+    </div>
+    <div style="font-size:11px; color:rgba(224,231,255,0.35); margin-top:4px;">工具调用、文件操作、代码执行、自主规划——AI不再只是"嘴上说说"</div>
+  </div>
+</div>
+</body>
+</html>

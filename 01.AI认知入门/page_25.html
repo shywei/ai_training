@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>大模型到底是什么</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+*{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+</style></head><body>
+<div class="s" style="padding:45px 70px;">
+<div style="font-size:14px;color:#00E5FF;letter-spacing:4px;margin-bottom:8px;">CHAPTER 05</div>
+<h1 class="mb-2">大模型到底是什么</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:20px;"></div>
+
+<div style="font-size:15px;color:rgba(224,231,255,0.5);margin-bottom:18px;">本质上是一个超大的二进制文件</div>
+
+<div class="flex" style="gap:28px;margin-bottom:16px;">
+<div style="flex:1;padding:18px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);">
+<div style="font-size:15px;font-weight:700;color:#00E5FF;margin-bottom:10px;">模型文件</div>
+<div style="font-size:13px;color:rgba(224,231,255,0.6);line-height:1.7;">
+训练完成后，模型就是<strong style="color:#E0E7FF;">一个文件</strong><br>
+里面存的是数十亿到数万亿个<strong style="color:#00E5FF;">参数（权重）</strong><br>
+这些参数就是模型"学到的知识"<br><br>
+文件格式：通常是 .safetensors 或 .bin<br>
+大小：从几GB到几百GB不等<br>
+<strong style="color:#E0E7FF;">本质：一个超大的查找表+数学运算</strong>
+</div>
+</div>
+<div style="flex:1;padding:18px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);">
+<div style="font-size:15px;font-weight:700;color:#FF6B35;margin-bottom:10px;">类比</div>
+<div style="font-size:13px;color:rgba(224,231,255,0.6);line-height:1.7;">
+就像Java的.jar文件——<br>
+<strong style="color:#E0E7FF;">训练 = 编译</strong>（把数据变成参数）<br>
+<strong style="color:#E0E7FF;">推理 = 运行</strong>（输入问题，输出回答）<br>
+<strong style="color:#E0E7FF;">模型文件 = .jar包</strong>（打包好的可执行产物）<br><br>
+不同的是：jar包是人写的代码<br>
+模型文件是机器从数据中学出来的参数
+</div>
+</div>
+</div>
+
+<div style="font-size:14px;font-weight:700;color:#E0E7FF;margin-bottom:12px;">开源 vs 闭源</div>
+<div style="display:flex;gap:16px;">
+<div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);">
+<div style="font-size:13px;font-weight:700;color:#00E5FF;margin-bottom:6px;">开源模型开源的是什么？</div>
+<div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.6;">
+<strong style="color:#E0E7FF;">模型权重</strong>（参数文件）<br>
+<strong style="color:#E0E7FF;">推理代码</strong>（怎么加载和运行模型）<br>
+部分模型会开源<strong style="color:#E0E7FF;">训练代码</strong>
+</div>
+</div>
+<div style="flex:1;padding:14px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);">
+<div style="font-size:13px;font-weight:700;color:#FF6B35;margin-bottom:6px;">不开源的是什么？</div>
+<div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.6;">
+<strong style="color:#E0E7FF;">训练数据</strong>（具体用了哪些数据）<br>
+<strong style="color:#E0E7FF;">训练细节</strong>（超参数、训练日志）<br>
+<strong style="color:#E0E7FF;">后训练数据</strong>（SFT和RLHF的数据）
+</div>
+</div>
+<div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);">
+<div style="font-size:13px;font-weight:700;color:#00E5FF;margin-bottom:6px;">开源的可以自己改吗？</div>
+<div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.6;">
+可以<strong style="color:#00E5FF;">微调</strong>（用自己数据继续训练）<br>
+可以<strong style="color:#00E5FF;">裁剪</strong>（压缩模型大小）<br>
+可以<strong style="color:#00E5FF;">部署</strong>（在自己服务器运行）<br>
+但<strong style="color:#FF6B35;">从零训练</strong>一个大模型？<br>需要数千万美元+专业团队
+</div>
+</div>
+</div>
+
+</div></body></html>

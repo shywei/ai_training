@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>当前顶级大模型一览</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:13px; color:#00E5FF; letter-spacing:4px; }
+.slide-model-table { width:100%; border-collapse:collapse; }
+.slide-model-table th { font-size:11px; font-weight:700; padding:7px 8px; text-align:left; border-bottom:2px solid rgba(0,229,255,0.2); }
+.slide-model-table td { font-size:11px; padding:6px 8px; border-bottom:1px solid rgba(255,255,255,0.04); color:rgba(224,231,255,0.6); line-height:1.3; vertical-align:top; }
+.slide-model-table .slide-mn { font-weight:700; color:#E0E7FF; font-size:11px; }
+.slide-model-table .slide-co { color:rgba(224,231,255,0.45); }
+.slide-model-table .slide-hl { color:#00E5FF; font-weight:600; }
+.slide-note-bar { position:absolute; bottom:14px; left:70px; right:70px; padding:8px 14px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.1); }
+.slide-note-text { font-size:11px; color:rgba(224,231,255,0.4); line-height:1.4; }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:28px 60px;">
+  <div class="mb-1 slide-section-num">CHAPTER 03 · 模型一览</div>
+  <h1 class="mb-1">当前顶级大模型一览（截至2026年6月）</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:10px;"></div>
+
+  <table class="slide-model-table">
+    <thead>
+      <tr>
+        <th style="color:#00E5FF; width:135px;">模型</th>
+        <th style="color:#00E5FF; width:80px;">公司</th>
+        <th style="color:#00E5FF; width:80px;">参数规模</th>
+        <th style="color:#00E5FF; width:70px;">上下文</th>
+        <th style="color:#00E5FF;">核心特点</th>
+        <th style="color:#00E5FF; width:50px;">开源</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="slide-mn">GPT-5.5</td>
+        <td class="slide-co">OpenAI</td>
+        <td>未公开</td>
+        <td class="slide-hl">100万</td>
+        <td>原生电脑使用能力，整合o3推理，Codex版40万token</td>
+        <td style="color:#FF6B35;">闭源</td>
+      </tr>
+      <tr>
+        <td class="slide-mn">Claude Opus 4.8</td>
+        <td class="slide-co">Anthropic</td>
+        <td>未公开</td>
+        <td class="slide-hl">20万</td>
+        <td>极速模式、动态工作流，编程与Agent能力顶尖</td>
+        <td style="color:#FF6B35;">闭源</td>
+      </tr>
+      <tr>
+        <td class="slide-mn">Fable 5 / Mythos 5</td>
+        <td class="slide-co">Anthropic</td>
+        <td>未公开</td>
+        <td>-</td>
+        <td>首个Mythos级公开模型，SWE-Bench Pro <span style="color:#00E5FF;">80.3%</span>；Mythos 5专注网络安全</td>
+        <td style="color:#FF6B35;">闭源</td>
+      </tr>
+      <tr>
+        <td class="slide-mn">Gemini 3.1 Pro</td>
+        <td class="slide-co">Google</td>
+        <td>未公开</td>
+        <td class="slide-hl">100万</td>
+        <td>原生多模态，"人类终极考试"最高分</td>
+        <td style="color:#FF6B35;">闭源</td>
+      </tr>
+      <tr>
+        <td class="slide-mn">Grok 4.3</td>
+        <td class="slide-co">xAI</td>
+        <td>万亿 MoE</td>
+        <td>25.6万</td>
+        <td>多智能体架构，原生多模态，集成X平台</td>
+        <td style="color:#00E5FF;">部分开源</td>
+      </tr>
+      <tr>
+        <td class="slide-mn">Llama 4</td>
+        <td class="slide-co">Meta</td>
+        <td>MoE架构</td>
+        <td>12.8万</td>
+        <td>开源标杆，推动全球开源生态</td>
+        <td style="color:#00E5FF;">开源</td>
+      </tr>
+      <tr style="border-top:2px solid rgba(255,107,53,0.15);">
+        <td class="slide-mn">DeepSeek V4-Pro</td>
+        <td class="slide-co" style="color:#FF6B35;">DeepSeek</td>
+        <td>1.6T MoE<br><span style="font-size:11px; color:rgba(224,231,255,0.35);">激活490B</span></td>
+        <td class="slide-hl">100万</td>
+        <td>Agent能力突出，开源性能对标顶级闭源，MIT协议</td>
+        <td style="color:#00E5FF;">开源</td>
+      </tr>
+      <tr>
+        <td class="slide-mn">Qwen3-Max</td>
+        <td class="slide-co" style="color:#FF6B35;">阿里</td>
+        <td>万亿 MoE</td>
+        <td class="slide-hl">100万</td>
+        <td>开源生态丰富，中文能力突出</td>
+        <td style="color:#00E5FF;">开源</td>
+      </tr>
+      <tr>
+        <td class="slide-mn">GLM-5.2</td>
+        <td class="slide-co" style="color:#FF6B35;">智谱</td>
+        <td>744B MoE</td>
+        <td class="slide-hl">100万</td>
+        <td>编程能力国产标杆，MIT协议开源</td>
+        <td style="color:#00E5FF;">开源</td>
+      </tr>
+      <tr>
+        <td class="slide-mn">MiMo-V2.5 Pro</td>
+        <td class="slide-co" style="color:#FF6B35;">小米</td>
+        <td>万亿 MoE</td>
+        <td class="slide-hl">100万</td>
+        <td>SWE-bench Pro 57.2%，推理与编程并重</td>
+        <td style="color:#FF6B35;">闭源</td>
+      </tr>
+      <tr>
+        <td class="slide-mn">Kimi K2.7 Code</td>
+        <td class="slide-co" style="color:#FF6B35;">月之暗面</td>
+        <td>1T MoE<br><span style="font-size:11px; color:rgba(224,231,255,0.35);">激活32B</span></td>
+        <td>25.6万</td>
+        <td>专注编程Agent，开源，推理token消耗降低30%</td>
+        <td style="color:#00E5FF;">开源</td>
+      </tr>
+      <tr>
+        <td class="slide-mn">MiniMax M3</td>
+        <td class="slide-co" style="color:#FF6B35;">MiniMax</td>
+        <td>428B MSA</td>
+        <td class="slide-hl">100万</td>
+        <td>自研MSA稀疏注意力，SWE-Bench超GPT-5.5，原生多模态</td>
+        <td style="color:#00E5FF;">开源</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="slide-note-bar">
+    <div class="slide-note-text">
+      <i class="fas fa-info-circle" style="color:#00E5FF; margin-right:4px;"></i>
+      MoE已成主流架构。100万token ≈ 75万字。Mythos是Anthropic最高安全等级模型系列，Fable 5是首个面向公众的Mythos级模型。
+      <span style="margin-left:8px; color:rgba(255,107,53,0.5);">信息来源：各公司官方公告，截至2026年6月。</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

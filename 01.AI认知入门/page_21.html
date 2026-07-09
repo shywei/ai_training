@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>为什么是大语言模型</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
+.slide-q { font-size:22px; color:#FF6B35; font-weight:700; padding:14px 24px; background:rgba(255,107,53,0.06); border-left:4px solid #FF6B35; margin-bottom:24px; }
+.slide-reason { display:flex; align-items:flex-start; margin-bottom:18px; }
+.slide-reason-num { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; flex-shrink:0; margin-right:16px; }
+.slide-reason-content { flex:1; }
+.slide-reason-title { font-size:16px; font-weight:700; color:#E0E7FF; margin-bottom:4px; }
+.slide-reason-desc { font-size:14px; color:rgba(224,231,255,0.55); line-height:1.6; }
+.slide-compare-row { display:flex; gap:20px; margin-top:20px; }
+.slide-compare-card { flex:1; padding:16px 20px; }
+.slide-compare-card-title { font-size:14px; font-weight:700; margin-bottom:10px; }
+.slide-compare-item { font-size:13px; color:rgba(224,231,255,0.5); margin-bottom:6px; line-height:1.4; }
+.slide-takeaway { position:absolute; bottom:30px; left:70px; right:70px; padding:14px 24px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.12); }
+.slide-takeaway-text { font-size:14px; color:rgba(224,231,255,0.6); line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:45px 70px;">
+  <div class="mb-2 slide-section-num">CHAPTER 05 · 概念辨析</div>
+  <h1 class="mb-4">为什么是大语言模型，而不是图片/视频模型？</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:20px;"></div>
+
+  <div class="slide-q">
+    <i class="fas fa-question-circle" style="margin-right:10px;"></i>
+    图片、视频、音频数据量也很大，为什么偏偏是语言模型先突破？
+  </div>
+
+  <div class="flex" style="gap:40px;">
+    <div style="flex:1;">
+      <div class="slide-reason">
+        <div class="slide-reason-num" style="background:rgba(0,229,255,0.15); color:#00E5FF;">1</div>
+        <div class="slide-reason-content">
+          <div class="slide-reason-title">语言是人类知识的载体</div>
+          <div class="slide-reason-desc">互联网上<strong style="color:#00E5FF;">90%以上的有用信息是文字</strong>：维基百科、Stack Overflow、GitHub代码、论文、新闻、论坛。图片和视频虽然量大，但承载的有效信息密度远低于文字。</div>
+        </div>
+      </div>
+      <div class="slide-reason">
+        <div class="slide-reason-num" style="background:rgba(0,229,255,0.15); color:#00E5FF;">2</div>
+        <div class="slide-reason-content">
+          <div class="slide-reason-title">语言有天然的结构化优势</div>
+          <div class="slide-reason-desc">文字是<strong style="color:#00E5FF;">离散的token序列</strong>，天然适合Transformer处理。图片是连续的像素矩阵，视频更是时空四维数据——处理复杂度完全不在一个量级。</div>
+        </div>
+      </div>
+      <div class="slide-reason">
+        <div class="slide-reason-num" style="background:rgba(0,229,255,0.15); color:#00E5FF;">3</div>
+        <div class="slide-reason-content">
+          <div class="slide-reason-title">语言能力可以"涌现"出其他能力</div>
+          <div class="slide-reason-desc">学会语言后，模型<strong style="color:#00E5FF;">自动获得了推理、规划、代码等能力</strong>——因为这些能力本来就编码在人类的文本中。而图片模型学会识别猫狗，并不能自动学会写代码。</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="width:420px;">
+      <div class="slide-compare-card" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.12);">
+        <div class="slide-compare-card-title" style="color:#00E5FF;"><i class="fas fa-font" style="margin-right:8px;"></i>语言数据</div>
+        <div class="slide-compare-item"><i class="fas fa-check" style="color:#00E5FF; margin-right:6px;"></i>信息密度高：一句话就包含明确语义</div>
+        <div class="slide-compare-item"><i class="fas fa-check" style="color:#00E5FF; margin-right:6px;"></i>结构规整：token序列，易于建模</div>
+        <div class="slide-compare-item"><i class="fas fa-check" style="color:#00E5FF; margin-right:6px;"></i>数据充足：互联网几十年积累</div>
+        <div class="slide-compare-item"><i class="fas fa-check" style="color:#00E5FF; margin-right:6px;"></i>可验证：代码能跑、数学能算</div>
+      </div>
+      <div class="slide-compare-card mt-4" style="background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.12);">
+        <div class="slide-compare-card-title" style="color:#FF6B35;"><i class="fas fa-image" style="margin-right:8px;"></i>图片/视频数据</div>
+        <div class="slide-compare-item"><i class="fas fa-times" style="color:rgba(224,231,255,0.3); margin-right:6px;"></i>信息密度低：一张照片的"含义"很模糊</div>
+        <div class="slide-compare-item"><i class="fas fa-times" style="color:rgba(224,231,255,0.3); margin-right:6px;"></i>结构复杂：像素矩阵，计算量巨大</div>
+        <div class="slide-compare-item"><i class="fas fa-times" style="color:rgba(224,231,255,0.3); margin-right:6px;"></i>标注困难：图片含义需要人来描述</div>
+        <div class="slide-compare-item"><i class="fas fa-times" style="color:rgba(224,231,255,0.3); margin-right:6px;"></i>难验证：生成的图片"对不对"很主观</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-takeaway">
+    <div class="slide-takeaway-text">
+      <i class="fas fa-lightbulb" style="color:#FF6B35; margin-right:8px;"></i>
+      <strong style="color:#E0E7FF;">不是图片/视频模型不重要</strong>，而是语言模型先突破有其必然性——数据、结构、涌现能力三者兼备。多模态（图文音视频融合）是下一步趋势，但语言始终是核心。
+    </div>
+  </div>
+</div>
+</body>
+</html>

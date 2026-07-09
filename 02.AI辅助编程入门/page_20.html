@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>Agent实战技巧精讲</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
+.slide-skill-card { padding:12px 14px; margin-bottom:8px; }
+.slide-skill-title { font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:4px; }
+.slide-skill-desc { font-size:11px; color:rgba(224,231,255,0.55); line-height:1.4; }
+.slide-skill-demo { margin-top:6px; padding:6px 10px; background:rgba(0,0,0,0.3); font-family:monospace; font-size:11px; color:rgba(224,231,255,0.5); line-height:1.4; border-left:2px solid; }
+.slide-ref-item strong { color:rgba(224,231,255,0.5); }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:24px 70px;">
+  <div class="mb-2 slide-section-num">CHAPTER 08 · 进阶</div>
+  <h1 class="mb-2">Agent实战技巧精讲</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:10px;"></div>
+
+  <div class="flex" style="gap:24px;">
+    <div style="flex:1;">
+      <div class="slide-skill-card" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.12);">
+        <div class="slide-skill-title"><i class="fas fa-file-alt" style="color:#00E5FF; margin-right:6px;"></i>技巧1：写好项目指令文件</div>
+        <div class="slide-skill-desc">在项目根目录放一个 <strong style="color:#00E5FF;">CLAUDE.md</strong>（Claude Code）或 <strong style="color:#00E5FF;">AGENTS.md</strong>（OpenCode），写明技术栈、代码规范、项目结构。<strong style="color:#E0E7FF;">Agent每次启动都会自动读取</strong>，相当于给Agent一份"入职手册"。</div>
+        <div class="slide-skill-demo" style="border-color:#00E5FF;">
+          <span style="color:#00E5FF;"># CLAUDE.md 示例</span><br>
+          技术栈：Java 17 + Spring Boot 3 + JPA<br>
+          规范：阿里巴巴Java开发手册<br>
+          数据库：MySQL 8.0，禁止直接写SQL拼接<br>
+          测试：新功能必须有JUnit5单元测试<br>
+          分支：禁止直接改main，必须走feature分支
+        </div>
+        <div class="slide-skill-desc" style="margin-top:6px;"><strong style="color:#FF6B35;">为什么重要？</strong>没有指令文件，Agent每次都要猜你的技术栈和规范。有了它，Agent的行为一致性提升10倍，减少反复纠正。</div>
+      </div>
+
+      <div class="slide-skill-card" style="background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.12);">
+        <div class="slide-skill-title"><i class="fas fa-comments" style="color:#FF6B35; margin-right:6px;"></i>技巧2：提示词的黄金公式</div>
+        <div class="slide-skill-desc">官方课程反复强调的公式：<strong style="color:#FF6B35;">角色 + 任务 + 上下文 + 约束 + 输出格式</strong></div>
+        <div class="slide-skill-demo" style="border-color:#FF6B35;">
+          <span style="color:rgba(255,107,53,0.7);">差：</span>"帮我写个接口"<br><br>
+          <span style="color:#00E5FF;">好：</span>"你是Spring Boot高级工程师（角色），<br>
+          给UserService添加密码重置功能（任务），<br>
+          项目用Java 17 + JPA，已有User实体类（上下文），<br>
+          保持现有Controller接口风格不变（约束），<br>
+          生成Controller+Service+单元测试（格式）"
+        </div>
+      </div>
+
+      <div class="slide-skill-card" style="background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.12);">
+        <div class="slide-skill-title"><i class="fas fa-puzzle-piece" style="color:#E0E7FF; margin-right:6px;"></i>技巧3：用Skills固化工作流</div>
+        <div class="slide-skill-desc">把团队的高频任务写成 <strong style="color:#E0E7FF;">SKILL.md</strong> 文件。Agent自动匹配执行，<strong style="color:#FF6B35;">写一次，用无数次</strong>。典型场景：</div>
+        <div class="slide-skill-demo" style="border-color:#E0E7FF;">
+          · <strong style="color:#E0E7FF;">代码审查Skill</strong> — 每次PR前自动执行5项检查<br>
+          · <strong style="color:#E0E7FF;">部署检查清单Skill</strong> — 上线前逐项确认<br>
+          · <strong style="color:#E0E7FF;">数据库迁移Skill</strong> — 检查SQL兼容性和回滚方案<br>
+          · <strong style="color:#E0E7FF;">新人入职Skill</strong> — 自动梳理项目结构和核心流程
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1;">
+      <div class="slide-skill-card" style="background:rgba(255,200,50,0.04); border:1px solid rgba(255,200,50,0.15);">
+        <div class="slide-skill-title"><i class="fas fa-code-branch" style="color:#FFC832; margin-right:6px;"></i>技巧4：先Plan再Code</div>
+        <div class="slide-skill-desc">复杂任务（超过3个文件修改）<strong style="color:#FFC832;">先让Agent输出计划</strong>，确认方案合理后再执行。避免Agent"上来就改"导致方向错误、返工浪费token。</div>
+        <div class="slide-skill-demo" style="border-color:#FFC832;">
+          <span style="color:#FFC832;">第一步（Plan模式）：</span><br>
+          "分析OrderService，列出重构为策略模式的步骤和文件清单"<br>
+          <span style="color:#00E5FF;">第二步（确认后执行）：</span><br>
+          "方案没问题，按计划执行"
+        </div>
+        <div class="slide-skill-desc" style="margin-top:6px;">Codex和OpenCode都支持<strong style="color:#E0E7FF;">Plan/Build模式切换</strong>，Claude Code中用"先分析不要改代码"实现同样效果。</div>
+      </div>
+
+      <div class="slide-skill-card" style="background:rgba(255,200,50,0.04); border:1px solid rgba(255,200,50,0.15);">
+        <div class="slide-skill-title"><i class="fas fa-search" style="color:#FFC832; margin-right:6px;"></i>技巧5：用AI做代码Review</div>
+        <div class="slide-skill-desc">不只是让AI写代码——<strong style="color:#FFC832;">让AI审代码，收益可能更大</strong>。一个结构化的Review提示词：</div>
+        <div class="slide-skill-demo" style="border-color:#FFC832;">
+          <span style="color:#FFC832;">Review这个PR，逐条检查：</span><br>
+          1.安全：SQL注入、XSS、敏感信息泄露<br>
+          2.空指针：所有可能为null的调用链<br>
+          3.事务：@Transactional传播行为<br>
+          4.性能：N+1查询、缺失索引<br>
+          5.规范：是否符合阿里巴巴Java手册<br>
+          <span style="color:rgba(224,231,255,0.4);">输出：严重程度、位置、修复建议</span>
+        </div>
+      </div>
+
+      <div style="padding:6px 10px; background:rgba(0,229,255,0.06); border:2px solid rgba(0,229,255,0.2); margin-top:4px;">
+        <div style="font-size:12px; color:#00E5FF; font-weight:700; margin-bottom:3px;"><i class="fas fa-star" style="margin-right:6px;"></i>核心原则</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.55); line-height:1.4;"><strong style="color:#E0E7FF;">Agent是"对话式协作"，不是"一次性生成"。</strong>给方向→执行→审查→调整→循环。你的判断力是最后一道防线。</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

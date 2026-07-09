@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>Token机制与上下文窗口</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
+.slide-concept { padding:10px 16px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.12); margin-bottom:8px; }
+.slide-concept-title { font-size:14px; font-weight:700; color:#00E5FF; margin-bottom:4px; }
+.slide-concept-desc { font-size:12px; color:rgba(224,231,255,0.55); line-height:1.5; }
+.slide-example { padding:8px 12px; background:rgba(255,107,53,0.06); border-left:3px solid #FF6B35; margin-top:6px; }
+.slide-example-text { font-size:11px; color:rgba(224,231,255,0.5); line-height:1.4; font-family:monospace; }
+.slide-note-bar { position:absolute; bottom:10px; left:70px; right:70px; padding:5px 14px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.1); }
+.slide-note-text { font-size:11px; color:rgba(224,231,255,0.4); line-height:1.4; }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:28px 70px;">
+  <div class="mb-2 slide-section-num">CHAPTER 02</div>
+  <h1 class="mb-2">Token机制与上下文窗口</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
+
+  <div class="flex" style="gap:24px;">
+    <div style="flex:1;">
+      <div class="slide-concept">
+        <div class="slide-concept-title"><i class="fas fa-puzzle-piece" style="margin-right:8px;"></i>什么是Token？</div>
+        <div class="slide-concept-desc">大模型不直接处理文字，而是把文本拆成<strong style="color:#E0E7FF;">token</strong>（词元）。一个汉字通常1-2个token，一个英文单词通常1个token。模型的输入和输出都是token序列。</div>
+        <div class="slide-example">
+          <div class="slide-example-text">"你好世界" → [你, 好, 世界] → 3个token<br>"Hello World" → [Hello, World] → 2个token<br>"indescribable" → [in, descri, bable] → 3个token</div>
+        </div>
+      </div>
+      <div class="slide-concept">
+        <div class="slide-concept-title"><i class="fas fa-ruler-horizontal" style="margin-right:8px;"></i>上下文窗口</div>
+        <div class="slide-concept-desc">模型一次能处理的最大token数。<strong style="color:#E0E7FF;">输入+输出的总和</strong>不能超过这个限制。超出会截断或报错。</div>
+        <div class="slide-example">
+          <div class="slide-example-text">GPT-2 (2019): 1,024 tokens → 约500字<br>GPT-3 (2020): 2,048 tokens → 约1000字<br>GPT-4 (2023): 128K tokens → 约6万字<br>主流模型 (2026): 100万+ tokens → 约50万字<br>一个中型Java项目 ≈ 30-50万token</div>
+        </div>
+      </div>
+    </div>
+    <div style="flex:1;">
+      <div class="slide-concept">
+        <div class="slide-concept-title"><i class="fas fa-coins" style="margin-right:8px;"></i>三种Token与计费原理</div>
+        <div class="slide-concept-desc">Token是模型计算的基本单位，计费分三类：</div>
+        <div style="margin-top:6px; padding:6px 10px; background:rgba(0,0,0,0.2); border-radius:4px;">
+          <div style="font-size:11px; color:rgba(224,231,255,0.6); line-height:1.5;">
+            <strong style="color:#00E5FF;">① 输入Token（Input）</strong>：你发给模型的内容（指令+代码+上下文）<br>
+            <strong style="color:#FF6B35;">② 输出Token（Output）</strong>：模型生成的内容，通常<strong style="color:#FF6B35;">比输入贵2-5倍</strong><br>
+            <strong style="color:#E0E7FF;">③ 缓存命中（Cache Hit）</strong>：重复内容被缓存，<strong style="color:#00E5FF;">价格仅为输入的10%-25%</strong><br>
+          </div>
+        </div>
+        <div style="margin-top:6px; padding:4px 8px; background:rgba(255,107,53,0.06); border-left:2px solid #FF6B35;">
+          <div style="font-size:11px; color:rgba(224,231,255,0.5); line-height:1.5;"><strong style="color:#FF6B35;">计费公式：</strong>总费用 = 输入token×输入单价 + 输出token×输出单价 + 缓存token×缓存单价。Agent模式下，系统提示词、Rules等重复内容会自动缓存，<strong style="color:#E0E7FF;">善用缓存可节省30-50%成本</strong>。</div>
+        </div>
+      </div>
+      <div class="slide-concept">
+        <div class="slide-concept-title"><i class="fas fa-memory" style="margin-right:8px;"></i>上下文窗口的实际影响</div>
+        <div class="slide-concept-desc">
+          <strong style="color:#E0E7FF;">对编程的影响：</strong><br>
+          · 窗口越大，Agent能"看到"的代码越多<br>
+          · 100万token ≈ 一个中型Java项目的全部代码<br>
+          · 但窗口越大，推理越慢、成本越高<br>
+          · <strong style="color:#FF6B35;">不是越大越好，要匹配任务复杂度</strong>
+        </div>
+      </div>
+      <div class="slide-concept">
+        <div class="slide-concept-title"><i class="fas fa-lightbulb" style="margin-right:8px;"></i>实际使用建议</div>
+        <div class="slide-concept-desc">
+          · 简单问答：4K-8K够用<br>
+          · 代码审查/重构：32K-128K<br>
+          · 整个项目级别的Agent：需要100K+<br>
+          · <strong style="color:#E0E7FF;">模型会自动管理上下文，但你需要知道它的边界</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-note-bar">
+    <div class="slide-note-text"><i class="fas fa-info-circle" style="color:#00E5FF; margin-right:6px;"></i>理解Token机制是使用一切AI工具的基础——它决定了你能给模型多少信息、模型能记住多少上下文、以及你的使用成本。</div>
+  </div>
+</div>
+</body>
+</html>

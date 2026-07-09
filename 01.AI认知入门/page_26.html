@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>硬件与基础设施</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+*{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+</style></head><body>
+<div class="s" style="padding:45px 70px;">
+<div style="font-size:14px;color:#00E5FF;letter-spacing:4px;margin-bottom:8px;">CHAPTER 05</div>
+<h1 class="mb-2">硬件与基础设施</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:20px;"></div>
+
+<div style="font-size:15px;color:rgba(224,231,255,0.5);margin-bottom:18px;">大模型不只是软件问题，更是硬件和能源问题</div>
+
+<div class="flex" style="gap:20px;margin-bottom:16px;">
+<div style="flex:1;padding:16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);">
+<div style="font-size:15px;font-weight:700;color:#00E5FF;margin-bottom:8px;">CPU</div>
+<div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.6;">
+通用处理器<br>
+擅长<strong style="color:#E0E7FF;">复杂逻辑和串行任务</strong><br>
+几个到几十个核心<br>
+<span style="color:#FF6B35;">不适合大模型训练</span>
+</div>
+</div>
+<div style="flex:1;padding:16px;background:rgba(0,229,255,0.04);border:2px solid rgba(0,229,255,0.2);">
+<div style="font-size:15px;font-weight:700;color:#00E5FF;margin-bottom:8px;">GPU</div>
+<div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.6;">
+图形处理器（显卡）<br>
+擅长<strong style="color:#E0E7FF;">大规模并行计算</strong><br>
+几千到几万个核心<br>
+<span style="color:#00E5FF;">大模型训练的核心硬件</span>
+</div>
+</div>
+<div style="flex:1;padding:16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);">
+<div style="font-size:15px;font-weight:700;color:#00E5FF;margin-bottom:8px;">TPU / NPU</div>
+<div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.6;">
+专用AI芯片<br>
+Google TPU、华为昇腾<br>
+<strong style="color:#E0E7FF;">专门为矩阵运算优化</strong><br>
+能效比GPU更高
+</div>
+</div>
+</div>
+
+<div class="flex" style="gap:20px;margin-bottom:16px;">
+<div style="flex:1;padding:16px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);">
+<div style="font-size:14px;font-weight:700;color:#FF6B35;margin-bottom:8px;">训练 vs 推理</div>
+<div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.7;">
+<strong style="color:#E0E7FF;">训练</strong>：需要海量算力，数千张GPU跑几个月<br>
+&emsp;一次训练，成本数千万到数亿美元<br><br>
+<strong style="color:#E0E7FF;">推理</strong>：用户每次提问都在消耗算力<br>
+&emsp;持续运行，按token计费<br>
+&emsp;推理芯片更注重<strong style="color:#00E5FF;">能效比和延迟</strong>
+</div>
+</div>
+<div style="flex:1;padding:16px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);">
+<div style="font-size:14px;font-weight:700;color:#FF6B35;margin-bottom:8px;">基础设施（Infra）</div>
+<div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.7;">
+<strong style="color:#E0E7FF;">算力集群</strong>：数千张GPU组成超级计算机<br>
+<strong style="color:#E0E7FF;">高速网络</strong>：GPU之间需要极快的数据传输<br>
+<strong style="color:#E0E7FF;">电力</strong>：训练一个大模型的电费可达数百万美元<br>
+<strong style="color:#E0E7FF;">散热</strong>：数据中心的冷却系统是重要成本<br><br>
+<span style="color:#FF6B35;">电力和芯片是大模型竞争的硬约束</span>
+</div>
+</div>
+</div>
+
+<div style="padding:14px 18px;background:rgba(0,229,255,0.06);border:2px solid rgba(0,229,255,0.2);text-align:center;">
+<div style="font-size:14px;color:#E0E7FF;">
+为什么美国芯片出口管制影响这么大？因为<strong style="color:#00E5FF;">高端GPU是训练大模型的必需品</strong>，而目前最先进的GPU（NVIDIA H100/B200）主要在美国生产
+</div>
+</div>
+
+</div></body></html>

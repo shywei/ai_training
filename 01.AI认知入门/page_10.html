@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>大模型进化之路</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/echarts@5.4.3.min.js"></script>
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
+.slide-step { display:flex; align-items:stretch; position:relative; }
+.slide-step-marker { width:60px; display:flex; flex-direction:column; align-items:center; position:relative; }
+.slide-step-dot { width:20px; height:20px; border-radius:50%; border:3px solid #00E5FF; background:#0B1120; z-index:1; }
+.slide-step-line { flex:1; width:2px; background:linear-gradient(to bottom, #00E5FF, rgba(0,229,255,0.2)); }
+.slide-step-content { flex:1; padding:0 0 24px 20px; }
+.slide-step-year { font-size:26px; font-weight:700; color:#00E5FF; }
+.slide-step-name { font-size:17px; font-weight:600; color:#E0E7FF; margin-bottom:4px; }
+.slide-step-desc { font-size:13px; color:rgba(224,231,255,0.55); line-height:1.5; }
+.slide-step-params { display:inline-block; font-size:12px; color:#FF6B35; font-weight:600; background:rgba(255,107,53,0.1); padding:2px 10px; margin-top:4px; }
+.slide-essence { padding:14px 20px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.15); }
+.slide-essence-text { font-size:15px; color:#E0E7FF; }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:38px 70px;">
+  <div class="mb-2 slide-section-num">CHAPTER 03</div>
+  <h1 class="mb-2">大模型进化之路（2018-2022）</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:30px;"></div>
+
+  <div class="flex" style="gap:40px;">
+    <!-- Left: Timeline -->
+    <div style="flex:1;">
+      <div class="slide-step">
+        <div class="slide-step-marker"><div class="slide-step-dot"></div><div class="slide-step-line"></div></div>
+        <div class="slide-step-content">
+          <div class="slide-step-year">2018</div>
+          <div class="slide-step-name">GPT-1 — 预训练的起点</div>
+          <div class="slide-step-desc">OpenAI证明"大量文本预训练 + 具体任务微调"的范式有效。同年谷歌发布BERT（3.4亿参数），在11项NLP任务上刷新纪录，开创编码器路线</div>
+          <div class="slide-step-params">1.17亿参数</div>
+        </div>
+      </div>
+      <div class="slide-step">
+        <div class="slide-step-marker"><div class="slide-step-dot"></div><div class="slide-step-line"></div></div>
+        <div class="slide-step-content">
+          <div class="slide-step-year">2019</div>
+          <div class="slide-step-name">GPT-2 — 零样本学习</div>
+          <div class="slide-step-desc">模型能直接完成未经训练的任务，展现"举一反三"能力。参数量首次突破10亿级别</div>
+          <div class="slide-step-params">15亿参数（增长12倍）</div>
+        </div>
+      </div>
+      <div class="slide-step">
+        <div class="slide-step-marker"><div class="slide-step-dot"></div><div class="slide-step-line"></div></div>
+        <div class="slide-step-content">
+          <div class="slide-step-year">2020</div>
+          <div class="slide-step-name">GPT-3 — 涌现能力</div>
+          <div class="slide-step-desc">规模突破临界点，出现未被专门训练过的能力：写代码、翻译、推理。这就是"涌现"——量变引发质变</div>
+          <div class="slide-step-params">1750亿参数（增长116倍）</div>
+        </div>
+      </div>
+      <div class="slide-step">
+        <div class="slide-step-marker"><div class="slide-step-dot" style="border-color:#FF6B35; background:#FF6B35;"></div></div>
+        <div class="slide-step-content">
+          <div class="slide-step-year" style="color:#FF6B35;">2022.11</div>
+          <div class="slide-step-name">ChatGPT — 改变世界</div>
+          <div class="slide-step-desc">基于GPT-3.5 + RLHF人类反馈强化学习，上线<strong style="color:#FF6B35;">5天注册超100万</strong>，AI从实验室走向大众</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Chart + essence -->
+    <div style="width:480px;">
+      <div id="paramChart" style="width:480px; height:300px;"></div>
+      <div class="slide-essence mt-4">
+        <div style="font-size:13px; color:#00E5FF; margin-bottom:8px; letter-spacing:2px;">核心洞察</div>
+        <div class="slide-essence-text">
+          大模型的本质：把<strong style="color:#00E5FF;">"针对每个任务单独建模"</strong>变成<strong style="color:#00E5FF;">"一个通用模型解决所有问题"</strong>
+        </div>
+        <div style="font-size:13px; color:rgba(224,231,255,0.4); margin-top:10px;">
+          就像从"每个任务写一套专用代码"到"用一个通用引擎处理所有任务"的思路转变
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+var chart = echarts.init(document.getElementById('paramChart'));
+chart.setOption({
+  backgroundColor: 'transparent',
+  grid: { left:60, right:20, top:40, bottom:40 },
+  xAxis: {
+    type: 'category',
+    data: ['GPT-1\n2018', 'GPT-2\n2019', 'GPT-3\n2020', 'ChatGPT\n2022'],
+    axisLabel: { color:'rgba(224,231,255,0.6)', fontSize:12 },
+    axisLine: { lineStyle:{ color:'rgba(0,229,255,0.2)' } }
+  },
+  yAxis: {
+    type: 'log',
+    name: '参数量',
+    nameTextStyle: { color:'rgba(224,231,255,0.4)', fontSize:11 },
+    axisLabel: { color:'rgba(224,231,255,0.5)', fontSize:11, formatter: function(v) { if(v>=1e9) return (v/1e9)+'B'; if(v>=1e8) return (v/1e8)+'亿'; return v; } },
+    splitLine: { lineStyle:{ color:'rgba(0,229,255,0.08)' } },
+    axisLine: { show:false }
+  },
+  series: [{
+    type: 'bar',
+    data: [
+      { value:1.17e8, itemStyle:{ color:'rgba(0,229,255,0.5)' } },
+      { value:1.5e9, itemStyle:{ color:'rgba(0,229,255,0.65)' } },
+      { value:1.75e11, itemStyle:{ color:'rgba(0,229,255,0.8)' } },
+      { value:1.75e11, itemStyle:{ color:'#FF6B35' } }
+    ],
+    barWidth: 40,
+    label: { show: true, position: 'top', color: '#E0E7FF', fontSize: 12, formatter: function(p) { var v=p.value; if(v>=1e9) return (v/1e9)+'B'; if(v>=1e8) return (v/1e8)+'亿'; return v; } }
+  }]
+});
+</script>
+</body>
+</html>

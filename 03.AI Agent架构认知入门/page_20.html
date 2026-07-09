@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>工程现实与落地边界</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
+.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
+.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
+.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+</style></head><body>
+<div class="s" style="padding:36px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 08</div><h1 class="mb-2">工程现实与落地边界</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+
+<div style="flex:1;display:flex;flex-direction:column;">
+<div style="margin-bottom:10px;">
+    <div style="font-size:13px;color:rgba(224,231,255,0.4);margin-top:6px;">避免"过度工程化幻想"——不是所有场景都需要Agent</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:16px;flex:1;align-content:stretch;">
+  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❶ 小型项目需要Agent架构吗？</div>
+    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">大多数不需要。如果需求是"让LLM回答问题"，一个API调用就够了。Agent架构解决的是复杂系统问题，不是简单对话问题。</div>
+  </div>
+  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❷ 什么场景不适合用Agent？</div>
+    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">规则明确、不需要理解意图、不需要动态决策的场景。例如：数据报表、定时任务、表单审批。这些用传统程序更可靠。</div>
+  </div>
+  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❸ 是否必须使用RAG？</div>
+    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">不是。如果LLM的训练数据已经够用，不需要RAG。只有需要接入企业私有知识时才需要。Prompt写得好的话，很多场景不需要RAG。</div>
+  </div>
+  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❹ MCP是必须的吗？</div>
+    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">不是。工具少于3个，直接用Function Calling。MCP的价值是标准化和复用。工具越多、越需要跨框架复用时，MCP的价值才体现。</div>
+  </div>
+  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❺ 一个Agent系统最小可行架构是什么？</div>
+    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">Prompt + LLM + 一个Tool。三样东西就能跑起来。其他组件（Memory、Knowledge、Workflow、MCP）都是按需添加。从最小架构开始，根据需求逐步扩展。</div>
+  </div>
+</div>
+</div>
+</div></body></html>

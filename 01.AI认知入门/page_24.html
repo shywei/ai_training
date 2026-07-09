@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>大模型的训练过程</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+*{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+</style></head><body>
+<div class="s" style="padding:45px 70px;">
+<div style="font-size:14px;color:#00E5FF;letter-spacing:4px;margin-bottom:8px;">CHAPTER 05</div>
+<h1 class="mb-2">大模型的训练过程</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:20px;"></div>
+
+<div style="font-size:15px;color:rgba(224,231,255,0.5);margin-bottom:18px;">从一堆随机数字到能对话的AI，要经过几个阶段</div>
+
+<div style="display:flex;align-items:center;gap:0;margin-bottom:20px;">
+<div style="flex:1;padding:16px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);text-align:center;">
+<div style="font-size:12px;color:#00E5FF;letter-spacing:2px;margin-bottom:6px;">STEP 1</div>
+<div style="font-size:17px;font-weight:700;color:#E0E7FF;margin-bottom:6px;">预训练</div>
+<div style="font-size:11px;color:rgba(224,231,255,0.5);line-height:1.5;">海量文本<br>学习预测下一个字</div>
+<div style="font-size:11px;color:#00E5FF;margin-top:6px;">学会语言</div>
+</div>
+<div style="font-size:20px;color:rgba(0,229,255,0.3);padding:0 4px;">&rarr;</div>
+<div style="flex:1;padding:16px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);text-align:center;">
+<div style="font-size:12px;color:#00E5FF;letter-spacing:2px;margin-bottom:6px;">STEP 2</div>
+<div style="font-size:17px;font-weight:700;color:#E0E7FF;margin-bottom:6px;">SFT</div>
+<div style="font-size:11px;color:rgba(224,231,255,0.5);line-height:1.5;">高质量问答对<br>学习"怎么回答"</div>
+<div style="font-size:11px;color:#00E5FF;margin-top:6px;">学会对话</div>
+</div>
+<div style="font-size:20px;color:rgba(0,229,255,0.3);padding:0 4px;">&rarr;</div>
+<div style="flex:1;padding:16px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);text-align:center;">
+<div style="font-size:12px;color:#FF6B35;letter-spacing:2px;margin-bottom:6px;">STEP 3</div>
+<div style="font-size:17px;font-weight:700;color:#E0E7FF;margin-bottom:6px;">RLHF</div>
+<div style="font-size:11px;color:rgba(224,231,255,0.5);line-height:1.5;">人类评价回答好坏<br>根据反馈优化</div>
+<div style="font-size:11px;color:#FF6B35;margin-top:6px;">学会说人话</div>
+</div>
+<div style="font-size:20px;color:rgba(255,107,53,0.3);padding:0 4px;">&rarr;</div>
+<div style="flex:1;padding:16px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);text-align:center;">
+<div style="font-size:12px;color:#00E5FF;letter-spacing:2px;margin-bottom:6px;">使用时</div>
+<div style="font-size:17px;font-weight:700;color:#E0E7FF;margin-bottom:6px;">推理</div>
+<div style="font-size:11px;color:rgba(224,231,255,0.5);line-height:1.5;">输入问题<br>模型生成回答</div>
+<div style="font-size:11px;color:#00E5FF;margin-top:6px;">实际工作</div>
+</div>
+</div>
+
+<div style="display:flex;gap:16px;">
+<div style="flex:1;padding:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);">
+<div style="font-size:13px;font-weight:700;color:#E0E7FF;margin-bottom:8px;">预训练（Pre-training）</div>
+<div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.6;">
+把互联网海量文本喂给模型<br>
+学习"给定前面的文字，预测下一个字"<br>
+<strong style="color:#00E5FF;">不需要人标注数据——文本本身就是教材</strong><br>
+耗时数月，成本数千万到数亿美元
+</div>
+</div>
+<div style="flex:1;padding:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);">
+<div style="font-size:13px;font-weight:700;color:#E0E7FF;margin-bottom:8px;">SFT（监督微调）</div>
+<div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.6;">
+人工编写高质量的问答对<br>
+教模型"应该怎么回答"<br>
+<strong style="color:#00E5FF;">从"会说话"变成"会对话"</strong><br>
+数据量比预训练小得多
+</div>
+</div>
+<div style="flex:1;padding:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);">
+<div style="font-size:13px;font-weight:700;color:#E0E7FF;margin-bottom:8px;">RLHF（人类反馈强化学习）</div>
+<div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.6;">
+让模型生成多个回答<br>
+人类排序哪个好哪个差<br>
+<strong style="color:#FF6B35;">模型根据人类偏好优化自己</strong><br>
+ChatGPT好用的关键
+</div>
+</div>
+</div>
+
+<div style="position:absolute;bottom:28px;left:70px;right:70px;padding:12px 18px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);text-align:center;">
+<div style="font-size:13px;color:#E0E7FF;">
+SFT和RLHF统称为<strong style="color:#00E5FF;">后训练（Post-training）</strong>——在预训练之后，让模型从"能用"变成"好用"
+</div>
+</div>
+</div></body></html>

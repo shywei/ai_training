@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>主流Coding Agent产品概览</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
+.slide-product-table { width:100%; border-collapse:collapse; }
+.slide-product-table th { font-size:12px; font-weight:700; padding:10px 12px; text-align:left; border-bottom:2px solid rgba(0,229,255,0.2); color:#00E5FF; }
+.slide-product-table td { font-size:12px; padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.04); color:rgba(224,231,255,0.6); line-height:1.4; }
+.slide-product-table tr:hover td { background:rgba(0,229,255,0.03); }
+.slide-product-name { font-weight:700; color:#E0E7FF; font-size:13px; }
+.slide-product-quote { font-size:11px; color:#00E5FF; font-style:italic; }
+.slide-region { font-size:11px; letter-spacing:2px; }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:30px 70px;">
+  <div class="mb-2 slide-section-num">CHAPTER 05</div>
+  <h1 class="mb-2">主流 Coding Agent 产品概览（2026）</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:6px;"></div>
+  <div style="font-size:13px; color:rgba(224,231,255,0.4); margin-bottom:16px;">不同产品定位各异，但都在向 Agent 化软件开发演进。</div>
+
+  <table class="slide-product-table">
+    <thead>
+      <tr>
+        <th style="width:110px;">产品</th>
+        <th style="width:90px;">厂商</th>
+        <th>主要场景</th>
+        <th style="width:130px;">支持模型</th>
+        <th style="width:120px;">价格</th>
+        <th style="width:80px;">中国可用</th>
+        <th>一句话定位</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><div class="slide-product-name">GitHub Copilot</div></td>
+        <td style="color:rgba(224,231,255,0.5);">GitHub / Microsoft</td>
+        <td>IDE辅助编程、CLI工具、PR审查、企业协作</td>
+        <td>GPT、Claude、Gemini 等</td>
+        <td>Free / Pro $10 / Pro+ $39 / 企业 $19-39</td>
+        <td class="slide-region" style="color:#00E5FF;">★★★★☆</td>
+        <td><span class="slide-product-quote">最普及的 AI 编程助手</span></td>
+      </tr>
+      <tr>
+        <td><div class="slide-product-name">Cursor</div></td>
+        <td style="color:rgba(224,231,255,0.5);">Anysphere</td>
+        <td>AI原生IDE、多文件编辑、后台远程Agent</td>
+        <td>Claude、GPT、Gemini 等</td>
+        <td>免费版 + Pro $20/月</td>
+        <td class="slide-region" style="color:#00E5FF;">★★★★☆</td>
+        <td><span class="slide-product-quote">当前最成熟的 AI 原生 IDE</span></td>
+      </tr>
+      <tr>
+        <td><div class="slide-product-name">Claude Code</div></td>
+        <td style="color:rgba(224,231,255,0.5);">Anthropic</td>
+        <td>终端开发、复杂重构、多Agent协作、CI集成</td>
+        <td>Claude（可代理接入第三方）</td>
+        <td>Pro $20 / Max $100-200 / Team $100/人</td>
+        <td class="slide-region" style="color:#FF6B35;">★★☆☆☆</td>
+        <td><span class="slide-product-quote">工程能力最强的 Terminal Agent</span></td>
+      </tr>
+      <tr>
+        <td><div class="slide-product-name">Codex</div></td>
+        <td style="color:rgba(224,231,255,0.5);">OpenAI</td>
+        <td>Agent协作、并行任务、CLI/桌面/移动端</td>
+        <td style="color:#FFC832;">GPT-5.5 + 开源模型</td>
+        <td>Go $8 / Plus $20 / Pro $100-200</td>
+        <td class="slide-region" style="color:#FF6B35;">★★☆☆☆</td>
+        <td><span class="slide-product-quote">2026年增长最快的 Coding Agent</span></td>
+      </tr>
+      <tr>
+        <td><div class="slide-product-name">OpenCode</div></td>
+        <td style="color:rgba(224,231,255,0.5);">开源社区</td>
+        <td>开源Agent、私有化部署、多模型自由切换</td>
+        <td>75+ 提供商（含本地模型）</td>
+        <td style="color:#00E5FF;">免费开源（模型费用另计）</td>
+        <td class="slide-region" style="color:#00E5FF;">★★★★★</td>
+        <td><span class="slide-product-quote">开源、灵活、模型自由</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Bottom insight -->
+  <div style="margin-top:16px; padding:14px 18px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.12);">
+    <div style="display:flex; align-items:center; gap:16px;">
+      <div style="font-size:16px; color:#FF6B35;"><i class="fas fa-lightbulb"></i></div>
+      <div style="font-size:13px; color:rgba(224,231,255,0.55); line-height:1.6;">
+        这些产品代表了 AI Coding 生态的不同方向：有的强调 IDE 体验，有的强调终端工作流，有的强调企业部署，有的强调开放生态。
+        <strong style="color:#E0E7FF;">真正需要学习的不是某一个产品，而是 AI Agent 的工作方式。</strong>
+        理解了 Context、Agent 和 MCP，无论以后出现什么新的 Coding Agent，都能快速上手。
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

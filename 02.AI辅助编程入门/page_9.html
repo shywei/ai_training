@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>Harness概念体系</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
+.slide-harness-item { padding:16px 18px; background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.1); margin-bottom:10px; display:flex; align-items:flex-start; gap:14px; }
+.slide-harness-icon { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.slide-harness-content { flex:1; }
+.slide-harness-name { font-size:15px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
+.slide-harness-desc { font-size:12px; color:rgba(224,231,255,0.55); line-height:1.5; }
+.slide-harness-analogy { font-size:11px; color:#FF6B35; margin-top:3px; }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:32px 70px;">
+  <div class="mb-2 slide-section-num">CHAPTER 04 · Skills实战</div>
+  <h1 class="mb-2">Harness概念体系</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:8px;"></div>
+  <div style="font-size:13px; color:rgba(224,231,255,0.4); margin-bottom:18px;">Harness（驾驭层）= 让大模型从"聊天机器人"变成"干活的Agent"的那套机制</div>
+
+  <div class="flex" style="gap:24px;">
+    <div style="flex:1;">
+      <div class="slide-harness-item">
+        <div class="slide-harness-icon" style="background:rgba(0,229,255,0.15); color:#00E5FF;"><i class="fas fa-puzzle-piece"></i></div>
+        <div class="slide-harness-content">
+          <div class="slide-harness-name">Skills（技能）</div>
+          <div class="slide-harness-desc">预定义的能力模块。每个Skill包含一组指令和工具，让Agent能完成特定任务。比如"生成PPT"、"操作数据库"。</div>
+          <div class="slide-harness-analogy">类比：Spring的Starter——引入一个依赖就获得一组能力</div>
+        </div>
+      </div>
+      <div class="slide-harness-item">
+        <div class="slide-harness-icon" style="background:rgba(255,107,53,0.15); color:#FF6B35;"><i class="fas fa-plug"></i></div>
+        <div class="slide-harness-content">
+          <div class="slide-harness-name">MCP（Model Context Protocol）</div>
+          <div class="slide-harness-desc">标准化的工具连接协议。让AI能调用外部工具——数据库、API、文件系统、浏览器等。一次接入，所有支持MCP的Agent都能用。</div>
+          <div class="slide-harness-analogy">类比：USB接口——一个标准，所有设备通用</div>
+        </div>
+      </div>
+      <div class="slide-harness-item">
+        <div class="slide-harness-icon" style="background:rgba(224,231,255,0.1); color:#E0E7FF;"><i class="fas fa-list-check"></i></div>
+        <div class="slide-harness-content">
+          <div class="slide-harness-name">Rules（规则）</div>
+          <div class="slide-harness-desc">项目级别的行为约束。定义Agent在特定项目中应该遵循的规范——代码风格、禁止操作、分支策略等。</div>
+          <div class="slide-harness-analogy">类比：.eslintrc / checkstyle.xml——项目级的规范配置</div>
+        </div>
+      </div>
+    </div>
+    <div style="flex:1;">
+      <div class="slide-harness-item">
+        <div class="slide-harness-icon" style="background:rgba(0,229,255,0.15); color:#00E5FF;"><i class="fas fa-scroll"></i></div>
+        <div class="slide-harness-content">
+          <div class="slide-harness-name">System Prompt（系统提示词）</div>
+          <div class="slide-harness-desc">Agent的"人格"和"行为准则"。在对话开始前设定，所有后续行为都受其约束。定义了Agent是什么、能做什么、不能做什么。</div>
+          <div class="slide-harness-analogy">类比：员工入职培训手册——先立规矩再干活</div>
+        </div>
+      </div>
+      <div class="slide-harness-item">
+        <div class="slide-harness-icon" style="background:rgba(255,107,53,0.15); color:#FF6B35;"><i class="fas fa-brain"></i></div>
+        <div class="slide-harness-content">
+          <div class="slide-harness-name">上下文管理</div>
+          <div class="slide-harness-desc">Agent如何管理它能"看到"的信息。包括对话历史、代码文件、工具结果等。<strong style="color:#E0E7FF;">上下文窗口有限，管理策略直接影响Agent的表现。</strong></div>
+          <div class="slide-harness-analogy">类比：工作记忆——信息太多会"忘"，需要策略性地保留关键信息</div>
+        </div>
+      </div>
+      <div style="padding:14px 16px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.12); margin-top:6px;">
+        <div style="font-size:13px; color:#00E5FF; font-weight:700; margin-bottom:6px;"><i class="fas fa-diagram-project" style="margin-right:6px;"></i>它们如何协作</div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.6;">
+          System Prompt定义Agent的"人格" → Rules约束行为边界 → Skills提供具体能力 → MCP连接外部工具 → 上下文管理决定Agent能"看到"什么 → <strong style="color:#E0E7FF;">模型做决策</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

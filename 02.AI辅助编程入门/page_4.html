@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>AI辅助编程的七个阶段</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
+.slide-stage { display:flex; align-items:flex-start; gap:12px; margin-bottom:4px; padding:8px 12px; }
+.slide-stage-num { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0; }
+.slide-stage-content { flex:1; }
+.slide-stage-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:2px; }
+.slide-stage-desc { font-size:11px; color:rgba(224,231,255,0.45); line-height:1.4; }
+.slide-stage-tag { font-size:11px; padding:2px 6px; border-radius:3px; margin-left:6px; }
+.slide-era-bar { padding:6px 12px; margin-bottom:2px; font-size:11px; font-weight:700; letter-spacing:1px; }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:28px 70px;">
+  <div class="mb-2 slide-section-num">CHAPTER 01</div>
+  <h1 class="mb-2">AI辅助编程的七个阶段</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
+
+  <div class="flex" style="gap:24px;">
+    <div style="flex:1;">
+      <div class="slide-era-bar" style="background:rgba(255,107,53,0.08); color:#FF6B35;"><i class="fas fa-comment" style="margin-right:6px;"></i>对话时代 · 你问我答</div>
+
+      <div class="slide-stage" style="background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.1);">
+        <div class="slide-stage-num" style="background:rgba(255,107,53,0.2); color:#FF6B35;">1</div>
+        <div class="slide-stage-content">
+          <div class="slide-stage-title">Prompt Engineering <span class="slide-stage-tag" style="background:rgba(255,107,53,0.15); color:#FF6B35;">语言指令</span></div>
+          <div class="slide-stage-desc">用结构化提示词引导模型输出。角色设定、Few-shot示例、Chain of Thought。<strong style="color:#E0E7FF;">基础中的基础</strong>——所有阶段都依赖它。</div>
+        </div>
+      </div>
+
+      <div class="slide-era-bar" style="background:rgba(0,229,255,0.08); color:#00E5FF; margin-top:6px;"><i class="fas fa-plug" style="margin-right:6px;"></i>工具时代 · 赋予手脚</div>
+
+      <div class="slide-stage" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.1);">
+        <div class="slide-stage-num" style="background:rgba(0,229,255,0.2); color:#00E5FF;">2</div>
+        <div class="slide-stage-content">
+          <div class="slide-stage-title">Tool Use <span class="slide-stage-tag" style="background:rgba(0,229,255,0.15); color:#00E5FF;">环境交互</span></div>
+          <div class="slide-stage-desc">Function Calling赋予模型读写文件、执行命令、调用API的能力。<strong style="color:#E0E7FF;">从"只会说"到"能做事"的关键跨越。</strong></div>
+        </div>
+      </div>
+
+      <div class="slide-stage" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.1);">
+        <div class="slide-stage-num" style="background:rgba(0,229,255,0.2); color:#00E5FF;">3</div>
+        <div class="slide-stage-content">
+          <div class="slide-stage-title">Context Engineering <span class="slide-stage-tag" style="background:rgba(0,229,255,0.15); color:#00E5FF;">上下文管理</span></div>
+          <div class="slide-stage-desc">系统化管理模型可见的信息：项目指令文件（CLAUDE.md）、Rules、Memory、知识库。<strong style="color:#E0E7FF;">Agent"看到什么"决定它"做得怎样"。</strong></div>
+        </div>
+      </div>
+
+      <div class="slide-stage" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.1);">
+        <div class="slide-stage-num" style="background:rgba(0,229,255,0.2); color:#00E5FF;">4</div>
+        <div class="slide-stage-content">
+          <div class="slide-stage-title">Workflow / Scaffold <span class="slide-stage-tag" style="background:rgba(0,229,255,0.15); color:#00E5FF;">静态编排</span></div>
+          <div class="slide-stage-desc">人工预定义确定性流程，模型按步骤执行。CI/CD流水线、固定审批链。<strong style="color:#E0E7FF;">可靠但不灵活——流程是人设计的。</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1;">
+      <div class="slide-era-bar" style="background:rgba(224,231,255,0.08); color:#E0E7FF;"><i class="fas fa-brain" style="margin-right:6px;"></i>自主时代 · 自主思考</div>
+
+      <div class="slide-stage" style="background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.1);">
+        <div class="slide-stage-num" style="background:rgba(224,231,255,0.15); color:#E0E7FF;">5</div>
+        <div class="slide-stage-content">
+          <div class="slide-stage-title">Single Agent <span class="slide-stage-tag" style="background:rgba(224,231,255,0.1); color:#E0E7FF;">自主规划</span></div>
+          <div class="slide-stage-desc">模型自主规划任务、动态调度工具。ReAct循环：思考→行动→观察→再思考。<strong style="color:#E0E7FF;">从"按剧本演"到"即兴发挥"。</strong></div>
+        </div>
+      </div>
+
+      <div class="slide-stage" style="background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.1);">
+        <div class="slide-stage-num" style="background:rgba(224,231,255,0.15); color:#E0E7FF;">6</div>
+        <div class="slide-stage-content">
+          <div class="slide-stage-title">Agentic Loop <span class="slide-stage-tag" style="background:rgba(224,231,255,0.1); color:#E0E7FF;">自迭代闭环</span></div>
+          <div class="slide-stage-desc">在Single Agent基础上增加<strong style="color:#FF6B35;">自评估→自动测试→失败修正→迭代收敛</strong>。代码写完自己跑测试，不过就自己改，直到通过。</div>
+        </div>
+      </div>
+
+      <div class="slide-era-bar" style="background:rgba(255,200,50,0.08); color:#FFC832; margin-top:6px;"><i class="fas fa-users" style="margin-right:6px;"></i>协作时代 · 多智能体</div>
+
+      <div class="slide-stage" style="background:rgba(255,200,50,0.04); border:1px solid rgba(255,200,50,0.15);">
+        <div class="slide-stage-num" style="background:rgba(255,200,50,0.2); color:#FFC832;">7</div>
+        <div class="slide-stage-content">
+          <div class="slide-stage-title">Multi-Agent <span class="slide-stage-tag" style="background:rgba(255,200,50,0.15); color:#FFC832;">多智能体协作</span></div>
+          <div class="slide-stage-desc">多个专用Agent分工协同。<strong style="color:#FFC832;">OpenCode的SubAgent、Claude Code的Sub-Agent都属于这个阶段</strong>——主Agent派生子Agent并行处理子任务，完成后汇报汇总。</div>
+        </div>
+      </div>
+
+      <div style="padding:12px 14px; background:rgba(0,229,255,0.06); border:2px solid rgba(0,229,255,0.2); margin-top:10px;">
+        <div style="font-size:12px; color:#00E5FF; font-weight:700; margin-bottom:4px;"><i class="fas fa-map-signs" style="margin-right:4px;"></i>我们在哪？</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.55); line-height:1.5;">今天的培训覆盖<strong style="color:#E0E7FF;">阶段1-7</strong>。Prompt工程（阶段1）是基础，工具使用和上下文管理（阶段2-3）是Harness体系，OpenCode/Claude Code/Codex是阶段5-6的落地产品，它们的SubAgent机制就是阶段7的实践。</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

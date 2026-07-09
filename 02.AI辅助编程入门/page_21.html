@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>学习资源与社区</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
+.slide-res-card { padding:14px 16px; margin-bottom:10px; }
+.slide-res-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:8px; }
+.slide-res-item { display:flex; align-items:flex-start; gap:10px; margin-bottom:6px; }
+.slide-res-name { font-size:12px; font-weight:700; color:#E0E7FF; min-width:200px; }
+.slide-res-url { font-size:11px; color:#00E5FF; font-family:monospace; min-width:280px; }
+.slide-res-desc { font-size:11px; color:rgba(224,231,255,0.45); }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:28px 70px;">
+ <div class="mb-2 slide-section-num">CHAPTER 08 · 参考</div>
+ <h1 class="mb-2">学习资源与社区</h1>
+ <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:16px;"></div>
+
+ <div class="flex" style="gap:22px;">
+  <div style="flex:1;">
+   <div class="slide-res-card" style="background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.12);">
+    <div class="slide-res-title"><i class="fas fa-terminal" style="color:#E0E7FF; margin-right:6px;"></i>Claude Code</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">Claude Code in Action</div>
+     <div class="slide-res-url">anthropic.skilljar.com</div>
+    </div>
+    <div class="slide-res-desc" style="margin-bottom:6px;">开发者核心课程，覆盖Agent工作流、CLAUDE.md配置、Skills使用。</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">Building Skills</div>
+     <div class="slide-res-url">anthropic.skilljar.com</div>
+    </div>
+    <div class="slide-res-desc" style="margin-bottom:6px;">教创建、配置、分发可复用的Skills。</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">官方Courses仓库</div>
+     <div class="slide-res-url">github.com/anthropics/courses</div>
+    </div>
+    <div class="slide-res-desc">开源教学Notebooks，含提示词工程、API开发等。</div>
+   </div>
+
+   <div class="slide-res-card" style="background:rgba(255,200,50,0.04); border:1px solid rgba(255,200,50,0.15);">
+    <div class="slide-res-title"><i class="fas fa-robot" style="color:#FFC832; margin-right:6px;"></i>OpenAI Codex</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">Introduction to Codex</div>
+     <div class="slide-res-url">academy.openai.com</div>
+    </div>
+    <div class="slide-res-desc" style="margin-bottom:6px;">Codex入门Webinar，60分钟。</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">Prompt Engineering</div>
+     <div class="slide-res-url">academy.openai.com</div>
+    </div>
+    <div class="slide-res-desc">OpenAI提示词团队亲讲，覆盖基本结构、常见误区、改写策略。</div>
+   </div>
+
+   <div class="slide-res-card" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.12);">
+    <div class="slide-res-title"><i class="fas fa-code" style="color:#00E5FF; margin-right:6px;"></i>OpenCode</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">官方文档</div>
+     <div class="slide-res-url">opencode.ai/docs</div>
+    </div>
+    <div class="slide-res-desc" style="margin-bottom:6px;">安装配置、WSL指南、Skills、CLI、Web、MCP等完整文档。</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">GitHub仓库</div>
+     <div class="slide-res-url">github.com/anomalyco/opencode</div>
+    </div>
+    <div class="slide-res-desc" style="margin-bottom:6px;">源码、示例、Issues讨论、版本更新。</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">Discord社区</div>
+     <div class="slide-res-url">opencode.ai/discord</div>
+    </div>
+    <div class="slide-res-desc">实时交流，问题解答，新功能讨论。</div>
+   </div>
+  </div>
+
+  <div style="flex:1;">
+   <div class="slide-res-card" style="background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.12);">
+    <div class="slide-res-title"><i class="fas fa-puzzle-piece" style="color:#FF6B35; margin-right:6px;"></i>Skills生态</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name"><strong style="color:#FFC832;">skills.sh</strong></div>
+     <div class="slide-res-url">skills.sh</div>
+    </div>
+    <div class="slide-res-desc" style="margin-bottom:6px;">最大Skills目录，83万+安装量，支持20+Agent。一键安装：<code style="color:#FF6B35;">npx skills add</code></div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">skillsmp.com</div>
+     <div class="slide-res-url">skillsmp.com</div>
+    </div>
+    <div class="slide-res-desc" style="margin-bottom:6px;">170万+技能，按分类/更新排序，中文友好。</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">mattpocock/skills</div>
+     <div class="slide-res-url">github.com/mattpocock/skills</div>
+    </div>
+    <div class="slide-res-desc" style="margin-bottom:6px;">14.9万星，TDD/架构重构/Diagnose等高质量Skill。</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">anthropics/skills</div>
+     <div class="slide-res-url">github.com/anthropics/skills</div>
+    </div>
+    <div class="slide-res-desc">Anthropic官方Skills，frontend-design等热门Skill。</div>
+   </div>
+
+   <div class="slide-res-card" style="background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.1);">
+    <div class="slide-res-title"><i class="fas fa-book-open" style="color:#E0E7FF; margin-right:6px;"></i>提示词工程</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">Anthropic提示词指南</div>
+     <div class="slide-res-url">docs.anthropic.com/build-with-claude</div>
+    </div>
+    <div class="slide-res-desc" style="margin-bottom:6px;">Claude 4.x提示词工程最佳实践，官方权威。</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">OpenAI Prompt Engineering</div>
+     <div class="slide-res-url">platform.openai.com/docs/guides</div>
+    </div>
+    <div class="slide-res-desc">GPT系列提示词指南，含Few-shot、CoT等技巧。</div>
+   </div>
+
+   <div class="slide-res-card" style="background:rgba(0,229,255,0.06); border:2px solid rgba(0,229,255,0.2);">
+    <div class="slide-res-title"><i class="fas fa-graduation-cap" style="color:#00E5FF; margin-right:6px;"></i>学习路线建议</div>
+    <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.8;">
+     <strong style="color:#E0E7FF;">第一步：</strong>装一个OpenCode，在真实项目里用一次<br>
+     <strong style="color:#E0E7FF;">第二步：</strong>写一个CLAUDE.md，固化项目规范<br>
+     <strong style="color:#E0E7FF;">第三步：</strong>从skills.sh装一个Skill，体验Skills工作流<br>
+     <strong style="color:#E0E7FF;">第四步：</strong>学完anthropic.skilljar.com的课程拿证书<br>
+     <strong style="color:#FF6B35;">持续：</strong>关注GitHub/社区，保持对新工具和新Skill的敏感度
+    </div>
+   </div>
+  </div>
+ </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>三大要素汇聚</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
+.slide-factor { flex:1; padding:30px 24px; display:flex; flex-direction:column; align-items:center; text-align:center; }
+.slide-factor-icon { width:70px; height:70px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:16px; }
+.slide-factor-title { font-size:22px; font-weight:700; color:#E0E7FF; margin-bottom:10px; }
+.slide-factor-point { font-size:14px; color:rgba(224,231,255,0.6); line-height:1.7; margin-bottom:6px; }
+.slide-converge { position:absolute; bottom:80px; left:50%; transform:translateX(-50%); text-align:center; }
+.slide-converge-text { font-size:20px; font-weight:700; color:#FF6B35; }
+.slide-converge-year { font-size:36px; font-weight:700; color:#00E5FF; }
+.slide-analogy-bar { position:absolute; bottom:20px; left:70px; right:70px; padding:12px 24px; background:rgba(255,107,53,0.08); border-left:3px solid #FF6B35; }
+.slide-analogy-text { font-size:13px; color:rgba(224,231,255,0.5); line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:45px 70px 0 70px;">
+  <div class="mb-2 slide-section-num">CHAPTER 03 · 深层原因</div>
+  <h1 class="mb-2">三大要素汇聚：为什么突然成功？</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:20px;"></div>
+
+  <div style="text-align:center; margin-bottom:10px; font-size:15px; color:rgba(224,231,255,0.4);">
+    从1943年到2017年，AI走了70年。大模型的成功不是偶然，而是三大要素同时成熟的必然。
+  </div>
+
+  <div class="flex" style="gap:20px;">
+    <div class="slide-factor" style="border:1px solid rgba(0,229,255,0.15); background:rgba(0,229,255,0.03);">
+      <div class="slide-factor-icon" style="background:rgba(0,229,255,0.15);"><i class="fas fa-database" style="font-size:28px; color:#00E5FF;"></i></div>
+      <div class="slide-factor-title">数据</div>
+      <div class="slide-factor-point">互联网积累了<strong style="color:#00E5FF;">海量文本</strong></div>
+      <div class="slide-factor-point">维基百科、书籍、代码、论坛</div>
+      <div class="slide-factor-point">数十亿网页 = 人类知识的数字镜像</div>
+      <div style="font-size:12px; color:rgba(0,229,255,0.6); margin-top:10px;"><i class="fas fa-check-circle"></i> 2017年数据已清洗整理完毕</div>
+    </div>
+    <div class="slide-factor" style="border:1px solid rgba(0,229,255,0.15); background:rgba(0,229,255,0.03);">
+      <div class="slide-factor-icon" style="background:rgba(255,107,53,0.15);"><i class="fas fa-microchip" style="font-size:28px; color:#FF6B35;"></i></div>
+      <div class="slide-factor-title">算力</div>
+      <div class="slide-factor-point">GPU/TPU让训练<strong style="color:#FF6B35;">成为可能</strong></div>
+      <div class="slide-factor-point">NVIDIA CUDA → A100 → H100</div>
+      <div class="slide-factor-point">专用芯片让训练从数百年缩短到数周</div>
+      <div style="font-size:12px; color:rgba(255,107,53,0.7); margin-top:10px;"><i class="fas fa-check-circle"></i> 2017年TPU v2解决了训练瓶颈</div>
+    </div>
+    <div class="slide-factor" style="border:1px solid rgba(0,229,255,0.15); background:rgba(0,229,255,0.03);">
+      <div class="slide-factor-icon" style="background:rgba(224,231,255,0.1);"><i class="fas fa-project-diagram" style="font-size:28px; color:#E0E7FF;"></i></div>
+      <div class="slide-factor-title">算法</div>
+      <div class="slide-factor-point">Transformer<strong style="color:#E0E7FF;">解决核心瓶颈</strong></div>
+      <div class="slide-factor-point">并行计算 + 长距离依赖</div>
+      <div class="slide-factor-point">注意力机制让模型规模可扩展</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.5); margin-top:10px;"><i class="fas fa-check-circle"></i> 2017年Transformer论文发表</div>
+    </div>
+  </div>
+
+  <div class="slide-converge">
+    <div style="font-size:14px; color:rgba(224,231,255,0.4); margin-bottom:6px;">三者在</div>
+    <div class="slide-converge-year">2017</div>
+    <div class="slide-converge-text">同时成熟 → 大模型爆发</div>
+  </div>
+
+  <div class="slide-analogy-bar">
+    <div class="slide-analogy-text">
+      <i class="fas fa-exchange-alt" style="color:#FF6B35; margin-right:8px;"></i>
+      <strong style="color:#E0E7FF;">类比：</strong>技术生态的爆发从来不是单一因素，而是多个条件同时成熟的结果——就像云计算的崛起需要虚拟化、容器化、微服务架构三者同时就绪。
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>Skills与MCP详解</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
+.slide-flow-step { padding:10px 14px; text-align:center; font-size:13px; font-weight:600; }
+.slide-flow-arrow { font-size:16px; color:#00E5FF; padding:0 6px; }
+.slide-mcp-server { padding:10px 14px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.1); margin-bottom:6px; display:flex; align-items:center; gap:10px; }
+.slide-mcp-name { font-size:13px; font-weight:700; color:#E0E7FF; min-width:100px; }
+.slide-mcp-desc { font-size:12px; color:rgba(224,231,255,0.5); }
+.slide-skill-example { padding:10px 14px; background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.1); margin-bottom:6px; }
+.slide-skill-name { font-size:13px; font-weight:700; color:#FF6B35; margin-bottom:3px; }
+.slide-skill-desc { font-size:12px; color:rgba(224,231,255,0.5); }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:32px 70px;">
+  <div class="mb-2 slide-section-num">CHAPTER 04 · 深入</div>
+  <h1 class="mb-2">Skills与MCP详解</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:20px;"></div>
+
+  <div class="flex" style="gap:30px;">
+    <div style="flex:1;">
+      <div style="font-size:16px; font-weight:700; color:#FF6B35; margin-bottom:12px;"><i class="fas fa-puzzle-piece" style="margin-right:6px;"></i>Skills — 预定义能力模块</div>
+      <div style="font-size:13px; color:rgba(224,231,255,0.5); margin-bottom:14px; line-height:1.5;">每个Skill是一个SKILL.md文件，包含任务说明、工具用法、示例。Agent读取后就知道怎么做某件事。</div>
+      <div class="slide-skill-example">
+        <div class="slide-skill-name"><i class="fas fa-file-powerpoint" style="margin-right:6px;"></i>html-ppt-generator</div>
+        <div class="slide-skill-desc">7步流水线：意图分析→内容大纲→设计规范→逐页生成HTML→自检修复→转PPTX</div>
+      </div>
+      <div class="slide-skill-example">
+        <div class="slide-skill-name"><i class="fas fa-database" style="margin-right:6px;"></i>data-analysis</div>
+        <div class="slide-skill-desc">数据分析技能：连接数据源、执行查询、生成图表和报告</div>
+      </div>
+      <div class="slide-skill-example">
+        <div class="slide-skill-name"><i class="fas fa-globe" style="margin-right:6px;"></i>agent-browser</div>
+        <div class="slide-skill-desc">浏览器操作技能：打开网页、提取内容、自动化表单填写</div>
+      </div>
+      <div style="padding:12px 14px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.12); margin-top:10px;">
+        <div style="font-size:12px; color:rgba(224,231,255,0.5); line-height:1.5;"><strong style="color:#FF6B35;">自定义Skill：</strong>你可以为团队的常见任务编写专属Skill。比如"代码审查规范"、"部署流程"、"数据库迁移检查清单"。写一个SKILL.md放进项目，Agent就能自动执行。</div>
+      </div>
+    </div>
+
+    <div style="flex:1;">
+      <div style="font-size:16px; font-weight:700; color:#00E5FF; margin-bottom:12px;"><i class="fas fa-plug" style="margin-right:6px;"></i>MCP — 标准化工具连接</div>
+      <div style="font-size:13px; color:rgba(224,231,255,0.5); margin-bottom:14px; line-height:1.5;">MCP (Model Context Protocol) 定义了AI与外部工具通信的标准接口。一次接入，所有支持MCP的Agent都能调用你的工具。</div>
+
+      <!-- MCP flow -->
+      <div class="flex items-center justify-center mb-4" style="gap:0;">
+        <div class="slide-flow-step" style="background:rgba(0,229,255,0.1); color:#00E5FF; border:1px solid rgba(0,229,255,0.2);">Agent</div>
+        <div class="slide-flow-arrow"><i class="fas fa-arrows-left-right"></i></div>
+        <div class="slide-flow-step" style="background:rgba(255,107,53,0.1); color:#FF6B35; border:1px solid rgba(255,107,53,0.2);">MCP协议</div>
+        <div class="slide-flow-arrow"><i class="fas fa-arrows-left-right"></i></div>
+        <div class="slide-flow-step" style="background:rgba(224,231,255,0.06); color:#E0E7FF; border:1px solid rgba(224,231,255,0.15);">外部工具</div>
+      </div>
+
+      <div style="font-size:13px; font-weight:600; color:rgba(224,231,255,0.6); margin-bottom:8px;">常见MCP Server：</div>
+      <div class="slide-mcp-server">
+        <div class="slide-mcp-name"><i class="fas fa-folder" style="margin-right:4px; color:#00E5FF;"></i>文件系统</div>
+        <div class="slide-mcp-desc">读写文件、目录操作、搜索代码</div>
+      </div>
+      <div class="slide-mcp-server">
+        <div class="slide-mcp-name"><i class="fas fa-database" style="margin-right:4px; color:#00E5FF;"></i>数据库</div>
+        <div class="slide-mcp-desc">执行SQL查询、查看表结构、数据迁移</div>
+      </div>
+      <div class="slide-mcp-server">
+        <div class="slide-mcp-name"><i class="fas fa-code-branch" style="margin-right:4px; color:#00E5FF;"></i>Git</div>
+        <div class="slide-mcp-desc">提交代码、查看diff、创建分支、发PR</div>
+      </div>
+      <div class="slide-mcp-server">
+        <div class="slide-mcp-name"><i class="fas fa-globe" style="margin-right:4px; color:#00E5FF;"></i>Web搜索</div>
+        <div class="slide-mcp-desc">搜索文档、API参考、Stack Overflow</div>
+      </div>
+      <div class="slide-mcp-server">
+        <div class="slide-mcp-name"><i class="fas fa-server" style="margin-right:4px; color:#00E5FF;"></i>服务器</div>
+        <div class="slide-mcp-desc">SSH执行命令、Docker操作、K8s管理</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

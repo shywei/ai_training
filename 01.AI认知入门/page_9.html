@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>统一建模与原生多模态</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+*{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+</style></head><body>
+<div class="s" style="padding:38px 70px;">
+<div style="font-size:14px;color:#00E5FF;letter-spacing:4px;margin-bottom:8px;">CHAPTER 02</div>
+<h1 class="mb-2">统一建模与原生多模态</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:20px;"></div>
+
+<div style="font-size:15px;color:rgba(224,231,255,0.5);margin-bottom:18px;">一个架构处理所有任务、所有模态</div>
+
+<div class="flex" style="gap:28px;margin-bottom:16px;">
+<div style="flex:1;padding:18px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);">
+<div style="font-size:13px;color:rgba(224,231,255,0.4);letter-spacing:2px;margin-bottom:10px;">2017年之前</div>
+<div style="font-size:12px;color:rgba(224,231,255,0.5);line-height:2;">
+文本 → <span style="color:#FF6B35;">RNN</span><br>
+图像 → <span style="color:#FF6B35;">CNN</span><br>
+语音 → <span style="color:#FF6B35;">专用模型</span><br>
+翻译 → <span style="color:#FF6B35;">Seq2Seq</span>
+</div>
+<div style="margin-top:8px;padding:8px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.1);text-align:center;font-size:12px;color:#FF6B35;font-weight:600;">一个任务 = 一个模型</div>
+</div>
+<div style="display:flex;align-items:center;font-size:28px;color:#00E5FF;">→</div>
+<div style="flex:1;padding:18px;border:2px solid #00E5FF;background:rgba(0,229,255,0.06);">
+<div style="font-size:13px;color:#00E5FF;letter-spacing:2px;margin-bottom:10px;">2017年之后</div>
+<div style="font-size:12px;color:rgba(224,231,255,0.6);line-height:2;">
+文本 → <span style="color:#00E5FF;">Transformer</span><br>
+图像 → <span style="color:#00E5FF;">Transformer</span><br>
+语音 → <span style="color:#00E5FF;">Transformer</span><br>
+代码 → <span style="color:#00E5FF;">Transformer</span>
+</div>
+<div style="margin-top:8px;padding:8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.1);text-align:center;font-size:12px;color:#00E5FF;font-weight:600;">一个架构 = 所有任务</div>
+</div>
+</div>
+
+<div style="font-size:14px;font-weight:700;color:#E0E7FF;margin-bottom:12px;">原生多模态 vs 拼接式多模态</div>
+<div class="flex" style="gap:20px;">
+<div style="flex:1;padding:16px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);">
+<div style="font-size:13px;font-weight:700;color:#FF6B35;margin-bottom:8px;">拼接式</div>
+<div style="font-size:12px;color:rgba(224,231,255,0.5);line-height:1.7;">
+图像模型 + 文本模型 + 语音模型<br>
+三个独立模型拼在一起<br>
+<span style="color:#FF6B35;">信息在边界处丢失</span><br>
+跨模态理解能力有限
+</div>
+</div>
+<div style="flex:1;padding:16px;background:rgba(0,229,255,0.04);border:2px solid rgba(0,229,255,0.2);">
+<div style="font-size:13px;font-weight:700;color:#00E5FF;margin-bottom:8px;">原生多模态（Gemini、GPT-5.5）</div>
+<div style="font-size:12px;color:rgba(224,231,255,0.5);line-height:1.7;">
+一个模型同时理解文字+图像+语音<br>
+共享注意力机制<br>
+<span style="color:#00E5FF;">跨模态信息深度融合</span><br>
+看图说话、听音识意成为可能
+</div>
+</div>
+</div>
+
+<div style="position:absolute;bottom:20px;left:70px;right:70px;padding:12px 18px;background:rgba(0,229,255,0.06);border:2px solid rgba(0,229,255,0.2);text-align:center;">
+<div style="font-size:14px;color:#00E5FF;font-weight:700;">人不用针对每个任务、每种模态重新设计模型了——一个架构解决所有问题</div>
+</div>
+</div></body></html>

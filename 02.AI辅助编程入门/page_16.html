@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>OpenClaw类Agent框架</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
+.slide-feature-card { padding:14px 16px; background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.1); margin-bottom:10px; }
+.slide-feature-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:5px; }
+.slide-feature-desc { font-size:12px; color:rgba(224,231,255,0.55); line-height:1.5; }
+.slide-feature-tag { font-size:11px; padding:2px 6px; margin-right:4px; }
+</style>
+</head>
+<body>
+<div class="slide-container" style="padding:38px 70px;">
+  <div class="mb-2 slide-section-num">CHAPTER 06</div>
+  <h1 class="mb-2">OpenClaw类Agent框架</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:8px;"></div>
+  <div style="font-size:13px; color:rgba(224,231,255,0.4); margin-bottom:16px;">Coding Agent 专注软件开发；Agent 框架面向通用任务自动化——编程只是它的一个能力</div>
+
+  <div class="flex" style="gap:24px;">
+    <div style="flex:1;">
+      <div class="slide-feature-card">
+        <div class="slide-feature-title"><span class="slide-feature-tag" style="background:rgba(0,229,255,0.15); color:#00E5FF;">核心</span>多平台连接</div>
+        <div class="slide-feature-desc">一个Agent连接50+平台——Discord、微信、Telegram、飞书、钉钉等。你在任何平台发消息，Agent都能响应并执行任务。</div>
+      </div>
+      <div class="slide-feature-card">
+        <div class="slide-feature-title"><span class="slide-feature-tag" style="background:rgba(255,107,53,0.15); color:#FF6B35;">核心</span>Memory（记忆系统）</div>
+        <div class="slide-feature-desc">Agent有长期记忆（MEMORY.md）和短期记忆（每日笔记）。跨会话保持上下文——上次聊过什么、做过什么决策，下次还记得。</div>
+      </div>
+      <div class="slide-feature-card">
+        <div class="slide-feature-title"><span class="slide-feature-tag" style="background:rgba(224,231,255,0.1); color:#E0E7FF;">核心</span>Agent自进化</div>
+        <div class="slide-feature-desc">Agent通过Memory、Rules、Skills持续积累经验——踩过的坑记录下来，后续任务复用之前的做法，而不是每次都从零开始。<strong style="color:#E0E7FF;">注意：不是模型自己训练自己，而是把经验写入文件供后续读取。</strong></div>
+      </div>
+      <div class="slide-feature-card">
+        <div class="slide-feature-title"><span class="slide-feature-tag" style="background:rgba(0,229,255,0.15); color:#00E5FF;">能力</span>子Agent（Sub-agent）</div>
+        <div class="slide-feature-desc">主Agent可以派生子Agent处理子任务，完成后汇报结果。类似线程池——并行处理多个任务，提高效率。</div>
+      </div>
+    </div>
+    <div style="flex:1;">
+      <div class="slide-feature-card">
+        <div class="slide-feature-title"><span class="slide-feature-tag" style="background:rgba(255,107,53,0.15); color:#FF6B35;">能力</span>定时任务（Cron）</div>
+        <div class="slide-feature-desc">Agent可以设置定时任务——每天检查邮件、每周生成报告、定时监控服务状态。不是被动响应，而是主动工作。</div>
+      </div>
+      <div class="slide-feature-card">
+        <div class="slide-feature-title"><span class="slide-feature-tag" style="background:rgba(224,231,255,0.1); color:#E0E7FF;">能力</span>文件与代码操作</div>
+        <div class="slide-feature-desc">读写文件、执行Shell命令、操作Git、调用API——Agent有完整的操作系统级能力。结合MCP，能力可以无限扩展。</div>
+      </div>
+
+      <div style="padding:14px 16px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.12); margin-top:6px;">
+        <div style="font-size:13px; color:#00E5FF; font-weight:700; margin-bottom:8px;"><i class="fas fa-code-branch" style="margin-right:6px;"></i>OpenClaw架构</div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.7;">
+          <strong style="color:#E0E7FF;">Gateway（网关）</strong>：接收各平台消息，路由到Agent<br>
+          <strong style="color:#E0E7FF;">Agent（智能体）</strong>：读取SOUL.md/AGENTS.md理解自己是谁、能做什么<br>
+          <strong style="color:#E0E7FF;">Skills（技能库）</strong>：可插拔的能力模块，按需加载<br>
+          <strong style="color:#E0E7FF;">Memory（记忆）</strong>：文件系统实现的持久化记忆<br>
+          <strong style="color:#E0E7FF;">Tools（工具）</strong>：exec、read、write、web_fetch等内置工具
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

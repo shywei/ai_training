@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>导购Agent：请求流转详解</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
+.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
+.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
+.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+</style></head><body>
+<div class="s" style="padding:36px 60px;">
+<div class="mb-2 sn">CHAPTER 05</div><h1 class="mb-2">导购Agent：请求流转详解</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+
+<div style="margin-bottom:8px;">
+  </div>
+<div style="font-size:11px;color:#FF6B35;font-weight:700;margin-bottom:6px;">用户问："我想买一台笔记本，预算8000，之前买过你们的鼠标"</div>
+<div style="display:flex;flex-direction:column;gap:4px;">
+  <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 8px;background:rgba(0,229,255,0.04);border-left:3px solid #00E5FF;border-radius:0 4px 4px 0;">
+    <div style="font-size:11px;color:#00E5FF;font-weight:700;min-width:16px;">❶</div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;"><b style="color:#E0E7FF;">聊天入口</b>：用户在商品页点击"智能导购"，输入问题。前端把消息发给<b style="color:#00E5FF;">电商后端</b>。</div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 8px;background:rgba(0,229,255,0.04);border-left:3px solid #00E5FF;border-radius:0 4px 4px 0;">
+    <div style="font-size:11px;color:#00E5FF;font-weight:700;min-width:16px;">❷</div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;"><b style="color:#E0E7FF;">后端转发</b>：电商后端通过<b style="color:#00E5FF;">HTTP API</b>把请求转发给Agent Runtime（Spring Boot的一个Controller）。</div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 8px;background:rgba(0,229,255,0.04);border-left:3px solid #00E5FF;border-radius:0 4px 4px 0;">
+    <div style="font-size:11px;color:#00E5FF;font-weight:700;min-width:16px;">❸</div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;"><b style="color:#E0E7FF;">Prompt识别意图</b>：Agent把用户消息 + System Prompt（"你是导购助手，帮用户推荐商品"）一起发给<b style="color:#00E5FF;">LLM</b>。LLM理解意图：要推荐笔记本、预算8000、关联历史购买。</div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 8px;background:rgba(0,229,255,0.04);border-left:3px solid #00E5FF;border-radius:0 4px 4px 0;">
+    <div style="font-size:11px;color:#00E5FF;font-weight:700;min-width:16px;">❹</div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;"><b style="color:#E0E7FF;">Memory查历史</b>：Agent Runtime用Memory组件从<b style="color:#00E5FF;">Redis</b>查用户历史——找到"买过MX Master鼠标，偏好办公场景"。拼进LLM的Context。</div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 8px;background:rgba(0,229,255,0.04);border-left:3px solid #00E5FF;border-radius:0 4px 4px 0;">
+    <div style="font-size:11px;color:#00E5FF;font-weight:700;min-width:16px;">❺</div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;"><b style="color:#E0E7FF;">RAG查商品</b>：Knowledge组件把问题做Embedding，去<b style="color:#00E5FF;">Milvus</b>检索——找到8000价位笔记本的商品信息。知识来源是<b style="color:#E0E7FF;">商品文档</b>（提前导入并Embedding过的）。</div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 8px;background:rgba(0,229,255,0.04);border-left:3px solid #FF6B35;border-radius:0 4px 4px 0;">
+    <div style="font-size:11px;color:#FF6B35;font-weight:700;min-width:16px;">❻</div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;"><b style="color:#E0E7FF;">Tool查库存</b>：LLM判断需要查库存，生成Function Call。Agent通过<b style="color:#00E5FF;">MCP</b>调用库存服务API（Tool是<b style="color:#E0E7FF;">开发者写好注册到MCP Server的</b>），返回"这3款有货"。</div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 8px;background:rgba(255,107,53,0.04);border-left:3px solid #FF6B35;border-radius:0 4px 4px 0;">
+    <div style="font-size:11px;color:#FF6B35;font-weight:700;min-width:16px;">❼</div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;"><b style="color:#E0E7FF;">LLM生成推荐</b>：Context里有——意图+历史+商品+库存。LLM综合所有信息生成推荐："考虑到您用过MX Master，推荐ThinkPad X1..."</div>
+  </div>
+  <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 8px;background:rgba(255,107,53,0.04);border-left:3px solid #FF6B35;border-radius:0 4px 4px 0;">
+    <div style="font-size:11px;color:#FF6B35;font-weight:700;min-width:16px;">❽</div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;"><b style="color:#E0E7FF;">用户确认下单</b>：用户说"就买这个"。<b style="color:#00E5FF;">Workflow</b>接管——编排：生成订单→扣库存→调支付→通知物流→更新CRM。每一步通过<b style="color:#00E5FF;">MCP</b>调用电商后端服务。</div>
+  </div>
+</div>
+<div style="margin-top:6px;display:flex;gap:8px;">
+  <div style="flex:1;padding:4px 8px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.08);border-radius:3px;font-size:11px;color:rgba(224,231,255,0.45);text-align:center;"><b style="color:#00E5FF;">❶-❺</b> 思考阶段：Prompt+Memory+Knowledge+Tool为LLM准备上下文</div>
+  <div style="flex:1;padding:4px 8px;background:rgba(255,107,53,0.03);border:1px solid rgba(255,107,53,0.08);border-radius:3px;font-size:11px;color:rgba(224,231,255,0.45);text-align:center;"><b style="color:#FF6B35;">❻-❽</b> 执行阶段：LLM决策+Workflow编排+MCP连接后端</div>
+</div>
+</div></body></html>

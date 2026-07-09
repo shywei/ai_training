@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>导购Agent：系统架构</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
+.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
+.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
+.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+</style></head><body>
+<div class="s" style="padding:36px 60px;">
+<div class="mb-2 sn">CHAPTER 05</div><h1 class="mb-2">导购Agent：系统架构</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+
+<div style="margin-bottom:8px;">
+  </div>
+<div style="font-size:11px;color:rgba(224,231,255,0.5);margin-bottom:10px;">Agent不是替代已有系统，而是在已有系统之上加了一层"智能"。两块系统通过四个连接点协作。</div>
+
+<div style="display:flex;gap:20px;align-items:stretch;">
+  <!-- 左：电商平台（已有） -->
+  <div style="flex:1;padding:10px 12px;background:rgba(224,231,255,0.02);border:1px solid rgba(224,231,255,0.08);border-radius:6px;">
+    <div style="font-size:12px;color:rgba(224,231,255,0.6);font-weight:700;text-align:center;margin-bottom:8px;">电商平台（已有系统）</div>
+
+    <div style="padding:5px 8px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:4px;margin-bottom:6px;">
+      <div style="font-size:10px;color:rgba(224,231,255,0.5);font-weight:600;margin-bottom:3px;">前端</div>
+      <div style="display:flex;gap:4px;">
+        <div style="flex:1;padding:3px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);text-align:center;">商品页</div>
+        <div style="flex:1;padding:3px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);text-align:center;">购物车</div>
+        <div style="flex:1;padding:3px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);text-align:center;">订单页</div>
+      </div>
+    </div>
+
+    <div style="padding:5px 8px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:4px;margin-bottom:6px;">
+      <div style="font-size:10px;color:rgba(224,231,255,0.5);font-weight:600;margin-bottom:3px;">后端服务</div>
+      <div style="display:flex;gap:3px;flex-wrap:wrap;">
+        <div style="padding:2px 5px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);">商品服务</div>
+        <div style="padding:2px 5px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);">库存服务</div>
+        <div style="padding:2px 5px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);">订单服务</div>
+        <div style="padding:2px 5px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);">用户服务</div>
+        <div style="padding:2px 5px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);">支付服务</div>
+      </div>
+    </div>
+
+    <div style="padding:5px 8px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:4px;">
+      <div style="font-size:10px;color:rgba(224,231,255,0.5);font-weight:600;margin-bottom:3px;">数据库</div>
+      <div style="display:flex;gap:4px;">
+        <div style="flex:1;padding:3px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);text-align:center;">商品DB</div>
+        <div style="flex:1;padding:3px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);text-align:center;">订单DB</div>
+        <div style="flex:1;padding:3px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);text-align:center;">ERP</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 中间：连接线 -->
+  <div style="display:flex;flex-direction:column;justify-content:center;gap:12px;min-width:120px;">
+    <div style="text-align:center;padding:4px 6px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:3px;">
+      <div style="font-size:10px;color:#00E5FF;font-weight:600;">💬 聊天入口</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.35);">前端嵌入聊天组件</div>
+    </div>
+    <div style="text-align:center;padding:4px 6px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:3px;">
+      <div style="font-size:10px;color:#00E5FF;font-weight:600;">🔌 HTTP API</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.35);">后端调Agent Runtime</div>
+    </div>
+    <div style="text-align:center;padding:4px 6px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:3px;">
+      <div style="font-size:10px;color:#00E5FF;font-weight:600;">🔧 MCP</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.35);">Agent调后端服务</div>
+    </div>
+    <div style="text-align:center;padding:4px 6px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:3px;">
+      <div style="font-size:10px;color:#00E5FF;font-weight:600;">📦 商品数据</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.35);">导入Milvus做向量</div>
+    </div>
+  </div>
+
+  <!-- 右：导购Agent（新增） -->
+  <div style="flex:1;padding:10px 12px;background:rgba(255,107,53,0.04);border:2px solid rgba(255,107,53,0.15);border-radius:6px;">
+    <div style="font-size:12px;color:#FF6B35;font-weight:700;text-align:center;margin-bottom:8px;">导购Agent（新增部分）</div>
+
+    <div style="padding:5px 8px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;margin-bottom:6px;">
+      <div style="font-size:10px;color:#00E5FF;font-weight:600;margin-bottom:3px;">Agent Runtime（Spring Boot + Spring AI）</div>
+      <div style="display:flex;gap:3px;flex-wrap:wrap;">
+        <div style="padding:2px 5px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:10px;color:#00E5FF;">Prompt</div>
+        <div style="padding:2px 5px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:10px;color:#00E5FF;">Memory</div>
+        <div style="padding:2px 5px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:10px;color:#00E5FF;">Knowledge</div>
+        <div style="padding:2px 5px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:10px;color:#00E5FF;">Tool</div>
+        <div style="padding:2px 5px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:10px;color:#00E5FF;">Workflow</div>
+      </div>
+    </div>
+
+    <div style="padding:5px 8px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;margin-bottom:6px;">
+      <div style="font-size:10px;color:#00E5FF;font-weight:600;margin-bottom:3px;">LLM</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.5);">GPT / Claude / Qwen</div>
+    </div>
+
+    <div style="padding:5px 8px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
+      <div style="font-size:10px;color:#00E5FF;font-weight:600;margin-bottom:3px;">Agent专属存储</div>
+      <div style="display:flex;gap:4px;">
+        <div style="flex:1;padding:3px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:10px;color:#00E5FF;text-align:center;">Redis</div>
+        <div style="flex:1;padding:3px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:10px;color:#00E5FF;text-align:center;">Milvus</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:8px;padding:5px 10px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:4px;font-size:10px;color:rgba(224,231,255,0.5);text-align:center;">
+  四个连接点：💬 聊天入口（前端嵌入） · 🔌 HTTP API（后端调Agent） · 🔧 MCP（Agent调后端服务） · 📦 商品数据（导入Milvus做向量检索）
+</div>
+<div style="margin-top:6px;padding:8px 10px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.08);border-radius:5px;">
+  <div style="font-size:11px;color:#00E5FF;font-weight:700;margin-bottom:4px;">导购Agent组件拆解</div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;">
+    <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;font-size:10px;color:#00E5FF;"><b>Prompt</b>：限定为导购角色</div>
+    <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;font-size:10px;color:#00E5FF;"><b>Memory</b>：用户偏好（Redis）</div>
+    <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;font-size:10px;color:#00E5FF;"><b>RAG</b>：商品知识（Milvus）</div>
+    <div style="padding:4px 8px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.12);border-radius:3px;font-size:10px;color:#FF6B35;"><b>Tool</b>：库存/下单API（MCP）</div>
+    <div style="padding:4px 8px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.12);border-radius:3px;font-size:10px;color:#FF6B35;"><b>Workflow</b>：下单→扣库存→支付</div>
+  </div>
+</div>
+</div></body></html>
