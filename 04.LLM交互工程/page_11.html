@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>Spring AI 在 Demo 中的角色</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)} .fn{color:#E0E7FF}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 08 · SPRING AI</div>
+<h1 class="mb-2">Spring AI 在 Demo 中做了什么？</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;gap:20px;">
+  <!-- 左：Spring AI 封装了什么 -->
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:13px;color:rgba(224,231,255,0.5);margin-bottom:12px;">Spring AI 是 Java 生态的 LLM 调用框架。它封装了底层细节，让开发者用 Java 方式调用大模型。</div>
+
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="padding:10px 14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+        <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">🔌 自动配置连接</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">读取 application.yml 中的 <code style="color:#FF6B35;">base-url</code> 和 <code style="color:#FF6B35;">api-key</code>，自动创建 HTTP 连接。<br>开发者不需要写任何 HTTP 请求代码。</div>
+      </div>
+      <div style="padding:10px 14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+        <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">📡 SSE 流式解析</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">调用 <code style="color:#FF6B35;">.stream().content()</code> 时，Spring AI 自动处理 SSE 协议：<br>解析 data: 前缀、处理 [DONE] 标记、拼接 delta.content。<br>开发者拿到的是 Flux&lt;String&gt;，逐 token 的文本流。</div>
+      </div>
+      <div style="padding:10px 14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+        <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">🔄 非流式调用</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">调用 <code style="color:#FF6B35;">.call().content()</code> 时，等全部生成完返回完整字符串。<br>用于 Self-Correction 等需要完整响应的场景。</div>
+      </div>
+      <div style="padding:10px 14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+        <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">🎯 动态模型切换</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">通过 <code style="color:#FF6B35;">OpenAiChatOptions.builder().withModel()</code> 运行时切换模型。<br>这就是 ModelRouter 能工作的底层机制。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右：Demo 中的调用代码 -->
+  <div style="flex:1;display:flex;flex-direction:column;">
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">💻 ShoppingAgentController 中的 Spring AI 调用</div>
+    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,107,53,0.15);border-radius:6px;flex:1;">
+      <pre><span class="cm">// 流式调用（对话接口）</span>
+<span class="kw">return</span> ChatClient.create(chatModel)
+    .prompt()
+    .system(systemPrompt)      <span class="cm">// System Prompt</span>
+    .user(userPrompt)          <span class="cm">// User Prompt</span>
+    .options(OpenAiChatOptions
+        .builder()
+        .withModel(model)      <span class="cm">// 动态模型</span>
+        .build())
+    .stream()                  <span class="cm">// SSE 流式</span>
+    .content();                <span class="cm">// Flux&lt;String&gt;</span>
+
+<span class="cm">// 非流式调用（结构化推荐）</span>
+<span class="kw">return</span> ChatClient.create(chatModel)
+    .prompt()
+    .system(systemPrompt)
+    .user(userPrompt)
+    .options(OpenAiChatOptions
+        .builder()
+        .withModel(model)
+        .withTemperature(0.2)  <span class="cm">// 低温度</span>
+        .build())
+    .call()                    <span class="cm">// 等待完整响应</span>
+    .content();                <span class="cm">// String</span></pre>
+    </div>
+    <div style="margin-top:8px;padding:8px 10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
+      <div style="font-size:11px;color:rgba(224,231,255,0.5);line-height:1.6;">
+        <strong style="color:#E0E7FF;">Spring AI 做了什么：</strong>HTTP 请求构建、JSON 序列化、SSE 解析、Token 计数、错误处理。<br>
+        <strong style="color:#E0E7FF;">开发者做什么：</strong>写 Prompt、选模型、处理响应。<br><br>
+        <strong style="color:#FF6B35;">一句话：</strong>Spring AI 把第四章讲的 OpenAI 协议全部封装了，开发者只需要关注业务逻辑。
+      </div>
+    </div>
+  </div>
+</div>
+</div></body></html>

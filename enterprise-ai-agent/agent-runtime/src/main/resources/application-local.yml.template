@@ -1,0 +1,20 @@
+# ============================================================
+# 本地开发配置（此文件不提交 Git）
+# ============================================================
+
+spring:
+  ai:
+    openai:
+      api-key: 你的SiliconFlow-API-Key
+      base-url: https://api.siliconflow.cn
+      chat:
+        options:
+          model: Qwen/Qwen2.5-7B-Instruct
+          temperature: 0.7
+
+agent:
+  model:
+    # 快模型：日常对话（免费，7B）
+    fast: Qwen/Qwen2.5-7B-Instruct
+    # 推理模型：复杂任务（免费，8B，有思维链）
+    reasoning: Qwen/Qwen3-8B

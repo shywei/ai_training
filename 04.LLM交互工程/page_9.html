@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>Prompt 工程</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 06</div>
+<h1 class="mb-2">Prompt 工程 — 结构、调试与安全</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+  <!-- 三种角色 -->
+  <div style="display:flex;gap:14px;margin-bottom:14px;">
+    <div style="flex:1;padding:14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;">
+      <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:4px;">System Prompt</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">定义角色、能力、约束。用户看不到，但决定 Agent 全部行为。类比：入职培训手册。</div>
+    </div>
+    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
+      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:4px;">User Prompt</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">用户问题 + 上下文（RAG结果、用户画像等）。类比：客户需求。</div>
+    </div>
+    <div style="flex:1;padding:14px;background:rgba(224,231,255,0.04);border:1px solid rgba(224,231,255,0.1);border-radius:6px;">
+      <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:4px;">Few-shot</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">给模型 1-3 个示例，它会模仿格式和风格。最有效的技巧之一。</div>
+    </div>
+  </div>
+
+  <!-- 调试与安全 -->
+  <div style="display:flex;gap:14px;margin-bottom:14px;">
+    <div style="flex:1;padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;">
+      <div style="font-size:13px;color:#E0E7FF;font-weight:700;margin-bottom:4px;">🧪 调试四件套 <span style="font-size:10px;color:#FFC832;">（仅 PPT 讲解）</span></div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">Playground（快速迭代）<br>Logging（记录输入输出）<br>AB Test（对比效果）<br>Evaluation（量化准确率）</div>
+    </div>
+    <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:2px solid rgba(0,229,255,0.25);border-radius:6px;">
+      <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">🛡️ 两道防线 <span style="font-size:10px;color:#00E5FF;">（Demo 已覆盖）</span></div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;"><strong>入口：</strong>Prompt Injection 防御（正则检测、关键词拦截）<br><strong>出口：</strong>敏感信息脱敏、违规内容拦截<br>两道防线各自独立，不合并。</div>
+    </div>
+    <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:2px solid rgba(0,229,255,0.25);border-radius:6px;">
+      <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">🔄 Self-Correction <span style="font-size:10px;color:#00E5FF;">（Demo 已覆盖）</span></div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">LLM 输出非法 → Java catch 捕获 → 异常信息发回 LLM → 重新生成。<br><strong style="color:#FF6B35;">服务端重试</strong>，不是 LLM 自纠错。</div>
+    </div>
+    <div style="flex:1;padding:12px;background:rgba(255,200,50,0.04);border:1px solid rgba(255,200,50,0.15);border-radius:6px;">
+      <div style="font-size:13px;color:#FFC832;font-weight:700;margin-bottom:4px;">⚡ Streaming 冲突 <span style="font-size:10px;color:#FFC832;">（仅 PPT 讲解）</span></div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">流式输出时不能逐 chunk 检查。<br>方案：首个 chunk 检查 Injection，或关键接口不走 Streaming。</div>
+    </div>
+  </div>
+
+  <div style="padding:10px 16px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:5px;text-align:center;">
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;">Prompt 是代码，不是文案。需要版本控制、测试、监控、迭代。</div>
+  </div>
+</div>
+</div></body></html>

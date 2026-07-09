@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>结构化输出</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)} .fn{color:#E0E7FF}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 05</div>
+<h1 class="mb-2">结构化输出 — Java 开发的生命线</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;gap:20px;">
+  <!-- 左：方案对比 -->
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;">
+      <div style="font-size:14px;color:#FF6B35;font-weight:700;">企业痛点：Java 无法解析带有废话的 JSON</div>
+    </div>
+
+    <div style="display:flex;gap:14px;margin-bottom:14px;">
+      <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+        <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">方案一：提示词约束</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">Prompt 中要求"只输出 JSON"<br>✅ 所有模型支持<br>✅ 实现最简单<br>⚠️ 不保证 100% 合规</div>
+      </div>
+      <div style="flex:1;padding:14px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);border-radius:6px;">
+        <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:6px;">方案二：API 原生</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">response_format 强制格式<br>✅ 合规率接近 100%<br>✅ 不用改 Prompt<br>⚠️ 只有部分模型支持</div>
+      </div>
+    </div>
+
+    <div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;">
+      <div style="font-size:13px;color:#E0E7FF;font-weight:700;margin-bottom:4px;">🛡️ 代码层兜底（必须有）</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">不管用哪种方案，Java 端都必须：① JSON 提取（从废话中提取）② Schema 验证 ③ Bean Mapping（Jackson）</div>
+    </div>
+  </div>
+
+  <!-- 右：Demo 代码 -->
+  <div style="flex:1;display:flex;flex-direction:column;">
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">💻 Demo 代码：StructuredOutputHandler.java</div>
+    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;flex:1;">
+      <pre><span class="kw">public</span> JsonNode <span class="fn">validate</span>(String llmOutput) {
+  <span class="cm">// 1. 从 LLM 输出中提取 JSON</span>
+  String json = <span class="fn">extractJson</span>(llmOutput);
+  <span class="cm">// extractJson 处理：</span>
+  <span class="cm">// - 纯 JSON: 直接返回</span>
+  <span class="cm">// - ```json...```: 提取代码块</span>
+  <span class="cm">// - 混合文本: 找 { 到 }</span>
+
+  <span class="cm">// 2. JSON Schema 验证</span>
+  <span class="kw">try</span> {
+    <span class="kw">return</span> objectMapper.readTree(json);
+  } <span class="kw">catch</span> (Exception e) {
+    <span class="kw">return null</span>;  <span class="cm">// 验证失败</span>
+  }
+}
+
+<span class="cm">// 3. Self-Correction：验证失败时</span>
+<span class="kw">public</span> String <span class="fn">buildCorrectionPrompt</span>(
+    String original, String error) {
+  <span class="kw">return</span> <span class="str">"你上次输出不是合法JSON，"</span>
+    + <span class="str">"报错："</span> + error
+    + <span class="str">"上次输出："</span> + original
+    + <span class="str">"请重新输出，只输出JSON。"</span>;
+}</pre>
+    </div>
+    <div style="margin-top:8px;padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
+      <div style="font-size:11px;color:rgba(224,231,255,0.5);"><strong style="color:#E0E7FF;">关键：</strong>提示词约束是通用方案，代码验证是必须的兜底。两者缺一不可。</div>
+    </div>
+  </div>
+</div>
+</div></body></html>

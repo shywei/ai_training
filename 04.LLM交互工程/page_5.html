@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>协议标准能力</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+.key{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 02</div>
+<h1 class="mb-2">OpenAI 协议定义了哪些标准能力？</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+  <div style="font-size:13px;color:rgba(224,231,255,0.5);margin-bottom:14px;">一个 POST 请求，通过不同的参数组合，就能调用大模型的全部标准能力。</div>
+
+  <div style="display:flex;gap:14px;margin-bottom:14px;">
+    <!-- Messages -->
+    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">💬 Messages（对话）</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
+        <strong style="color:#E0E7FF;">role: system</strong> — 定义 Agent 角色<br>
+        <strong style="color:#E0E7FF;">role: user</strong> — 用户输入<br>
+        <strong style="color:#E0E7FF;">role: assistant</strong> — 模型回复<br><br>
+        多轮对话就是把历史 messages 全部传上去。模型根据完整对话历史生成回复。
+      </div>
+    </div>
+    <!-- Streaming -->
+    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">📡 Streaming（流式输出）</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
+        <strong style="color:#E0E7FF;">stream: true</strong> → SSE 逐 token 返回<br>
+        <strong style="color:#E0E7FF;">stream: false</strong> → 等全部生成完一次性返回<br><br>
+        用户体验差异：首字响应 200ms vs 数秒等待。所有对话类产品必须用 Streaming。
+      </div>
+    </div>
+    <!-- Temperature -->
+    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">🌡️ Temperature（温度）</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
+        <strong style="color:#E0E7FF;">0.0</strong> = 确定性最高，每次回答一样<br>
+        <strong style="color:#E0E7FF;">0.7</strong> = 平衡模式<br>
+        <strong style="color:#E0E7FF;">1.0+</strong> = 创造性强，但可能胡说<br><br>
+        客服用 0.2，创意写作用 0.9。
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:14px;">
+    <!-- Function Calling -->
+    <div style="flex:1;padding:14px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);border-radius:6px;">
+      <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:6px;">🔧 Function Calling（工具调用）</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
+        在请求中定义<strong style="color:#E0E7FF;">工具列表</strong>（函数名+参数描述）。<br>
+        模型判断需要调用哪个工具、传什么参数。<br>
+        <strong style="color:#FF6B35;">模型不直接调用</strong>，而是返回调用意图，由服务端执行。<br><br>
+        这是第七课 Tool 的基础。
+      </div>
+    </div>
+    <!-- Structured Output -->
+    <div style="flex:1;padding:14px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);border-radius:6px;">
+      <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:6px;">📋 Structured Output（结构化输出）</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
+        通过 <strong style="color:#E0E7FF;">response_format</strong> 参数强制输出 JSON Schema。<br>
+        模型保证输出符合定义的结构。<br>
+        <strong style="color:#FF6B35;">不是所有模型都支持</strong>，OpenAI 原生支持，其他厂商部分支持。<br><br>
+        这就是第五章讲的"方案二"。
+      </div>
+    </div>
+    <!-- Token 计数 -->
+    <div style="flex:1;padding:14px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);border-radius:6px;">
+      <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:6px;">🔢 Token 计数</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
+        响应中返回 <strong style="color:#E0E7FF;">usage.prompt_tokens</strong>（输入 token 数）<br>
+        <strong style="color:#E0E7FF;">usage.completion_tokens</strong>（输出 token 数）<br><br>
+        用于成本监控和用量统计。企业必须记录。
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:10px;padding:8px 14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;text-align:center;">
+  <div style="font-size:12px;color:rgba(224,231,255,0.5);"><strong style="color:#E0E7FF;">核心认知：</strong>一个 HTTP POST + 一套 JSON 参数 = 大模型的全部标准能力。所有服务商遵循同一协议，这就是为什么换服务商只需要改 URL 和 Key。</div>
+</div>
+</div></body></html>

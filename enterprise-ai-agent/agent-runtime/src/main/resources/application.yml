@@ -1,0 +1,32 @@
+server:
+  port: 8080
+
+# ============================================================
+# 硅基流动（SiliconFlow）免费模型
+# 快模型: tencent/Hunyuan-MT-7B（免费）
+# 推理模型: deepseek-ai/DeepSeek-R1-0528-Qwen3-8B（免费，有思维链）
+# ============================================================
+
+spring:
+  ai:
+    openai:
+      api-key: ${SILICONFLOW_API_KEY:***
+      base-url: https://api.siliconflow.cn
+      chat:
+        options:
+          model: Qwen/Qwen2.5-7B-Instruct
+          temperature: 0.7
+
+# ============================================================
+# 导购 Agent 配置
+# ============================================================
+
+agent:
+  name: 导购助手
+  role: 你是一个专业的电商导购助手，帮助用户推荐合适的商品。
+  constraints: 只聊商品推荐和购物相关话题。不编造商品信息，不确定时说"我不确定"。
+  model:
+    # 快模型：日常对话、简单推荐（7B，快，免费）
+    fast: Qwen/Qwen2.5-7B-Instruct
+    # 推理模型：复杂分析、多步推理（8B，免费）
+    reasoning: Qwen/Qwen3-8B

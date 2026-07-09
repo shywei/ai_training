@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>Token、Context Window 与模型选型</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 03</div>
+<h1 class="mb-2">Token、Context Window 与模型选型</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:18px;"></div>
+
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+  <div style="display:flex;gap:16px;margin-bottom:16px;">
+    <div style="flex:1;padding:16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:16px;color:#00E5FF;font-weight:700;margin-bottom:8px;">什么是 Token？</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.6);line-height:1.7;">
+        大模型不直接处理文字，把文本拆成 <strong style="color:#E0E7FF;">token</strong>（词元）。<br><br>
+        <strong style="color:#00E5FF;">中文：</strong>"你好世界" → [你, 好, 世界] = 3 token<br>
+        <strong style="color:#00E5FF;">英文：</strong>"Hello World" = 2 token<br>
+        <strong style="color:#00E5FF;">代码：</strong>一个函数约 50-200 token<br><br>
+        <strong style="color:#FF6B35;">计费单位。</strong>输出 token 比输入贵 2-5 倍。
+      </div>
+    </div>
+    <div style="flex:1;padding:16px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);border-radius:6px;">
+      <div style="font-size:16px;color:#FF6B35;font-weight:700;margin-bottom:8px;">什么是 Context Window？</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.6);line-height:1.7;">
+        模型一次能处理的<strong style="color:#E0E7FF;">最大 token 数</strong>。输入+输出不能超限。<br><br>
+        <strong style="color:#FF6B35;">GPT-2：</strong>1K token → 约500字<br>
+        <strong style="color:#FF6B35;">GPT-4：</strong>128K → 约6万字<br>
+        <strong style="color:#FF6B35;">2026主流：</strong>100万+ → 约50万字<br><br>
+        <strong style="color:#E0E7FF;">窗口越大，推理越慢、成本越高。</strong>
+      </div>
+    </div>
+    <div style="flex:1;padding:16px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;">
+      <div style="font-size:16px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">推理模型为什么贵？</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.6);line-height:1.7;">
+        推理模型回答前会生成大量<strong style="color:#FF6B35;">思维链</strong>，这些思考过程也消耗 token。<br><br>
+        同样一个问题，推理模型可能消耗 <strong style="color:#FF6B35;">3-10 倍</strong>的 token。<br><br>
+        <strong style="color:#E0E7FF;">这就是为什么需要模型路由 — 简单问题不要用推理模型。</strong>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:16px;">
+    <div style="flex:1;padding:14px 18px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
+      <div style="font-size:15px;color:#00E5FF;font-weight:700;margin-bottom:4px;">⚡ Fast Model</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);">日常对话、简单问答、代码补全 → 快、便宜、够用 → Qwen2.5-7B</div>
+    </div>
+    <div style="flex:1;padding:14px 18px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;">
+      <div style="font-size:15px;color:#FF6B35;font-weight:700;margin-bottom:4px;">🧠 Reasoning Model</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);">复杂推理、架构设计、多步分析 → 慢、贵、强 → Qwen3-8B</div>
+    </div>
+  </div>
+</div>
+</div></body></html>

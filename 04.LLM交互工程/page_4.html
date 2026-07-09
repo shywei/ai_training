@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>OpenAI 接口协议</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+.key{color:#FF6B35}.str{color:#00E5FF}.comment{color:rgba(224,231,255,0.3)}
+</style></head><body>
+<div class="s" style="padding:30px 50px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 02</div>
+<h1 class="mb-2">OpenAI 接口协议 — 为什么配个 URL 和 Key 就能交互</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;gap:20px;">
+  <!-- 左：请求 -->
+  <div style="flex:1;display:flex;flex-direction:column;">
+    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:8px;">📤 请求（Request）</div>
+    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;flex:1;">
+      <pre><span class="comment">// POST /v1/chat/completions</span>
+<span class="comment">// Header: Authorization: Bearer sk-xxx</span>
+
+{
+  <span class="key">"model"</span>: <span class="str">"Qwen/Qwen2.5-7B-Instruct"</span>,
+  <span class="key">"messages"</span>: [
+    {
+      <span class="key">"role"</span>: <span class="str">"system"</span>,
+      <span class="key">"content"</span>: <span class="str">"你是导购助手"</span>
+    },
+    {
+      <span class="key">"role"</span>: <span class="str">"user"</span>,
+      <span class="key">"content"</span>: <span class="str">"推荐一台笔记本"</span>
+    }
+  ],
+  <span class="key">"temperature"</span>: 0.7,
+  <span class="key">"stream"</span>: <span class="str">true</span>
+}</pre>
+    </div>
+    <div style="margin-top:8px;padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
+        <strong style="color:#E0E7FF;">URL</strong> = 服务商地址 + <code style="color:#FF6B35;">/v1/chat/completions</code><br>
+        <strong style="color:#E0E7FF;">Key</strong> = Bearer Token 认证<br>
+        <strong style="color:#E0E7FF;">messages</strong> = 对话历史（system + user + assistant）
+      </div>
+    </div>
+  </div>
+
+  <!-- 右：响应 -->
+  <div style="flex:1;display:flex;flex-direction:column;">
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">📥 响应（Response）— Streaming</div>
+    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,107,53,0.15);border-radius:6px;flex:1;">
+      <pre><span class="comment">// SSE 格式：每个 data: 是一个 token</span>
+
+<span class="key">data:</span> {<span class="str">"choices"</span>:[{<span class="str">"delta"</span>:{<span class="str">"content"</span>:<span class="str">"根据"</span>}}]}
+<span class="key">data:</span> {<span class="str">"choices"</span>:[{<span class="str">"delta"</span>:{<span class="str">"content"</span>:<span class="str">"您的"</span>}}]}
+<span class="key">data:</span> {<span class="str">"choices"</span>:[{<span class="str">"delta"</span>:{<span class="str">"content"</span>:<span class="str">"需求"</span>}}]}
+<span class="key">data:</span> {<span class="str">"choices"</span>:[{<span class="str">"delta"</span>:{<span class="str">"content"</span>:<span class="str">"，"</span>}}]}
+<span class="key">data:</span> {<span class="str">"choices"</span>:[{<span class="str">"delta"</span>:{<span class="str">"content"</span>:<span class="str">"推荐"</span>}}]}
+...
+<span class="key">data:</span> [DONE]
+
+<span class="comment">// 非 Streaming 时，一次性返回完整内容：</span>
+<span class="comment">// { "choices":[{"message":{"content":"完整回复"}}] }</span></pre>
+    </div>
+    <div style="margin-top:8px;padding:8px 12px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:4px;">
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
+        <strong style="color:#FF6B35;">Streaming</strong> = 逐 token 返回（SSE 协议）<br>
+        <strong style="color:#FF6B35;">[DONE]</strong> = 流结束标记<br>
+        <strong style="color:#FF6B35;">delta.content</strong> = 本次返回的文本片段
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:12px;padding:10px 16px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:5px;text-align:center;">
+  <div style="font-size:13px;color:#FF6B35;font-weight:700;">这就是为什么配个 URL 和 Key 就能交互 — 所有服务商（OpenAI、DeepSeek、硅基流动）都遵循同一套协议。</div>
+  <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-top:4px;">Spring AI 封装了 HTTP 请求和 SSE 解析，但底层就是这个 JSON 协议。</div>
+</div>
+</div></body></html>

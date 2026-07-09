@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>目录</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:48px !important; color:#E0E7FF; font-weight:700; }
+.slide-toc-item { display:flex; align-items:flex-start; padding:10px 0; border-bottom:1px solid rgba(0,229,255,0.1); }
+.slide-toc-num { font-size:28px; font-weight:700; color:#00E5FF; min-width:60px; line-height:1; }
+.slide-toc-text { flex:1; }
+.slide-toc-title { font-size:18px; color:#E0E7FF; font-weight:600; margin-bottom:2px; }
+.slide-toc-desc { font-size:13px; color:rgba(224,231,255,0.5); }
+.slide-accent-line { width:50px; height:3px; background:#FF6B35; }
+</style>
+</head>
+<body>
+<div class="slide-container flex">
+  <div class="flex flex-col justify-center" style="width:360px; padding-left:80px;">
+    <h1 class="mb-6">目录</h1>
+    <div class="slide-accent-line mb-6"></div>
+    <p style="font-size:15px; color:rgba(224,231,255,0.4); line-height:1.8;">
+      从 LLM 运行机制到前端集成<br>构建一个完整的企业导购 Agent
+    </p>
+  </div>
+  <div class="flex flex-col justify-center flex-1" style="padding:30px 80px 30px 40px;">
+    <div class="slide-toc-item">
+      <div class="slide-toc-num">01</div>
+      <div class="slide-toc-text"><div class="slide-toc-title">LLM Runtime</div><div class="slide-toc-desc">一次调用到底发生了什么（第3页）</div></div>
+    </div>
+    <div class="slide-toc-item">
+      <div class="slide-toc-num">02</div>
+      <div class="slide-toc-text"><div class="slide-toc-title">OpenAI 接口协议</div><div class="slide-toc-desc">请求/响应结构、协议标准能力（第4-5页）</div></div>
+    </div>
+    <div class="slide-toc-item">
+      <div class="slide-toc-num">03</div>
+      <div class="slide-toc-text"><div class="slide-toc-title">Token、Context Window 与模型选型</div><div class="slide-toc-desc">成本与能力的权衡（第6页）</div></div>
+    </div>
+    <div class="slide-toc-item">
+      <div class="slide-toc-num">04</div>
+      <div class="slide-toc-text"><div class="slide-toc-title">模型路由与结构化输出</div><div class="slide-toc-desc">企业成本控制 + Java 生命线（第7-8页）</div></div>
+    </div>
+    <div class="slide-toc-item">
+      <div class="slide-toc-num">05</div>
+      <div class="slide-toc-text"><div class="slide-toc-title">Prompt 工程</div><div class="slide-toc-desc">结构设计、调试、容错与安全（第9页）</div></div>
+    </div>
+    <div class="slide-toc-item">
+      <div class="slide-toc-num">06</div>
+      <div class="slide-toc-text"><div class="slide-toc-title">Demo 代码与 Spring AI</div><div class="slide-toc-desc">核心组件实现 + 框架封装（第10-11页）</div></div>
+    </div>
+    <div class="slide-toc-item" style="border-bottom:none;">
+      <div class="slide-toc-num">07</div>
+      <div class="slide-toc-text"><div class="slide-toc-title">前端集成与项目架构</div><div class="slide-toc-desc">Vue + SSE + Markdown、完整项目结构（第12-13页）</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,19 @@
+# ============================================================
+# OpenAI 兼容 API 配置（备用）
+# 使用方式: --spring.profiles.active=openai
+# ============================================================
+
+spring:
+  ai:
+    openai:
+      api-key: 你的API-Key
+      base-url: https://api.deepseek.com
+      chat:
+        options:
+          model: deepseek-chat
+          temperature: 0.7
+
+agent:
+  model:
+    fast: deepseek-chat
+    reasoning: deepseek-reasoner

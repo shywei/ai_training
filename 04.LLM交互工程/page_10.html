@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>Demo：Prompt 与容错</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)} .fn{color:#E0E7FF}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 06 · DEMO</div>
+<h1 class="mb-2">Demo 代码：PromptManager + GuardrailsService</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;gap:20px;">
+  <!-- 左：PromptManager -->
+  <div style="flex:1;display:flex;flex-direction:column;">
+    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:8px;">PromptManager.java — 构建 Prompt</div>
+    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;flex:1;">
+      <pre><span class="kw">@Component</span>
+<span class="kw">public class</span> <span class="fn">PromptManager</span> {
+
+  <span class="kw">public</span> String <span class="fn">buildSystemPrompt</span>() {
+    <span class="kw">return</span> String.format(<span class="str">"""
+      # 角色
+      你是%s。%s
+      # 约束
+      %s
+      # 输出要求
+      - 回答简洁明了
+      - 不确定的不要编造
+      """</span>, agentName, agentRole,
+         agentConstraints);
+  }
+
+  <span class="kw">public</span> String <span class="fn">buildUserPrompt</span>(
+      String msg, String context) {
+    <span class="kw">if</span> (context == <span class="kw">null</span>) <span class="kw">return</span> msg;
+    <span class="kw">return</span> <span class="str">"## 参考信息\n"</span>
+      + context + <span class="str">"\n## 用户问题\n"</span> + msg;
+  }
+}</pre>
+    </div>
+    <div style="margin-top:6px;padding:8px 10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
+      <div style="font-size:11px;color:rgba(224,231,255,0.5);line-height:1.6;"><strong style="color:#E0E7FF;">System/User 分离</strong>，Text Block 做模板。<br><strong style="color:#FF6B35;">context 参数当前传 null</strong> — 第四课只做系统提示词 + 用户输入。<br>后续课程逐步填充：<br>· v2.0 Memory：传入对话历史 + 用户画像<br>· v3.0 Knowledge：传入 RAG 检索结果<br>· v4.0 Tool：传入工具调用结果</div>
+    </div>
+  </div>
+
+  <!-- 右：GuardrailsService -->
+  <div style="flex:1;display:flex;flex-direction:column;">
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">GuardrailsService.java — 两道防线</div>
+    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,107,53,0.15);border-radius:6px;flex:1;">
+      <pre><span class="kw">@Component</span>
+<span class="kw">public class</span> <span class="fn">GuardrailsService</span> {
+
+  <span class="cm">// 第一道防线：入口检查</span>
+  <span class="kw">public boolean</span> <span class="fn">checkInjection</span>(String input) {
+    <span class="kw">for</span> (Pattern p : INJECTION_PATTERNS)
+      <span class="kw">if</span> (p.matcher(input).find())
+        <span class="kw">return true</span>;  <span class="cm">// 检测到注入</span>
+    <span class="kw">return false</span>;
+  }
+
+  <span class="cm">// 第二道防线：出口过滤</span>
+  <span class="kw">public</span> String <span class="fn">sanitize</span>(String output) {
+    String result = output;
+    <span class="kw">for</span> (String kw : SENSITIVE_KEYWORDS)
+      result = result.replaceAll(
+        <span class="str">"(?i)"</span> + kw, <span class="str">"***"</span>);
+    <span class="kw">return</span> result;
+  }
+}</pre>
+    </div>
+    <div style="margin-top:6px;padding:6px 10px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:4px;">
+      <div style="font-size:10px;color:rgba(224,231,255,0.5);"><strong style="color:#FF6B35;">两道防线独立。</strong>入口在 Controller 开头调用，出口在返回前调用。不合并。</div>
+    </div>
+  </div>
+</div>
+</div></body></html>

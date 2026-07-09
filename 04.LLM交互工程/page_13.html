@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>Demo 项目架构</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.6;color:rgba(224,231,255,0.6)}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 08</div>
+<h1 class="mb-2">Demo 项目架构 — 每个文件的意义</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;gap:20px;">
+  <!-- 左：项目结构 -->
+  <div style="flex:1;display:flex;flex-direction:column;">
+    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:8px;">📁 enterprise-ai-agent/ 项目结构</div>
+    <div style="padding:14px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;flex:1;">
+      <pre style="font-size:12px;">
+enterprise-ai-agent/
+├── agent-runtime/           <span style="color:#FF6B35;">后端 (Spring Boot)</span>
+│   ├── pom.xml              <span style="color:rgba(224,231,255,0.35);">Maven 依赖</span>
+│   ├── mvnw                 <span style="color:rgba(224,231,255,0.35);">Maven Wrapper</span>
+│   └── src/main/
+│       ├── java/.../core/
+│       │   ├── AgentApplication.java
+│       │   ├── CorsConfig.java
+│       │   ├── ModelRouter.java
+│       │   ├── PromptManager.java
+│       │   ├── StructuredOutputHandler.java
+│       │   ├── GuardrailsService.java
+│       │   └── ShoppingAgentController.java
+│       └── resources/
+│           ├── application.yml
+│           └── application-local.yml
+│
+└── web/                     <span style="color:#FF6B35;">前端 (Vue 2)</span>
+    ├── package.json
+    ├── vue.config.js
+    └── src/
+        ├── main.js
+        └── App.vue
+      </pre>
+    </div>
+  </div>
+
+  <!-- 右：每个文件的职责 -->
+  <div style="flex:1;display:flex;flex-direction:column;">
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">🔑 核心文件职责</div>
+    <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
+      <div style="padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
+        <div style="font-size:12px;color:#00E5FF;font-weight:700;">ModelRouter.java</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.5);">模型路由 — 根据消息复杂度选择快模型或推理模型</div>
+      </div>
+      <div style="padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
+        <div style="font-size:12px;color:#00E5FF;font-weight:700;">PromptManager.java</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.5);">Prompt 构建 — System/User 分离，模板变量替换</div>
+      </div>
+      <div style="padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
+        <div style="font-size:12px;color:#00E5FF;font-weight:700;">StructuredOutputHandler.java</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.5);">结构化输出 — JSON 提取、Schema 验证、Self-Correction</div>
+      </div>
+      <div style="padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
+        <div style="font-size:12px;color:#00E5FF;font-weight:700;">GuardrailsService.java</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.5);">安全防护 — 入口 Injection 检测 + 出口敏感信息过滤</div>
+      </div>
+      <div style="padding:8px 12px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:4px;">
+        <div style="font-size:12px;color:#FF6B35;font-weight:700;">ShoppingAgentController.java</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.5);">导购 Agent API — 流式对话 + 结构化推荐，串联所有组件</div>
+      </div>
+      <div style="padding:8px 12px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:4px;">
+        <div style="font-size:12px;color:#FF6B35;font-weight:700;">CorsConfig.java</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.5);">CORS 配置 — 前后端分离时允许跨域</div>
+      </div>
+      <div style="padding:8px 12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:4px;">
+        <div style="font-size:12px;color:#E0E7FF;font-weight:700;">application.yml</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.5);">配置文件 — API Key、模型名、Agent 角色定义</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:10px;padding:8px 14px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:5px;text-align:center;">
+  <div style="font-size:12px;color:rgba(224,231,255,0.5);"><strong style="color:#FF6B35;">v1.0-prompt</strong> — 第四课完成。后续每课都会在这个基础上增加新模块（Memory → Knowledge → Tool → Workflow）。</div>
+</div>
+</div></body></html>

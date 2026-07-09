@@ -1,0 +1,18 @@
+#!/bin/sh
+# Maven Wrapper - 下载并运行 Maven
+# 使用方式: ./mvnw clean package
+
+set -e
+
+MAVEN_VERSION=3.9.9
+MAVEN_HOME="${HOME}/.m2/wrapper/dists/apache-maven-${MAVEN_VERSION}"
+MAVEN_BIN="${MAVEN_HOME}/bin/mvn"
+
+if [ ! -f "${MAVEN_BIN}" ]; then
+    echo "首次运行，下载 Maven ${MAVEN_VERSION}..."
+    mkdir -p "${MAVEN_HOME}"
+    curl -sL "https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/${MAVEN_VERSION}/apache-maven-${MAVEN_VERSION}-bin.tar.gz" | tar xz -C "${HOME}/.m2/wrapper/dists/"
+    echo "Maven 下载完成"
+fi
+
+exec "${MAVEN_BIN}" "$@"

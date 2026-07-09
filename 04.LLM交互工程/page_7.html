@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>模型路由</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)} .fn{color:#E0E7FF}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 04</div>
+<h1 class="mb-2">模型路由 — 企业成本控制的关键</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;gap:20px;">
+  <!-- 左：原理 -->
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="padding:12px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;">
+      <div style="font-size:16px;color:#FF6B35;font-weight:700;">为什么模型路由必须是独立组件？</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.5);margin-top:4px;">路由逻辑和业务逻辑分离 → 换模型、换框架时不用重写业务代码。</div>
+    </div>
+
+    <div style="display:flex;gap:12px;margin-bottom:14px;">
+      <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+        <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">📏 消息长度</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.55);">短→快模型，长→推理模型</div>
+      </div>
+      <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+        <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">🔑 关键词</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.55);">"分析""架构"→推理模型</div>
+      </div>
+      <div style="flex:1;padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;">
+        <div style="font-size:13px;color:#E0E7FF;font-weight:700;margin-bottom:4px;">🎯 意图分类（进阶）</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.55);">小模型先判断→路由到大模型<br><span style="color:#FFC832;">Demo 未覆盖，仅关键词匹配</span></div>
+      </div>
+    </div>
+
+    <!-- 流程图 -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
+      <div style="padding:8px 14px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:5px;font-size:12px;color:#00E5FF;font-weight:600;">用户消息</div>
+      <div style="color:rgba(0,229,255,0.3);">→</div>
+      <div style="padding:8px 14px;background:rgba(255,107,53,0.1);border:2px solid #FF6B35;border-radius:5px;font-size:12px;color:#FF6B35;font-weight:700;">ModelRouter</div>
+      <div style="color:rgba(0,229,255,0.3);">→</div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <div style="padding:4px 12px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:3px;font-size:10px;color:#00E5FF;">简单 → Qwen2.5-7B</div>
+        <div style="padding:4px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.2);border-radius:3px;font-size:10px;color:#FF6B35;">复杂 → Qwen3-8B</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右：Demo 代码 -->
+  <div style="flex:1;display:flex;flex-direction:column;">
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">💻 Demo 代码：ModelRouter.java</div>
+    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;flex:1;">
+      <pre><span class="kw">@Component</span>
+<span class="kw">public class</span> <span class="fn">ModelRouter</span> {
+
+  <span class="kw">@Value</span>(<span class="str">"${agent.model.fast}"</span>)
+  <span class="kw">private</span> String fastModel;
+
+  <span class="kw">@Value</span>(<span class="str">"${agent.model.reasoning}"</span>)
+  <span class="kw">private</span> String reasoningModel;
+
+  <span class="kw">public</span> String <span class="fn">selectModel</span>(String msg) {
+    <span class="kw">if</span> (needsReasoning(msg)) {
+      <span class="kw">return</span> reasoningModel;  <span class="cm">// 复杂→推理模型</span>
+    }
+    <span class="kw">return</span> fastModel;         <span class="cm">// 简单→快模型</span>
+  }
+
+  <span class="kw">private boolean</span> <span class="fn">needsReasoning</span>(String msg) {
+    <span class="kw">if</span> (msg.length() > <span class="str">500</span>) <span class="kw">return true</span>;
+    String[] kw = {<span class="str">"架构"</span>,<span class="str">"重构"</span>,<span class="str">"分析"</span>};
+    <span class="kw">for</span> (String k : kw)
+      <span class="kw">if</span> (msg.contains(k)) <span class="kw">return true</span>;
+    <span class="kw">return false</span>;
+  }
+}</pre>
+    </div>
+    <div style="margin-top:8px;padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
+      <div style="font-size:11px;color:rgba(224,231,255,0.5);"><strong style="color:#E0E7FF;">Demo 覆盖：</strong>消息长度 + 关键词匹配。<strong style="color:#FFC832;">Demo 未覆盖：</strong>小模型意图分类（进阶方案，需额外调用一次 LLM）。</div>
+    </div>
+  </div>
+</div>
+</div></body></html>

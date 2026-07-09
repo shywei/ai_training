@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>LLM Runtime</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+</style></head><body>
+<div class="s" style="padding:36px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 01</div>
+<h1 class="mb-2">LLM Runtime — 一次调用到底发生了什么</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+  <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:30px;">
+    <div style="padding:14px 18px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:6px;text-align:center;">
+      <div style="font-size:13px;color:#00E5FF;font-weight:700;">Java 代码</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.4);">ChatClient.prompt()</div>
+    </div>
+    <div style="font-size:20px;color:rgba(0,229,255,0.3);">→</div>
+    <div style="padding:14px 18px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:6px;text-align:center;">
+      <div style="font-size:13px;color:#00E5FF;font-weight:700;">HTTP POST</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.4);">JSON 请求体</div>
+    </div>
+    <div style="font-size:20px;color:rgba(0,229,255,0.3);">→</div>
+    <div style="padding:14px 18px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:6px;text-align:center;">
+      <div style="font-size:13px;color:#00E5FF;font-weight:700;">Token 编码</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.4);">文本→数字序列</div>
+    </div>
+    <div style="font-size:20px;color:rgba(0,229,255,0.3);">→</div>
+    <div style="padding:14px 18px;background:rgba(255,107,53,0.1);border:2px solid rgba(255,107,53,0.3);border-radius:6px;text-align:center;">
+      <div style="font-size:13px;color:#FF6B35;font-weight:700;">🧠 GPU 推理</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.4);">矩阵运算</div>
+    </div>
+    <div style="font-size:20px;color:rgba(0,229,255,0.3);">→</div>
+    <div style="padding:14px 18px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:6px;text-align:center;">
+      <div style="font-size:13px;color:#00E5FF;font-weight:700;">Token 解码</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.4);">数字→文本</div>
+    </div>
+    <div style="font-size:20px;color:rgba(0,229,255,0.3);">→</div>
+    <div style="padding:14px 18px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:6px;text-align:center;">
+      <div style="font-size:13px;color:#00E5FF;font-weight:700;">SSE 流式响应</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.4);">逐 token 返回</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:16px;">
+    <div style="flex:1;padding:16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:15px;color:#00E5FF;font-weight:700;margin-bottom:6px;">🧠 LLM 是 Agent 的 CPU</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.6;">所有 Agent 能力（Memory、Knowledge、Tool、Workflow）最终都要通过 LLM 推理来驱动。理解 LLM 的运行机制，是一切的基础。</div>
+    </div>
+    <div style="flex:1;padding:16px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);border-radius:6px;">
+      <div style="font-size:15px;color:#FF6B35;font-weight:700;margin-bottom:6px;">⚡ 推理是瓶颈</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.6;">Token 编码/解码很快（毫秒级），但模型推理是 GPU 密集运算，可能需要数百毫秒到数秒。Streaming 的意义就在于不用等全部生成完再返回。</div>
+    </div>
+    <div style="flex:1;padding:16px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;">
+      <div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:6px;">🔌 本质是 HTTP</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.6;">LLM 调用本质上就是一个 HTTP POST 请求。框架封装了细节，但底层协议决定了为什么配个 URL 和 Key 就能工作。</div>
+    </div>
+  </div>
+</div>
+</div></body></html>
