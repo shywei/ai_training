@@ -9,73 +9,91 @@
 pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
 .key{color:#FF6B35}.str{color:#00E5FF}.comment{color:rgba(224,231,255,0.3)}
 </style></head><body>
-<div class="s" style="padding:30px 50px;display:flex;flex-direction:column;">
+<div class="s" style="padding:26px 50px;display:flex;flex-direction:column;">
 <div class="mb-2 sn">CHAPTER 02</div>
-<h1 class="mb-2">OpenAI 接口协议 — 为什么配个 URL 和 Key 就能交互</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+<h1 class="mb-2">OpenAI 接口协议 — 后续六课的共同基础</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:14px;"></div>
 
-<div style="flex:1;display:flex;gap:20px;">
-  <!-- 左：请求 -->
+<div style="flex:1;display:flex;gap:18px;">
+  <!-- 左：请求结构 -->
   <div style="flex:1;display:flex;flex-direction:column;">
-    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:8px;">📤 请求（Request）</div>
+    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">📤 请求结构</div>
     <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;flex:1;">
-      <pre><span class="comment">// POST /v1/chat/completions</span>
+      <pre><span class="comment">// POST {服务商地址}/v1/chat/completions</span>
 <span class="comment">// Header: Authorization: Bearer sk-xxx</span>
 
 {
   <span class="key">"model"</span>: <span class="str">"Qwen/Qwen2.5-7B-Instruct"</span>,
   <span class="key">"messages"</span>: [
-    {
-      <span class="key">"role"</span>: <span class="str">"system"</span>,
-      <span class="key">"content"</span>: <span class="str">"你是导购助手"</span>
-    },
-    {
-      <span class="key">"role"</span>: <span class="str">"user"</span>,
-      <span class="key">"content"</span>: <span class="str">"推荐一台笔记本"</span>
-    }
+    {<span class="key">"role"</span>:<span class="str">"system"</span>, <span class="key">"content"</span>:<span class="str">"你是导购助手"</span>},
+    {<span class="key">"role"</span>:<span class="str">"user"</span>, <span class="key">"content"</span>:<span class="str">"推荐一台笔记本"</span>}
   ],
   <span class="key">"temperature"</span>: 0.7,
   <span class="key">"stream"</span>: <span class="str">true</span>
 }</pre>
     </div>
-    <div style="margin-top:8px;padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
-        <strong style="color:#E0E7FF;">URL</strong> = 服务商地址 + <code style="color:#FF6B35;">/v1/chat/completions</code><br>
-        <strong style="color:#E0E7FF;">Key</strong> = Bearer Token 认证<br>
-        <strong style="color:#E0E7FF;">messages</strong> = 对话历史（system + user + assistant）
+    <div style="margin-top:6px;padding:8px 10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">
+        <strong style="color:#E0E7FF;">messages 是核心。</strong>多轮对话 = 把历史消息全部塞进去。<br>
+        <strong style="color:#E0E7FF;">stream=true</strong> 逐 token 返回，<strong style="color:#E0E7FF;">stream=false</strong> 一次返回完整结果。
       </div>
     </div>
   </div>
 
-  <!-- 右：响应 -->
+  <!-- 中：响应结构 -->
   <div style="flex:1;display:flex;flex-direction:column;">
-    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">📥 响应（Response）— Streaming</div>
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:6px;">📥 响应结构（Streaming）</div>
     <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,107,53,0.15);border-radius:6px;flex:1;">
-      <pre><span class="comment">// SSE 格式：每个 data: 是一个 token</span>
+      <pre><span class="comment">// SSE 格式，每个 data: 是一个 token</span>
 
 <span class="key">data:</span> {<span class="str">"choices"</span>:[{<span class="str">"delta"</span>:{<span class="str">"content"</span>:<span class="str">"根据"</span>}}]}
 <span class="key">data:</span> {<span class="str">"choices"</span>:[{<span class="str">"delta"</span>:{<span class="str">"content"</span>:<span class="str">"您的"</span>}}]}
 <span class="key">data:</span> {<span class="str">"choices"</span>:[{<span class="str">"delta"</span>:{<span class="str">"content"</span>:<span class="str">"需求"</span>}}]}
-<span class="key">data:</span> {<span class="str">"choices"</span>:[{<span class="str">"delta"</span>:{<span class="str">"content"</span>:<span class="str">"，"</span>}}]}
-<span class="key">data:</span> {<span class="str">"choices"</span>:[{<span class="str">"delta"</span>:{<span class="str">"content"</span>:<span class="str">"推荐"</span>}}]}
 ...
 <span class="key">data:</span> [DONE]
 
-<span class="comment">// 非 Streaming 时，一次性返回完整内容：</span>
-<span class="comment">// { "choices":[{"message":{"content":"完整回复"}}] }</span></pre>
+<span class="comment">// 非 Streaming：一次性返回</span>
+{<span class="str">"choices"</span>:[{<span class="str">"message"</span>:{<span class="str">"content"</span>:<span class="str">"完整回复"</span>}}]}
+{<span class="str">"usage"</span>:{<span class="str">"prompt_tokens"</span>:42,<span class="str">"completion_tokens"</span>:156}}</pre>
     </div>
-    <div style="margin-top:8px;padding:8px 12px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:4px;">
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
-        <strong style="color:#FF6B35;">Streaming</strong> = 逐 token 返回（SSE 协议）<br>
-        <strong style="color:#FF6B35;">[DONE]</strong> = 流结束标记<br>
-        <strong style="color:#FF6B35;">delta.content</strong> = 本次返回的文本片段
+    <div style="margin-top:6px;padding:8px 10px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:4px;">
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">
+        <strong style="color:#FF6B35;">Streaming</strong> 用 delta.content 逐 token 返回<br>
+        <strong style="color:#FF6B35;">[DONE]</strong> 流结束标记<br>
+        <strong style="color:#FF6B35;">usage</strong> 返回 token 用量，用于成本监控
+      </div>
+    </div>
+  </div>
+
+  <!-- 右：messages 如何支撑后续课程 -->
+  <div style="flex:1;display:flex;flex-direction:column;">
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:6px;">🔑 messages 是后续所有课程的基础</div>
+    <div style="padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:8px;">
+      <div style="padding:8px 12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:4px;">
+        <div style="font-size:11px;color:#00E5FF;font-weight:700;">v1.0 第四课（当前）</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.5);">messages = [system, user]</div>
+      </div>
+      <div style="padding:8px 12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:4px;">
+        <div style="font-size:11px;color:#00E5FF;font-weight:700;">v2.0 第五课 Memory</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.5);">messages = [system, <span style="color:#FF6B35;">历史对话</span>, user]</div>
+      </div>
+      <div style="padding:8px 12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:4px;">
+        <div style="font-size:11px;color:#00E5FF;font-weight:700;">v3.0 第六课 Knowledge</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.5);">messages = [system, <span style="color:#FF6B35;">RAG检索结果</span>, user]</div>
+      </div>
+      <div style="padding:8px 12px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:4px;">
+        <div style="font-size:11px;color:#FF6B35;font-weight:700;">v4.0 第七课 Tool</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.5);">请求增加 <span style="color:#FF6B35;">tools</span> 字段，响应增加 <span style="color:#FF6B35;">tool_calls</span></div>
+      </div>
+      <div style="padding:8px 12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:4px;">
+        <div style="font-size:11px;color:#00E5FF;font-weight:700;">v5.0 第八课 Workflow</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.5);">多次调用协议，编排成流程</div>
       </div>
     </div>
   </div>
 </div>
 
-<div style="margin-top:12px;padding:10px 16px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:5px;text-align:center;">
-  <div style="font-size:13px;color:#FF6B35;font-weight:700;">这就是为什么配个 URL 和 Key 就能交互 — 所有服务商（OpenAI、DeepSeek、硅基流动）都遵循同一套协议。</div>
-  <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-top:4px;">Spring AI 封装了 HTTP 请求和 SSE 解析，但底层就是这个 JSON 协议。</div>
+<div style="margin-top:10px;padding:8px 14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:5px;text-align:center;">
+  <div style="font-size:13px;color:#FF6B35;font-weight:700;">OpenAI 协议不是"知道就行的知识"，而是后面六课的共同基础。这一课讲不透，后面都学不会。</div>
 </div>
 </div></body></html>

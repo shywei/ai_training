@@ -21,11 +21,20 @@ public class GuardrailsService {
             "密码", "password", "secret", "token", "私钥"
     );
 
-    // Prompt Injection 模式
+    // Prompt Injection 模式（中英文）
     private static final List<Pattern> INJECTION_PATTERNS = List.of(
+            // 英文注入
             Pattern.compile("(?i)ignore.*previous.*instructions"),
-            Pattern.compile("(?i)你是一个.*而不是"),
-            Pattern.compile("(?i)system\\s*prompt")
+            Pattern.compile("(?i)you are.*not.*an?"),
+            Pattern.compile("(?i)system\\s*prompt"),
+            Pattern.compile("(?i)forget.*all.*rules"),
+            Pattern.compile("(?i)act as.*(?:hacker|evil|admin)"),
+            // 中文注入
+            Pattern.compile("忽略.*(?:之前|上面|以前).*(?:指令|提示|规则|设定)"),
+            Pattern.compile("(?:告诉我|显示|输出|泄露).*(?:系统提示|System Prompt|初始指令)"),
+            Pattern.compile("(?:你是一个|你现在是).*(?:黑客|管理员|开发者|DAN)"),
+            Pattern.compile("(?:忘记|抛弃|无视).*(?:规则|限制|约束|指令)"),
+            Pattern.compile("(?:绕过|突破|破解|越狱).*(?:限制|规则|安全)")
     );
 
     /**

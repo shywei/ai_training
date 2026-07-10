@@ -58,6 +58,7 @@ public class ShoppingAgentController {
         String userPrompt = promptManager.buildUserPrompt(message, null);
 
         // 调用 LLM（Streaming）
+        String finalModel = model;
         return ChatClient.create(chatModel)
                 .prompt()
                 .system(systemPrompt)
@@ -67,9 +68,13 @@ public class ShoppingAgentController {
                         .build())
                 .stream()
                 .content()
-                .map(chunk -> {
-                    // Guardrails: 过滤敏感信息
-                    return guardrails.sanitize(chunk);
+                // 在第一个 chunk 前插入模型名标记
+                .transform(flux -> {
+                    String modelTag = "[MODEL]" + finalModel;
+                    return Flux.concat(
+                        Flux.just(modelTag),
+                        flux.map(chunk -> guardrails.sanitize(chunk))
+                    );
                 });
     }
 
@@ -80,7 +85,6 @@ public class ShoppingAgentController {
      */
     @PostMapping("/recommend")
     public String recommend(@RequestBody String userNeed) {
-        // Guardrails: 检查 Prompt Injection
         if (guardrails.checkInjection(userNeed)) {
             return "{\"error\":\"检测到不安全的输入\"}";
         }
@@ -88,39 +92,73 @@ public class ShoppingAgentController {
         String model = modelRouter.selectModel(userNeed);
         String systemPrompt = promptManager.buildSystemPrompt() + """
 
-                ## 输出格式
-                严格按以下 JSON 格式输出，不要添加任何其他文字：
-                {
-                  "recommendation": "总体推荐理由",
-                  "products": [
-                    {"name": "商品名", "reason": "推荐理由", "price_range": "价格区间"}
-                  ],
-                  "confidence": 0.9
-                }
+                ## 输出要求
+                直接输出 JSON，不要用代码块包裹，不要添加任何解释文字。
+                格式：{"recommendation":"推荐理由","products":[{"name":"商品名","reason":"理由","price_range":"价格"}],"confidence":0.9}
                 """;
         String userPrompt = promptManager.buildUserPrompt(userNeed, null);
 
-        // 第一次调用
         String rawOutput = callLLM(systemPrompt, userPrompt, model);
+        System.out.println("\n========== 结构化输出演示 ==========");
+        System.out.println("【步骤1】LLM 原始输出:");
+        System.out.println(rawOutput);
 
-        // Output Validation
+        boolean hasSensitive = guardrails.containsSensitiveInfo(rawOutput);
+
+        // 提取 JSON
+        String extracted = outputHandler.extractJson(rawOutput);
+        System.out.println("\n【步骤2】提取出的 JSON:");
+        System.out.println(extracted);
+
+        // 验证
         var json = outputHandler.validate(rawOutput);
+        System.out.println("\n【步骤3】Schema 验证: " + (json != null ? "通过" : "失败"));
+
         if (json != null) {
-            // 验证通过
-            return guardrails.sanitize(rawOutput);
+            // Bean Mapping: JSON → Java 对象
+            try {
+                RecommendResult result = new com.fasterxml.jackson.databind.ObjectMapper()
+                    .readValue(extracted, RecommendResult.class);
+                System.out.println("\n【步骤4】Bean Mapping: JSON → RecommendResult 对象");
+                System.out.println("  推荐理由: " + result.getRecommendation());
+                System.out.println("  置信度: " + result.getConfidence());
+                for (RecommendResult.Product p : result.getProducts()) {
+                    System.out.println("  商品: " + p);
+                }
+                System.out.println("\n【步骤5】Java 代码可以对这些对象做任何事:");
+                System.out.println("  · 存入数据库: productRepository.save(result.getProducts())");
+                System.out.println("  · 传给订单系统: orderService.createOrder(result.getProducts())");
+                System.out.println("  · 渲染商品卡片: return productCardView(result)");
+                System.out.println("\n【结果】返回结构化 JSON 给前端");
+                System.out.println("====================================\n");
+            } catch (Exception e) {
+                System.out.println("  Bean Mapping 失败: " + e.getMessage());
+            }
+            String response = extracted;
+            if (hasSensitive) {
+                response = response.replace("\"recommendation\"", "\"_warning\":\"输出含敏感信息已脱敏\",\"recommendation\"");
+            }
+            return response;
         }
 
-        // Self-Correction：第一次输出非法，让 LLM 自我纠错
+        // Self-Correction
+        System.out.println("【步骤4】Self-Correction: 第一次输出非法，重试...");
         String correctionPrompt = outputHandler.buildCorrectionPrompt(rawOutput, "输出不是合法 JSON");
-        String correctedOutput = callLLM(systemPrompt, correctionPrompt, model);
+        String corrected = callLLM(systemPrompt, correctionPrompt, model);
+        System.out.println("【步骤4】重试输出:");
+        System.out.println(corrected);
 
-        json = outputHandler.validate(correctedOutput);
-        if (json != null) {
-            return guardrails.sanitize(correctedOutput);
+        var json2 = outputHandler.validate(corrected);
+        System.out.println("【步骤4】验证: " + (json2 != null ? "通过" : "失败"));
+        if (json2 != null) {
+            System.out.println("【结果】Self-Correction 成功，返回结构化 JSON");
+            System.out.println("====================================\n");
+            return json2.toString();
         }
 
-        // 两次都失败，返回错误
-        return "{\"error\":\"模型输出无法解析，请重试\"}";
+        System.out.println("【结果】两次都失败，返回错误");
+        System.out.println("====================================\n");
+        return "{\"error\":\"模型输出无法解析\",\"rawOutput\":\"" + rawOutput.replace("\"", "'").replaceAll("\\s+", " ").substring(0, Math.min(rawOutput.length(), 150)) + "\"}";
     }
 
     /**

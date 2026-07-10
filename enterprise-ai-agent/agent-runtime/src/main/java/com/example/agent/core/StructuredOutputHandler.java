@@ -1,16 +1,12 @@
 package com.example.agent.core;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
 /**
  * 结构化输出处理器：确保 LLM 输出符合预期的 JSON Schema
- *
- * 第四课核心知识点：
- * - Java 无法解析带有废话的 JSON
- * - Output Validation：验证 LLM 输出是否符合 Schema
- * - Self-Correction：输出不合法时让 LLM 自我纠错
  */
 @Component
 public class StructuredOutputHandler {
@@ -25,58 +21,90 @@ public class StructuredOutputHandler {
         if (llmOutput == null || llmOutput.isBlank()) {
             return null;
         }
-        // 提取 JSON（LLM 可能会在 JSON 前后加废话）
         String json = extractJson(llmOutput);
         if (json == null) return null;
 
         try {
             return objectMapper.readTree(json);
-        } catch (Exception e) {
-            return null;
+        } catch (JsonProcessingException e) {
+            // 尝试清理常见问题后重试
+            String cleaned = cleanJson(json);
+            try {
+                return objectMapper.readTree(cleaned);
+            } catch (JsonProcessingException e2) {
+                return null;
+            }
         }
     }
 
     /**
      * 从 LLM 输出中提取 JSON 部分
-     * 处理情况：LLM 可能在 JSON 前后添加说明文字
      */
-    private String extractJson(String text) {
+    public String extractJson(String text) {
+        if (text == null) return null;
         text = text.trim();
-        // 如果本身就是 JSON
+
+        // 1. 尝试直接解析
         if (text.startsWith("{") && text.endsWith("}")) {
             return text;
         }
-        // 尝试提取 ```json ... ``` 代码块
-        int start = text.indexOf("```json");
-        if (start >= 0) {
-            start = text.indexOf("\n", start) + 1;
-            int end = text.indexOf("```", start);
-            if (end > start) {
-                return text.substring(start, end).trim();
+
+        // 2. 提取 ```json ... ``` 代码块
+        int codeStart = text.indexOf("```json");
+        if (codeStart >= 0) {
+            codeStart = text.indexOf("\n", codeStart) + 1;
+            int codeEnd = text.indexOf("```", codeStart);
+            if (codeEnd > codeStart) {
+                return text.substring(codeStart, codeEnd).trim();
             }
         }
-        // 尝试找第一个 { 到最后一个 }
+
+        // 3. 提取 ``` ... ``` 代码块（无 json 标记）
+        codeStart = text.indexOf("```");
+        if (codeStart >= 0) {
+            codeStart = text.indexOf("\n", codeStart) + 1;
+            int codeEnd = text.indexOf("```", codeStart);
+            if (codeEnd > codeStart) {
+                String candidate = text.substring(codeStart, codeEnd).trim();
+                if (candidate.startsWith("{")) {
+                    return candidate;
+                }
+            }
+        }
+
+        // 4. 找第一个 { 到最后一个 }
         int firstBrace = text.indexOf("{");
         int lastBrace = text.lastIndexOf("}");
         if (firstBrace >= 0 && lastBrace > firstBrace) {
             return text.substring(firstBrace, lastBrace + 1);
         }
+
         return null;
     }
 
     /**
+     * 清理 JSON 中的常见问题
+     */
+    private String cleanJson(String json) {
+        // 移除尾部逗号
+        json = json.replaceAll(",\\s*([}\\]])", "$1");
+        // 移除注释
+        json = json.replaceAll("//.*?\\n", "\n");
+        return json;
+    }
+
+    /**
      * 构建 Self-Correction 提示词
-     * 当 LLM 输出非法 JSON 时，将异常信息发回让它修正
      */
     public String buildCorrectionPrompt(String originalOutput, String errorMessage) {
         return String.format("""
                 你上次的输出不是合法的 JSON，解析报错：
                 %s
-                
+
                 你上次的输出：
                 %s
-                
-                请重新输出，只输出 JSON，不要添加任何其他文字。
+
+                请重新输出，只输出纯 JSON，不要用代码块包裹，不要添加任何其他文字。
                 """, errorMessage, originalOutput);
     }
 }

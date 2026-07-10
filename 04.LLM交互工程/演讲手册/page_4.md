@@ -1,22 +1,21 @@
 ## Slide Objective
-讲清楚 OpenAI 接口协议的请求/响应结构，让学员理解"为什么配个 URL 和 Key 就能交互"。
+讲清楚 OpenAI 协议的请求/响应结构，让学员理解"为什么配个 URL 和 Key 就能交互"。
 
 ## Suggested Presentation
-看左边，这是请求的完整结构。就是一个 HTTP POST，URL 是服务商地址加 /v1/chat/completions，Header 里放 Bearer Token 认证。
+这一页是整节课最重要的一页。后面六课全部建立在这个协议之上。
 
-请求体是 JSON，三个关键字段：model 指定用哪个模型，messages 是对话历史（system 定义角色，user 是用户输入），stream 控制是否流式返回。
+看左边的请求结构。就是一个 HTTP POST。你可以用 curl 自己验证——在终端里执行 `curl -N "http://localhost:8080/api/agent/chat?message=你好"`，看后端日志。Spring AI 在内部构建的就是这个 JSON。
 
-右边是 Streaming 响应的格式。每个 data: 开头的行是一个 token，模型每生成一个 token 就发一行。最后发一个 [DONE] 表示结束。
+请求体里最核心的是 messages 数组。三种角色：system 定义 Agent 是谁，user 是用户输入，assistant 是模型回复。多轮对话就是把历史消息全部塞进去。你可以验证：在前端连续问两个问题，看后端日志里 messages 数组是不是越来越长。
 
-非 Streaming 时更简单——等全部生成完，一次性返回完整的 message.content。
+看右边的响应。Streaming 模式下，每个 `data:` 开头的行是一个 token。你可以打开浏览器开发者工具（F12），切到 Network 标签，看 `/api/agent/chat` 请求的响应——你会看到 SSE 流，一行一行的 `data:` 就是逐 token 返回的。
 
-底部这句话是关键：所有服务商——OpenAI、DeepSeek、硅基流动——都遵循同一套协议。这就是为什么你只需要改 URL 和 Key 就能切换服务商。Spring AI 封装了 HTTP 请求和 SSE 解析的细节，但底层就是这个 JSON 协议。
+右边的消息注入点是关键。现在 v1.0，messages 只有 system 和 user。到了 v2.0 Memory，会在中间注入历史对话。到了 v3.0 Knowledge，会注入 RAG 检索结果。到了 v4.0 Tool，请求里会多一个 tools 字段。所有后续课程的能力，都是通过修改这个 messages 数组或请求体来实现的。
+
+底部这句话记住：OpenAI 协议不是"知道就行的知识"，而是后面六课的共同基础。这一课讲不透，后面都学不会。
 
 ## Key Emphasis
-这是整节课的底层基础。学员必须理解 messages 数组的三种 role 和 Streaming 的 data: 格式。不需要记住每个字段，但要理解结构。
-
-## Take Away
-OpenAI 协议 = HTTP POST + JSON。所有服务商遵循同一套标准。
+让学员用 curl 和浏览器开发者工具亲自验证。这不是"听"的知识，是"看"的知识。
 
 ## Transition
-协议只定义了基本的对话能力。但它实际上还定义了更多标准能力——Function Calling、Structured Output 等。这些能力是后续课程的基础。
+协议只定义了基本对话能力。但它还定义了更多标准能力——Function Calling 就是其中一个。

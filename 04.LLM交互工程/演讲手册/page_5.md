@@ -1,23 +1,21 @@
 ## Slide Objective
-展示 OpenAI 协议定义的全部标准能力，让学员理解"一个协议，覆盖所有场景"。
+通过 Function Calling 的完整 JSON 示例，让学员理解"模型不直接调用工具，而是返回调用意图"。
 
 ## Suggested Presentation
-一个 POST 请求，通过不同的参数组合，就能调用大模型的全部标准能力。
+Function Calling 是 OpenAI 协议里最复杂也最重要的能力。第七课 Tool 全部建立在这个机制上。
 
-上面三个是基础能力：Messages 定义对话（system/user/assistant），Streaming 控制返回方式（逐 token 还是一次性），Temperature 控制创造性（0.0 确定、0.7 平衡、1.0+ 随机）。
+看左边的请求。和普通对话比，多了一个 tools 字段。你在这里定义你有哪些工具——每个工具有名字、描述、参数格式。这里定义了一个 check_inventory 工具，接收 product_name 参数。
 
-下面三个是进阶能力，也是后续课程的基础：
-Function Calling——你在请求中定义工具列表，模型判断需要调用哪个工具、传什么参数。模型不直接调用，而是返回调用意图，由你的服务端执行。这是第七课 Tool 的基础。
-Structured Output——通过 response_format 参数强制输出 JSON Schema，模型保证输出符合你定义的结构。这就是本课后面讲的"方案二"。
-Token 计数——响应中返回 usage.prompt_tokens 和 completion_tokens，用于成本监控。企业必须记录这个。
+看右边的响应。关键点：模型返回的不是库存数据，而是一个 tool_calls。它告诉你"我要调用 check_inventory，参数是 iPhone 16"。模型不直接调用——它只是返回调用意图。
 
-底部这句话记住：一个 HTTP POST + 一套 JSON 参数 = 大模型的全部标准能力。
+你的代码拿到 tool_calls 后，自己去调库存 API（这就是第七课要讲的），拿到结果，然后把结果作为 role=tool 的消息传回给模型。模型拿到结果后，生成最终回复。
+
+这个三步走的流程——定义工具、模型返回意图、你的代码执行后传回结果——就是第七课 Tool 的核心。整个流程都是 OpenAI 协议定义的，跟具体框架无关。
+
+你可以现在就在 Demo 里验证：打开 `ShoppingAgentController`，看 `/chat` 接口——它现在没有传 tools 字段，所以模型不会返回 tool_calls。到了第七课，我们会加上 tools 字段，你就能看到 tool_calls 长什么样了。
 
 ## Key Emphasis
-不要深入讲每个能力的细节（后续课程会讲），重点是让学员建立"协议即能力"的认知。Function Calling 和 Structured Output 点到为止，告诉学员"后面会用到"。
-
-## Take Away
-OpenAI 协议不只是对话，它定义了工具调用、结构化输出、Token 计数等全部标准能力。
+Function Calling 的核心是"模型返回意图，代码执行"。这个设计让同一个协议能支持各种工具调用场景。
 
 ## Transition
-协议讲完了。接下来我们看两个直接影响成本和体验的关键概念：Token 和 Context Window。
+协议的标准能力讲完了。接下来看两个直接影响成本的概念：Token 和 Context Window。

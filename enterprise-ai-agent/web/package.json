@@ -9,6 +9,7 @@
   "dependencies": {
     "core-js": "^3.37.0",
     "element-ui": "^2.15.14",
+    "marked": "^12.0.0",
     "vue": "^2.7.16"
   },
   "devDependencies": {

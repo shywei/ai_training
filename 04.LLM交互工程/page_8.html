@@ -7,69 +7,78 @@
 .s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
 pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
-.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)} .fn{color:#E0E7FF}
+.key{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)} .bad{color:#ff6b6b} .good{color:#67C23A}
 </style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="s" style="padding:26px 60px;display:flex;flex-direction:column;">
 <div class="mb-2 sn">CHAPTER 05</div>
-<h1 class="mb-2">结构化输出 — Java 开发的生命线</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+<h1 class="mb-2">结构化输出 — 为什么 LLM 必须返回 JSON？</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:14px;"></div>
 
-<div style="flex:1;display:flex;gap:20px;">
-  <!-- 左：方案对比 -->
+<div style="flex:1;display:flex;gap:18px;">
+  <!-- 左：问题 -->
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;">
-      <div style="font-size:14px;color:#FF6B35;font-weight:700;">企业痛点：Java 无法解析带有废话的 JSON</div>
+    <div style="padding:12px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;">
+      <div style="font-size:14px;color:#FF6B35;font-weight:700;">核心问题：LLM 的输出是给人看的，还是给代码用的？</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.5);margin-top:4px;">聊天场景 → 人能读就行<br>API 场景 → Java 代码需要结构化数据</div>
     </div>
 
-    <div style="display:flex;gap:14px;margin-bottom:14px;">
-      <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-        <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">方案一：提示词约束</div>
-        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">Prompt 中要求"只输出 JSON"<br>✅ 所有模型支持<br>✅ 实现最简单<br>⚠️ 不保证 100% 合规</div>
-      </div>
-      <div style="flex:1;padding:14px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);border-radius:6px;">
-        <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:6px;">方案二：API 原生</div>
-        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">response_format 强制格式<br>✅ 合规率接近 100%<br>✅ 不用改 Prompt<br>⚠️ 只有部分模型支持</div>
-      </div>
+    <div style="padding:12px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);border-radius:6px;margin-bottom:12px;">
+      <div style="font-size:12px;color:#ff6b6b;font-weight:700;margin-bottom:4px;">❌ 自然语言 → Java 无法可靠解析</div>
+      <pre style="font-size:10px;color:rgba(224,231,255,0.5);">"推荐联想小新Pro，大概6000到8000，适合写代码"</pre>
+      <div style="font-size:10px;color:rgba(224,231,255,0.35);margin-top:4px;">→ Java 怎么提取商品名？价格？用正则？格式一变就崩。</div>
     </div>
 
-    <div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;">
-      <div style="font-size:13px;color:#E0E7FF;font-weight:700;margin-bottom:4px;">🛡️ 代码层兜底（必须有）</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">不管用哪种方案，Java 端都必须：① JSON 提取（从废话中提取）② Schema 验证 ③ Bean Mapping（Jackson）</div>
+    <div style="padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;margin-bottom:12px;">
+      <div style="font-size:12px;color:#67C23A;font-weight:700;margin-bottom:4px;">✅ JSON → Jackson 直接映射为 Java 对象</div>
+      <pre style="font-size:10px;color:rgba(224,231,255,0.5);">{"products":[{"name":"联想小新Pro","price":"6000-8000"}]}</pre>
+      <div style="font-size:10px;color:rgba(224,231,255,0.35);margin-top:4px;">→ objectMapper.readValue(json, RecommendResult.class)</div>
     </div>
-  </div>
 
-  <!-- 右：Demo 代码 -->
-  <div style="flex:1;display:flex;flex-direction:column;">
-    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">💻 Demo 代码：StructuredOutputHandler.java</div>
-    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;flex:1;">
-      <pre><span class="kw">public</span> JsonNode <span class="fn">validate</span>(String llmOutput) {
-  <span class="cm">// 1. 从 LLM 输出中提取 JSON</span>
-  String json = <span class="fn">extractJson</span>(llmOutput);
-  <span class="cm">// extractJson 处理：</span>
-  <span class="cm">// - 纯 JSON: 直接返回</span>
-  <span class="cm">// - ```json...```: 提取代码块</span>
-  <span class="cm">// - 混合文本: 找 { 到 }</span>
-
-  <span class="cm">// 2. JSON Schema 验证</span>
-  <span class="kw">try</span> {
-    <span class="kw">return</span> objectMapper.readTree(json);
-  } <span class="kw">catch</span> (Exception e) {
-    <span class="kw">return null</span>;  <span class="cm">// 验证失败</span>
-  }
-}
-
-<span class="cm">// 3. Self-Correction：验证失败时</span>
-<span class="kw">public</span> String <span class="fn">buildCorrectionPrompt</span>(
-    String original, String error) {
-  <span class="kw">return</span> <span class="str">"你上次输出不是合法JSON，"</span>
-    + <span class="str">"报错："</span> + error
-    + <span class="str">"上次输出："</span> + original
-    + <span class="str">"请重新输出，只输出JSON。"</span>;
-}</pre>
-    </div>
-    <div style="margin-top:8px;padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
-      <div style="font-size:11px;color:rgba(224,231,255,0.5);"><strong style="color:#E0E7FF;">关键：</strong>提示词约束是通用方案，代码验证是必须的兜底。两者缺一不可。</div>
+    <div style="padding:10px 14px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:5px;">
+      <div style="font-size:12px;color:#E0E7FF;font-weight:700;">结构化输出的真正价值</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.5);margin-top:4px;">不是"展示给用户看"，而是<strong style="color:#00E5FF;">让 Java 代码能程序化处理 LLM 的输出</strong>：存数据库、传给订单系统、渲染成商品卡片。</div>
     </div>
   </div>
+
+  <!-- 右：两种方案 + 代码兜底 -->
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">两种让 LLM 返回 JSON 的方案</div>
+    <div style="display:flex;gap:12px;margin-bottom:12px;">
+      <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+        <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">方案一：提示词约束</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">Prompt 里要求"只输出 JSON"<br>✅ 所有模型支持<br>⚠️ 不保证 100% 合规</div>
+      </div>
+      <div style="flex:1;padding:12px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);border-radius:6px;">
+        <div style="font-size:13px;color:#FF6B35;font-weight:700;margin-bottom:4px;">方案二：API 原生</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">response_format 强制 Schema<br>✅ 合规率接近 100%<br>⚠️ 部分模型支持</div>
+      </div>
+    </div>
+
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">代码层兜底（必须有）</div>
+    <div style="padding:12px;background:rgba(0,0,0,0.3);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
+      <pre style="font-size:11px;"><span class="cm">// LLM 可能返回: "好的，推荐如下：{...} 希望有帮助"</span>
+
+<span class="cm">// 1. 提取 JSON（从废话中提取）</span>
+String json = extractJson(llmOutput);
+<span class="cm">// → {"products":[{"name":"联想小新Pro",...}]}</span>
+
+<span class="cm">// 2. Bean Mapping: JSON → Java 对象</span>
+RecommendResult result = objectMapper
+    .readValue(json, RecommendResult.class);
+
+<span class="cm">// 3. Java 代码用对象做具体的事</span>
+result.getProducts().get(0).getName();
+<span class="cm">// → "联想小新Pro"（可靠、类型安全）</span>
+
+<span class="cm">// 实际用途：</span>
+<span class="cm">// · 存数据库: repository.save(result)</span>
+<span class="cm">// · 传订单系统: orderService.create(result)</span>
+<span class="cm">// · 渲染卡片: productCardView(result)</span></pre>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:8px;padding:8px 14px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:5px;text-align:center;">
+  <div style="font-size:12px;color:rgba(224,231,255,0.5);"><strong style="color:#FF6B35;">Demo 可验证：</strong>后端日志会打印 LLM 原始输出 → 提取出的 JSON → 映射后的 Java 对象字段。三个步骤一目了然。</div>
 </div>
 </div></body></html>
