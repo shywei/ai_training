@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>上下文压缩 — Demo 实现</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)}</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;position:relative;">
+<div class="sn">CHAPTER 04 · DEMO</div>
+<h1 class="mb-2">上下文压缩 — Demo 实现</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;gap:18px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">累积压缩流程</div>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <div style="padding:8px 12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:5px;font-size:11px;color:rgba(224,231,255,0.6);">消息>8条 -> 取前N-4条(含旧摘要) -> 快模型压缩 -> 写回Redis</div>
+      <div style="padding:8px 12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:5px;font-size:11px;color:rgba(224,231,255,0.6);">第一次：8条 -> <strong style="color:#E0E7FF;">摘要A</strong> + 4条原文 = 5条</div>
+      <div style="padding:8px 12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:5px;font-size:11px;color:rgba(224,231,255,0.6);">第二次：8条 -> <strong style="color:#E0E7FF;">摘要B(含A)</strong> + 4条原文 = 5条</div>
+      <div style="padding:8px 12px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:5px;font-size:11px;color:rgba(224,231,255,0.6);"><strong style="color:#FF6B35;">不丢失历史</strong>，摘要越来越完整</div>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">Demo 关键设计</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="padding:10px 14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:5px;">
+        <div style="font-size:12px;color:#00E5FF;font-weight:700;">阈值：8条触发</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);">Demo 设为 8 方便演示，实际项目可设更大</div>
+      </div>
+      <div style="padding:10px 14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:5px;">
+        <div style="font-size:12px;color:#00E5FF;font-weight:700;">模型：agent.model.summary</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);">压缩不需要推理能力，用最便宜的模型</div>
+      </div>
+      <div style="padding:10px 14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:5px;">
+        <div style="font-size:12px;color:#00E5FF;font-weight:700;">日志：logs/llm-summary.log / llm-profile.log</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);">看压缩请求的 Prompt 和 LLM 返回的摘要</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div style="position:absolute;bottom:14px;right:60px;padding:4px 12px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:12px;font-size:10px;color:#00E5FF;">Demo 可验证</div>
+</div></body></html>

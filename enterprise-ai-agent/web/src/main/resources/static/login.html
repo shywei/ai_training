@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>导购 Agent - 登录</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.14/lib/theme-chalk/index.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: #f5f7fa;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            width: 400px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 48px 40px;
+            text-align: center;
+        }
+        .login-card h1 {
+            font-size: 24px;
+            color: #303133;
+            margin-bottom: 8px;
+        }
+        .login-card .subtitle {
+            font-size: 14px;
+            color: #909399;
+            margin-bottom: 32px;
+        }
+        .login-card .el-input {
+            margin-bottom: 20px;
+        }
+        .login-card .el-button {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="login-card">
+        <h1>🛒 导购 Agent</h1>
+        <p class="subtitle">v2.0-memory · 企业 AI 应用开发培训</p>
+        <el-input
+            v-model="username"
+            placeholder="请输入你的姓名"
+            prefix-icon="el-icon-user"
+            size="large"
+            @keydown.native.enter="login"
+            clearable
+        ></el-input>
+        <el-button type="primary" size="large" @click="login" :disabled="!username.trim()">
+            开始对话
+        </el-button>
+    </div>
+</div>
+<script src="https://unpkg.com/vue@2.7.16/dist/vue.min.js"></script>
+<script src="https://unpkg.com/element-ui@2.15.14/lib/index.js"></script>
+<script>
+new Vue({
+    el: '#app',
+    data() {
+        return { username: '' }
+    },
+    methods: {
+        login() {
+            const name = this.username.trim()
+            if (!name) return
+            localStorage.setItem('agent_userId', name)
+            localStorage.setItem('agent_sessionId', 'session_' + Date.now())
+            window.location.href = 'chat.html'
+        }
+    },
+    mounted() {
+        // 如果已登录，直接跳转
+        if (localStorage.getItem('agent_userId')) {
+            window.location.href = 'chat.html'
+        }
+    }
+})
+</script>
+</body>
+</html>

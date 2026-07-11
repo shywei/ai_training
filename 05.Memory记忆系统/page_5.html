@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>Session Memory — 方案全景</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)}</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;position:relative;">
+<div class="sn">CHAPTER 03</div>
+<h1 class="mb-2">Session Memory — 方案全景</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+  <div style="display:flex;gap:16px;margin-bottom:14px;">
+    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">方案一：内存存储</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">ConcurrentHashMap / Caffeine<br>✅ 最快，零依赖<br>❌ 重启丢失，不支持多实例<br><strong style="color:#E0E7FF;">适用：</strong>原型开发、单机部署</div>
+    </div>
+    <div style="flex:1;padding:14px;background:rgba(255,107,53,0.06);border:2px solid rgba(255,107,53,0.2);border-radius:6px;">
+      <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:6px;">方案二：Redis（主流）</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">List 结构，RPUSH/LRANGE<br>✅ 快、支持集群、自带过期<br>❌ 需要额外部署<br><strong style="color:#E0E7FF;">适用：</strong>生产环境、多实例部署</div>
+    </div>
+    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">方案三：数据库</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">MySQL messages 表<br>✅ 持久化、可查询<br>❌ 读写慢<br><strong style="color:#E0E7FF;">适用：</strong>需要审计、合规场景</div>
+    </div>
+    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">Token 爆炸问题</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">两种解决策略：<br><strong style="color:#E0E7FF;">滑动窗口</strong>——裁掉旧消息<br><strong style="color:#E0E7FF;">后台压缩</strong>——旧消息→摘要<br>（下一页详讲）</div>
+    </div>
+  </div>
+  <div style="padding:10px 14px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:5px;">
+    <div style="font-size:13px;color:#FF6B35;font-weight:700;text-align:center;">Memory 生命周期：Message → Session → Summary → Archive → Delete</div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.4);text-align:center;margin-top:4px;">企业必须回答：Memory 会无限增长吗？什么时候归档？什么时候删除？</div>
+  </div>
+</div>
+<div style="position:absolute;bottom:14px;right:60px;padding:4px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.2);border-radius:12px;font-size:10px;color:#FF6B35;">知识体系</div>
+</div></body></html>

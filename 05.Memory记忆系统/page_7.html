@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>上下文压缩 — 策略对比</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)}</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;position:relative;">
+<div class="sn">CHAPTER 04</div>
+<h1 class="mb-2">上下文压缩 — 策略对比</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+  <div style="display:flex;gap:14px;margin-bottom:14px;">
+    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">滑动窗口</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">保留最近 N 条，裁掉旧的<br>✅ 简单、零成本<br>❌ 丢失早期信息<br><strong style="color:#E0E7FF;">适用：</strong>短对话、对历史不敏感</div>
+    </div>
+    <div style="flex:1;padding:14px;background:rgba(255,107,53,0.06);border:2px solid rgba(255,107,53,0.2);border-radius:6px;">
+      <div style="font-size:13px;color:#FF6B35;font-weight:700;margin-bottom:4px;">累积摘要（Demo 选择）</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">旧消息→LLM压缩为摘要，摘要累积<br>✅ 不丢失历史<br>❌ 需要调用 LLM，有成本<br><strong style="color:#E0E7FF;">适用：</strong>长对话、需要记住偏好</div>
+    </div>
+    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">关键词抽取</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">提取关键实体存入结构化字段<br>✅ 精确、可查询<br>❌ 丢失上下文语境<br><strong style="color:#E0E7FF;">适用：</strong>与画像系统配合</div>
+    </div>
+    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">Embedding 压缩</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">对话转为向量，语义检索<br>✅ 语义级别<br>❌ 需要向量 DB<br><strong style="color:#E0E7FF;">适用：</strong>超长对话、企业级</div>
+    </div>
+  </div>
+  <div style="padding:10px 14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
+    <div style="font-size:13px;color:#E0E7FF;text-align:center;"><strong style="color:#FF6B35;">滑动窗口 + 累积摘要</strong>组合使用最常见。关键词抽取和 Embedding 作为补充。</div>
+  </div>
+</div>
+<div style="position:absolute;bottom:14px;right:60px;padding:4px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.2);border-radius:12px;font-size:10px;color:#FF6B35;">知识体系</div>
+</div></body></html>

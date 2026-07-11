@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>Session Memory — Demo 实现</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)}</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;position:relative;">
+<div class="sn">CHAPTER 03 · DEMO</div>
+<h1 class="mb-2">Session Memory — Demo 实现</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;gap:18px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">Demo 选择：Redis 方案</div>
+    <div style="font-size:12px;color:rgba(224,231,255,0.5);margin-bottom:12px;">原因：支持多实例部署，自带过期机制，生产环境主流。</div>
+    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
+      <pre><span class="cm"># Redis Key 设计</span>
+session:{sessionId}:messages  -> List
+
+<span class="cm"># 每条消息</span>
+"user|我叫张三"
+"assistant|你好张三！"
+
+<span class="cm"># 操作</span>
+RPUSH  -> 追加 | LRANGE -> 读取
+LPOP   -> 裁剪 | EXPIRE -> 24h过期</pre>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">SessionMemory.java</div>
+    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
+      <pre><span class="kw">@Component</span>
+<span class="kw">public class</span> SessionMemory {
+  <span class="kw">private final</span> StringRedisTemplate redis;
+  <span class="kw">private static final int</span> MAX = 20;
+
+  <span class="kw">public void</span> addMessage(String sid,
+      String role, String content) {
+    String key = <span class="str">"session:"</span> + sid + <span class="str">":messages"</span>;
+    redis.opsForList().rightPush(key,
+        role + <span class="str">"|"</span> + content);
+    redis.expire(key, 24, TimeUnit.HOURS);
+    <span class="kw">if</span> (redis.opsForList().size(key) > MAX)
+      redis.opsForList().leftPop(key);
+  }
+}</pre>
+    </div>
+  </div>
+</div>
+<div style="position:absolute;bottom:14px;right:60px;padding:4px 12px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:12px;font-size:10px;color:#00E5FF;">Demo 可验证</div>
+</div></body></html>

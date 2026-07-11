@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>Memory Architecture — 三层记忆架构</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)}</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;position:relative;">
+<div class="sn">CHAPTER 02</div>
+<h1 class="mb-2">Memory Architecture — 三层记忆架构</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+  <div style="display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+    <div style="padding:12px 24px;background:rgba(255,107,53,0.1);border:2px solid #FF6B35;border-radius:8px;text-align:center;">
+      <div style="font-size:15px;color:#FF6B35;font-weight:700;">LLM</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.4);">每次请求注入 context</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:18px;margin-bottom:16px;">
+    <div style="flex:1;padding:16px;background:rgba(0,229,255,0.06);border:2px solid rgba(0,229,255,0.2);border-radius:8px;">
+      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:4px;">Session 短期记忆</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">存<strong style="color:#E0E7FF;">当前对话</strong>的消息历史<br>存储：Redis（快，易失）<br>生命周期：对话开始→结束</div>
+    </div>
+    <div style="flex:1;padding:16px;background:rgba(255,107,53,0.06);border:2px solid rgba(255,107,53,0.2);border-radius:8px;">
+      <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:4px;">Long-term Memory</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">存<strong style="color:#E0E7FF;">用户画像</strong>（偏好、事实）<br>存储：MySQL（持久化）<br>生命周期：跨 Session 永久</div>
+    </div>
+    <div style="flex:1;padding:16px;background:rgba(224,231,255,0.03);border:2px solid rgba(224,231,255,0.12);border-radius:8px;">
+      <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:4px;">Knowledge 知识</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">存<strong style="color:#E0E7FF;">企业知识</strong>（文档、产品）<br>存储：Vector DB（语义检索）<br>下节课详讲</div>
+    </div>
+  </div>
+  <div style="padding:12px 18px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;text-align:center;">
+    <div style="font-size:14px;color:#E0E7FF;"><strong style="color:#00E5FF;">Session</strong> 存"这轮对话" · <strong style="color:#FF6B35;">Long-term</strong> 存"这个用户" · <strong style="color:#E0E7FF;">Knowledge</strong> 存"这家公司"</div>
+  </div>
+</div>
+<div style="position:absolute;bottom:14px;right:60px;padding:4px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.2);border-radius:12px;font-size:10px;color:#FF6B35;">知识体系</div>
+</div></body></html>

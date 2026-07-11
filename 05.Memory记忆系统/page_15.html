@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>Demo 架构 — v2.0 新增组件</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)}</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;position:relative;">
+<div class="sn">CHAPTER 09</div>
+<h1 class="mb-2">Demo 架构 — v2.0 新增组件</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;gap:18px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:8px;">v2.0 新增文件</div>
+    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
+      <pre style="font-size:10px;"><span style="color:#FF6B35;">auth/</span>
+  User.java + UserMapper + AuthController
+
+<span style="color:#FF6B35;">memory/</span>
+  SessionMemory.java      <span style="color:rgba(224,231,255,0.3);">Redis + 滑动窗口</span>
+  MemoryManager.java      <span style="color:rgba(224,231,255,0.3);">context 构建</span>
+  SummaryPipeline.java    <span style="color:rgba(224,231,255,0.3);">累积压缩</span>
+  UserProfile.java        <span style="color:rgba(224,231,255,0.3);">画像实体</span>
+  UserProfileMapper.java  <span style="color:rgba(224,231,255,0.3);">MyBatis Plus</span>
+  UserProfileExtractor.java <span style="color:rgba(224,231,255,0.3);">异步抽取</span>
+
+<span style="color:#FF6B35;">core/</span>
+  LlmInteractionLogger.java <span style="color:rgba(224,231,255,0.3);">LLM 日志</span></pre>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">日志文件（演示重点）</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+      <div style="padding:10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+        <div style="font-size:12px;color:#00E5FF;font-weight:700;">logs/llm-chat.log</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);">对话请求/响应。看 context 注入。</div>
+      </div>
+      <div style="padding:10px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);border-radius:6px;">
+        <div style="font-size:12px;color:#FF6B35;font-weight:700;">logs/llm-summary.log / llm-profile.log</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);">画像抽取 + 压缩的完整过程。</div>
+      </div>
+    </div>
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">模型配置（从 yml 读取）</div>
+    <div style="padding:8px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
+      <pre style="font-size:10px;">agent.model.fast     -> 对话路由（快）
+agent.model.reasoning -> 对话路由（推理）
+agent.model.summary   -> 上下文压缩
+agent.model.extract   -> 画像抽取</pre>
+    </div>
+  </div>
+</div>
+<div style="position:absolute;bottom:14px;right:60px;padding:4px 12px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:12px;font-size:10px;color:#00E5FF;">Demo 可验证</div>
+</div></body></html>

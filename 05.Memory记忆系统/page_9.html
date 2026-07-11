@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>用户画像 — 设计模式</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)}</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;position:relative;">
+<div class="sn">CHAPTER 05</div>
+<h1 class="mb-2">用户画像 — 设计模式</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;gap:18px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">画像分类方式</div>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <div style="padding:8px 12px;background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;font-size:12px;"><strong style="color:#00E5FF;">Fact 事实</strong><span style="color:rgba(224,231,255,0.5);margin-left:8px;">姓名、职业、年龄</span></div>
+      <div style="padding:8px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;font-size:12px;"><strong style="color:#FF6B35;">Preference 偏好</strong><span style="color:rgba(224,231,255,0.5);margin-left:8px;">颜色、品牌、预算、风格</span></div>
+      <div style="padding:8px 12px;background:rgba(255,200,50,0.06);border-left:3px solid #FFC832;font-size:12px;"><strong style="color:#FFC832;">Task 任务</strong><span style="color:rgba(224,231,255,0.5);margin-left:8px;">当前需求、待办事项</span></div>
+      <div style="padding:8px 12px;background:rgba(224,231,255,0.04);border-left:3px solid #E0E7FF;font-size:12px;"><strong style="color:#E0E7FF;">Constraint 约束</strong><span style="color:rgba(224,231,255,0.5);margin-left:8px;">禁区、限制、不要的东西</span></div>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">触发机制对比</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="padding:10px 14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:5px;">
+        <div style="font-size:12px;color:#00E5FF;font-weight:700;">实时抽取（每轮对话后）</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);">成本高，每轮调 LLM。适合高价值场景。</div>
+      </div>
+      <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border:2px solid rgba(255,107,53,0.2);border-radius:5px;">
+        <div style="font-size:12px;color:#FF6B35;font-weight:700;">事件触发（Demo 选择）</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);">用户说"记住"时触发 + 会话结束兜底。<strong style="color:#E0E7FF;">成本可控，用户有感知。</strong></div>
+      </div>
+      <div style="padding:10px 14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:5px;">
+        <div style="font-size:12px;color:#00E5FF;font-weight:700;">批量抽取（定时任务）</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);">每天凌晨分析所有用户近期对话。成本最低，但有延迟。</div>
+      </div>
+      <div style="padding:10px 14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:5px;">
+        <div style="font-size:12px;color:#00E5FF;font-weight:700;">混合方案（实际项目推荐）</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);">高置信度实时 + 复杂偏好批量分析</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div style="position:absolute;bottom:14px;right:60px;padding:4px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.2);border-radius:12px;font-size:10px;color:#FF6B35;">知识体系</div>
+</div></body></html>

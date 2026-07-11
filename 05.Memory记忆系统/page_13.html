@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>存储选型 — 什么时候用什么</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)}</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;position:relative;">
+<div class="sn">CHAPTER 08</div>
+<h1 class="mb-2">存储选型 — 什么时候用什么</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+  <div style="display:flex;gap:16px;margin-bottom:14px;">
+    <div style="flex:1;padding:16px;background:rgba(255,107,53,0.06);border:2px solid rgba(255,107,53,0.2);border-radius:8px;">
+      <div style="font-size:15px;color:#FF6B35;font-weight:700;margin-bottom:6px;">Redis</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.6;"><strong style="color:#E0E7FF;">Session 短期记忆</strong><br>快、易失、自带过期<br>List 结构天然适合消息队列</div>
+    </div>
+    <div style="flex:1;padding:16px;background:rgba(0,229,255,0.06);border:2px solid rgba(0,229,255,0.2);border-radius:8px;">
+      <div style="font-size:15px;color:#00E5FF;font-weight:700;margin-bottom:6px;">MySQL / PostgreSQL</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.6;"><strong style="color:#E0E7FF;">长期记忆（用户画像）</strong><br>持久化、结构化、可查询<br>MyBatis Plus 操作简单</div>
+    </div>
+    <div style="flex:1;padding:16px;background:rgba(224,231,255,0.03);border:2px solid rgba(224,231,255,0.12);border-radius:8px;">
+      <div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:6px;">Vector DB（第六课）</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.6;"><strong style="color:#E0E7FF;">知识库（企业文档）</strong><br>语义检索、向量相似度<br>下节课引入</div>
+    </div>
+  </div>
+  <div style="padding:12px 18px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;text-align:center;">
+    <div style="font-size:14px;color:#E0E7FF;"><strong style="color:#FF6B35;">Redis</strong> 存临时的 · <strong style="color:#00E5FF;">MySQL</strong> 存持久的 · <strong style="color:#E0E7FF;">Vector DB</strong> 存知识的</div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-top:4px;">不要把画像存 Redis · 不要把对话历史存 MySQL</div>
+  </div>
+</div>
+<div style="position:absolute;bottom:14px;right:60px;padding:4px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.2);border-radius:12px;font-size:10px;color:#FF6B35;">知识体系</div>
+</div></body></html>

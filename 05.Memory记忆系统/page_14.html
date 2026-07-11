@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>生产环境注意事项</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)}</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;position:relative;">
+<div class="sn">CHAPTER 08</div>
+<h1 class="mb-2">生产环境注意事项</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+  <div style="display:flex;gap:16px;margin-bottom:14px;">
+    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">多用户隔离</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">每个用户的数据必须隔离。<br>Redis Key 带 userId 前缀。<br>MySQL 查询必须带 userId 条件。<br><strong style="color:#FF6B35;">绝不能让 A 看到 B 的画像。</strong></div>
+    </div>
+    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">Memory Debug</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">生产环境需要能看到每个用户的：<br>· 当前 Session 消息列表<br>· 用户画像内容<br>· context 注入了什么<br>· 压缩历史和摘要</div>
+    </div>
+    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">性能与成本</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">压缩和抽取都调用 LLM，有成本。<br>需要监控：每次压缩消耗多少 token？<br>画像抽取失败率多少？<br><strong style="color:#E0E7FF;">建议做成本看板。</strong></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:16px;">
+    <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">Memory 与 RAG 配合</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">用户问"我上次看的那个笔记本还有货吗"<br>Memory 记住了"上次看了联想小新Pro"<br>RAG 去查库存文档。两者配合才能回答。</div>
+    </div>
+    <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">Memory 与 Tool 配合</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">用户说"按我之前的偏好下单"<br>Memory 提供偏好 → Tool 调用下单 API。<br>这就是 v4.0 的完整形态。</div>
+    </div>
+  </div>
+</div>
+<div style="position:absolute;bottom:14px;right:60px;padding:4px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.2);border-radius:12px;font-size:10px;color:#FF6B35;">知识体系</div>
+</div></body></html>

@@ -1,12 +1,67 @@
 <template>
-  <div class="chat-container">
+  <!-- 未登录：显示登录界面 -->
+  <div v-if="!userId" class="login-container">
+    <div class="login-card">
+      <h1>🛒 导购 Agent</h1>
+      <p class="login-subtitle">v2.0-memory · 企业 AI 应用开发培训</p>
+      <el-input
+        v-model="loginForm.username"
+        placeholder="用户名"
+        prefix-icon="el-icon-user"
+        size="large"
+        @keydown.native.enter="$refs.pwdInput.focus()"
+        clearable
+      ></el-input>
+      <el-input
+        ref="pwdInput"
+        v-model="loginForm.password"
+        placeholder="密码"
+        prefix-icon="el-icon-lock"
+        size="large"
+        type="password"
+        show-password
+        @keydown.native.enter="doLogin"
+        style="margin-top:12px;"
+      ></el-input>
+      <el-button type="primary" size="large" @click="doLogin" :disabled="!loginForm.username || !loginForm.password" style="width:100%;margin-top:20px;">
+        登录
+      </el-button>
+      <el-button type="text" @click="showRegister = true" style="margin-top:8px;">
+        没有账号？注册
+      </el-button>
+      <p v-if="loginError" style="color:#F56C6C;font-size:12px;margin-top:8px;">{{ loginError }}</p>
+    </div>
+
+    <!-- 注册弹窗 -->
+    <el-dialog title="注册" :visible.sync="showRegister" width="360px" :append-to-body="true">
+      <el-input v-model="regForm.username" placeholder="用户名" size="large"></el-input>
+      <el-input v-model="regForm.password" placeholder="密码" type="password" show-password size="large" style="margin-top:12px;"></el-input>
+      <el-input v-model="regForm.displayName" placeholder="显示名称（选填）" size="large" style="margin-top:12px;"></el-input>
+      <span slot="footer">
+        <el-button @click="showRegister = false">取消</el-button>
+        <el-button type="primary" @click="doRegister">注册</el-button>
+      </span>
+    </el-dialog>
+  </div>
+
+  <!-- 已登录：显示聊天界面 -->
+  <div v-else class="chat-container">
     <!-- 顶部栏 -->
     <div class="chat-header">
       <h1>🛒 导购 Agent</h1>
-      <span class="version">v1.0-prompt</span>
+      <span class="version">v2.0-memory</span>
       <span class="model-info" v-if="currentModel">
         <i class="el-icon-cpu"></i> {{ currentModel }}
       </span>
+      <span v-if="userId" style="font-size:12px;background:rgba(255,255,255,0.15);padding:2px 10px;border-radius:10px;margin-left:8px;">
+        👤 {{ displayName || userId }}
+      </span>
+      <el-button size="mini" type="text" style="color:#fff;margin-left:8px;" @click="logout">
+        退出
+      </el-button>
+      <el-button size="mini" type="text" style="color:#fff;margin-left:auto;" @click="clearSession">
+        <i class="el-icon-delete"></i> 清空记忆
+      </el-button>
     </div>
 
     <!-- 消息区域 -->
@@ -79,21 +134,66 @@ export default {
   name: 'App',
   data() {
     return {
+      loginForm: { username: '', password: '' },
+      loginError: '',
+      showRegister: false,
+      regForm: { username: '', password: '', displayName: '' },
+      userId: localStorage.getItem('agent_userId') || '',
+      displayName: localStorage.getItem('agent_displayName') || '',
       inputText: '',
       loading: false,
       currentModel: '',
+      sessionId: localStorage.getItem('agent_sessionId') || ('session_' + Date.now()),
       messages: []
     }
   },
   methods: {
+    doLogin() {
+      this.loginError = ''
+      fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(this.loginForm)
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          this.userId = data.userId
+          this.displayName = data.displayName
+          this.sessionId = 'session_' + Date.now()
+          localStorage.setItem('agent_userId', data.userId)
+          localStorage.setItem('agent_displayName', data.displayName)
+          localStorage.setItem('agent_sessionId', this.sessionId)
+        } else {
+          this.loginError = data.message
+        }
+      })
+      .catch(() => { this.loginError = '网络错误' })
+    },
+
+    doRegister() {
+      fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(this.regForm)
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          this.showRegister = false
+          this.loginForm.username = this.regForm.username
+          this.loginForm.password = this.regForm.password
+          this.doLogin()
+        } else {
+          this.$message.error(data.message)
+        }
+      })
+      .catch(() => { this.$message.error('注册失败') })
+    },
+
     renderMarkdown(text) {
       if (!text) return ''
-      // 配置 marked 选项
-      marked.setOptions({
-        breaks: true,
-        gfm: true
-      })
-      return marked.parse(text)
+      return marked.parse(text, { breaks: true, gfm: true })
     },
 
     handleKeydown(e) {
@@ -123,7 +223,7 @@ export default {
 
       try {
         const response = await fetch(
-          `/api/agent/chat?message=${encodeURIComponent(text)}`
+          `/api/agent/chat?message=${encodeURIComponent(text)}&sessionId=${this.sessionId}&userId=${this.userId}`
         )
 
         if (!response.ok) {
@@ -158,7 +258,8 @@ export default {
               }
 
               if (content.trim() === '[DONE]') continue
-              fullText += content
+              // 空的 data: 事件 = 换行
+              fullText += content === '' ? '\n' : content
               this.messages[assistantIndex].content = fullText
               this.$nextTick(() => this.scrollToBottom())
             }
@@ -172,7 +273,7 @@ export default {
             this.currentModel = content.substring(7).trim()
             this.messages[assistantIndex].modelUsed = this.currentModel
           } else if (content.trim() !== '[DONE]') {
-            fullText += content
+            fullText += content === '' ? '\n' : content
             this.messages[assistantIndex].content = fullText
           }
         }
@@ -245,6 +346,34 @@ export default {
     scrollToBottom() {
       const el = this.$refs.messages
       if (el) el.scrollTop = el.scrollHeight
+    },
+
+    async clearSession() {
+      try {
+        await fetch(`/api/agent/memory/clear?sessionId=${this.sessionId}&userId=${this.userId}`, { method: 'POST' })
+        this.messages = []
+        this.sessionId = 'session_' + Date.now()
+        localStorage.setItem('agent_sessionId', this.sessionId)
+        this.$message.success('记忆已清空')
+      } catch {
+        this.$message.error('清空失败')
+      }
+    },
+
+    async logout() {
+      // 会话结束，触发画像抽取
+      if (this.messages.length > 0) {
+        try {
+          await fetch(`/api/agent/memory/clear?sessionId=${this.sessionId}&userId=${this.userId}`, { method: 'POST' })
+        } catch {}
+      }
+      localStorage.removeItem('agent_userId')
+      localStorage.removeItem('agent_displayName')
+      localStorage.removeItem('agent_sessionId')
+      this.userId = ''
+      this.displayName = ''
+      this.messages = []
+      this.loginForm = { username: '', password: '' }
     }
   }
 }
@@ -443,4 +572,31 @@ body {
 }
 .empty-state i { font-size: 48px; color: #dcdfe6; margin-bottom: 16px; }
 .empty-state p { font-size: 14px; }
+
+/* 登录页 */
+.login-container {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f7fa;
+}
+.login-card {
+  width: 400px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  padding: 48px 40px;
+  text-align: center;
+}
+.login-card h1 {
+  font-size: 24px;
+  color: #303133;
+  margin-bottom: 8px;
+}
+.login-subtitle {
+  font-size: 14px;
+  color: #909399;
+  margin-bottom: 32px;
+}
 </style>

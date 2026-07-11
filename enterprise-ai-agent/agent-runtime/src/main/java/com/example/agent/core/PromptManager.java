@@ -49,8 +49,10 @@ public class PromptManager {
 
     /**
      * 构建带上下文的 User Prompt
-     * 第五课会扩展：注入 Memory
-     * 第六课会扩展：注入 Knowledge（RAG 结果）
+     * v1.0: context = null（无记忆）
+     * v2.0: context = 对话历史（Session Memory）
+     * v3.0: context = 对话历史 + RAG 检索结果
+     * v4.0: context = 对话历史 + RAG + Tool 调用结果
      */
     public String buildUserPrompt(String userMessage, String context) {
         if (context == null || context.isBlank()) {

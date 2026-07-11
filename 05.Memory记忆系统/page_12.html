@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>记忆安全与隐私 — 企业必须回答的问题</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)}</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;position:relative;">
+<div class="sn">CHAPTER 07</div>
+<h1 class="mb-2">记忆安全与隐私 — 企业必须回答的问题</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+  <div style="display:flex;gap:16px;margin-bottom:14px;">
+    <div style="flex:1;padding:14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;">
+      <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:6px;">数据保留策略</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">Memory 不能无限增长。企业必须回答：<br>· Session 数据保留多久？<br>· 用户画像保留多久？<br>· 用户要求"忘记"怎么办？<br>· 谁有权删除用户数据？</div>
+    </div>
+    <div style="flex:1;padding:14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;">
+      <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:6px;">PII 脱敏</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">用户画像可能包含敏感信息：<br>· 手机号、地址、身份证<br>· 支付偏好、消费金额<br>· 健康状况、个人习惯<br><strong style="color:#E0E7FF;">存入数据库前必须脱敏。</strong></div>
+    </div>
+    <div style="flex:1;padding:14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;">
+      <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:6px;">合规要求</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">GDPR / 个保法要求：<br>· 用户有权查看自己的画像<br>· 用户有权要求删除<br>· 数据不能跨业务共享<br>· 需要审计日志</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:16px;">
+    <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">上下文泄露风险</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">画像和对话注入到 LLM 请求里。<strong style="color:#FF6B35;">如果 LLM API 是第三方服务，数据就离开了企业边界。</strong><br>解决方案：私有化部署 / 数据脱敏后发送 / 只发摘要不发原文。</div>
+    </div>
+    <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">Demo 中的处理</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">Demo 为了演示简单，没有实现 PII 脱敏和数据保留策略。<br>实际项目中，<strong style="color:#E0E7FF;">存入 MySQL 前必须做脱敏处理</strong>，需要增加数据删除接口。</div>
+    </div>
+  </div>
+</div>
+<div style="position:absolute;bottom:14px;right:60px;padding:4px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.2);border-radius:12px;font-size:10px;color:#FF6B35;">知识体系</div>
+</div></body></html>
