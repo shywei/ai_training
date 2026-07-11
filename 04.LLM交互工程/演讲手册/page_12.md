@@ -15,5 +15,17 @@ Markdown 渲染用的是 marked 库。LLM 返回的内容经常包含 markdown�
 ## Key Emphasis
 SSE buffer 处理是最容易被忽略的问题。让学员看前端代码里的 buffer 逻辑。
 
+## Demo 与生产的差距
+
+Demo 的前端是最基础的聊天界面。实际项目中还需要：
+
+**会话管理**：Demo 里 Session ID 存在 localStorage，用户清浏览器就丢了。实际项目中应该用 JWT Token 或服务端 Session 管理，支持多设备同步。
+
+**消息持久化**：Demo 里刷新页面消息就没了。实际项目中需要从 Redis 或数据库恢复历史消息，用户打开页面能看到之前的对话。
+
+**Markdown 渲染安全**：Demo 里用 `marked.parse()` 渲染 LLM 返回的 Markdown，然后用 `v-html` 显示。这有 XSS 风险——LLM 可能返回恶意 HTML。实际项目中需要用 DOMPurify 做 HTML 消毒。
+
+**错误处理**：Demo 里网络断了只显示一行错误文字。实际项目中需要断线重连、消息发送失败重试、loading 状态管理。
+
 ## Transition
 后端和前端都讲完了。最后看一眼完整的项目结构。
