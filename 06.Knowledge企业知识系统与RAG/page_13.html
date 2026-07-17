@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>Prompt + RAG 集成</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)} .fn{color:#E0E7FF}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 04</div>
+<h1 class="mb-2">Prompt + RAG 集成 — 检索结果怎么用</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;gap:20px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="padding:14px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;">
+      <div style="font-size:15px;color:#FF6B35;font-weight:700;">不是把检索结果塞进去就行</div>
+      <div style="font-size:13px;color:rgba(224,231,255,0.5);margin-top:6px;line-height:1.8;">
+        检索结果需要<strong style="color:#E0E7FF;">格式化</strong>后注入 Prompt。<br>
+        LLM 需要知道"这是参考知识，请基于它回答"。<br>
+        否则 LLM 可能忽略检索结果，自己编造。
+      </div>
+    </div>
+
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">RAG 结果注入 Prompt 的格式</div>
+    <div style="padding:12px;background:rgba(0,0,0,0.3);border:1px solid rgba(0,229,255,0.15);border-radius:6px;margin-bottom:14px;">
+      <div style="font-size:12px;color:rgba(224,231,255,0.6);font-family:monospace;line-height:1.8;">
+        <span style="color:#00E5FF;">## 参考知识（从商品库检索）</span><br>
+        [1] ThinkPad X1 Carbon（联想）— 笔记本电脑<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;配置: i7, 32GB, 1TB SSD, 14寸 2.8K OLED<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;亮点: 超轻机身1.08kg, OLED屏幕...<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;适合: 商务办公, 出差旅行<br>
+        [2] MacBook Pro 14（苹果）— 笔记本电脑<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;配置: M3 Pro, 18GB, 512GB SSD...<br>
+        <br>
+        <span style="color:#00E5FF;">## 用户问题</span><br>
+        推荐一台写代码的笔记本
+      </div>
+    </div>
+
+    <div style="padding:12px 16px;background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.2);border-radius:6px;">
+      <div style="font-size:14px;color:#22C55E;font-weight:700;margin-bottom:6px;">System Prompt 加入知识使用规则</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.8;">
+        "请优先参考以下知识回答，不确定时说不知道"<br>
+        "推荐商品时引用具体的配置、亮点来说明理由"<br>
+        "不要编造不存在的商品名称和配置"<br>
+        <strong style="color:#22C55E;">不加这个规则，LLM 会忽略检索结果自己编造。</strong>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex:1;display:flex;flex-direction:column;">
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">💻 Demo：MemoryManager.buildContext()</div>
+    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;margin-bottom:10px;">
+      <pre><span class="kw">public</span> String <span class="fn">buildContext</span>(String sessionId,
+    String userId, String userMessage) {
+  StringBuilder sb = <span class="kw">new</span> StringBuilder();
+
+  <span class="cm">// ① 用户画像（MySQL — 始终查询）</span>
+  UserProfile profile = profileMapper.selectOne(...);
+  <span class="kw">if</span> (profile != <span class="kw">null</span>)
+    sb.append(profile.toContextString());
+
+  <span class="cm">// ② 相关记忆（pgvector — 始终查询）</span>
+  String mem = memoryService.search(
+    userId, userMessage);
+  <span class="kw">if</span> (mem != <span class="kw">null</span>)
+    sb.append(<span class="str">"## 相关记忆\n"</span>).append(mem);
+
+  <span class="cm">// ③ 对话历史（Redis — 沉淀后为空）</span>
+  <span class="cm">// ④ 参考知识（pgvector — 关键词过滤后）</span>
+  String rag = retrievalService.retrieve(
+    userMessage);
+  <span class="kw">if</span> (rag != <span class="kw">null</span>)
+    sb.append(<span class="str">"## 参考知识\n"</span>).append(rag);
+
+  <span class="kw">return</span> sb.toString();
+}</pre>
+    </div>
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">💻 Demo：PromptManager 知识使用规则</div>
+    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
+      <pre><span class="cm">// System Prompt 中的知识使用规则</span>
+<span class="str">"# 知识使用规则\n"</span> +
+<span class="str">"- 推荐商品必须基于商品库知识\n"</span> +
+<span class="str">"- 引用配置、亮点说明理由\n"</span> +
+<span class="str">"- 不要编造商品名称和配置\n"</span> +
+<span class="str">"- 没有匹配就如实告知\n"</span></pre>
+    </div>
+  </div>
+</div>
+</div></body></html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>企业优化</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 05</div>
+<h1 class="mb-2">企业优化 — 生产环境必须做的四件事</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+  <div style="display:flex;gap:14px;margin-bottom:14px;">
+    <div style="flex:1;padding:14px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:6px;">
+      <div style="font-size:14px;color:#A855F7;font-weight:700;margin-bottom:6px;">🔍 Hybrid Search</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
+        <strong style="color:#E0E7FF;">问题：</strong>向量检索对型号/SKU 不敏感<br>
+        <strong style="color:#E0E7FF;">方案：</strong>向量 + BM25 关键词融合<br>
+        <strong style="color:#E0E7FF;">实现：</strong>pgvector + PostgreSQL tsvector<br>
+        <strong style="color:#A855F7;">优先级：第2个做</strong>
+      </div>
+    </div>
+    <div style="flex:1;padding:14px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:6px;">
+      <div style="font-size:14px;color:#A855F7;font-weight:700;margin-bottom:6px;">📊 Rerank 精排</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
+        <strong style="color:#E0E7FF;">问题：</strong>向量检索排序不够精确<br>
+        <strong style="color:#E0E7FF;">方案：</strong>交叉编码器重新打分<br>
+        <strong style="color:#E0E7FF;">实现：</strong>BGE-Reranker 或 Cohere API<br>
+        <strong style="color:#A855F7;">优先级：第3个做</strong>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;gap:14px;margin-bottom:14px;">
+    <div style="flex:1;padding:14px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:6px;">
+      <div style="font-size:14px;color:#A855F7;font-weight:700;margin-bottom:6px;">📊 RAG Evaluation</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
+        <strong style="color:#E0E7FF;">问题：</strong>"为什么检索不到？"没有量化依据<br>
+        <strong style="color:#E0E7FF;">方案：</strong>Recall / Precision / Answer Relevancy<br>
+        <strong style="color:#E0E7FF;">实现：</strong>评测集 + 自动计算指标<br>
+        <strong style="color:#A855F7;">优先级：第4个做</strong>
+      </div>
+    </div>
+    <div style="flex:1;padding:14px;background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.2);border-radius:6px;">
+      <div style="font-size:14px;color:#22C55E;font-weight:700;margin-bottom:6px;">⚡ Cache 缓存</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
+        <strong style="color:#E0E7FF;">问题：</strong>相同问题反复检索+生成<br>
+        <strong style="color:#E0E7FF;">方案：</strong>语义缓存（相似问题共用结果）<br>
+        <strong style="color:#E0E7FF;">实现：</strong>Redis 存问题 Embedding + 结果<br>
+        <strong style="color:#22C55E;">优先级：第1个做（最简单最有效）</strong>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:12px 16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
+    <div style="font-size:14px;color:#00E5FF;font-weight:600;text-align:center;">生产落地优先级：Cache → Hybrid Search → Rerank → Evaluation</div>
+    <div style="font-size:12px;color:rgba(224,231,255,0.5);text-align:center;margin-top:4px;">改动最小、效果最明显的先做。每个都可以在现有 Demo 代码上扩展。</div>
+  </div>
+</div>
+</div></body></html>

@@ -60,8 +60,8 @@ public class ShoppingAgentController {
 
         String model = modelRouter.selectModel(message);
 
-        // v2.0: 从 Memory 构建 context(对话历史 + 用户画像)
-        String context = memoryManager.buildContext(sessionId, userId);
+        // v3.0: 从 Memory + Knowledge 构建 context(对话历史 + 用户画像 + RAG)
+        String context = memoryManager.buildContext(sessionId, userId, message);
         llmLogger.logMemoryInjection(sessionId, context);
 
         String systemPrompt = promptManager.buildSystemPrompt();
@@ -93,8 +93,8 @@ public class ShoppingAgentController {
                             return guardrails.sanitize(chunk);
                         }).doOnComplete(() -> {
                             llmLogger.logResponse(finalModel, fullResp.toString(), System.currentTimeMillis() - start[0]);
-                            // 流结束后后端直接存入 Redis
-                            memoryManager.saveTurn(finalSessionId, finalMessage, fullResp.toString());
+                            // 流结束后存入 Redis，达到阈值自动沉淀到 pgvector
+                            memoryManager.saveTurn(finalSessionId, finalUserId, finalMessage, fullResp.toString());
                             // 检测“记住”关键词，触发画像抽取
                             if (!finalUserId.isBlank() && containsRememberKeyword(finalMessage)) {
                                 System.out.println("[Memory] 检测到 记住 指令，触发画像抽取");
@@ -114,7 +114,7 @@ public class ShoppingAgentController {
                                @RequestParam String message,
                                @RequestParam String reply,
                                @RequestParam(defaultValue = "") String userId) {
-        memoryManager.saveTurn(sessionId, message, reply);
+        memoryManager.saveTurn(sessionId, userId, message, reply);
         long count = memoryManager.getSessionMemory().getMessageCount(sessionId);
 
         // 触发画像抽取:用户主动说"记住"时
@@ -153,7 +153,8 @@ public class ShoppingAgentController {
                 profileExtractor.extract(userId, sessionId);
             }
         }
-        memoryManager.clearSession(sessionId);
+        // v3.0: clearSession 传入 userId，沉淀对话记忆到 pgvector
+        memoryManager.clearSession(sessionId, userId);
         return "{\"status\":\"ok\",\"sessionId\":\"" + sessionId + "\",\"message\":\"Session 已清空\"}";
     }
 

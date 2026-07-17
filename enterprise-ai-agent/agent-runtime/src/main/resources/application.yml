@@ -2,9 +2,9 @@ server:
   port: 8080
 
 # ============================================================
-# 硅基流动（SiliconFlow）免费模型
-# 快模型: tencent/Hunyuan-MT-7B（免费）
-# 推理模型: deepseek-ai/DeepSeek-R1-0528-Qwen3-8B（免费，有思维链）
+# 硅基流动(SiliconFlow)免费模型
+# 快模型: tencent/Hunyuan-MT-7B(免费)
+# 推理模型: deepseek-ai/DeepSeek-R1-0528-Qwen3-8B(免费,有思维链)
 # ============================================================
 
 spring:
@@ -18,7 +18,7 @@ spring:
           temperature: 0.7
 
 # ============================================================
-# Redis（Session Memory）
+# Redis(Session Memory)
 # ============================================================
 
 spring.data.redis.host: ${REDIS_HOST:localhost}
@@ -26,7 +26,7 @@ spring.data.redis.port: ${REDIS_PORT:6379}
 spring.data.redis.timeout: 5000
 
 # ============================================================
-# MySQL（用户画像持久化）
+# MySQL(用户画像持久化)
 # ============================================================
 
 spring.datasource.url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/agent_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
@@ -38,19 +38,39 @@ mybatis-plus.configuration.map-underscore-to-camel-case: true
 mybatis-plus.configuration.log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 # ============================================================
+# PostgreSQL + pgvector(知识库向量存储)
+# 第六课新增:用于存储商品知识的 Embedding 向量
+# ============================================================
+
+spring.datasource.pgvector.url: jdbc:postgresql://${PG_HOST:localhost}:5432/agent_db
+spring.datasource.pgvector.username: ${PG_USER:postgres}
+spring.datasource.pgvector.password: ${PG_PASS:postgres}
+spring.datasource.pgvector.driver-class-name: org.postgresql.Driver
+
+spring.ai.vectorstore.pgvector.initialize-schema: false
+spring.ai.vectorstore.pgvector.schema-name: public
+spring.ai.vectorstore.pgvector.table-name: vector_store
+spring.ai.vectorstore.pgvector.dimensions: 1024
+spring.ai.vectorstore.pgvector.index-type: HNSW
+spring.ai.vectorstore.pgvector.distance-type: COSINE_DISTANCE
+
+# Embedding 模型配置(SiliconFlow 免费模型)
+spring.ai.openai.embedding.options.model: BAAI/bge-large-zh-v1.5
+
+# ============================================================
 # 导购 Agent 配置
 # ============================================================
 
 agent:
   name: 导购助手
-  role: 你是一个专业的电商导购助手，帮助用户推荐合适的商品。
-  constraints: 只聊商品推荐和购物相关话题。不编造商品信息，不确定时说"我不确定"。
+  role: 你是一个专业的电商导购助手,帮助用户推荐合适的商品。
+  constraints: 推荐商品必须基于商品库知识，不编造商品信息。不确定的信息说“我不确定”。话题偏离购物时，友好提醒用户回到正题，但不要生硬拒绝。
   model:
-    # 快模型：日常对话、简单推荐（7B，快，免费）
+    # 快模型:日常对话、简单推荐(7B,快,免费)
     fast: Qwen/Qwen2.5-7B-Instruct
-    # 推理模型：复杂分析、多步推理（8B，免费）
+    # 推理模型:复杂分析、多步推理(8B,免费)
     reasoning: Qwen/Qwen3-8B
-    # 摘要压缩用的模型（快模型即可）
+    # 摘要压缩用的模型(快模型即可)
     summary: Qwen/Qwen2.5-7B-Instruct
-    # 画像抽取用的模型（需要严格JSON输出）
+    # 画像抽取用的模型(需要严格JSON输出)
     extract: Qwen/Qwen3-8B

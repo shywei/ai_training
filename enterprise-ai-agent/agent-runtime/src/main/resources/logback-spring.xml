@@ -28,6 +28,13 @@
         <encoder><pattern>%msg%n</pattern></encoder>
     </appender>
 
+    <!-- 日志4：记忆沉淀摘要 -->
+    <appender name="LLM_MEMORY_FILE" class="ch.qos.logback.core.FileAppender">
+        <file>logs/llm-memory.log</file>
+        <append>false</append>
+        <encoder><pattern>%msg%n</pattern></encoder>
+    </appender>
+
     <!-- 根日志 -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
@@ -43,5 +50,9 @@
 
     <logger name="LLM_PROFILE" level="INFO" additivity="false">
         <appender-ref ref="LLM_PROFILE_FILE"/>
+    </logger>
+
+    <logger name="LLM_MEMORY" level="INFO" additivity="false">
+        <appender-ref ref="LLM_MEMORY_FILE"/>
     </logger>
 </configuration>

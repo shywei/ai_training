@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>Demo vs 生产 + 项目架构</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 06</div>
+<h1 class="mb-2">Demo vs 生产 + 项目架构</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;gap:20px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#22C55E;font-weight:700;margin-bottom:10px;">✅ Demo 做到了</div>
+    <div style="font-size:12px;color:rgba(224,231,255,0.7);line-height:2;margin-bottom:14px;">
+      <span style="color:#22C55E;">✓</span> JSON 商品文档加载（26个，4品类）<br>
+      <span style="color:#22C55E;">✓</span> 固定大小 Chunking + Metadata<br>
+      <span style="color:#22C55E;">✓</span> BGE Embedding + pgvector 存储<br>
+      <span style="color:#22C55E;">✓</span> 关键词过滤 + 语义检索<br>
+      <span style="color:#22C55E;">✓</span> context 注入（画像+记忆+对话+知识）<br>
+      <span style="color:#22C55E;">✓</span> 数据分层（描述放向量库，价格放MySQL）<br>
+      <span style="color:#22C55E;">✓</span> 自动沉淀机制（Redis → pgvector）
+    </div>
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:10px;">❌ 生产还要补什么</div>
+    <div style="font-size:12px;color:rgba(224,231,255,0.7);line-height:2;">
+      <span style="color:#FF6B35;">✗</span> PDF/Word/Excel 解析（OCR、表格）<br>
+      <span style="color:#FF6B35;">✗</span> 语义分块 + Chunk Size 调优<br>
+      <span style="color:#FF6B35;">✗</span> Hybrid Search（BM25 + 向量融合）<br>
+      <span style="color:#FF6B35;">✗</span> Rerank 精排（交叉编码器）<br>
+      <span style="color:#FF6B35;">✗</span> RAG Evaluation 体系<br>
+      <span style="color:#FF6B35;">✗</span> 语义缓存、多部门知识隔离
+    </div>
+  </div>
+
+  <div style="flex:1;display:flex;flex-direction:column;">
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">📁 Demo 项目结构（v3.0）</div>
+    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;flex:1;">
+      <pre style="font-size:10px;"><span style="color:#FF6B35;">knowledge/</span>               <span style="color:#22C55E;">v3.0 新增</span>
+  VectorStoreConfig.java   <span style="color:rgba(224,231,255,0.4);">pgvector 数据源</span>
+  KnowledgeController.java <span style="color:rgba(224,231,255,0.4);">手动索引 API</span>
+  RetrievalService.java    <span style="color:rgba(224,231,255,0.4);">语义检索+关键词过滤</span>
+  ProductInfo.java         <span style="color:rgba(224,231,255,0.4);">商品实体(v4.0 Tool用)</span>
+
+<span style="color:#FF6B35;">memory/</span>                   <span style="color:#EAB308;">v2.0 + v3.0 增强</span>
+  MemoryManager.java       <span style="color:#EAB308;">context构建+自动沉淀</span>
+  UserMemoryService.java   <span style="color:#22C55E;">v3.0 新增</span>
+  SessionMemory.java       <span style="color:rgba(224,231,255,0.4);">Redis 短期记忆</span>
+  UserProfileExtractor.java<span style="color:#EAB308;"> v3.0 修改</span>
+
+<span style="color:#FF6B35;">resources/</span>
+  products.json            <span style="color:#22C55E;">v3.0 新增 26个商品</span>
+  application.yml          <span style="color:#EAB308;">+pgvector+Embedding</span></pre>
+    </div>
+    <div style="margin-top:8px;padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
+      <div style="font-size:11px;color:rgba(224,231,255,0.5);"><strong style="color:#E0E7FF;">读代码顺序：</strong>KnowledgeController → RetrievalService → MemoryManager → UserMemoryService</div>
+    </div>
+  </div>
+</div>
+</div></body></html>

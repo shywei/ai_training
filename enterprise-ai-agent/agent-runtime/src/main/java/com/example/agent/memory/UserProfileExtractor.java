@@ -14,10 +14,17 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 
 /**
- * 用户画像抽取器 — 异步分析对话历史，提取用户偏好
+ * 用户画像抽取器 — 从对话历史中提取结构化画像，写入 MySQL
+ *
+ * 只提取持久化有意义的字段：
+ * - facts：用户的客观事实（性别、身份、设备等）
+ * - preferences：用户的主观偏好（喜欢什么、不喜欢什么）
+ *
+ * 职责分工：
+ * - 本类：LLM 提取结构化标签 → MySQL
+ * - UserMemoryService：对话原文摘要 → pgvector
  */
 @Component
 public class UserProfileExtractor {
@@ -65,9 +72,8 @@ public class UserProfileExtractor {
         UserProfile existing = getProfile(userId);
         String oldProfileJson = "{}";
         if (existing != null) {
-            oldProfileJson = String.format("{\"facts\":\"%s\",\"preferences\":\"%s\",\"tasks\":\"%s\",\"constraints\":\"%s\"}",
-                    escape(existing.getFacts()), escape(existing.getPreferences()),
-                    escape(existing.getTasks()), escape(existing.getConstraints()));
+            oldProfileJson = String.format("{\"facts\":\"%s\",\"preferences\":\"%s\"}",
+                    escape(existing.getFacts()), escape(existing.getPreferences()));
         }
 
         // Prompt：传入旧画像 + 新对话，让 LLM 合并
@@ -78,6 +84,7 @@ public class UserProfileExtractor {
                 - 用新对话中的信息补充或修正
                 - 新信息优先级高于旧信息
                 - 没有新信息的字段保持原值
+                - 只提取持久化的用户特征（事实和偏好），不要提取临时任务或约束
                 - 所有值必须用英文双引号包裹
                 - 只输出更新后的 JSON，不要任何其他文字
                 
@@ -88,7 +95,7 @@ public class UserProfileExtractor {
                 %s
                 
                 输出格式：
-                {"facts":"...","preferences":"...","tasks":"...","constraints":"..."}
+                {"facts":"...","preferences":"..."}
                 """.formatted(oldProfileJson, conversation);
 
         log.info("\n╔══════════════════════════════════════════════════╗\n║ PROFILE EXTRACT REQUEST  {} ║\n╚══════════════════════════════════════════════════╝\n[Model] {}\n[User] {}\n[Session] {}\n\n[Prompt]\n{}", LocalDateTime.now().format(FMT), extractModel, userId, sessionId, prompt);
@@ -111,25 +118,18 @@ public class UserProfileExtractor {
         System.out.println("[UserProfile] LLM 原始输出: " + rawOutput);
 
         try {
-            // 提取 JSON
             String json = extractJson(rawOutput);
             System.out.println("[UserProfile] 提取 JSON: " + json);
 
-            // 解析
             JsonNode node = objectMapper.readTree(json);
 
-            // 更新或创建画像
             UserProfile profile = existing != null ? existing : new UserProfile(userId);
 
             String facts = getTextOrDefault(node, "facts");
             String prefs = getTextOrDefault(node, "preferences");
-            String tasks = getTextOrDefault(node, "tasks");
-            String constraints = getTextOrDefault(node, "constraints");
 
             if (!facts.isBlank()) profile.setFacts(facts);
             if (!prefs.isBlank()) profile.setPreferences(prefs);
-            if (!tasks.isBlank()) profile.setTasks(tasks);
-            if (!constraints.isBlank()) profile.setConstraints(constraints);
             profile.setUpdatedAt(System.currentTimeMillis());
 
             if (profile.getId() == null) {
@@ -138,11 +138,9 @@ public class UserProfileExtractor {
                 profileMapper.updateById(profile);
             }
 
-            System.out.println("[UserProfile] 用户 " + userId + " 画像更新:");
+            System.out.println("[UserProfile] 用户 " + userId + " 画像更新（MySQL）:");
             System.out.println("  事实: " + profile.getFacts());
             System.out.println("  偏好: " + profile.getPreferences());
-            System.out.println("  任务: " + profile.getTasks());
-            System.out.println("  约束: " + profile.getConstraints());
 
             return profile;
 
@@ -169,7 +167,6 @@ public class UserProfileExtractor {
         if (text == null) return "{}";
         text = text.trim();
 
-        // 提取 ```json ... ``` 代码块
         int codeStart = text.indexOf("```json");
         if (codeStart >= 0) {
             codeStart = text.indexOf("\n", codeStart) + 1;
@@ -177,7 +174,6 @@ public class UserProfileExtractor {
             if (codeEnd > codeStart) return text.substring(codeStart, codeEnd).trim();
         }
 
-        // 找 { 到 }
         int start = text.indexOf("{");
         int end = text.lastIndexOf("}");
         if (start >= 0 && end > start) {

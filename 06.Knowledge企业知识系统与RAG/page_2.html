@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>目录</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:48px !important; color:#E0E7FF; font-weight:700; }
+.slide-toc-item { display:flex; align-items:flex-start; padding:8px 0; border-bottom:1px solid rgba(0,229,255,0.1); }
+.slide-toc-num { font-size:24px; font-weight:700; color:#00E5FF; min-width:50px; line-height:1; }
+.slide-toc-text { flex:1; }
+.slide-toc-title { font-size:16px; color:#E0E7FF; font-weight:600; margin-bottom:1px; }
+.slide-toc-desc { font-size:12px; color:rgba(224,231,255,0.5); }
+.slide-accent-line { width:50px; height:3px; background:#FF6B35; }
+</style>
+</head>
+<body>
+<div class="slide-container flex">
+  <div class="flex flex-col justify-center" style="width:320px; padding-left:80px;">
+    <h1 class="mb-6">目录</h1>
+    <div class="slide-accent-line mb-6"></div>
+    <p style="font-size:14px; color:rgba(224,231,255,0.4); line-height:1.8;">
+      从"为什么需要知识"到"企业级 RAG 完整体系"<br>
+      让 Agent 能查、能用、能优化
+    </p>
+  </div>
+  <div class="flex flex-col justify-center flex-1" style="padding:20px 60px 20px 30px;">
+    <div class="slide-toc-item">
+      <div class="slide-toc-num">01</div>
+      <div class="slide-toc-text"><div class="slide-toc-title">为什么需要 Knowledge</div><div class="slide-toc-desc">Prompt 的局限、Fine-tuning 的问题、RAG 的思路</div></div>
+    </div>
+    <div class="slide-toc-item">
+      <div class="slide-toc-num">02</div>
+      <div class="slide-toc-text"><div class="slide-toc-title">知识怎么进来</div><div class="slide-toc-desc">企业知识全景、Data Pipeline、Chunking、Embedding</div></div>
+    </div>
+    <div class="slide-toc-item">
+      <div class="slide-toc-num">03</div>
+      <div class="slide-toc-text"><div class="slide-toc-title">知识怎么存和查</div><div class="slide-toc-desc">向量数据库 pgvector、语义检索、关键词过滤</div></div>
+    </div>
+    <div class="slide-toc-item">
+      <div class="slide-toc-num">04</div>
+      <div class="slide-toc-text"><div class="slide-toc-title">知识怎么用</div><div class="slide-toc-desc">context 演进、Prompt + RAG 集成、Token 预算</div></div>
+    </div>
+    <div class="slide-toc-item">
+      <div class="slide-toc-num">05</div>
+      <div class="slide-toc-text"><div class="slide-toc-title">企业级优化</div><div class="slide-toc-desc">Hybrid Search、Rerank、RAG Evaluation、Cache</div></div>
+    </div>
+    <div class="slide-toc-item">
+      <div class="slide-toc-num">06</div>
+      <div class="slide-toc-text"><div class="slide-toc-title">v3.0 Demo 全貌</div><div class="slide-toc-desc">做成了什么、端到端数据流、关键设计决策</div></div>
+    </div>
+    <div class="slide-toc-item">
+      <div class="slide-toc-num">07</div>
+      <div class="slide-toc-text"><div class="slide-toc-title">Demo vs 生产 + 项目架构</div><div class="slide-toc-desc">差距分析、代码阅读路线图</div></div>
+    </div>
+    <div class="slide-toc-item">
+      <div class="slide-toc-num">08</div>
+      <div class="slide-toc-text"><div class="slide-toc-title">记忆体系升级 + 总结</div><div class="slide-toc-desc">向量数据库赋能 Memory、能力地图、Agent 进度</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

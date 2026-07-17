@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>Prompt 的局限</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 01</div>
+<h1 class="mb-2">Prompt 的局限 — 为什么装不下企业知识</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;gap:20px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="padding:14px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:16px;">
+      <div style="font-size:16px;color:#FF6B35;font-weight:700;margin-bottom:6px;">一个实际问题</div>
+      <div style="font-size:13px;color:rgba(224,231,255,0.7);line-height:1.8;">
+        导购 Agent 能聊天、能记住用户。<br>
+        但用户问<strong style="color:#E0E7FF;">"有什么推荐的笔记本？"</strong><br>
+        它答不上来。为什么？
+      </div>
+    </div>
+    <div style="padding:14px 16px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;margin-bottom:16px;">
+      <div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">因为它根本不知道公司卖什么</div>
+      <div style="font-size:13px;color:rgba(224,231,255,0.55);line-height:1.8;">
+        商品信息存在哪？ERP、商品目录、Wiki。<br>
+        这些地方的共同特点：<strong style="color:#FF6B35;">大模型都读不到。</strong><br><br>
+        System Prompt 有长度限制（几千 token），<br>
+        不可能把所有商品信息塞进去。<br>
+        就算塞得下，商品上新了怎么办？改 Prompt？
+      </div>
+    </div>
+    <div style="padding:12px 16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
+      <div style="font-size:14px;color:#00E5FF;font-weight:600;">核心矛盾</div>
+      <div style="font-size:13px;color:rgba(224,231,255,0.55);margin-top:4px;">
+        大模型的训练数据是<strong style="color:#E0E7FF;">公开互联网</strong>，<br>
+        企业知识是<strong style="color:#E0E7FF;">内部私有</strong>的。<br>
+        两者之间有一道天然的鸿沟。
+      </div>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:14px;">Prompt 能做什么、不能做什么</div>
+    <div style="display:flex;gap:12px;margin-bottom:16px;">
+      <div style="flex:1;padding:14px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:6px;">
+        <div style="font-size:14px;color:#22C55E;font-weight:700;margin-bottom:6px;">✓ Prompt 能做的</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.8;">
+          定义角色和行为<br>
+          设置约束和规则<br>
+          给几个示例（Few-shot）<br>
+          控制输出格式
+        </div>
+      </div>
+      <div style="flex:1;padding:14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;">
+        <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:6px;">✗ Prompt 做不到的</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.8;">
+          包含企业所有商品信息<br>
+          包含内部文档和 FAQ<br>
+          实时更新（商品上新、价格变动）<br>
+          处理大量结构化数据
+        </div>
+      </div>
+    </div>
+    <div style="padding:14px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:6px;">
+      <div style="font-size:14px;color:#A855F7;font-weight:700;margin-bottom:6px;">那怎么办？</div>
+      <div style="font-size:13px;color:rgba(224,231,255,0.55);line-height:1.8;">
+        两个方向：<br>
+        <strong style="color:#E0E7FF;">1. 把知识"烧"进模型</strong>（Fine-tuning）→ 下一页讲<br>
+        <strong style="color:#E0E7FF;">2. 让模型自己"查资料"</strong>（RAG）→ 本课重点
+      </div>
+    </div>
+  </div>
+</div>
+</div></body></html>

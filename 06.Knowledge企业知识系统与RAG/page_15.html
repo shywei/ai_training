@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>v3.0 Demo 全貌</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 06</div>
+<h1 class="mb-2">v3.0 Demo 全貌 — 做成了什么</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;gap:20px;">
+  <!-- 左：功能清单 + v2.0 对比 -->
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">v3.0 vs v2.0 新增能力</div>
+    <div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;margin-bottom:10px;">
+      <div style="display:flex;gap:8px;margin-bottom:6px;">
+        <div style="flex:1;font-size:11px;color:rgba(224,231,255,0.4);text-align:center;padding:4px;background:rgba(255,255,255,0.02);border-radius:3px;">v2.0</div>
+        <div style="flex:1;font-size:11px;color:#22C55E;text-align:center;padding:4px;background:rgba(34,197,94,0.06);border-radius:3px;">v3.0 新增</div>
+      </div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:2;">
+        <span style="color:rgba(224,231,255,0.3);">对话 + 记忆 + 画像</span> → <span style="color:#22C55E;">+ 商品知识检索</span><br>
+        <span style="color:rgba(224,231,255,0.3);">MySQL 精确查画像</span> → <span style="color:#22C55E;">+ pgvector 语义检索记忆</span><br>
+        <span style="color:rgba(224,231,255,0.3);">Redis 只存会话</span> → <span style="color:#22C55E;">+ 自动沉淀到 pgvector</span><br>
+        <span style="color:rgba(224,231,255,0.3);">上下文 = 画像 + 历史</span> → <span style="color:#22C55E;">+ 记忆 + 知识</span>
+      </div>
+    </div>
+
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">端到端数据流</div>
+    <div style="padding:12px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.12);border-radius:6px;margin-bottom:10px;">
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:2.2;">
+        <span style="color:#00E5FF;">用户提问</span> → "推荐一台写代码的笔记本"<br>
+        &nbsp;&nbsp;↓ <span style="color:rgba(224,231,255,0.35);">MemoryManager.buildContext()</span><br>
+        <span style="color:#00E5FF;">① MySQL</span> → 用户画像（偏好、事实）<br>
+        <span style="color:#A855F7;">② pgvector</span> → 语义检索用户记忆（历史对话）<br>
+        <span style="color:#EAB308;">③ Redis</span> → 当前会话历史（沉淀后为空）<br>
+        <span style="color:#22C55E;">④ pgvector</span> → 关键词过滤 → 语义检索商品知识<br>
+        &nbsp;&nbsp;↓ <span style="color:rgba(224,231,255,0.35);">组装 context → LLM 生成</span><br>
+        <span style="color:#FF6B35;">输出</span> → 推荐 ThinkPad X1 Carbon，配置...，适合...
+      </div>
+    </div>
+
+
+  </div>
+
+  <!-- 右：关键设计 + 演示步骤 -->
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">关键设计决策</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+      <div style="padding:10px 12px;background:rgba(34,197,94,0.06);border-left:3px solid #22C55E;border-radius:0 5px 5px 0;">
+        <div style="font-size:12px;color:#22C55E;font-weight:600;">数据分层</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.45);">商品描述 → pgvector（语义检索）| 价格库存 → MySQL（第七课 Tool）</div>
+      </div>
+      <div style="padding:10px 12px;background:rgba(168,85,247,0.06);border-left:3px solid #A855F7;border-radius:0 5px 5px 0;">
+        <div style="font-size:12px;color:#A855F7;font-weight:600;">手动索引</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.45);">不自动加载，前端按钮触发 POST /api/knowledge/index</div>
+      </div>
+      <div style="padding:10px 12px;background:rgba(234,179,8,0.06);border-left:3px solid #EAB308;border-radius:0 5px 5px 0;">
+        <div style="font-size:12px;color:#EAB308;font-weight:600;">自动沉淀</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.45);">每 10 条消息（5 轮）→ Redis 消息沉淀到 pgvector → 清空 Redis</div>
+      </div>
+      <div style="padding:10px 12px;background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:0 5px 5px 0;">
+        <div style="font-size:12px;color:#00E5FF;font-weight:600;">记忆不重叠</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.45);">MySQL 存结构化画像（结论）| pgvector 存对话片段（原始记忆）</div>
+      </div>
+    </div>
+
+    <div style="padding:12px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;">
+      <div style="font-size:12px;color:#FF6B35;font-weight:700;margin-bottom:4px;">v3.0 完整能力</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.8;">✅ 商品知识加载（手动触发，Embedding 过程可见）<br>✅ 语义检索商品（关键词过滤 + pgvector 向量搜索）<br>✅ 用户记忆语义检索（pgvector 替代 MySQL 精确查询）<br>✅ 自动沉淀（Redis → pgvector，每 5 轮触发）<br>✅ 数据分层（描述放向量库，价格放 MySQL）<br>✅ context 四部分组装（画像+记忆+对话+知识）</div>
+    </div>
+  </div>
+</div>
+</div></body></html>
