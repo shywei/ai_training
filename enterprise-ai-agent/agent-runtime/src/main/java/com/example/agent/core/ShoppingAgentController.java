@@ -2,6 +2,8 @@ package com.example.agent.core;
 
 import com.example.agent.memory.MemoryManager;
 import com.example.agent.memory.UserProfileExtractor;
+import com.example.agent.tool.LlmRouter;
+import com.example.agent.tool.ProductTool;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
@@ -14,6 +16,8 @@ import reactor.core.publisher.Flux;
  *
  * v1.0-prompt: Streaming、模型路由、结构化输出、Self-Correction、Guardrails
  * v2.0-memory: 新增 Session Memory、对话历史注入、context 填充
+ * v3.0-knowledge: 新增 RAG 知识检索
+ * v4.0-tool: 新增 LLM 路由、Tool 调用、数据分层闭环
  */
 @RestController
 @RequestMapping("/api/agent")
@@ -27,6 +31,8 @@ public class ShoppingAgentController {
     private final MemoryManager memoryManager;
     private final UserProfileExtractor profileExtractor;
     private final LlmInteractionLogger llmLogger;
+    private final LlmRouter llmRouter;
+    private final ProductTool productTool;
 
     public ShoppingAgentController(ChatModel chatModel,
                                    ModelRouter modelRouter,
@@ -35,7 +41,9 @@ public class ShoppingAgentController {
                                    GuardrailsService guardrails,
                                    MemoryManager memoryManager,
                                    UserProfileExtractor profileExtractor,
-                                   LlmInteractionLogger llmLogger) {
+                                   LlmInteractionLogger llmLogger,
+                                   LlmRouter llmRouter,
+                                   ProductTool productTool) {
         this.chatModel = chatModel;
         this.modelRouter = modelRouter;
         this.promptManager = promptManager;
@@ -44,11 +52,13 @@ public class ShoppingAgentController {
         this.memoryManager = memoryManager;
         this.profileExtractor = profileExtractor;
         this.llmLogger = llmLogger;
+        this.llmRouter = llmRouter;
+        this.productTool = productTool;
     }
 
     /**
-     * 流式对话接口(v2.0: 支持 Session Memory)
-     * GET /api/agent/chat?message=xxx&sessionId=xxx
+     * 流式对话接口
+     * v4.0: LLM 路由 → 知识检索 / Tool 调用 / 普通对话
      */
     @GetMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String> chat(@RequestParam String message,
@@ -58,10 +68,23 @@ public class ShoppingAgentController {
             return Flux.just("检测到不安全的输入,请重新提问。");
         }
 
+        // v4.0: LLM 路由判断意图
+        LlmRouter.Route route = llmRouter.route(message);
+        System.out.println("[Router] 用户意图: " + route + " (消息: " + message + ")");
+
         String model = modelRouter.selectModel(message);
 
-        // v3.0: 从 Memory + Knowledge 构建 context(对话历史 + 用户画像 + RAG)
+        // 构建 context（画像 + 记忆 + 对话历史）
         String context = memoryManager.buildContext(sessionId, userId, message);
+
+        // 根据路由决策，决定是否添加 RAG 知识
+        if (route == LlmRouter.Route.KNOWLEDGE) {
+            String ragContext = memoryManager.buildRagContext(message);
+            if (ragContext != null && !ragContext.isBlank()) {
+                context = (context != null ? context : "") + ragContext;
+            }
+        }
+
         llmLogger.logMemoryInjection(sessionId, context);
 
         String systemPrompt = promptManager.buildSystemPrompt();
@@ -73,13 +96,21 @@ public class ShoppingAgentController {
         String finalMessage = message;
         String finalUserId = userId;
 
-        return ChatClient.create(chatModel)
-                .prompt()
+        // 构建 ChatClient，TOOL 路由时注册 ProductTool
+        var clientBuilder = ChatClient.create(chatModel).prompt()
                 .system(systemPrompt)
                 .user(userPrompt)
                 .options(OpenAiChatOptions.builder()
                         .withModel(model)
-                        .build())
+                        .build());
+
+        // 如果是 TOOL 意图，注册工具让 LLM 决定调用
+        if (route == LlmRouter.Route.TOOL) {
+            clientBuilder = clientBuilder.tools(productTool);
+            System.out.println("[Tool] 已注册 ProductTool，LLM 将决定是否调用");
+        }
+
+        return clientBuilder
                 .stream()
                 .content()
                 .transform(flux -> {
@@ -93,9 +124,7 @@ public class ShoppingAgentController {
                             return guardrails.sanitize(chunk);
                         }).doOnComplete(() -> {
                             llmLogger.logResponse(finalModel, fullResp.toString(), System.currentTimeMillis() - start[0]);
-                            // 流结束后存入 Redis，达到阈值自动沉淀到 pgvector
                             memoryManager.saveTurn(finalSessionId, finalUserId, finalMessage, fullResp.toString());
-                            // 检测“记住”关键词，触发画像抽取
                             if (!finalUserId.isBlank() && containsRememberKeyword(finalMessage)) {
                                 System.out.println("[Memory] 检测到 记住 指令，触发画像抽取");
                                 profileExtractor.extract(finalUserId, finalSessionId);
@@ -106,8 +135,7 @@ public class ShoppingAgentController {
     }
 
     /**
-     * v2.0: 保存对话到 Memory
-     * POST /api/agent/memory/save
+     * 保存对话到 Memory
      */
     @PostMapping("/memory/save")
     public String saveToMemory(@RequestParam String sessionId,
@@ -117,7 +145,6 @@ public class ShoppingAgentController {
         memoryManager.saveTurn(sessionId, userId, message, reply);
         long count = memoryManager.getSessionMemory().getMessageCount(sessionId);
 
-        // 触发画像抽取:用户主动说"记住"时
         if (!userId.isBlank() && containsRememberKeyword(message)) {
             System.out.println("[Memory] 检测到 记住 指令，触发画像抽取");
             profileExtractor.extract(userId, sessionId);
@@ -126,9 +153,6 @@ public class ShoppingAgentController {
         return "{\"status\":\"ok\",\"sessionId\":\"" + sessionId + "\",\"messageCount\":" + count + "}";
     }
 
-    /**
-     * 检测用户是否说了"记住"相关关键词
-     */
     private boolean containsRememberKeyword(String message) {
         if (message == null) return false;
         String[] keywords = {"记住", "记一下", "记着", "请记", "帮我记"};
@@ -139,13 +163,11 @@ public class ShoppingAgentController {
     }
 
     /**
-     * v2.0: 清空 Session
-     * POST /api/agent/memory/clear?sessionId=xxx
+     * 清空 Session
      */
     @PostMapping("/memory/clear")
     public String clearMemory(@RequestParam String sessionId,
                               @RequestParam(defaultValue = "") String userId) {
-        // 会话结束时触发画像抽取
         if (!userId.isBlank()) {
             long count = memoryManager.getSessionMemory().getMessageCount(sessionId);
             if (count > 0) {
@@ -153,13 +175,12 @@ public class ShoppingAgentController {
                 profileExtractor.extract(userId, sessionId);
             }
         }
-        // v3.0: clearSession 传入 userId，沉淀对话记忆到 pgvector
         memoryManager.clearSession(sessionId, userId);
         return "{\"status\":\"ok\",\"sessionId\":\"" + sessionId + "\",\"message\":\"Session 已清空\"}";
     }
 
     /**
-     * 结构化输出接口(保持不变)
+     * 结构化输出接口
      */
     @PostMapping("/recommend")
     public String recommend(@RequestBody String userNeed) {
@@ -180,37 +201,12 @@ public class ShoppingAgentController {
         long startTime = System.currentTimeMillis();
         String rawOutput = callLLM(systemPrompt, userPrompt, model);
         llmLogger.logResponse(model, rawOutput, System.currentTimeMillis() - startTime);
-        System.out.println("\n========== 结构化输出演示 ==========");
-        System.out.println("【步骤1】LLM 原始输出:");
-        System.out.println(rawOutput);
 
         boolean hasSensitive = guardrails.containsSensitiveInfo(rawOutput);
         String extracted = outputHandler.extractJson(rawOutput);
-        System.out.println("\n【步骤2】提取出的 JSON:");
-        System.out.println(extracted);
-
         var json = outputHandler.validate(rawOutput);
-        System.out.println("\n【步骤3】Schema 验证: " + (json != null ? "通过" : "失败"));
 
         if (json != null) {
-            try {
-                RecommendResult result = new com.fasterxml.jackson.databind.ObjectMapper()
-                    .readValue(extracted, RecommendResult.class);
-                System.out.println("\n【步骤4】Bean Mapping: JSON → RecommendResult 对象");
-                System.out.println("  推荐理由: " + result.getRecommendation());
-                System.out.println("  置信度: " + result.getConfidence());
-                for (RecommendResult.Product p : result.getProducts()) {
-                    System.out.println("  商品: " + p);
-                }
-                System.out.println("\n【步骤5】Java 代码可以对这些对象做任何事:");
-                System.out.println("  · 存入数据库: productRepository.save(result.getProducts())");
-                System.out.println("  · 传给订单系统: orderService.createOrder(result.getProducts())");
-                System.out.println("  · 渲染商品卡片: return productCardView(result)");
-                System.out.println("\n【结果】返回结构化 JSON 给前端");
-                System.out.println("====================================\n");
-            } catch (Exception e) {
-                System.out.println("  Bean Mapping 失败: " + e.getMessage());
-            }
             String response = extracted;
             if (hasSensitive) {
                 response = response.replace("\"recommendation\"", "\"_warning\":\"输出含敏感信息已脱敏\",\"recommendation\"");
@@ -218,22 +214,13 @@ public class ShoppingAgentController {
             return response;
         }
 
-        System.out.println("【步骤4】Self-Correction: 第一次输出非法,重试...");
         String correctionPrompt = outputHandler.buildCorrectionPrompt(rawOutput, "输出不是合法 JSON");
         String corrected = callLLM(systemPrompt, correctionPrompt, model);
-        System.out.println("【步骤4】重试输出:");
-        System.out.println(corrected);
-
         var json2 = outputHandler.validate(corrected);
-        System.out.println("【步骤4】验证: " + (json2 != null ? "通过" : "失败"));
         if (json2 != null) {
-            System.out.println("【结果】Self-Correction 成功,返回结构化 JSON");
-            System.out.println("====================================\n");
             return json2.toString();
         }
 
-        System.out.println("【结果】两次都失败,返回错误");
-        System.out.println("====================================\n");
         return "{\"error\":\"模型输出无法解析\",\"rawOutput\":\"" + rawOutput.replace("\"", "'").replaceAll("\\s+", " ").substring(0, Math.min(rawOutput.length(), 150)) + "\"}";
     }
 

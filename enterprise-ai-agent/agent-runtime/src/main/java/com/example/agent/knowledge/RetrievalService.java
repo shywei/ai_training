@@ -50,19 +50,14 @@ public class RetrievalService {
     /**
      * 检索与用户问题相关的商品
      *
-     * 先用关键词判断是否需要检索,避免无关对话浪费 token。
-     * 第七课会用 LLM 路由替代这个简单过滤。
+     * v4.0 变化：移除关键词过滤，由 LLM 路由决定是否调用检索。
+     * 路由判断为 KNOWLEDGE 意图时才调用此方法。
      */
     public String retrieve(String query) {
         return retrieve(query, DEFAULT_TOP_K);
     }
 
     public String retrieve(String query, int topK) {
-        // 关键词过滤:不相关的问题跳过检索
-        if (!isProductRelated(query)) {
-            return null;
-        }
-
         try {
             SearchRequest searchRequest = SearchRequest.query(query)
                     .withTopK(topK)
@@ -109,7 +104,7 @@ public class RetrievalService {
     /**
      * 判断用户问题是否和商品相关
      *
-     * 简单的关键词匹配，第七课会用 LLM 路由替代。
+     * 简单的关键词匹配,第七课会用 LLM 路由替代。
      * 命中任一关键词就认为需要检索。
      */
     private boolean isProductRelated(String query) {
@@ -126,7 +121,7 @@ public class RetrievalService {
     /**
      * 格式化检索结果
      *
-     * 只包含描述性信息，不包含价格/库存（v4.0 Tool 负责）
+     * 只包含描述性信息,不包含价格/库存(v4.0 Tool 负责)
      */
     private String formatResults(List<Document> documents) {
         StringBuilder sb = new StringBuilder();

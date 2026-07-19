@@ -112,17 +112,34 @@ public class MemoryManager {
             }
         }
 
-        // 4. RAG 检索结果（知识库）
-        if (userMessage != null && !userMessage.isBlank()) {
-            String ragResults = retrievalService.retrieve(userMessage);
-            if (ragResults != null && !ragResults.isBlank()) {
-                sb.append("## 参考知识（从商品库检索）\n");
-                sb.append(ragResults).append("\n");
-                System.out.println("[Knowledge] RAG 检索成功，注入 " + ragResults.split("\n").length + " 行参考信息");
-            }
-        }
+        // 注意：RAG 检索已移到 buildRagContext()，由 LLM 路由决定是否注入
 
         return sb.toString().isBlank() ? null : sb.toString();
+    }
+
+    /**
+     * 构建 RAG 上下文（知识库检索）
+     *
+     * 由 LLM 路由决定是否调用：
+     * - KNOWLEDGE 意图：调用此方法，注入商品知识
+     * - TOOL 意图：不调用，LLM 通过 Tool 查实时数据
+     * - CHAT 意图：不调用，普通聊天不需要知识
+     *
+     * v4.0 变化：RAG 不再自动注入，由路由决策
+     */
+    public String buildRagContext(String userMessage) {
+        if (userMessage == null || userMessage.isBlank()) {
+            return null;
+        }
+
+        String ragResults = retrievalService.retrieve(userMessage);
+        if (ragResults != null && !ragResults.isBlank()) {
+            System.out.println("[Knowledge] RAG 检索成功，注入 " + ragResults.split("\n").length + " 行参考信息");
+            return "## 参考知识（从商品库检索）\n" + ragResults + "\n";
+        }
+
+        return null;
+    }
     }
 
     /**
