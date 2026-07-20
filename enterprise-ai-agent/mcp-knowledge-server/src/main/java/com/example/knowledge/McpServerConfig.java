@@ -1,0 +1,231 @@
+package com.example.knowledge;
+
+import io.modelcontextprotocol.sdk.McpServer;
+import io.modelcontextprotocol.sdk.McpSyncServer;
+import io.modelcontextprotocol.sdk.server.McpServerFeatures;
+import io.modelcontextprotocol.sdk.server.transport.HttpServletSseServerTransportProvider;
+import io.modelcontextprotocol.sdk.spec.McpSchema;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
+
+/**
+ * MCP Server 配置类。
+ *
+ * 注册 3 个 Tool：
+ * - search_knowledge：商品知识语义检索（RAG）
+ * - search_memory：用户记忆语义检索
+ * - save_memory：写入用户记忆
+ *
+ * 注册 1 个 Resource Template：
+ * - user://{userId}：用户画像（从 MySQL 读取）
+ *
+ * 使用 MCP Java SDK 1.1.3 API。
+ */
+@Configuration
+public class McpServerConfig {
+
+    @Bean
+    public HttpServletSseServerTransportProvider transportProvider() {
+        return HttpServletSseServerTransportProvider.builder()
+                .messageEndpoint("/mcp/message")
+                .build();
+    }
+
+    @Bean
+    public ServletRegistrationBean<?> servletBean(HttpServletSseServerTransportProvider tp) {
+        return new ServletRegistrationBean<>(tp, "/mcp/sse");
+    }
+
+    @Bean
+    public McpSyncServer mcpSyncServer(HttpServletSseServerTransportProvider tp,
+                                        VectorSearchService searchService,
+                                        MemoryService memoryService,
+                                        UserProfileService userProfileService,
+                                        KnowledgeIndexer knowledgeIndexer) {
+
+        // ===== Tool 1: search_knowledge =====
+        String knowledgeSchema = """
+                {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "string",
+                            "description": "用户的问题或搜索关键词"
+                        }
+                    },
+                    "required": ["query"]
+                }
+                """;
+
+        McpSchema.Tool searchKnowledgeTool = new McpSchema.Tool(
+                "search_knowledge",
+                "从商品知识库中检索相关信息。当用户询问商品推荐、商品配置、商品对比时调用。",
+                knowledgeSchema
+        );
+
+        McpServerFeatures.SyncToolSpecification searchKnowledgeSpec = new McpServerFeatures.SyncToolSpecification(
+                searchKnowledgeTool,
+                (exchange, request) -> {
+                    String query = (String) request.arguments().get("query");
+                    String result = searchService.search(query);
+                    return new McpSchema.CallToolResult(
+                            List.of(new McpSchema.TextContent(result != null ? result : "未找到相关商品信息")),
+                            result == null
+                    );
+                }
+        );
+
+        // ===== Tool 2: search_memory =====
+        String searchMemorySchema = """
+                {
+                    "type": "object",
+                    "properties": {
+                        "user_id": {
+                            "type": "string",
+                            "description": "用户 ID"
+                        },
+                        "query": {
+                            "type": "string",
+                            "description": "搜索关键词，用于语义匹配用户记忆"
+                        }
+                    },
+                    "required": ["user_id", "query"]
+                }
+                """;
+
+        McpSchema.Tool searchMemoryTool = new McpSchema.Tool(
+                "search_memory",
+                "检索用户的历史记忆和偏好。当需要了解用户之前的偏好、需求、对话历史时调用。",
+                searchMemorySchema
+        );
+
+        McpServerFeatures.SyncToolSpecification searchMemorySpec = new McpServerFeatures.SyncToolSpecification(
+                searchMemoryTool,
+                (exchange, request) -> {
+                    String userId = (String) request.arguments().get("user_id");
+                    String query = (String) request.arguments().get("query");
+                    String result = memoryService.search(userId, query);
+                    return new McpSchema.CallToolResult(
+                            List.of(new McpSchema.TextContent(result != null ? result : "未找到相关记忆")),
+                            result == null
+                    );
+                }
+        );
+
+        // ===== Tool 3: save_memory =====
+        String saveMemorySchema = """
+                {
+                    "type": "object",
+                    "properties": {
+                        "user_id": {
+                            "type": "string",
+                            "description": "用户 ID"
+                        },
+                        "memory_type": {
+                            "type": "string",
+                            "description": "记忆类型：preference（偏好）/ conversation（对话摘要）/ event（事件）",
+                            "enum": ["preference", "conversation", "event"]
+                        },
+                        "content": {
+                            "type": "string",
+                            "description": "记忆内容，用自然语言描述"
+                        }
+                    },
+                    "required": ["user_id", "memory_type", "content"]
+                }
+                """;
+
+        McpSchema.Tool saveMemoryTool = new McpSchema.Tool(
+                "save_memory",
+                "保存用户记忆。当用户主动要求记住某些偏好，或对话中出现重要信息时调用。",
+                saveMemorySchema
+        );
+
+        McpServerFeatures.SyncToolSpecification saveMemorySpec = new McpServerFeatures.SyncToolSpecification(
+                saveMemoryTool,
+                (exchange, request) -> {
+                    String userId = (String) request.arguments().get("user_id");
+                    String memoryType = (String) request.arguments().get("memory_type");
+                    String content = (String) request.arguments().get("content");
+                    memoryService.save(userId, memoryType, content);
+                    return new McpSchema.CallToolResult(
+                            List.of(new McpSchema.TextContent("记忆已保存：" + content)),
+                            false
+                    );
+                }
+        );
+
+        // ===== Tool 4: index_knowledge =====
+        String indexSchema = """
+                {
+                    "type": "object",
+                    "properties": {
+                        "force": {
+                            "type": "boolean",
+                            "description": "是否强制重新索引（清空旧数据后重建）"
+                        }
+                    },
+                    "required": ["force"]
+                }
+                """;
+
+        McpSchema.Tool indexKnowledgeTool = new McpSchema.Tool(
+                "index_knowledge",
+                "索引商品知识库。首次使用或需要更新知识库时调用。force=true 会清空旧数据重新索引。",
+                indexSchema
+        );
+
+        McpServerFeatures.SyncToolSpecification indexKnowledgeSpec = new McpServerFeatures.SyncToolSpecification(
+                indexKnowledgeTool,
+                (exchange, request) -> {
+                    Boolean force = (Boolean) request.arguments().get("force");
+                    String result = knowledgeIndexer.index(Boolean.TRUE.equals(force));
+                    return new McpSchema.CallToolResult(
+                            List.of(new McpSchema.TextContent(result)),
+                            false
+                    );
+                }
+        );
+
+        // ===== Resource Template: user://{userId} =====
+        McpSchema.ResourceTemplate userProfileTemplate = new McpSchema.ResourceTemplate(
+                "user://{userId}",
+                "用户画像",
+                "获取指定用户的画像信息（事实、偏好）",
+                "application/json",
+                null
+        );
+
+        McpServerFeatures.SyncResourceSpecification userResourceSpec = new McpServerFeatures.SyncResourceSpecification(
+                userProfileTemplate,
+                (exchange, request) -> {
+                    String uri = request.uri();
+                    // 从 user://U001 中提取 U001
+                    String userId = uri.substring("user://".length());
+                    String profile = userProfileService.getProfile(userId);
+
+                    if (profile == null) {
+                        profile = "{\"user_id\": \"" + userId + "\", \"facts\": \"\", \"preferences\": \"\"}";
+                    }
+
+                    return new McpSchema.ReadResourceResult(
+                            List.of(new McpSchema.TextResourceContents(uri, "application/json", profile))
+                    );
+                }
+        );
+
+        // ===== 组装 MCP Server =====
+        return McpServer.sync(tp)
+                .serverInfo("knowledge-server", "1.0.0")
+                .capabilities(McpSchema.ServerCapabilities.builder()
+                        .tools(true)
+                        .resources(true)
+                        .build())
+                .tools(searchKnowledgeSpec, searchMemorySpec, saveMemorySpec, indexKnowledgeSpec)
+                .resources(userResourceSpec)
+                .build();
+    }
+}

@@ -1,0 +1,25 @@
+server:
+  port: 8082
+
+# PostgreSQL + pgvector（知识库 + 用户记忆）
+spring.datasource.url: jdbc:postgresql://${PG_HOST:localhost}:5432/agent_db
+spring.datasource.username: ${PG_USER:postgres}
+spring.datasource.password: ${PG_PASS:postgres}
+spring.datasource.driver-class-name: org.postgresql.Driver
+
+# MySQL（用户画像）
+mysql.datasource.url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/agent_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+mysql.datasource.username: ${MYSQL_USER:root}
+mysql.datasource.password: ${MYSQL_PASS:root}
+
+# SiliconFlow Embedding API
+embedding:
+  api-url: https://api.siliconflow.cn/v1/embeddings
+  api-key: ${SILICONFLOW_API_KEY:your-api-key}
+  model: BAAI/bge-large-zh-v1.5
+  dimensions: 1024
+
+# 检索配置
+retrieval:
+  top-k: 3
+  similarity-threshold: 0.3

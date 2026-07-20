@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>LLM 路由</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 09</div>
+<h1 class="mb-2">LLM 路由 — 三种方案对比</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+<div style="flex:1;display:flex;gap:16px;">
+  <div style="flex:1;padding:16px;background:rgba(224,231,255,0.02);border:1px solid rgba(224,231,255,0.08);border-radius:8px;">
+    <div style="font-size:16px;color:rgba(224,231,255,0.6);font-weight:700;margin-bottom:8px;">方案一：关键词过滤</div>
+    <div style="font-size:12px;color:rgba(224,231,255,0.45);line-height:1.8;">
+      匹配"多少钱"→ TOOL<br>
+      匹配"推荐"→ KNOWLEDGE<br>
+      默认 → CHAT
+    </div>
+    <div style="margin-top:10px;padding:8px;background:rgba(255,107,53,0.06);border-radius:4px;">
+      <div style="font-size:11px;color:#FF6B35;font-weight:600;">✗ 局限</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.4);">"帮我看看那个笔记本"不含"推荐"</div>
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:rgba(224,231,255,0.3);text-align:center;">第六课用过，已淘汰</div>
+  </div>
+  <div style="flex:1;padding:16px;background:rgba(224,231,255,0.02);border:1px solid rgba(224,231,255,0.08);border-radius:8px;">
+    <div style="font-size:16px;color:rgba(224,231,255,0.6);font-weight:700;margin-bottom:8px;">方案二：Embedding 相似度</div>
+    <div style="font-size:12px;color:rgba(224,231,255,0.45);line-height:1.8;">
+      预定义意图描述<br>
+      用户消息 Embedding 后<br>
+      和意图描述做相似度匹配
+    </div>
+    <div style="margin-top:10px;padding:8px;background:rgba(168,85,247,0.06);border-radius:4px;">
+      <div style="font-size:11px;color:#A855F7;font-weight:600;">△ 中等</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.4);">需要维护意图描述，新增意图要更新</div>
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:rgba(224,231,255,0.3);text-align:center;">仅 PPT 讲解</div>
+  </div>
+  <div style="flex:1;padding:16px;background:rgba(0,229,255,0.06);border:2px solid rgba(0,229,255,0.2);border-radius:8px;">
+    <div style="font-size:16px;color:#00E5FF;font-weight:700;margin-bottom:8px;">方案三：LLM 分类 ✓</div>
+    <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.8;">
+      用快模型做三分类<br>
+      KNOWLEDGE / TOOL / CHAT<br>
+      语义理解，准确率高
+    </div>
+    <div style="margin-top:10px;padding:8px;background:rgba(34,197,94,0.06);border-radius:4px;">
+      <div style="font-size:11px;color:#22C55E;font-weight:600;">✓ 优势</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.4);">不需维护规则，语义理解，成本低</div>
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:#22C55E;text-align:center;font-weight:600;">Demo 采用</div>
+  </div>
+</div>
+<div style="margin-top:10px;padding:10px 16px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;">
+  <div style="font-size:12px;color:rgba(224,231,255,0.4);text-align:center;">
+    选型建议：意图分类少（< 10）用 LLM；意图多（> 50）考虑 Embedding；规则明确用关键词<br>
+    实际项目中三种方案可以<strong style="color:#E0E7FF;">混合使用</strong>：先关键词快速匹配，匹配不上再用 LLM
+  </div>
+</div>
+</div></body></html>

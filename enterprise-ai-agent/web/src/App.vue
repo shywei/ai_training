@@ -3,7 +3,7 @@
   <div v-if="!userId" class="login-container">
     <div class="login-card">
       <h1>🛒 导购 Agent</h1>
-      <p class="login-subtitle">v3.0-knowledge · 企业 AI 应用开发培训</p>
+      <p class="login-subtitle">v4.0-tool · 企业 AI 应用开发培训</p>
       <el-input
         v-model="loginForm.username"
         placeholder="用户名"
@@ -49,7 +49,7 @@
     <!-- 顶部栏 -->
     <div class="chat-header">
       <h1>🛒 导购 Agent</h1>
-      <span class="version">v3.0-knowledge</span>
+      <span class="version">v4.0-tool</span>
       <span class="model-info" v-if="currentModel">
         <i class="el-icon-cpu"></i> {{ currentModel }}
       </span>
@@ -88,6 +88,10 @@
         <div class="message-bubble" :class="msg.bubbleClass || ''">
           <div v-if="msg.modelUsed" class="model-tag">
             <i class="el-icon-cpu"></i> {{ msg.modelUsed }}
+            <span v-if="msg.route" class="route-tag">{{ msg.route }}</span>
+          </div>
+          <div v-if="msg.toolCall" class="tool-call-indicator">
+            <i class="el-icon-loading"></i> 调用工具: {{ msg.toolCall }}
           </div>
           <div v-if="msg.loading" class="typing-dots">
             <span></span><span></span><span></span>
@@ -148,7 +152,8 @@ export default {
       currentModel: '',
       sessionId: localStorage.getItem('agent_sessionId') || ('session_' + Date.now()),
       messages: [],
-      indexing: false
+      indexing: false,
+      currentRoute: ''
     }
   },
   methods: {
@@ -261,6 +266,18 @@ export default {
                 continue
               }
 
+              // 检查路由标记（v4.0-tool）
+              if (content.startsWith('[ROUTE]')) {
+                this.messages[assistantIndex].route = content.substring(7).trim()
+                continue
+              }
+
+              // 检查 Tool 调用标记
+              if (content.startsWith('[TOOL_CALL]')) {
+                this.messages[assistantIndex].toolCall = content.substring(12).trim()
+                continue
+              }
+
               if (content.trim() === '[DONE]') continue
               // 空的 data: 事件 = 换行
               fullText += content === '' ? '\n' : content
@@ -276,6 +293,11 @@ export default {
           if (content.startsWith('[MODEL]')) {
             this.currentModel = content.substring(7).trim()
             this.messages[assistantIndex].modelUsed = this.currentModel
+          } else if (content.startsWith('[ROUTE]')) {
+            this.currentRoute = content.substring(7).trim()
+            this.messages[assistantIndex].route = this.currentRoute
+          } else if (content.startsWith('[TOOL_CALL]')) {
+            this.messages[assistantIndex].toolCall = content.substring(12).trim()
           } else if (content.trim() !== '[DONE]') {
             fullText += content === '' ? '\n' : content
             this.messages[assistantIndex].content = fullText
@@ -355,10 +377,10 @@ export default {
     async indexKnowledge() {
       this.indexing = true
       try {
-        const resp = await fetch('/api/knowledge/index?force=true', { method: 'POST' })
+        const resp = await fetch('/api/agent/knowledge/index?force=true', { method: 'POST' })
         const data = await resp.json()
         if (data.status === 'success') {
-          this.$message.success(`索引完成：${data.count} 个商品，耗时 ${data.duration_ms}ms`)
+          this.$message.success(data.message || '索引完成')
         } else if (data.status === 'skipped') {
           this.$message.info(data.message)
         } else {
@@ -503,6 +525,38 @@ body {
   border-radius: 8px;
   display: inline-block;
   margin-bottom: 6px;
+}
+
+/* 路由标签（v4.0-tool） */
+.route-tag {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.route-tag:empty { display: none; }
+
+/* Tool 调用指示器 */
+.tool-call-indicator {
+  font-size: 11px;
+  color: #E6A23C;
+  background: #FDF6EC;
+  border: 1px solid #FAECD8;
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.tool-call-indicator i {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* Guardrails 拦截样式 */

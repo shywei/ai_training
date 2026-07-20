@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>两种实现方式</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.code{font-size:11px;color:rgba(224,231,255,0.6);line-height:1.6;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 04</div>
+<h1 class="mb-2">两种实现方式 — @Tool vs FunctionCallbackWrapper</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+<div style="flex:1;display:flex;gap:20px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="padding:12px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:6px;margin-bottom:10px;">
+      <div style="font-size:14px;color:#22C55E;font-weight:700;margin-bottom:6px;">方式一：@Tool 注解（Spring AI 1.0.0+ GA）</div>
+      <div class="code">@Tool(description = "查询商品价格")<br>public String getPrice(<br>&nbsp;&nbsp;@ToolParam("商品ID") String productId<br>) {<br>&nbsp;&nbsp;return productRepo.getPrice(productId);<br>}</div>
+      <div style="font-size:11px;color:#22C55E;margin-top:6px;">✓ 声明式，简洁，自动提取 JSON Schema</div>
+    </div>
+    <div style="padding:12px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;">
+      <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:6px;">方式二：FunctionCallbackWrapper（M4 版本）</div>
+      <div class="code">Function&lt;Map, String&gt; fn = args -> {<br>&nbsp;&nbsp;return productRepo.getPrice(<br>&nbsp;&nbsp;&nbsp;&nbsp;(String) args.get("productId"));<br>};<br><br>FunctionCallbackWrapper.builder(fn)<br>&nbsp;&nbsp;.withName("getPrice")<br>&nbsp;&nbsp;.withDescription("查询商品价格")<br>&nbsp;&nbsp;.build();</div>
+      <div style="font-size:11px;color:#FF6B35;margin-top:6px;">✓ 编程式，灵活，手动控制 Schema</div>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:12px;">选型对比</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+      <div style="display:flex;padding:8px 12px;background:rgba(224,231,255,0.02);border-radius:4px;font-size:12px;">
+        <span style="flex:1;color:rgba(224,231,255,0.4);">维度</span>
+        <span style="flex:1;color:#22C55E;">@Tool</span>
+        <span style="flex:1;color:#FF6B35;">Wrapper</span>
+      </div>
+      <div style="display:flex;padding:8px 12px;background:rgba(224,231,255,0.02);border-radius:4px;font-size:12px;">
+        <span style="flex:1;color:rgba(224,231,255,0.4);">版本</span>
+        <span style="flex:1;color:rgba(224,231,255,0.55);">1.0.0+ GA</span>
+        <span style="flex:1;color:rgba(224,231,255,0.55);">1.0.0-M4</span>
+      </div>
+      <div style="display:flex;padding:8px 12px;background:rgba(224,231,255,0.02);border-radius:4px;font-size:12px;">
+        <span style="flex:1;color:rgba(224,231,255,0.4);">风格</span>
+        <span style="flex:1;color:rgba(224,231,255,0.55);">声明式</span>
+        <span style="flex:1;color:rgba(224,231,255,0.55);">编程式</span>
+      </div>
+      <div style="display:flex;padding:8px 12px;background:rgba(224,231,255,0.02);border-radius:4px;font-size:12px;">
+        <span style="flex:1;color:rgba(224,231,255,0.4);">Schema</span>
+        <span style="flex:1;color:rgba(224,231,255,0.55);">自动提取</span>
+        <span style="flex:1;color:rgba(224,231,255,0.55);">手动定义</span>
+      </div>
+    </div>
+    <div style="padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
+      <div style="font-size:13px;color:#00E5FF;font-weight:600;">Demo 用 M4（FunctionCallbackWrapper）</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px;">
+        原因：保持和前几课 Spring AI 版本一致<br>
+        生产建议：升级到 GA 版本用 @Tool，更简洁<br>
+        <strong style="color:#E0E7FF;">Demo 已覆盖</strong>，@Tool 仅 PPT 讲解
+      </div>
+    </div>
+  </div>
+</div>
+</div></body></html>

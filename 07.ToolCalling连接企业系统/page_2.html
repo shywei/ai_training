@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>第六课回顾</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 01</div>
+<h1 class="mb-2">第六课回顾 — Agent "懂"了什么</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+<div style="flex:1;display:flex;gap:20px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:10px;">
+    <div style="padding:14px 16px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:6px;">
+      <div style="font-size:15px;color:#22C55E;font-weight:700;margin-bottom:4px;">✓ RAG 知识检索</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);">Agent 能检索商品知识，引用配置和亮点推荐</div>
+    </div>
+    <div style="padding:14px 16px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:6px;">
+      <div style="font-size:15px;color:#22C55E;font-weight:700;margin-bottom:4px;">✓ 记忆增强</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);">pgvector 语义检索，自动沉淀 + 记忆增强</div>
+    </div>
+    <div style="padding:14px 16px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:6px;">
+      <div style="font-size:15px;color:#22C55E;font-weight:700;margin-bottom:4px;">✓ 数据分层</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);">描述放 pgvector，价格库存放 MySQL</div>
+    </div>
+    <div style="padding:14px 16px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:6px;">
+      <div style="font-size:15px;color:#22C55E;font-weight:700;margin-bottom:4px;">✓ Agent 直连数据库</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);">RetrievalService → pgvector，UserProfileMapper → MySQL</div>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="padding:16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:16px;">
+      <div style="font-size:16px;color:#FF6B35;font-weight:700;margin-bottom:8px;">但 Agent 只能"读"，不能"做"</div>
+      <div style="font-size:13px;color:rgba(224,231,255,0.7);line-height:1.8;">
+        <strong style="color:#E0E7FF;">"ThinkPad X1 多少钱"</strong><br>
+        → Agent 只能找到描述，不知道实时价格<br><br>
+        <strong style="color:#E0E7FF;">"帮我下单"</strong><br>
+        → Agent 无法调用订单系统<br><br>
+        <strong style="color:#E0E7FF;">"记住我喜欢轻薄本"</strong><br>
+        → Agent 被动等系统提取，不能主动保存
+      </div>
+    </div>
+    <div style="padding:12px 14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
+      <div style="font-size:14px;color:#00E5FF;font-weight:600;">第七课目标</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px;">查实时数据 · 调用企业系统 · 主动保存偏好 · 统一协议访问</div>
+    </div>
+  </div>
+</div>
+</div></body></html>

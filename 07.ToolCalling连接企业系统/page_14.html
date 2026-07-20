@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>路由实现</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.code{font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 10</div>
+<h1 class="mb-2">LLM 路由实现 + Demo 代码</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+<div style="flex:1;display:flex;gap:20px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">LlmRouter.java</div>
+    <div class="code" style="margin-bottom:12px;">public Route route(String userMessage) {<br>&nbsp;&nbsp;String prompt = """<br>&nbsp;&nbsp;&nbsp;&nbsp;判断用户消息的意图，只输出一个词：<br>&nbsp;&nbsp;&nbsp;&nbsp;- KNOWLEDGE：查询商品信息、推荐<br>&nbsp;&nbsp;&nbsp;&nbsp;- TOOL：查询价格、库存、下单<br>&nbsp;&nbsp;&nbsp;&nbsp;- CHAT：普通聊天<br><br>&nbsp;&nbsp;&nbsp;&nbsp;用户消息：%s<br>&nbsp;&nbsp;&nbsp;&nbsp;只输出 KNOWLEDGE、TOOL 或 CHAT。<br>&nbsp;&nbsp;&nbsp;&nbsp;""".formatted(userMessage);<br><br>&nbsp;&nbsp;String result = ChatClient.create(chatModel)<br>&nbsp;&nbsp;&nbsp;&nbsp;.prompt().user(prompt)<br>&nbsp;&nbsp;&nbsp;&nbsp;.options(OpenAiChatOptions.builder()<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.withModel(fastModel)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.withTemperature(0.0)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.build())<br>&nbsp;&nbsp;&nbsp;&nbsp;.call().content();<br><br>&nbsp;&nbsp;if (result.contains("TOOL")) return TOOL;<br>&nbsp;&nbsp;if (result.contains("KNOWLEDGE")) return KNOWLEDGE;<br>&nbsp;&nbsp;return CHAT;<br>}</div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.4);">
+      <strong style="color:#E0E7FF;">Demo 已覆盖</strong> · temperature=0 保证确定性输出
+    </div>
+
+    <!-- 避坑卡片 -->
+    <div style="margin-top:10px;padding:8px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.25);border-radius:4px;overflow:auto;">
+      <div style="font-size:11px;color:#FF6B35;font-weight:700;margin-bottom:2px;">🚨 确定性路由与优雅降级</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.5);line-height:1.4;">分类意图判定时，必须强制指定 temperature=0，否则随机性的输出容易产生意图颠倒。同时，在后端获取 mcpClient 绑定的 callback 时需做空指针防御与降级拦截，防止微服务启动顺序导致的进程挂起崩溃。</div>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">路由如何影响 context 构建</div>
+    <div class="code" style="margin-bottom:12px;">// ShoppingAgentController.java<br>Route route = llmRouter.route(message);<br><br>// context = 画像 + 记忆 + 历史（始终构建）<br>String context = memoryManager<br>&nbsp;&nbsp;.buildContext(sessionId, userId, message);<br><br>// 仅 KNOWLEDGE 路由注入 RAG<br>if (route == Route.KNOWLEDGE) {<br>&nbsp;&nbsp;String rag = mcpKnowledgeClient<br>&nbsp;&nbsp;&nbsp;&nbsp;.search(message);<br>&nbsp;&nbsp;context += "## 参考知识\n" + rag;<br>}<br><br>// 仅 TOOL 路由注册 product tools<br>if (route == Route.TOOL) {<br>&nbsp;&nbsp;clientBuilder.functions(<br>&nbsp;&nbsp;&nbsp;&nbsp;mcpProductClient.getFunctionCallbacks());<br>}<br><br>// save_memory 跨路由注册<br>clientBuilder.functions(<br>&nbsp;&nbsp;mcpKnowledgeClient.getFunctionCallbacks());</div>
+    <div style="padding:10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
+      <div style="font-size:11px;color:#00E5FF;font-weight:600;">路由决定三件事</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.4);">① 注入什么 context ② 注册什么 Tool ③ 是否注入 RAG</div>
+    </div>
+  </div>
+</div>
+</div></body></html>

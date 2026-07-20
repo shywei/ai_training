@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>MCP Server 实现</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.code{font-size:10px;color:rgba(224,231,255,0.55);line-height:1.5;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace;overflow:hidden}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 08</div>
+<h1 class="mb-2">Demo 中的两个 MCP Server</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+<div style="flex:1;display:flex;gap:16px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:10px;">mcp-product-server (:8081)</div>
+    <div style="padding:10px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:4px;margin-bottom:8px;">
+      <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-bottom:4px;">McpServerConfig.java — Tool 注册</div>
+      <div class="code">McpSchema.Tool productInfoTool =<br>&nbsp;&nbsp;new McpSchema.Tool(<br>&nbsp;&nbsp;&nbsp;&nbsp;"queryProductInfo",<br>&nbsp;&nbsp;&nbsp;&nbsp;"查询商品价格和库存...",<br>&nbsp;&nbsp;&nbsp;&nbsp;productIdSchema);<br><br>McpServer.sync(transportProvider)<br>&nbsp;&nbsp;.serverInfo("product-server","1.0.0")<br>&nbsp;&nbsp;.capabilities(...)<br>&nbsp;&nbsp;.tools(productInfoSpec, priceSpec, stockSpec)<br>&nbsp;&nbsp;.build();</div>
+    </div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.4);">
+      3 个 Tool · 数据来自 MySQL product 表<br>
+      <strong style="color:#E0E7FF;">Demo 已覆盖</strong>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:10px;">mcp-knowledge-server (:8082)</div>
+    <div style="padding:10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;margin-bottom:8px;">
+      <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-bottom:4px;">McpServerConfig.java — Tool + Resource</div>
+      <div class="code">// 4 个 Tool<br>searchKnowledgeSpec &nbsp;// RAG 检索<br>searchMemorySpec &nbsp;&nbsp;&nbsp;// 记忆检索<br>saveMemorySpec &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 记忆写入<br>indexKnowledgeSpec &nbsp;// 知识索引<br><br>// 1 个 Resource Template<br>ResourceTemplate userTemplate =<br>&nbsp;&nbsp;new ResourceTemplate("user://{userId}",...);<br><br>.capabilities(tools(true).resources(true))<br>.tools(spec1, spec2, spec3, spec4)<br>.resources(userResourceSpec)</div>
+    </div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.4);">
+      4 个 Tool + 1 个 Resource · pgvector + MySQL<br>
+      <strong style="color:#E0E7FF;">Demo 已覆盖</strong>
+    </div>
+  </div>
+</div>
+</div></body></html>

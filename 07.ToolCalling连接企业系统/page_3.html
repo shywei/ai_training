@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>从"懂"到"做"</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 02</div>
+<h1 class="mb-2">核心问题 — 怎么让 LLM "做事"？</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+<div style="flex:1;display:flex;gap:20px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="padding:16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:16px;">
+      <div style="font-size:16px;color:#FF6B35;font-weight:700;margin-bottom:8px;">LLM 天生的局限</div>
+      <div style="font-size:13px;color:rgba(224,231,255,0.7);line-height:2;">
+        LLM 只能<strong style="color:#E0E7FF;">生成文本</strong><br>
+        它不能访问互联网、不能查数据库、不能调 API<br>
+        它的"知识"来自训练数据，有截止日期<br><br>
+        但企业场景需要：<br>
+        查实时价格 · 查库存 · 下单 · 发邮件 · 更新 CRM<br>
+        这些 LLM 都做不到
+      </div>
+    </div>
+    <div style="padding:14px 16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
+      <div style="font-size:14px;color:#00E5FF;font-weight:600;">解决方案：Function Calling</div>
+      <div style="font-size:13px;color:rgba(224,231,255,0.55);margin-top:4px;">
+        LLM 不直接执行，而是<strong style="color:#E0E7FF;">返回"我要调用什么函数、传什么参数"</strong><br>
+        系统执行函数，把结果回传 LLM<br>
+        LLM 基于结果生成最终回复
+      </div>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:14px;">类比</div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div style="padding:14px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;">
+        <div style="font-size:14px;color:#E0E7FF;font-weight:600;">🧠 LLM = 大脑</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.5);margin-top:4px;">理解意图、做决策、生成回复</div>
+      </div>
+      <div style="padding:14px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;">
+        <div style="font-size:14px;color:#E0E7FF;font-weight:600;">🔧 Tool = 手脚</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.5);margin-top:4px;">查数据库、调 API、写文件、发消息</div>
+      </div>
+      <div style="padding:14px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;">
+        <div style="font-size:14px;color:#E0E7FF;font-weight:600;">📋 Function Calling = 指令</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.5);margin-top:4px;">大脑告诉手脚"做什么、怎么做"</div>
+      </div>
+    </div>
+    <div style="margin-top:16px;padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;">
+      <div style="font-size:12px;color:rgba(224,231,255,0.5);text-align:center;">
+        本课要解决三个问题：<br>
+        <strong style="color:#00E5FF;">怎么告诉 LLM 有哪些工具？</strong> · 
+        <strong style="color:#FF6B35;">LLM 怎么决定用哪个？</strong> · 
+        <strong style="color:#22C55E;">工具怎么标准化？</strong>
+      </div>
+    </div>
+  </div>
+</div>
+</div></body></html>

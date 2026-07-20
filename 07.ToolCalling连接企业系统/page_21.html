@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>项目架构</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 17</div>
+<h1 class="mb-2">项目架构 + 代码阅读路线图</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+<div style="flex:1;display:flex;gap:20px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:13px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">代码阅读路线图（建议顺序）</div>
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div style="padding:6px 10px;background:rgba(0,229,255,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
+        <span style="color:#00E5FF;font-weight:700;">①</span> LlmRouter.java — 路由决策（入口）
+      </div>
+      <div style="padding:6px 10px;background:rgba(0,229,255,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
+        <span style="color:#00E5FF;font-weight:700;">②</span> ShoppingAgentController.chat() — 路由 + context + Tool 注册
+      </div>
+      <div style="padding:6px 10px;background:rgba(255,107,53,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
+        <span style="color:#FF6B35;font-weight:700;">③</span> McpKnowledgeClient.java — MCP Client 实现（Tool 发现 + 包装）
+      </div>
+      <div style="padding:6px 10px;background:rgba(255,107,53,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
+        <span style="color:#FF6B35;font-weight:700;">④</span> McpServerConfig.java（knowledge-server）— Server 端 Tool + Resource
+      </div>
+      <div style="padding:6px 10px;background:rgba(34,197,94,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
+        <span style="color:#22C55E;font-weight:700;">⑤</span> MemoryManager.java — context 构建（全部通过 MCP）
+      </div>
+      <div style="padding:6px 10px;background:rgba(34,197,94,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
+        <span style="color:#22C55E;font-weight:700;">⑥</span> PromptManager.java — 三段规则（行为 + 知识 + 记忆）
+      </div>
+      <div style="padding:6px 10px;background:rgba(168,85,247,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
+        <span style="color:#A855F7;font-weight:700;">⑦</span> McpServerConfig.java（product-server）— 企业 Tool 实现
+      </div>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:13px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">v4.0 新增/修改文件</div>
+    <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px;">
+      <div style="padding:6px 10px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:11px;color:rgba(224,231,255,0.5);">
+        <span style="color:#22C55E;">新增</span> tool/LlmRouter.java
+      </div>
+      <div style="padding:6px 10px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:11px;color:rgba(224,231,255,0.5);">
+        <span style="color:#22C55E;">新增</span> tool/McpProductClient.java
+      </div>
+      <div style="padding:6px 10px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:11px;color:rgba(224,231,255,0.5);">
+        <span style="color:#22C55E;">新增</span> tool/McpKnowledgeClient.java
+      </div>
+      <div style="padding:6px 10px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:11px;color:rgba(224,231,255,0.5);">
+        <span style="color:#FF6B35;">修改</span> core/ShoppingAgentController.java
+      </div>
+      <div style="padding:6px 10px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:11px;color:rgba(224,231,255,0.5);">
+        <span style="color:#FF6B35;">修改</span> core/PromptManager.java
+      </div>
+      <div style="padding:6px 10px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:11px;color:rgba(224,231,255,0.5);">
+        <span style="color:#FF6B35;">修改</span> memory/MemoryManager.java
+      </div>
+      <div style="padding:6px 10px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:11px;color:rgba(224,231,255,0.5);">
+        <span style="color:#FF6B35;">修改</span> memory/UserMemoryService.java
+      </div>
+      <div style="padding:6px 10px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:11px;color:rgba(224,231,255,0.5);">
+        <span style="color:#22C55E;">新增模块</span> mcp-product-server/
+      </div>
+      <div style="padding:6px 10px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:11px;color:rgba(224,231,255,0.5);">
+        <span style="color:#22C55E;">新增模块</span> mcp-knowledge-server/
+      </div>
+    </div>
+    <div style="padding:8px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px;">
+      <div style="font-size:11px;color:rgba(224,231,255,0.35);">
+        v4.0 删除了：KnowledgeController, RetrievalService,<br>
+        VectorStoreConfig, UserMemoryMapper, ProductInfo, ProductInfoMapper
+      </div>
+    </div>
+  </div>
+</div>
+</div></body></html>

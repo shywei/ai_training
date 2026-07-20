@@ -38,24 +38,14 @@ mybatis-plus.configuration.map-underscore-to-camel-case: true
 mybatis-plus.configuration.log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 # ============================================================
-# PostgreSQL + pgvector(知识库向量存储)
-# 第六课新增:用于存储商品知识的 Embedding 向量
+# MCP Server 连接配置
 # ============================================================
 
-spring.datasource.pgvector.url: jdbc:postgresql://${PG_HOST:localhost}:5432/agent_db
-spring.datasource.pgvector.username: ${PG_USER:postgres}
-spring.datasource.pgvector.password: ${PG_PASS:postgres}
-spring.datasource.pgvector.driver-class-name: org.postgresql.Driver
-
-spring.ai.vectorstore.pgvector.initialize-schema: false
-spring.ai.vectorstore.pgvector.schema-name: public
-spring.ai.vectorstore.pgvector.table-name: vector_store
-spring.ai.vectorstore.pgvector.dimensions: 1024
-spring.ai.vectorstore.pgvector.index-type: HNSW
-spring.ai.vectorstore.pgvector.distance-type: COSINE_DISTANCE
-
-# Embedding 模型配置(SiliconFlow 免费模型)
-spring.ai.openai.embedding.options.model: BAAI/bge-large-zh-v1.5
+mcp:
+  product:
+    server-url: ${MCP_SERVER_URL:http://localhost:8081}
+  knowledge:
+    server-url: ${KNOWLEDGE_SERVER_URL:http://localhost:8082}
 
 # ============================================================
 # 导购 Agent 配置

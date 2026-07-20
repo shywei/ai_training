@@ -1,9 +1,10 @@
 package com.example.agent.memory;
 
-import com.example.agent.knowledge.RetrievalService;
+import com.example.agent.tool.McpKnowledgeClient;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.stereotype.Component;
-
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 
 import java.util.List;
 
@@ -16,17 +17,17 @@ import java.util.List;
  * │ MySQL user_profile：结构化画像标签                     │
  * │   → facts / preferences                             │
  * │   → 由 UserProfileExtractor 写入                     │
- * │   → 用于用户概览、后台展示、数据分析                    │
+ * │   → 通过 MCP Resource（user://{userId}）读取          │
  * ├─────────────────────────────────────────────────────┤
  * │ pgvector user_memory：语义记忆（自然语言 + Embedding） │
  * │   → 历史对话片段、用户偏好、业务事件                    │
- * │   → 由自动沉淀机制 + 用户主动"记住"写入                 │
- * │   → 用于 AI Agent 语义检索                            │
+ * │   → 通过 MCP Tool（search_memory / save_memory）访问  │
  * ├─────────────────────────────────────────────────────┤
  * │ Redis session：工作缓冲区（当前会话未沉淀的消息）       │
  * │   → 自动沉淀后清空                                   │
- * │   → 用于当前会话的连贯性                              │
  * └─────────────────────────────────────────────────────┘
+ *
+ * 所有持久化存储统一通过 MCP 协议访问，MemoryManager 不直接耦合任何数据库。
  *
  * 自动沉淀机制：
  * - 每 N 轮对话触发一次
@@ -38,29 +39,32 @@ import java.util.List;
  * - 第五课：对话历史 + 用户画像
  * - 第六课：用户画像 + 用户记忆 + 对话历史 + RAG 知识
  * - 第七课：+ Tool 调用结果
+ *
+ * MCP 化变化（第七课）：
+ * - 画像读取：McpKnowledgeClient.readUserProfile() → MCP Resource → MySQL
+ * - 记忆读写：McpKnowledgeClient.searchMemory() / saveMemory() → MCP Tool → pgvector
+ * - 沉淀写入：McpKnowledgeClient.saveMemory() → MCP Tool → pgvector
+ * - MemoryManager 不直接依赖任何 Mapper 或数据库访问组件
  */
 @Component
 public class MemoryManager {
 
     private final SessionMemory sessionMemory;
     private final SummaryPipeline summaryPipeline;
-    private final UserProfileMapper profileMapper;
-    private final UserMemoryService memoryService;
-    private final RetrievalService retrievalService;
+    private final McpKnowledgeClient mcpKnowledgeClient;
+    private final ChatModel chatModel;
 
     /** 自动沉淀阈值：每 5 轮对话（10条消息）触发一次 */
     private static final int PRECIPITATE_THRESHOLD = 10;
 
     public MemoryManager(SessionMemory sessionMemory,
                          SummaryPipeline summaryPipeline,
-                         UserProfileMapper profileMapper,
-                         UserMemoryService memoryService,
-                         RetrievalService retrievalService) {
+                         McpKnowledgeClient mcpKnowledgeClient,
+                         ChatModel chatModel) {
         this.sessionMemory = sessionMemory;
         this.summaryPipeline = summaryPipeline;
-        this.profileMapper = profileMapper;
-        this.memoryService = memoryService;
-        this.retrievalService = retrievalService;
+        this.mcpKnowledgeClient = mcpKnowledgeClient;
+        this.chatModel = chatModel;
     }
 
     /**
@@ -73,21 +77,18 @@ public class MemoryManager {
     public String buildContext(String sessionId, String userId, String userMessage) {
         StringBuilder sb = new StringBuilder();
 
-        // 1. 用户画像（MySQL 结构化标签 —— 始终查询）
+        // 1. 用户画像（通过 MCP Resource 读取）
         if (userId != null && !userId.isBlank()) {
-            UserProfile profile = profileMapper.selectOne(
-                    new LambdaQueryWrapper<UserProfile>().eq(UserProfile::getUserId, userId));
-            if (profile != null) {
-                String ctx = profile.toContextString();
-                if (!ctx.isBlank()) {
-                    sb.append(ctx);
-                }
+            String profile = mcpKnowledgeClient.readUserProfile(userId);
+            if (profile != null && !profile.isBlank()) {
+                sb.append("## 用户画像\n");
+                sb.append(profile).append("\n\n");
             }
         }
 
-        // 2. 用户记忆（pgvector 语义检索 —— 始终查询）
+        // 2. 用户记忆（通过 MCP 协议调用 Knowledge Server 语义检索）
         if (userId != null && !userId.isBlank() && userMessage != null && !userMessage.isBlank()) {
-            String memoryContext = memoryService.search(userId, userMessage);
+            String memoryContext = mcpKnowledgeClient.searchMemory(userId, userMessage);
             if (memoryContext != null && !memoryContext.isBlank()) {
                 sb.append("## 相关记忆\n");
                 sb.append(memoryContext).append("\n\n");
@@ -112,34 +113,9 @@ public class MemoryManager {
             }
         }
 
-        // 注意：RAG 检索已移到 buildRagContext()，由 LLM 路由决定是否注入
+        // 注意：RAG 检索已由 ShoppingAgentController 直接调用 mcpKnowledgeClient.search()
 
         return sb.toString().isBlank() ? null : sb.toString();
-    }
-
-    /**
-     * 构建 RAG 上下文（知识库检索）
-     *
-     * 由 LLM 路由决定是否调用：
-     * - KNOWLEDGE 意图：调用此方法，注入商品知识
-     * - TOOL 意图：不调用，LLM 通过 Tool 查实时数据
-     * - CHAT 意图：不调用，普通聊天不需要知识
-     *
-     * v4.0 变化：RAG 不再自动注入，由路由决策
-     */
-    public String buildRagContext(String userMessage) {
-        if (userMessage == null || userMessage.isBlank()) {
-            return null;
-        }
-
-        String ragResults = retrievalService.retrieve(userMessage);
-        if (ragResults != null && !ragResults.isBlank()) {
-            System.out.println("[Knowledge] RAG 检索成功，注入 " + ragResults.split("\n").length + " 行参考信息");
-            return "## 参考知识（从商品库检索）\n" + ragResults + "\n";
-        }
-
-        return null;
-    }
     }
 
     /**
@@ -180,10 +156,13 @@ public class MemoryManager {
         List<String> messages = sessionMemory.getMessages(sessionId);
         if (messages == null || messages.isEmpty()) return;
 
-        // 沉淀到 pgvector
+        // 通过 MCP 协议沉淀到 pgvector
         try {
-            memoryService.storeConversationSummary(userId, sessionId, messages);
-            System.out.println("[Memory] ✅ 自动沉淀完成");
+            String summary = extractConversationSummary(messages);
+            if (summary != null && !summary.isBlank()) {
+                mcpKnowledgeClient.saveMemory(userId, "conversation", summary);
+                System.out.println("[Memory] ✅ 自动沉淀完成");
+            }
         } catch (Exception e) {
             System.err.println("[Memory] ⚠️ 自动沉淀失败: " + e.getMessage());
             return; // 沉淀失败不清空，避免数据丢失
@@ -202,7 +181,10 @@ public class MemoryManager {
             List<String> messages = sessionMemory.getMessages(sessionId);
             if (messages != null && !messages.isEmpty()) {
                 try {
-                    memoryService.storeConversationSummary(userId, sessionId, messages);
+                    String summary = extractConversationSummary(messages);
+                    if (summary != null && !summary.isBlank()) {
+                        mcpKnowledgeClient.saveMemory(userId, "conversation", summary);
+                    }
                 } catch (Exception e) {
                     System.err.println("[Memory] 对话沉淀失败: " + e.getMessage());
                 }
@@ -220,5 +202,66 @@ public class MemoryManager {
 
     public SessionMemory getSessionMemory() {
         return sessionMemory;
+    }
+
+    /**
+     * 用 LLM 从对话中提取关键信息（记忆沉淀的核心逻辑）
+     *
+     * 提取用户的偏好、需求、决策和关键事实，
+     * 作为自然语言记忆存入 pgvector。
+     *
+     * @param messages 对话消息列表（格式：role|content）
+     * @return 提取的关键信息摘要
+     */
+    private String extractConversationSummary(List<String> messages) {
+        if (messages == null || messages.isEmpty()) {
+            return null;
+        }
+
+        // 拼接对话内容
+        StringBuilder conversation = new StringBuilder();
+        for (String msg : messages) {
+            String[] parts = msg.split("\\|", 2);
+            if (parts.length == 2) {
+                if (parts[1].startsWith("[对话摘要]")) continue;
+                String role = "user".equals(parts[0]) ? "用户" : "助手";
+                conversation.append(role).append(": ").append(parts[1]).append("\n");
+            }
+        }
+
+        if (conversation.length() < 10) return null;
+
+        String prompt = """
+                请从以下对话中提取关键信息，用简洁的自然语言总结。
+
+                要求：
+                - 提取用户的偏好、需求、决策
+                - 提取关键事实（提到的商品、价格、配置等）
+                - 忽略寒暄和无关内容
+                - 不超过200字
+                - 用中文
+
+                对话内容：
+                %s
+                """.formatted(conversation);
+
+        try {
+            String result = ChatClient.create(chatModel)
+                    .prompt()
+                    .user(prompt)
+                    .options(OpenAiChatOptions.builder()
+                            .withTemperature(0.3)
+                            .build())
+                    .call()
+                    .content();
+
+            System.out.println("[Memory] LLM 摘要提取完成: " +
+                    (result != null ? result.length() + "字" : "null"));
+            return result;
+
+        } catch (Exception e) {
+            System.err.println("[Memory] LLM 摘要提取失败: " + e.getMessage());
+            return null;
+        }
     }
 }

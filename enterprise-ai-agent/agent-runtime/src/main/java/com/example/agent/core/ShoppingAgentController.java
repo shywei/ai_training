@@ -3,10 +3,14 @@ package com.example.agent.core;
 import com.example.agent.memory.MemoryManager;
 import com.example.agent.memory.UserProfileExtractor;
 import com.example.agent.tool.LlmRouter;
-import com.example.agent.tool.ProductTool;
+import com.example.agent.tool.McpKnowledgeClient;
+import com.example.agent.tool.McpProductClient;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.model.function.FunctionCallback;
 import org.springframework.ai.openai.OpenAiChatOptions;
+import java.util.List;
+import java.util.Map;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -32,7 +36,8 @@ public class ShoppingAgentController {
     private final UserProfileExtractor profileExtractor;
     private final LlmInteractionLogger llmLogger;
     private final LlmRouter llmRouter;
-    private final ProductTool productTool;
+    private final McpProductClient mcpProductClient;
+    private final McpKnowledgeClient mcpKnowledgeClient;
 
     public ShoppingAgentController(ChatModel chatModel,
                                    ModelRouter modelRouter,
@@ -43,7 +48,8 @@ public class ShoppingAgentController {
                                    UserProfileExtractor profileExtractor,
                                    LlmInteractionLogger llmLogger,
                                    LlmRouter llmRouter,
-                                   ProductTool productTool) {
+                                   McpProductClient mcpProductClient,
+                                   McpKnowledgeClient mcpKnowledgeClient) {
         this.chatModel = chatModel;
         this.modelRouter = modelRouter;
         this.promptManager = promptManager;
@@ -53,7 +59,8 @@ public class ShoppingAgentController {
         this.profileExtractor = profileExtractor;
         this.llmLogger = llmLogger;
         this.llmRouter = llmRouter;
-        this.productTool = productTool;
+        this.mcpProductClient = mcpProductClient;
+        this.mcpKnowledgeClient = mcpKnowledgeClient;
     }
 
     /**
@@ -78,10 +85,11 @@ public class ShoppingAgentController {
         String context = memoryManager.buildContext(sessionId, userId, message);
 
         // 根据路由决策，决定是否添加 RAG 知识
+        // v4.0: RAG 检索通过 MCP 协议调用 Knowledge MCP Server
         if (route == LlmRouter.Route.KNOWLEDGE) {
-            String ragContext = memoryManager.buildRagContext(message);
+            String ragContext = mcpKnowledgeClient.search(message);
             if (ragContext != null && !ragContext.isBlank()) {
-                context = (context != null ? context : "") + ragContext;
+                context = (context != null ? context : "") + "## 参考知识（从商品库检索）\n" + ragContext + "\n";
             }
         }
 
@@ -96,7 +104,7 @@ public class ShoppingAgentController {
         String finalMessage = message;
         String finalUserId = userId;
 
-        // 构建 ChatClient，TOOL 路由时注册 ProductTool
+        // 构建 ChatClient，TOOL 路由时注册 FunctionCallback
         var clientBuilder = ChatClient.create(chatModel).prompt()
                 .system(systemPrompt)
                 .user(userPrompt)
@@ -104,21 +112,38 @@ public class ShoppingAgentController {
                         .withModel(model)
                         .build());
 
-        // 如果是 TOOL 意图，注册工具让 LLM 决定调用
+        // 如果是 TOOL 意图，注册 MCP Product Tool
+        // 所有商品查询 Tool 统一通过 MCP 协议从 MCP Server 获取
         if (route == LlmRouter.Route.TOOL) {
-            clientBuilder = clientBuilder.tools(productTool);
-            System.out.println("[Tool] 已注册 ProductTool，LLM 将决定是否调用");
+            List<FunctionCallback> mcpCallbacks = mcpProductClient.getFunctionCallbacks();
+            if (!mcpCallbacks.isEmpty()) {
+                clientBuilder = clientBuilder.functions(mcpCallbacks.toArray(new FunctionCallback[0]));
+                System.out.println("[Tool] 已注册 " + mcpCallbacks.size() + " 个 Product MCP Tool: " + mcpProductClient.getToolNames());
+            } else {
+                System.out.println("[Tool] Product MCP Server 未连接，无可用 Tool");
+            }
         }
+
+        // save_memory 跨路由可用（用户在任何对话中都可能表达偏好）
+        List<FunctionCallback> knowledgeCallbacks = mcpKnowledgeClient.getFunctionCallbacks();
+        if (!knowledgeCallbacks.isEmpty()) {
+            clientBuilder = clientBuilder.functions(knowledgeCallbacks.toArray(new FunctionCallback[0]));
+            System.out.println("[Tool] 已注册 " + knowledgeCallbacks.size() + " 个 Knowledge MCP Tool: " + mcpKnowledgeClient.getToolNames());
+        }
+
+        String finalRoute = route.name();
 
         return clientBuilder
                 .stream()
                 .content()
                 .transform(flux -> {
                     String modelTag = "[MODEL]" + finalModel;
+                    String routeTag = "[ROUTE]" + finalRoute;
                     StringBuilder fullResp = new StringBuilder();
                     long[] start = {System.currentTimeMillis()};
                     return Flux.concat(
                         Flux.just(modelTag),
+                        Flux.just(routeTag),
                         flux.map(chunk -> {
                             fullResp.append(chunk);
                             return guardrails.sanitize(chunk);
@@ -132,6 +157,27 @@ public class ShoppingAgentController {
                         })
                     );
                 });
+    }
+
+    /**
+     * 索引商品知识库（通过 MCP 协议调用 Knowledge Server）
+     * POST /api/agent/knowledge/index?force=false
+     */
+    @PostMapping("/knowledge/index")
+    public Map<String, Object> indexKnowledge(@RequestParam(defaultValue = "false") boolean force) {
+        String result = mcpKnowledgeClient.indexKnowledge(force);
+        Map<String, Object> response = new java.util.LinkedHashMap<>();
+        if (result != null && result.startsWith("索引完成")) {
+            response.put("status", "success");
+            response.put("message", result);
+        } else if (result != null && result.contains("跳过索引")) {
+            response.put("status", "skipped");
+            response.put("message", result);
+        } else {
+            response.put("status", "error");
+            response.put("message", result != null ? result : "索引失败");
+        }
+        return response;
     }
 
     /**

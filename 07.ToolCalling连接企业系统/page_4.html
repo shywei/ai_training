@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>Function Calling</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 03</div>
+<h1 class="mb-2">Function Calling — 概念与流程</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+<div style="flex:1;display:flex;gap:20px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:12px;">完整流程（6 步）</div>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <div style="padding:8px 12px;background:rgba(0,229,255,0.06);border-radius:4px;font-size:12px;color:rgba(224,231,255,0.7);">
+        <span style="color:#00E5FF;font-weight:700;">①</span> 定义函数：名称 + 描述 + 参数 Schema
+      </div>
+      <div style="padding:8px 12px;background:rgba(0,229,255,0.06);border-radius:4px;font-size:12px;color:rgba(224,231,255,0.7);">
+        <span style="color:#00E5FF;font-weight:700;">②</span> 注册到 LLM 请求（functions 参数）
+      </div>
+      <div style="padding:8px 12px;background:rgba(255,107,53,0.06);border-radius:4px;font-size:12px;color:rgba(224,231,255,0.7);">
+        <span style="color:#FF6B35;font-weight:700;">③</span> 用户提问 → LLM 判断是否需要调用函数
+      </div>
+      <div style="padding:8px 12px;background:rgba(255,107,53,0.06);border-radius:4px;font-size:12px;color:rgba(224,231,255,0.7);">
+        <span style="color:#FF6B35;font-weight:700;">④</span> LLM 返回 tool_call（函数名 + 参数）
+      </div>
+      <div style="padding:8px 12px;background:rgba(34,197,94,0.06);border-radius:4px;font-size:12px;color:rgba(224,231,255,0.7);">
+        <span style="color:#22C55E;font-weight:700;">⑤</span> 系统执行函数，把结果回传 LLM
+      </div>
+      <div style="padding:8px 12px;background:rgba(34,197,94,0.06);border-radius:4px;font-size:12px;color:rgba(224,231,255,0.7);">
+        <span style="color:#22C55E;font-weight:700;">⑥</span> LLM 基于结果生成最终回复
+      </div>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:12px;">实际例子</div>
+    <div style="padding:14px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;margin-bottom:12px;">
+      <div style="font-size:12px;color:rgba(224,231,255,0.4);margin-bottom:6px;">用户说：</div>
+      <div style="font-size:14px;color:#E0E7FF;">"ThinkPad X1 多少钱"</div>
+    </div>
+    <div style="padding:14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;margin-bottom:12px;">
+      <div style="font-size:12px;color:rgba(224,231,255,0.4);margin-bottom:6px;">LLM 返回（不是最终回复，而是 tool_call）：</div>
+      <pre style="font-size:11px;color:#FF6B35;line-height:1.5;">{
+  "tool_call": {
+    "name": "queryProductInfo",
+    "arguments": {"productId": "NB001"}
+  }
+}</pre>
+    </div>
+    <div style="padding:14px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:6px;margin-bottom:12px;">
+      <div style="font-size:12px;color:rgba(224,231,255,0.4);margin-bottom:6px;">系统执行后回传结果，LLM 最终回复：</div>
+      <div style="font-size:13px;color:#22C55E;">"ThinkPad X1 Carbon 当前售价 ¥9999，库存 58 件，在售。"</div>
+    </div>
+    <div style="padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px;">
+      <div style="font-size:11px;color:rgba(224,231,255,0.4);text-align:center;">
+        <strong style="color:#E0E7FF;">关键</strong>：LLM 决定"要不要调、调什么、传什么参数"<br>
+        系统负责"执行"，LLM 负责"决策"
+      </div>
+    </div>
+  </div>
+</div>
+</div></body></html>

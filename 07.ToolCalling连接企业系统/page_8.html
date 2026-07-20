@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>MCP 协议</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 05</div>
+<h1 class="mb-2">MCP 协议 — 为什么需要标准协议</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+<div style="flex:1;display:flex;gap:20px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="padding:14px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;">
+      <div style="font-size:15px;color:#FF6B35;font-weight:700;margin-bottom:6px;">不用 MCP 的做法</div>
+      <div style="font-size:13px;color:rgba(224,231,255,0.55);line-height:1.8;">
+        Tool 代码直接写在 Agent 项目里<br>
+        Agent 直连数据库、直连外部 API<br>
+        换框架 → 代码重写<br>
+        换 Agent → Tool 不能复用<br>
+        每个 Agent 都写一遍 → 重复劳动
+      </div>
+    </div>
+    <div style="padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
+      <div style="font-size:15px;color:#00E5FF;font-weight:700;margin-bottom:6px;">MCP 的做法</div>
+      <div style="font-size:13px;color:rgba(224,231,255,0.55);line-height:1.8;">
+        Tool 独立部署为 MCP Server<br>
+        Agent 作为 MCP Client，通过标准协议调用<br>
+        换框架 → 只改 Client，Server 不变<br>
+        换 Agent → MCP Server 通用<br>
+        <strong style="color:#E0E7FF;">一次开发，到处复用</strong>
+      </div>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:14px;">类比</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+      <div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;">
+        <div style="font-size:14px;color:#E0E7FF;font-weight:600;">REST API → Web 服务间标准协议</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.45);margin-top:4px;">前端不用关心后端用什么语言/框架</div>
+      </div>
+      <div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;">
+        <div style="font-size:14px;color:#E0E7FF;font-weight:600;">USB → 硬件设备间标准协议</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.45);margin-top:4px;">键盘不用关心电脑用什么操作系统</div>
+      </div>
+      <div style="padding:12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
+        <div style="font-size:14px;color:#00E5FF;font-weight:600;">MCP → AI Agent 与 Tool 间标准协议</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.45);margin-top:4px;">Agent 不用关心 Tool 用什么实现</div>
+      </div>
+    </div>
+    <div style="padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px;">
+      <div style="font-size:12px;color:rgba(224,231,255,0.4);text-align:center;">
+        <strong style="color:#E0E7FF;">MCP = Model Context Protocol</strong><br>
+        Anthropic 2024 年底提出，已开源<br>
+        不是 Anthropic 独占，是开放标准
+      </div>
+    </div>
+  </div>
+</div>
+</div></body></html>

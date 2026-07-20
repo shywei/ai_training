@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>Demo vs 生产</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 16</div>
+<h1 class="mb-2">Demo vs 生产 — 具体差距</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+<div style="flex:1;display:flex;gap:16px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:8px;">
+    <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+      <div style="font-size:13px;color:#FF6B35;font-weight:700;">认证</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);">Demo：明文密码对比<br>生产：OAuth2 + JWT + Token 刷新 + 密码 BCrypt 哈希</div>
+    </div>
+    <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+      <div style="font-size:13px;color:#FF6B35;font-weight:700;">权限</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);">Demo：任何 Agent 能调任何 Tool<br>生产：RBAC 权限表，哪些 Agent 能调哪些 Tool，审批流程</div>
+    </div>
+    <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+      <div style="font-size:13px;color:#FF6B35;font-weight:700;">幂等</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);">Demo：不处理，LLM 可能重复调用<br>生产：请求 ID 去重，Tool 保证重复调用无副作用</div>
+    </div>
+    <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+      <div style="font-size:13px;color:#FF6B35;font-weight:700;">超时</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);">Demo：写死 15 秒<br>生产：分级超时（查询 3s / 写入 10s / 批量 30s）+ 指数退避重试 + 熔断</div>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:8px;">
+    <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+      <div style="font-size:13px;color:#FF6B35;font-weight:700;">审计</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);">Demo：只写日志<br>生产：审计表记录（谁、什么时间、调了什么、参数、结果、耗时），可追溯可回放</div>
+    </div>
+    <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+      <div style="font-size:13px;color:#FF6B35;font-weight:700;">缓存</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);">Demo：无缓存，每次都查数据库<br>生产：语义缓存（相似 query 命中缓存），减少 LLM 调用和数据库查询</div>
+    </div>
+    <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+      <div style="font-size:13px;color:#FF6B35;font-weight:700;">监控</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);">Demo：无监控<br>生产：Tool 调用成功率、延迟 P99、LLM token 用量、成本归因</div>
+    </div>
+    <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+      <div style="font-size:13px;color:#FF6B35;font-weight:700;">安全</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);">Demo：无输入校验<br>生产：SQL 注入防护、PII 脱敏（手机号只存前三位后四位）、Tool 参数校验</div>
+    </div>
+  </div>
+</div>
+</div></body></html>
