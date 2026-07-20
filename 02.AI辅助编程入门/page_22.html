@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>AI为什么会犯错</title>
+<title>学习资源与社区</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
@@ -11,75 +11,126 @@
 .slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
 .slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
 .slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-fail-step { padding:12px 16px; margin-bottom:6px; display:flex; align-items:center; gap:12px; }
-.slide-fail-num { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0; }
-.slide-fail-text { font-size:13px; color:rgba(224,231,255,0.6); line-height:1.4; }
-.slide-fail-highlight { font-size:13px; color:#FF6B35; font-weight:700; }
+.slide-res-card { padding:14px 16px; margin-bottom:10px; }
+.slide-res-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:8px; }
+.slide-res-item { display:flex; align-items:flex-start; gap:10px; margin-bottom:6px; }
+.slide-res-name { font-size:12px; font-weight:700; color:#E0E7FF; min-width:200px; }
+.slide-res-url { font-size:11px; color:#00E5FF; font-family:monospace; min-width:280px; }
+.slide-res-desc { font-size:11px; color:rgba(224,231,255,0.45); }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:32px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 09</div>
-  <h1 class="mb-2">AI为什么会犯错？— 上下文退化</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:16px;"></div>
+<div class="slide-container" style="padding:28px 70px;">
+ <div class="mb-2 slide-section-num">CHAPTER 08 · 参考</div>
+ <h1 class="mb-2">学习资源与社区</h1>
+ <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:16px;"></div>
 
-  <div class="flex" style="gap:30px;">
-    <div style="flex:1;">
-      <div style="font-size:15px; font-weight:700; color:#FF6B35; margin-bottom:12px;"><i class="fas fa-exclamation-circle" style="margin-right:6px;"></i>典型场景：昨天还能写，今天不会了</div>
-
-      <div class="slide-fail-step" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.1);">
-        <div class="slide-fail-num" style="background:rgba(0,229,255,0.15); color:#00E5FF;">1</div>
-        <div class="slide-fail-text">刚开始对话，Agent看到<strong style="color:#E0E7FF;">OrderService.java</strong>的完整代码，改得很好。</div>
-      </div>
-      <div style="text-align:center; color:rgba(0,229,255,0.3); font-size:16px;"><i class="fas fa-arrow-down"></i></div>
-
-      <div class="slide-fail-step" style="background:rgba(255,200,50,0.04); border:1px solid rgba(255,200,50,0.15);">
-        <div class="slide-fail-num" style="background:rgba(255,200,50,0.15); color:#FFC832;">2</div>
-        <div class="slide-fail-text">聊了20轮，积累了大量对话历史。<strong style="color:#FFC832;">上下文窗口被聊天记录填满。</strong></div>
-      </div>
-      <div style="text-align:center; color:rgba(255,200,50,0.3); font-size:16px;"><i class="fas fa-arrow-down"></i></div>
-
-      <div class="slide-fail-step" style="background:rgba(255,60,60,0.04); border:1px solid rgba(255,60,60,0.15);">
-        <div class="slide-fail-num" style="background:rgba(255,60,60,0.15); color:rgba(255,100,100,0.8);">3</div>
-        <div class="slide-fail-text"><strong style="color:#FF6B35;">OrderService.java的代码被挤出上下文窗口。</strong>Agent"看不到"原来的代码了。</div>
-      </div>
-      <div style="text-align:center; color:rgba(255,60,60,0.3); font-size:16px;"><i class="fas fa-arrow-down"></i></div>
-
-      <div class="slide-fail-step" style="background:rgba(255,60,60,0.06); border:2px solid rgba(255,60,60,0.2);">
-        <div class="slide-fail-num" style="background:rgba(255,60,60,0.2); color:#FF6B35;">4</div>
-        <div class="slide-fail-text">Agent开始<strong style="color:#FF6B35;">凭记忆"猜"代码结构</strong>，做出错误修改。你问它为什么改错了，它自己也不知道。</div>
-      </div>
+ <div class="flex" style="gap:22px;">
+  <div style="flex:1;">
+   <div class="slide-res-card" style="background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.12);">
+    <div class="slide-res-title"><i class="fas fa-terminal" style="color:#E0E7FF; margin-right:6px;"></i>Claude Code</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">Claude Code in Action</div>
+     <div class="slide-res-url">anthropic.skilljar.com</div>
     </div>
-
-    <div style="flex:1;">
-      <div style="font-size:15px; font-weight:700; color:#00E5FF; margin-bottom:12px;"><i class="fas fa-lightbulb" style="margin-right:6px;"></i>根本原因：不是模型变笨了</div>
-
-      <div style="padding:16px 18px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.12); margin-bottom:14px;">
-        <div style="font-size:14px; color:#E0E7FF; font-weight:700; margin-bottom:8px;">上下文退化（Context Degradation）</div>
-        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.7;">
-          模型的能力没有变。<strong style="color:#FF6B35;">变的是它能看到的信息。</strong><br><br>
-          窗口是有限的。新内容进来，旧内容就被挤出去。<br>
-          对话越长，Agent"忘"得越多。<br>
-          被"忘"掉的不是无用信息，而是<strong style="color:#E0E7FF;">你的代码</strong>。
-        </div>
-      </div>
-
-      <div style="padding:16px 18px; background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.12); margin-bottom:14px;">
-        <div style="font-size:14px; color:#FF6B35; font-weight:700; margin-bottom:8px;">应对策略</div>
-        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.7;">
-          <strong style="color:#E0E7FF;">1. 拆分任务</strong> — 一次只让Agent做一件事，别把所有需求堆在一个对话里<br>
-          <strong style="color:#E0E7FF;">2. 关键信息写文件</strong> — 用AGENTS.md/Rules而不是靠对话传达<br>
-          <strong style="color:#E0E7FF;">3. 新对话</strong> — 感觉Agent"变笨"了，开一个新对话比纠正它更高效<br>
-          <strong style="color:#E0E7FF;">4. 提供文件路径</strong> — 让Agent重新读取代码，而不是依赖"记忆"
-        </div>
-      </div>
-
-      <div style="padding:14px 18px; background:rgba(0,229,255,0.06); border:2px solid rgba(0,229,255,0.2);">
-        <div style="font-size:14px; color:#00E5FF; font-weight:700; margin-bottom:4px;"><i class="fas fa-key" style="margin-right:4px;"></i>一句话记住</div>
-        <div style="font-size:13px; color:#E0E7FF; font-weight:600;">AI不是变笨了，是看不清了。<br>管理上下文，就是管理AI的能力。</div>
-      </div>
+    <div class="slide-res-desc" style="margin-bottom:6px;">开发者核心课程，覆盖Agent工作流、CLAUDE.md配置、Skills使用。</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">Building Skills</div>
+     <div class="slide-res-url">anthropic.skilljar.com</div>
     </div>
+    <div class="slide-res-desc" style="margin-bottom:6px;">教创建、配置、分发可复用的Skills。</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">官方Courses仓库</div>
+     <div class="slide-res-url">github.com/anthropics/courses</div>
+    </div>
+    <div class="slide-res-desc">开源教学Notebooks，含提示词工程、API开发等。</div>
+   </div>
+
+   <div class="slide-res-card" style="background:rgba(255,200,50,0.04); border:1px solid rgba(255,200,50,0.15);">
+    <div class="slide-res-title"><i class="fas fa-robot" style="color:#FFC832; margin-right:6px;"></i>OpenAI Codex</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">Introduction to Codex</div>
+     <div class="slide-res-url">academy.openai.com</div>
+    </div>
+    <div class="slide-res-desc" style="margin-bottom:6px;">Codex入门Webinar，60分钟。</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">Prompt Engineering</div>
+     <div class="slide-res-url">academy.openai.com</div>
+    </div>
+    <div class="slide-res-desc">OpenAI提示词团队亲讲，覆盖基本结构、常见误区、改写策略。</div>
+   </div>
+
+   <div class="slide-res-card" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.12);">
+    <div class="slide-res-title"><i class="fas fa-code" style="color:#00E5FF; margin-right:6px;"></i>OpenCode</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">官方文档</div>
+     <div class="slide-res-url">opencode.ai/docs</div>
+    </div>
+    <div class="slide-res-desc" style="margin-bottom:6px;">安装配置、WSL指南、Skills、CLI、Web、MCP等完整文档。</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">GitHub仓库</div>
+     <div class="slide-res-url">github.com/anomalyco/opencode</div>
+    </div>
+    <div class="slide-res-desc" style="margin-bottom:6px;">源码、示例、Issues讨论、版本更新。</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">Discord社区</div>
+     <div class="slide-res-url">opencode.ai/discord</div>
+    </div>
+    <div class="slide-res-desc">实时交流，问题解答，新功能讨论。</div>
+   </div>
   </div>
+
+  <div style="flex:1;">
+   <div class="slide-res-card" style="background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.12);">
+    <div class="slide-res-title"><i class="fas fa-puzzle-piece" style="color:#FF6B35; margin-right:6px;"></i>Skills生态</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name"><strong style="color:#FFC832;">skills.sh</strong></div>
+     <div class="slide-res-url">skills.sh</div>
+    </div>
+    <div class="slide-res-desc" style="margin-bottom:6px;">最大Skills目录，83万+安装量，支持20+Agent。一键安装：<code style="color:#FF6B35;">npx skills add</code></div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">skillsmp.com</div>
+     <div class="slide-res-url">skillsmp.com</div>
+    </div>
+    <div class="slide-res-desc" style="margin-bottom:6px;">170万+技能，按分类/更新排序，中文友好。</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">mattpocock/skills</div>
+     <div class="slide-res-url">github.com/mattpocock/skills</div>
+    </div>
+    <div class="slide-res-desc" style="margin-bottom:6px;">14.9万星，TDD/架构重构/Diagnose等高质量Skill。</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">anthropics/skills</div>
+     <div class="slide-res-url">github.com/anthropics/skills</div>
+    </div>
+    <div class="slide-res-desc">Anthropic官方Skills，frontend-design等热门Skill。</div>
+   </div>
+
+   <div class="slide-res-card" style="background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.1);">
+    <div class="slide-res-title"><i class="fas fa-book-open" style="color:#E0E7FF; margin-right:6px;"></i>提示词工程</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">Anthropic提示词指南</div>
+     <div class="slide-res-url">docs.anthropic.com/build-with-claude</div>
+    </div>
+    <div class="slide-res-desc" style="margin-bottom:6px;">Claude 4.x提示词工程最佳实践，官方权威。</div>
+    <div class="slide-res-item">
+     <div class="slide-res-name">OpenAI Prompt Engineering</div>
+     <div class="slide-res-url">platform.openai.com/docs/guides</div>
+    </div>
+    <div class="slide-res-desc">GPT系列提示词指南，含Few-shot、CoT等技巧。</div>
+   </div>
+
+   <div class="slide-res-card" style="background:rgba(0,229,255,0.06); border:2px solid rgba(0,229,255,0.2);">
+    <div class="slide-res-title"><i class="fas fa-graduation-cap" style="color:#00E5FF; margin-right:6px;"></i>学习路线建议</div>
+    <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.8;">
+     <strong style="color:#E0E7FF;">第一步：</strong>装一个OpenCode，在真实项目里用一次<br>
+     <strong style="color:#E0E7FF;">第二步：</strong>写一个CLAUDE.md，固化项目规范<br>
+     <strong style="color:#E0E7FF;">第三步：</strong>从skills.sh装一个Skill，体验Skills工作流<br>
+     <strong style="color:#E0E7FF;">第四步：</strong>学完anthropic.skilljar.com的课程拿证书<br>
+     <strong style="color:#FF6B35;">持续：</strong>关注GitHub/社区，保持对新工具和新Skill的敏感度
+    </div>
+   </div>
+  </div>
+ </div>
 </div>
 </body>
 </html>

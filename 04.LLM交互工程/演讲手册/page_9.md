@@ -39,4 +39,4 @@ Demo 的 Prompt 工程是最基础的。实际项目中还需要：
 **Injection 防御的局限**：Demo 里用正则匹配危险模式。但正则只能防已知模式，防不住新型攻击。实际项目中应该用多层防御：正则 + 输入长度限制 + 输出检查 + 人工审核关键操作。
 
 ## Transition
-Prompt 工程讲完了。现在我们看 Spring AI 在 Demo 里到底做了什么。
+Prompt 工程和安全防线在理论上了解了，接下来让我们切入代码，看看在 Demo 中，我们如何通过 PromptManager 和 GuardrailsService 来具体落地这些逻辑的。

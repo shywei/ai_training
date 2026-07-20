@@ -6,7 +6,7 @@
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
 .s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:9.5px;line-height:1.3;color:rgba(224,231,255,0.7)}
 .kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)} .fn{color:#E0E7FF}
 </style></head><body>
 <div class="s" style="padding:26px 60px;display:flex;flex-direction:column;">
@@ -43,33 +43,38 @@ pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.
 
     <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;margin-top:8px;">📦 Spring AI 封装了什么？</div>
     <div style="display:flex;flex-direction:column;gap:6px;">
-      <div style="padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:4px;display:flex;gap:10px;align-items:center;">
+      <div style="padding:6px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:4px;display:flex;gap:10px;align-items:center;">
         <div style="font-size:12px;color:#00E5FF;font-weight:700;min-width:120px;">Prompt 组装</div>
         <div style="font-size:11px;color:rgba(224,231,255,0.55);">.system() + .user() → 组装 messages 数组</div>
       </div>
-      <div style="padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:4px;display:flex;gap:10px;align-items:center;">
+      <div style="padding:6px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:4px;display:flex;gap:10px;align-items:center;">
         <div style="font-size:12px;color:#00E5FF;font-weight:700;min-width:120px;">HTTP 请求</div>
         <div style="font-size:11px;color:rgba(224,231,255,0.55);">自动构建 POST 请求，加 Authorization Header</div>
       </div>
-      <div style="padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:4px;display:flex;gap:10px;align-items:center;">
+      <div style="padding:6px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:4px;display:flex;gap:10px;align-items:center;">
         <div style="font-size:12px;color:#00E5FF;font-weight:700;min-width:120px;">SSE 解析</div>
         <div style="font-size:11px;color:rgba(224,231,255,0.55);">.stream() → 解析 data: 行，处理 [DONE]，拼接 delta.content</div>
       </div>
-      <div style="padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:4px;display:flex;gap:10px;align-items:center;">
+      <div style="padding:6px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:4px;display:flex;gap:10px;align-items:center;">
         <div style="font-size:12px;color:#00E5FF;font-weight:700;min-width:120px;">模型切换</div>
         <div style="font-size:11px;color:rgba(224,231,255,0.55);">.options(withModel()) → 修改请求中的 model 字段</div>
       </div>
-      <div style="padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:4px;display:flex;gap:10px;align-items:center;">
+      <div style="padding:6px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:4px;display:flex;gap:10px;align-items:center;">
         <div style="font-size:12px;color:#00E5FF;font-weight:700;min-width:120px;">连接管理</div>
         <div style="font-size:11px;color:rgba(224,231,255,0.55);">读取 application.yml 的 base-url 和 api-key，自动创建连接</div>
       </div>
     </div>
+
+    <!-- 避坑卡片 -->
+    <div style="margin-top:10px;padding:8px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.25);border-radius:4px;">
+      <div style="font-size:11px;color:#FF6B35;font-weight:700;margin-bottom:2px;">🚨 withModel() 覆写陷阱</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.5);line-height:1.4;">运行时动态覆盖 Options 指定模型时，ChatOptions 的 Builder 默认会重置未声明的参数（如 temperature 会被重设为 1.0）。如果需要保证推荐等接口的输出确定性，在 Java 代码中必须显式指定 withTemperature(0.2)。</div>
+    </div>
   </div>
 
-  <!-- 右：代码对比 -->
   <div style="flex:1;display:flex;flex-direction:column;">
     <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:6px;">💻 你写的 vs Spring AI 做的</div>
-    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,107,53,0.15);border-radius:6px;flex:1;">
+    <div style="padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,107,53,0.15);border-radius:6px;flex:1;overflow:auto;">
       <pre><span class="cm">// 你写的（3行）</span>
 <span class="kw">return</span> ChatClient.create(chatModel)
     .prompt()

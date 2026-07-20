@@ -6,7 +6,7 @@
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
 .s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:9.5px;line-height:1.3;color:rgba(224,231,255,0.7)}
 .kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)} .fn{color:#E0E7FF}
 </style></head><body>
 <div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
@@ -26,8 +26,8 @@ pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.
     </div>
 
     <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">RAG 结果注入 Prompt 的格式</div>
-    <div style="padding:12px;background:rgba(0,0,0,0.3);border:1px solid rgba(0,229,255,0.15);border-radius:6px;margin-bottom:14px;">
-      <div style="font-size:12px;color:rgba(224,231,255,0.6);font-family:monospace;line-height:1.8;">
+    <div style="padding:8px 12px;background:rgba(0,0,0,0.3);border:1px solid rgba(0,229,255,0.15);border-radius:6px;margin-bottom:10px;overflow:auto;">
+      <div style="font-size:10px;color:rgba(224,231,255,0.6);font-family:monospace;line-height:1.35;">
         <span style="color:#00E5FF;">## 参考知识（从商品库检索）</span><br>
         [1] ThinkPad X1 Carbon（联想）— 笔记本电脑<br>
         &nbsp;&nbsp;&nbsp;&nbsp;配置: i7, 32GB, 1TB SSD, 14寸 2.8K OLED<br>
@@ -50,11 +50,17 @@ pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.
         <strong style="color:#22C55E;">不加这个规则，LLM 会忽略检索结果自己编造。</strong>
       </div>
     </div>
+
+    <!-- 避坑卡片 -->
+    <div style="margin-top:10px;padding:8px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.25);border-radius:4px;overflow:auto;">
+      <div style="font-size:11px;color:#FF6B35;font-weight:700;margin-bottom:2px;">🚨 Token 预算与溢出截断</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.5);line-height:1.4;">企业级 context 拼接包含四路信息，容易超出模型的最大 Context Window。Demo 为了简化没有进行长度裁切；生产环境中，必须在 Java 端进行 Token 预算限制与基于优先级（知识 > 画像 > 历史）的截断机制，防止调用超限。</div>
+    </div>
   </div>
 
-  <div style="flex:1;display:flex;flex-direction:column;">
-    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">💻 Demo：MemoryManager.buildContext()</div>
-    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;margin-bottom:10px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:13px;color:#FF6B35;font-weight:700;margin-bottom:6px;">💻 Demo：MemoryManager.buildContext()</div>
+    <div style="padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;margin-bottom:8px;overflow:auto;">
       <pre><span class="kw">public</span> String <span class="fn">buildContext</span>(String sessionId,
     String userId, String userMessage) {
   StringBuilder sb = <span class="kw">new</span> StringBuilder();
@@ -80,8 +86,8 @@ pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.
   <span class="kw">return</span> sb.toString();
 }</pre>
     </div>
-    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">💻 Demo：PromptManager 知识使用规则</div>
-    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
+    <div style="font-size:13px;color:#FF6B35;font-weight:700;margin-bottom:6px;">💻 Demo：PromptManager 知识使用规则</div>
+    <div style="padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;overflow:auto;">
       <pre><span class="cm">// System Prompt 中的知识使用规则</span>
 <span class="str">"# 知识使用规则\n"</span> +
 <span class="str">"- 推荐商品必须基于商品库知识\n"</span> +

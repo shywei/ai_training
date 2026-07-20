@@ -27,7 +27,7 @@ pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.
       <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">GDPR / 个保法要求：<br>· 用户有权查看自己的画像<br>· 用户有权要求删除<br>· 数据不能跨业务共享<br>· 需要审计日志</div>
     </div>
   </div>
-  <div style="display:flex;gap:16px;">
+  <div style="display:flex;gap:16px;margin-bottom:14px;">
     <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
       <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">上下文泄露风险</div>
       <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">画像和对话注入到 LLM 请求里。<strong style="color:#FF6B35;">如果 LLM API 是第三方服务，数据就离开了企业边界。</strong><br>解决方案：私有化部署 / 数据脱敏后发送 / 只发摘要不发原文。</div>
@@ -36,6 +36,12 @@ pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.
       <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">Demo 中的处理</div>
       <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">Demo 为了演示简单，没有实现 PII 脱敏和数据保留策略。<br>实际项目中，<strong style="color:#E0E7FF;">存入 MySQL 前必须做脱敏处理</strong>，需要增加数据删除接口。</div>
     </div>
+  </div>
+
+  <!-- 避坑卡片 -->
+  <div style="padding:8px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.25);border-radius:4px;overflow:auto;">
+    <div style="font-size:11px;color:#FF6B35;font-weight:700;margin-bottom:2px;">🚨 PII 脱敏过滤防线</div>
+    <div style="font-size:10px;color:rgba(224,231,255,0.5);line-height:1.4;">大模型接口属于第三方公开 API。在用户输入和画像写入数据库前，系统必须设计独立的过滤器对敏感信息（如手机号、身份证号、银行卡号）进行正则打码脱敏，防止用户数据外泄和法律合规风险。</div>
   </div>
 </div>
 <div style="position:absolute;bottom:14px;right:60px;padding:4px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.2);border-radius:12px;font-size:10px;color:#FF6B35;">知识体系</div>

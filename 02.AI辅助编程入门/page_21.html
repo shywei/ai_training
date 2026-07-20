@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>学习资源与社区</title>
+<title>Agent日常交互高阶心法</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
@@ -11,126 +11,79 @@
 .slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
 .slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
 .slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-res-card { padding:14px 16px; margin-bottom:10px; }
-.slide-res-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:8px; }
-.slide-res-item { display:flex; align-items:flex-start; gap:10px; margin-bottom:6px; }
-.slide-res-name { font-size:12px; font-weight:700; color:#E0E7FF; min-width:200px; }
-.slide-res-url { font-size:11px; color:#00E5FF; font-family:monospace; min-width:280px; }
-.slide-res-desc { font-size:11px; color:rgba(224,231,255,0.45); }
+.slide-skill-card { padding:10px 12px; margin-bottom:6px; }
+.slide-skill-title { font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
+.slide-skill-desc { font-size:11px; color:rgba(224,231,255,0.55); line-height:1.4; }
+.slide-skill-demo { margin-top:4px; padding:4px 8px; background:rgba(0,0,0,0.3); font-family:monospace; font-size:10.5px; color:rgba(224,231,255,0.5); line-height:1.35; border-left:2px solid; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:28px 70px;">
- <div class="mb-2 slide-section-num">CHAPTER 08 · 参考</div>
- <h1 class="mb-2">学习资源与社区</h1>
- <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:16px;"></div>
+<div class="slide-container" style="padding:24px 70px;">
+  <div class="mb-2 slide-section-num">CHAPTER 08 · 实操</div>
+  <h1 class="mb-2">Agent日常交互高阶心法</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:10px;"></div>
 
- <div class="flex" style="gap:22px;">
-  <div style="flex:1;">
-   <div class="slide-res-card" style="background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.12);">
-    <div class="slide-res-title"><i class="fas fa-terminal" style="color:#E0E7FF; margin-right:6px;"></i>Claude Code</div>
-    <div class="slide-res-item">
-     <div class="slide-res-name">Claude Code in Action</div>
-     <div class="slide-res-url">anthropic.skilljar.com</div>
-    </div>
-    <div class="slide-res-desc" style="margin-bottom:6px;">开发者核心课程，覆盖Agent工作流、CLAUDE.md配置、Skills使用。</div>
-    <div class="slide-res-item">
-     <div class="slide-res-name">Building Skills</div>
-     <div class="slide-res-url">anthropic.skilljar.com</div>
-    </div>
-    <div class="slide-res-desc" style="margin-bottom:6px;">教创建、配置、分发可复用的Skills。</div>
-    <div class="slide-res-item">
-     <div class="slide-res-name">官方Courses仓库</div>
-     <div class="slide-res-url">github.com/anthropics/courses</div>
-    </div>
-    <div class="slide-res-desc">开源教学Notebooks，含提示词工程、API开发等。</div>
-   </div>
+  <div class="flex" style="gap:24px;">
+    <!-- Left Column: Context, Compile, Git -->
+    <div style="flex:1;">
+      <div class="slide-skill-card" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.12);">
+        <div class="slide-skill-title"><i class="fas fa-crosshairs" style="color:#00E5FF; margin-right:6px;"></i>技巧1：精确上下文控制（@ 引用）</div>
+        <div class="slide-skill-desc">拒绝让 Agent 盲目扫描整个项目库。主动使用 <strong style="color:#00E5FF;">@Files</strong> 或 <strong style="color:#00E5FF;">@Symbols</strong> 锁定关联范围，防止注意力分散并大幅节省 Token。</div>
+        <div class="slide-skill-demo" style="border-color:#00E5FF;">
+          <span style="color:#00E5FF;"># 精确提问示例</span><br>
+          "修改 `@OrderServiceImpl.java` 中的计算逻辑，使其入参字段与 `@OrderDTO.java` 严格对齐。"
+        </div>
+      </div>
 
-   <div class="slide-res-card" style="background:rgba(255,200,50,0.04); border:1px solid rgba(255,200,50,0.15);">
-    <div class="slide-res-title"><i class="fas fa-robot" style="color:#FFC832; margin-right:6px;"></i>OpenAI Codex</div>
-    <div class="slide-res-item">
-     <div class="slide-res-name">Introduction to Codex</div>
-     <div class="slide-res-url">academy.openai.com</div>
-    </div>
-    <div class="slide-res-desc" style="margin-bottom:6px;">Codex入门Webinar，60分钟。</div>
-    <div class="slide-res-item">
-     <div class="slide-res-name">Prompt Engineering</div>
-     <div class="slide-res-url">academy.openai.com</div>
-    </div>
-    <div class="slide-res-desc">OpenAI提示词团队亲讲，覆盖基本结构、常见误区、改写策略。</div>
-   </div>
+      <div class="slide-skill-card" style="background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.12);">
+        <div class="slide-skill-title"><i class="fas fa-terminal" style="color:#FF6B35; margin-right:6px;"></i>技巧2：终端命令闭环验证</div>
+        <div class="slide-skill-desc">不要充当 AI 的人肉编译器。在 Prompt 中明确授权 Agent <strong style="color:#FF6B35;">运行本地终端命令</strong>，让其在沙箱内完成“编译-报错-修复”闭环。</div>
+        <div class="slide-skill-demo" style="border-color:#FF6B35;">
+          <span style="color:#FF6B35;"># 编译验证指令</span><br>
+          "实现接口后，在终端运行 `mvn clean compile` 验证。若报错请读取错误日志自行修正，直至编译通过。"
+        </div>
+      </div>
 
-   <div class="slide-res-card" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.12);">
-    <div class="slide-res-title"><i class="fas fa-code" style="color:#00E5FF; margin-right:6px;"></i>OpenCode</div>
-    <div class="slide-res-item">
-     <div class="slide-res-name">官方文档</div>
-     <div class="slide-res-url">opencode.ai/docs</div>
+      <div class="slide-skill-card" style="background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.12);">
+        <div class="slide-skill-title"><i class="fas fa-history" style="color:#E0E7FF; margin-right:6px;"></i>技巧3：Git 快速止损与回滚</div>
+        <div class="slide-skill-desc">Agent 容易陷入“越修越错”的循环中。大改前<strong style="color:#E0E7FF;">必须做 Git Commit 暂存</strong>。如果 Agent 连续两轮修不好 Bug，立刻硬回滚，调整 Prompt 重新开始。</div>
+        <div class="slide-skill-demo" style="border-color:#E0E7FF;">
+          <span style="color:rgba(224,231,255,0.5);"># 止损口诀</span><br>
+          大改前：git commit -m "checkpoint"<br>
+          改砸时：git reset --hard HEAD & 重新调整Prompt
+        </div>
+      </div>
     </div>
-    <div class="slide-res-desc" style="margin-bottom:6px;">安装配置、WSL指南、Skills、CLI、Web、MCP等完整文档。</div>
-    <div class="slide-res-item">
-     <div class="slide-res-name">GitHub仓库</div>
-     <div class="slide-res-url">github.com/anomalyco/opencode</div>
+
+    <!-- Right Column: Scripts, Chunking, Rule -->
+    <div style="flex:1;">
+      <div class="slide-skill-card" style="background:rgba(255,200,50,0.04); border:1px solid rgba(255,200,50,0.15);">
+        <div class="slide-skill-title"><i class="fas fa-file-code" style="color:#FFC832; margin-right:6px;"></i>技巧4：临时脚本开路法</div>
+        <div class="slide-skill-desc">遇到数据迁移、批量重命名、或接口联调等繁重任务，指示 Agent 在 <strong style="color:#FFC832;">scratch/ 目录下编写轻量脚本</strong>（Python/Bash）直接执行。</div>
+        <div class="slide-skill-demo" style="border-color:#FFC832;">
+          <span style="color:#FFC832;"># 临时脚本指令</span><br>
+          "在 `scratch/` 下写个 Python 脚本，读取 `data.json` 转换为格式化 SQL，运行它并将结果输出。"
+        </div>
+      </div>
+
+      <div class="slide-skill-card" style="background:rgba(255,200,50,0.04); border:1px solid rgba(255,200,50,0.15);">
+        <div class="slide-skill-title"><i class="fas fa-shoe-prints" style="color:#FFC832; margin-right:6px;"></i>技巧5：小步快跑任务分步走</div>
+        <div class="slide-skill-desc">大需求容易使 Agent 的长文本生成逻辑过载。将大目标拆解为 <strong style="color:#FFC832;">3-4 步渐进式交互</strong>，每一步输出并验证无误后，再推进下一步。</div>
+        <div class="slide-skill-demo" style="border-color:#FFC832;">
+          <span style="color:#FFC832;"># 分步提问示例</span><br>
+          Turn 1: "先阅读项目结构，输出重构计划（不改代码）"<br>
+          Turn 2: "按照计划，先编写 Entity 类，并编译验证"<br>
+          Turn 3: "编写业务实现与单元测试"
+        </div>
+      </div>
+
+      <div style="padding:8px 10px; background:rgba(0,229,255,0.06); border:2px solid rgba(0,229,255,0.2); margin-top:4px;">
+        <div style="font-size:12px; color:#00E5FF; font-weight:700; margin-bottom:2px;"><i class="fas fa-star" style="margin-right:6px;"></i>金牌防坑铁律</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.55); line-height:1.4;"><strong style="color:#E0E7FF;">如果大模型开始胡言乱语：</strong>1. 检查是不是上下文文件给得太多了；2. 检查是否有历史报错没有丢给它；3. 立刻回滚，不要让它“越修越乱”。</div>
+      </div>
     </div>
-    <div class="slide-res-desc" style="margin-bottom:6px;">源码、示例、Issues讨论、版本更新。</div>
-    <div class="slide-res-item">
-     <div class="slide-res-name">Discord社区</div>
-     <div class="slide-res-url">opencode.ai/discord</div>
-    </div>
-    <div class="slide-res-desc">实时交流，问题解答，新功能讨论。</div>
-   </div>
   </div>
 
-  <div style="flex:1;">
-   <div class="slide-res-card" style="background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.12);">
-    <div class="slide-res-title"><i class="fas fa-puzzle-piece" style="color:#FF6B35; margin-right:6px;"></i>Skills生态</div>
-    <div class="slide-res-item">
-     <div class="slide-res-name"><strong style="color:#FFC832;">skills.sh</strong></div>
-     <div class="slide-res-url">skills.sh</div>
-    </div>
-    <div class="slide-res-desc" style="margin-bottom:6px;">最大Skills目录，83万+安装量，支持20+Agent。一键安装：<code style="color:#FF6B35;">npx skills add</code></div>
-    <div class="slide-res-item">
-     <div class="slide-res-name">skillsmp.com</div>
-     <div class="slide-res-url">skillsmp.com</div>
-    </div>
-    <div class="slide-res-desc" style="margin-bottom:6px;">170万+技能，按分类/更新排序，中文友好。</div>
-    <div class="slide-res-item">
-     <div class="slide-res-name">mattpocock/skills</div>
-     <div class="slide-res-url">github.com/mattpocock/skills</div>
-    </div>
-    <div class="slide-res-desc" style="margin-bottom:6px;">14.9万星，TDD/架构重构/Diagnose等高质量Skill。</div>
-    <div class="slide-res-item">
-     <div class="slide-res-name">anthropics/skills</div>
-     <div class="slide-res-url">github.com/anthropics/skills</div>
-    </div>
-    <div class="slide-res-desc">Anthropic官方Skills，frontend-design等热门Skill。</div>
-   </div>
-
-   <div class="slide-res-card" style="background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.1);">
-    <div class="slide-res-title"><i class="fas fa-book-open" style="color:#E0E7FF; margin-right:6px;"></i>提示词工程</div>
-    <div class="slide-res-item">
-     <div class="slide-res-name">Anthropic提示词指南</div>
-     <div class="slide-res-url">docs.anthropic.com/build-with-claude</div>
-    </div>
-    <div class="slide-res-desc" style="margin-bottom:6px;">Claude 4.x提示词工程最佳实践，官方权威。</div>
-    <div class="slide-res-item">
-     <div class="slide-res-name">OpenAI Prompt Engineering</div>
-     <div class="slide-res-url">platform.openai.com/docs/guides</div>
-    </div>
-    <div class="slide-res-desc">GPT系列提示词指南，含Few-shot、CoT等技巧。</div>
-   </div>
-
-   <div class="slide-res-card" style="background:rgba(0,229,255,0.06); border:2px solid rgba(0,229,255,0.2);">
-    <div class="slide-res-title"><i class="fas fa-graduation-cap" style="color:#00E5FF; margin-right:6px;"></i>学习路线建议</div>
-    <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.8;">
-     <strong style="color:#E0E7FF;">第一步：</strong>装一个OpenCode，在真实项目里用一次<br>
-     <strong style="color:#E0E7FF;">第二步：</strong>写一个CLAUDE.md，固化项目规范<br>
-     <strong style="color:#E0E7FF;">第三步：</strong>从skills.sh装一个Skill，体验Skills工作流<br>
-     <strong style="color:#E0E7FF;">第四步：</strong>学完anthropic.skilljar.com的课程拿证书<br>
-     <strong style="color:#FF6B35;">持续：</strong>关注GitHub/社区，保持对新工具和新Skill的敏感度
-    </div>
-   </div>
-  </div>
- </div>
 </div>
 </body>
 </html>

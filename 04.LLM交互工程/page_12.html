@@ -6,7 +6,7 @@
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
 .s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:9.5px;line-height:1.3;color:rgba(224,231,255,0.7)}
 .kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)} .fn{color:#E0E7FF}
 </style></head><body>
 <div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
@@ -39,25 +39,30 @@ pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.
     </div>
 
     <div style="display:flex;gap:12px;">
-      <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-        <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">📡 SSE 流式</div>
-        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">ReadableStream 读 SSE，逐 token 更新 UI。处理 data: 前缀和 [DONE] 标记。</div>
+      <div style="flex:1;padding:10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+        <div style="font-size:12px;color:#00E5FF;font-weight:700;margin-bottom:4px;">📡 SSE 流式</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.55);line-height:1.4;">ReadableStream 读 SSE，处理 data: 前缀和 [DONE] 标记。</div>
       </div>
-      <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-        <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">📝 Markdown</div>
-        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">LLM 返回 markdown。用 <strong style="color:#E0E7FF;">marked</strong> 库渲染代码块、列表、加粗、表格。</div>
+      <div style="flex:1;padding:10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+        <div style="font-size:12px;color:#00E5FF;font-weight:700;margin-bottom:4px;">📝 Markdown</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.55);line-height:1.4;">LLM 返回 markdown。用 marked 库进行健壮渲染。</div>
       </div>
-      <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-        <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">🔀 分离架构</div>
-        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">前后端独立开发部署。Dev server proxy 解决跨域。CORS 配置备用。</div>
+      <div style="flex:1;padding:10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+        <div style="font-size:12px;color:#00E5FF;font-weight:700;margin-bottom:4px;">🔀 分离架构</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.55);line-height:1.4;">前后端独立部署。Dev proxy 或 CORS 解决跨域。</div>
       </div>
+    </div>
+
+    <!-- 避坑卡片 -->
+    <div style="margin-top:14px;padding:8px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.25);border-radius:4px;">
+      <div style="font-size:11px;color:#FF6B35;font-weight:700;margin-bottom:2px;">🚨 SSE 拆包粘包陷阱</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.5);line-height:1.4;">流式数据在网络传输中以 TCP chunk 分发。若 chunk 恰好截断了 JSON（如前一包含 data: {"choi，后一包才含 ces"...），直接 JSON.parse() 会崩溃。处理流时必须引入 buffer 缓存机制。</div>
     </div>
   </div>
 
-  <!-- 右：SSE 处理代码 -->
   <div style="flex:1;display:flex;flex-direction:column;">
     <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">💻 前端 SSE 处理代码</div>
-    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,107,53,0.15);border-radius:6px;flex:1;">
+    <div style="padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,107,53,0.15);border-radius:6px;flex:1;overflow:auto;">
       <pre><span class="kw">async</span> <span class="fn">sendMessage</span>() {
   <span class="kw">const</span> response = <span class="kw">await</span> fetch(
     <span class="str">`/api/agent/chat?message=</span>${text}<span class="str">`</span>

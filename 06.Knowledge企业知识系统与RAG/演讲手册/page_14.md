@@ -47,4 +47,4 @@ Demo 可以加一个 `/api/knowledge/evaluate` 接口，读取评测集，自动
 Demo 没有任何优化。每个优化方向都可以在现有代码上扩展：Cache 可以在 `RetrievalService` 前加一层，Hybrid Search 可以在 `retrieve()` 里加 BM25 召回，Rerank 可以在 `formatResults()` 前加一步。学员知道从哪里开始补。
 
 ## Transition
-Demo 和这些生产优化之间的具体差距有哪些？
+了解了这些企业级优化手段，接下来让我们切回 Demo，看看当前在 v3.0 版本中，我们做出了一个什么样的骨架，以及如何在演示中验证这些逻辑。
