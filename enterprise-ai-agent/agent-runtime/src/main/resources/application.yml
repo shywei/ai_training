@@ -56,11 +56,13 @@ agent:
   role: 你是一个专业的电商导购助手,帮助用户推荐合适的商品。
   constraints: 推荐商品必须基于商品库知识，不编造商品信息。不确定的信息说“我不确定”。话题偏离购物时，友好提醒用户回到正题，但不要生硬拒绝。
   model:
-    # 快模型:日常对话、简单推荐(7B,快,免费)
-    fast: Qwen/Qwen2.5-7B-Instruct
-    # 推理模型:复杂分析、多步推理(8B,免费)
+    # 日常对话模型（导购回复）
+    chat: Qwen/Qwen2.5-7B-Instruct
+    # 路由分类模型（意图识别，要求快+便宜）
+    routing: Qwen/Qwen2.5-7B-Instruct
+    # 复杂推理模型（多步分析、对比推荐）
     reasoning: Qwen/Qwen3-8B
-    # 摘要压缩用的模型(快模型即可)
-    summary: Qwen/Qwen2.5-7B-Instruct
-    # 画像抽取用的模型(需要严格JSON输出)
+    # 结构化输出模型（画像抽取，要求 JSON 格式稳定）
     extract: Qwen/Qwen3-8B
+    # 记忆提取模型（对话摘要，要求快+便宜）
+    memory: Qwen/Qwen2.5-7B-Instruct

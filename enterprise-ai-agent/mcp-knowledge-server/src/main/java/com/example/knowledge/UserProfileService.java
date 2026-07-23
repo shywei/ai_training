@@ -2,6 +2,7 @@ package com.example.knowledge;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +21,7 @@ public class UserProfileService {
 
     private final JdbcTemplate mysqlJdbcTemplate;
 
-    public UserProfileService(JdbcTemplate mysqlJdbcTemplate) {
+    public UserProfileService(@Qualifier("mysqlJdbcTemplate") JdbcTemplate mysqlJdbcTemplate) {
         this.mysqlJdbcTemplate = mysqlJdbcTemplate;
     }
 

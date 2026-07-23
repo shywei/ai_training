@@ -23,8 +23,8 @@ import java.util.List;
  * - preferences：用户的主观偏好（喜欢什么、不喜欢什么）
  *
  * 职责分工：
- * - 本类：LLM 提取结构化标签 → MySQL
- * - UserMemoryService：对话原文摘要 → pgvector
+ * - 本类：LLM 提取结构化标签 → MySQL user_profile
+ * - MemoryManager：对话摘要沉淀 → pgvector user_memory（通过 MCP）
  */
 @Component
 public class UserProfileExtractor {
@@ -79,23 +79,48 @@ public class UserProfileExtractor {
         // Prompt：传入旧画像 + 新对话，让 LLM 合并
         String prompt = """
                 你有一个用户画像和一段新对话。请根据新对话更新画像。
-                规则：
+
+                ## 字段说明
+
+                facts 和 preferences 都是**纯文本字符串**，不是 JSON 对象。
+                用逗号分隔多个信息点，用中文描述。
+
+                facts 字段（用户的客观事实）：
+                - 示例："男性，学生，在用小米手机"
+                - 示例："程序员，上班族，用 MacBook"
+
+                preferences 字段（用户的通用偏好）：
+                - 示例："偏好轻薄本，注重性价比"
+                - 示例："喜欢苹果生态，预算 8000-12000"
+
+                ## 禁止提取
+                - 具体商品推荐内容（“推荐了ThinkPad X1”）
+                - 临时需求（“这次想买个笔记本”）
+                - 单次对话中的价格/配置信息
+
+                ## 更新规则
                 - 保留旧画像中仍然有效的信息
                 - 用新对话中的信息补充或修正
                 - 新信息优先级高于旧信息
                 - 没有新信息的字段保持原值
-                - 只提取持久化的用户特征（事实和偏好），不要提取临时任务或约束
-                - 所有值必须用英文双引号包裹
-                - 只输出更新后的 JSON，不要任何其他文字
-                
-                旧画像：
+
+                ## 输出格式（严格遵守）
+                只输出一个 JSON 对象，facts 和 preferences 都是字符串值：
+                {"facts":"性别，身份，设备等信息","preferences":"偏好，品牌倾向，预算等信息"}
+
+                错误示例（不要这样输出）：
+                {"facts":"gender":"male"} ← 错误！facts 不是嵌套对象
+
+                正确示例：
+                {"facts":"男性，学生，在用小米手机","preferences":"偏好轻薄本，预算 8000"}
+
+                ## 旧画像
                 %s
-                
-                新对话：
+
+                ## 新对话
                 %s
-                
-                输出格式：
-                {"facts":"...","preferences":"..."}
+
+                只输出 JSON，不要任何其他文字。
                 """.formatted(oldProfileJson, conversation);
 
         log.info("\n╔══════════════════════════════════════════════════╗\n║ PROFILE EXTRACT REQUEST  {} ║\n╚══════════════════════════════════════════════════╝\n[Model] {}\n[User] {}\n[Session] {}\n\n[Prompt]\n{}", LocalDateTime.now().format(FMT), extractModel, userId, sessionId, prompt);
@@ -103,7 +128,7 @@ public class UserProfileExtractor {
         long start = System.currentTimeMillis();
         String rawOutput = ChatClient.create(chatModel)
                 .prompt()
-                .system("只输出合法 JSON。所有值用英文双引号包裹。")
+                .system("只输出合法 JSON。facts 和 preferences 都是纯文本字符串，不是嵌套对象。示例：{\"facts\":\"男性，学生\",\"preferences\":\"偏好轻薄本\"}")
                 .user(prompt)
                 .options(OpenAiChatOptions.builder()
                         .withModel(extractModel)

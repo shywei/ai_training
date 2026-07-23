@@ -1,33 +1,32 @@
 ## Slide Objective
-讲解跨路由 Tool 的设计决策和 Prompt 配套。
+对比三种路由方案,解释选型理由和每种方案的适用场景。
 
 ## Suggested Presentation
-`queryProductInfo` 只在 TOOL 路由注册——只有用户问价格/库存时才需要。这很合理，CHAT 路由下注册 product tools 是浪费 token。
+三种路由方案,从简单到复杂。
 
-但 `save_memory` 不一样。用户在任何对话中都可能表达偏好：
-- CHAT 路由："我预算8000" → 应该保存偏好
-- KNOWLEDGE 路由："我喜欢轻薄本" → 应该保存偏好
-- TOOL 路由："这个太贵了" → 应该保存偏好
+**方案一:关键词过滤**。匹配"多少钱"→ TOOL,匹配"推荐"→ KNOWLEDGE,默认 → CHAT。第六课用过。局限很大:"帮我看看那个笔记本"不含"推荐"但需要检索;"这个笔记本怎么样"不含"推荐"但也是知识查询。关键词无法理解语义。
 
-如果 `save_memory` 只在 TOOL 路由注册，CHAT 和 KNOWLEDGE 路由下 LLM 调不了。
+**方案二:Embedding 相似度**。预定义每个意图的描述(如 KNOWLEDGE 的描述是"用户想了解商品信息、寻求推荐"),用户消息 Embedding 后和意图描述做相似度匹配。效果比关键词好,但需要维护意图描述--新增一个意图就要更新描述。
 
-所以 `save_memory` 是**跨路由注册**的——所有路由都注册。代码：`clientBuilder.functions(mcpKnowledgeClient.getFunctionCallbacks())` 在路由判断之外执行。
+**方案三：LLM 分类**。用快模型一次调用做两件事：① 意图分类（KNOWLEDGE / TOOL / CHAT）② 模型选择（KNOWLEDGE/TOOL 用推理模型，CHAT 用对话模型）。返回 `RouteResult(route, model)`，一次调用同时拿到路由和模型。语义理解，准确率高，不需维护规则。Demo 采用。
 
-但光注册不够。LLM 不知道"什么时候该保存记忆"。如果用户说"今天天气不错"，LLM 也调 save_memory 就不对了。
+选型建议:意图少(< 10)用 LLM 分类,成本可忽略(每次约 100 token);意图多(> 50)考虑 Embedding,避免 LLM 调用成本;规则明确(如"退款"一定是 TOOL)用关键词,最快最准。实际项目中三种方案可以**混合使用**:先关键词快速匹配确定性强的意图,匹配不上再用 LLM。
 
-所以 `PromptManager.java` 加了「记忆使用规则」：
-```
-- 当用户表达偏好、需求、约束时（如"我喜欢轻薄本""预算8000"），
-  主动调用 save_memory 工具保存，memory_type 用 preference
-- 不需要每次都保存记忆，只保存有价值的信息
-```
-
-这告诉我们：**Tool + Prompt = 完整的 Agent 能力**。暴露 Tool 是第一步，告诉 LLM 什么时候用是第二步。没有 Prompt 配套，LLM 可能乱调用或不调用。
-
-对比：`queryProductInfo` 不需要 Prompt 配套——LLM 看到"多少钱"自然知道要查价格。但 `save_memory` 需要——"我预算8000"不是明确的"请记住"指令，LLM 需要 Prompt 引导才知道应该保存。
+Demo 用 LLM 分类还有一个好处:路由判断的结果可以直接在日志中看到(`[Router] 用户意图: KNOWLEDGE`),方便演示和调试。关键词过滤的匹配过程不透明,学员看不到"为什么匹配上了"。
 
 ## Key Emphasis
-跨路由 Tool 是更灵活的设计。Prompt 配套是必须的——不是所有 Tool 都像"查价格"那么直觉，有些需要 Prompt 引导 LLM 正确使用。
+LLM 路由的成本可以忽略--每次约 100 token,用最便宜的模型(Qwen2.5-7B)。准确率远高于关键词。不要因为"多一次 LLM 调用"就不用 LLM 路由。
+
+**但要明确告诉学员:路由不是必须的,但也不是只有 tools 很多才需要。**
+
+标准做法是**所有 tools 直接注册给 LLM,LLM 自己决定调哪个**。OpenAI Function Calling、LangChain、CrewAI 都是这样做的。LLM 天生有"根据用户问题选择正确工具"的能力,不需要额外路由器。
+
+什么时候需要路由器:
+- **安全隔离**:某些用户/角色不能访问某些 tools(如普通用户不能调删除接口,实习生不能查薪资数据)。这不是 tools 多不多的问题,是权限问题。
+- **成本控制**:tools 多时全部注册给 LLM,每个 tool definition 约 200-500 token。10 个 tools 就是 2000-5000 token,每次对话都带着。路由器用便宜模型预筛,只注册相关的 tools,可以省 50%+ token。即使 tools 不多,高频调用下成本也很可观。
+- **context 按需构建**:不同意图需要注入不同的上下文(如 Demo 中 KNOWLEDGE 才注入 RAG,TOOL 才注册 FunctionCallback)。这不是工具选择问题,是上下文管理问题。
+
+Demo 用路由器同时展示了这三个价值:安全(不同路由注册不同 tools)、成本(只在需要时注册)、context 按需构建。学员做项目时,根据实际场景决定是否需要路由器。
 
 ## Transition
-现在把第七课的数据分层完整过一遍。
+既然了解了这些路由方案,那在行业里,MCP 的真实应用生态是什么样的?我们在调用外部工具时又应该注意哪些安全风险?我们看下一页:生态与安全。

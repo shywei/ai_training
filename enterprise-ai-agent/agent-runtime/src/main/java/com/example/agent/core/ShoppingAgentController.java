@@ -28,7 +28,6 @@ import reactor.core.publisher.Flux;
 public class ShoppingAgentController {
 
     private final ChatModel chatModel;
-    private final ModelRouter modelRouter;
     private final PromptManager promptManager;
     private final StructuredOutputHandler outputHandler;
     private final GuardrailsService guardrails;
@@ -40,7 +39,6 @@ public class ShoppingAgentController {
     private final McpKnowledgeClient mcpKnowledgeClient;
 
     public ShoppingAgentController(ChatModel chatModel,
-                                   ModelRouter modelRouter,
                                    PromptManager promptManager,
                                    StructuredOutputHandler outputHandler,
                                    GuardrailsService guardrails,
@@ -51,7 +49,6 @@ public class ShoppingAgentController {
                                    McpProductClient mcpProductClient,
                                    McpKnowledgeClient mcpKnowledgeClient) {
         this.chatModel = chatModel;
-        this.modelRouter = modelRouter;
         this.promptManager = promptManager;
         this.outputHandler = outputHandler;
         this.guardrails = guardrails;
@@ -75,19 +72,22 @@ public class ShoppingAgentController {
             return Flux.just("检测到不安全的输入,请重新提问。");
         }
 
-        // v4.0: LLM 路由判断意图
-        LlmRouter.Route route = llmRouter.route(message);
-        System.out.println("[Router] 用户意图: " + route + " (消息: " + message + ")");
+        // v4.0: LLM 路由判断意图 + 选择模型
+        LlmRouter.RouteResult routeResult = llmRouter.route(message);
+        LlmRouter.Route route = routeResult.route();
+        String model = routeResult.model();
+        System.out.println("[Router] 用户意图: " + route + ", 模型: " + model + " (消息: " + message + ")");
 
-        String model = modelRouter.selectModel(message);
 
         // 构建 context（画像 + 记忆 + 对话历史）
         String context = memoryManager.buildContext(sessionId, userId, message);
 
         // 根据路由决策，决定是否添加 RAG 知识
-        // v4.0: RAG 检索通过 MCP 协议调用 Knowledge MCP Server
-        if (route == LlmRouter.Route.KNOWLEDGE) {
-            String ragContext = mcpKnowledgeClient.search(message);
+        // KNOWLEDGE 和 TOOL 路由都注入 RAG（TOOL 需要产品 ID 来查价格/库存）
+        if (route == LlmRouter.Route.KNOWLEDGE || route == LlmRouter.Route.TOOL) {
+            // 搜索 query 包含最近对话上下文，避免“多少钱”这种短 query 缺少产品信息
+            String searchQuery = buildSearchQuery(sessionId, message);
+            String ragContext = mcpKnowledgeClient.search(searchQuery);
             if (ragContext != null && !ragContext.isBlank()) {
                 context = (context != null ? context : "") + "## 参考知识（从商品库检索）\n" + ragContext + "\n";
             }
@@ -117,6 +117,11 @@ public class ShoppingAgentController {
         if (route == LlmRouter.Route.TOOL) {
             List<FunctionCallback> mcpCallbacks = mcpProductClient.getFunctionCallbacks();
             if (!mcpCallbacks.isEmpty()) {
+                for (FunctionCallback cb : mcpCallbacks) {
+                    System.out.println("[Tool] 注册: name=" + cb.getName());
+                    System.out.println("[Tool]   desc=" + cb.getDescription());
+                    System.out.println("[Tool]   schema=" + cb.getInputTypeSchema());
+                }
                 clientBuilder = clientBuilder.functions(mcpCallbacks.toArray(new FunctionCallback[0]));
                 System.out.println("[Tool] 已注册 " + mcpCallbacks.size() + " 个 Product MCP Tool: " + mcpProductClient.getToolNames());
             } else {
@@ -124,39 +129,67 @@ public class ShoppingAgentController {
             }
         }
 
-        // save_memory 跨路由可用（用户在任何对话中都可能表达偏好）
-        List<FunctionCallback> knowledgeCallbacks = mcpKnowledgeClient.getFunctionCallbacks();
-        if (!knowledgeCallbacks.isEmpty()) {
-            clientBuilder = clientBuilder.functions(knowledgeCallbacks.toArray(new FunctionCallback[0]));
-            System.out.println("[Tool] 已注册 " + knowledgeCallbacks.size() + " 个 Knowledge MCP Tool: " + mcpKnowledgeClient.getToolNames());
-        }
-
         String finalRoute = route.name();
 
-        return clientBuilder
-                .stream()
-                .content()
-                .transform(flux -> {
-                    String modelTag = "[MODEL]" + finalModel;
-                    String routeTag = "[ROUTE]" + finalRoute;
-                    StringBuilder fullResp = new StringBuilder();
-                    long[] start = {System.currentTimeMillis()};
-                    return Flux.concat(
-                        Flux.just(modelTag),
-                        Flux.just(routeTag),
-                        flux.map(chunk -> {
-                            fullResp.append(chunk);
-                            return guardrails.sanitize(chunk);
-                        }).doOnComplete(() -> {
-                            llmLogger.logResponse(finalModel, fullResp.toString(), System.currentTimeMillis() - start[0]);
-                            memoryManager.saveTurn(finalSessionId, finalUserId, finalMessage, fullResp.toString());
-                            if (!finalUserId.isBlank() && containsRememberKeyword(finalMessage)) {
-                                System.out.println("[Memory] 检测到 记住 指令，触发画像抽取");
-                                profileExtractor.extract(finalUserId, finalSessionId);
-                            }
-                        })
-                    );
-                });
+        // TOOL 路由用同步调用（流式模式下 tool_call 解析可能丢失函数名）
+        if (route == LlmRouter.Route.TOOL) {
+            try {
+                long start = System.currentTimeMillis();
+                String response = clientBuilder.call().content();
+                llmLogger.logResponse(finalModel, response, System.currentTimeMillis() - start);
+                memoryManager.saveTurn(finalSessionId, finalUserId, finalMessage, response);
+                String sanitized = guardrails.sanitize(response);
+                return Flux.concat(
+                        Flux.just("[MODEL]" + finalModel),
+                        Flux.just("[ROUTE]" + finalRoute),
+                        Flux.just(sanitized)
+                );
+            } catch (Exception e) {
+                System.err.println("[Agent] TOOL 调用异常: " + e.getMessage());
+                return Flux.concat(
+                        Flux.just("[MODEL]" + finalModel),
+                        Flux.just("[ROUTE]" + finalRoute),
+                        Flux.just("抱歉，查询过程中出现了问题，请重新描述您的问题。")
+                );
+            }
+        }
+
+        // 非 TOOL 路由用流式调用
+        try {
+            return clientBuilder
+                    .stream()
+                    .content()
+                    .transform(flux -> {
+                        String modelTag = "[MODEL]" + finalModel;
+                        String routeTag = "[ROUTE]" + finalRoute;
+                        StringBuilder fullResp = new StringBuilder();
+                        long[] start = {System.currentTimeMillis()};
+                        return Flux.concat(
+                            Flux.just(modelTag),
+                            Flux.just(routeTag),
+                            flux.map(chunk -> {
+                                fullResp.append(chunk);
+                                return guardrails.sanitize(chunk);
+                            }).doOnComplete(() -> {
+                                if (fullResp.length() > 0) {
+                                    llmLogger.logResponse(finalModel, fullResp.toString(), System.currentTimeMillis() - start[0]);
+                                    memoryManager.saveTurn(finalSessionId, finalUserId, finalMessage, fullResp.toString());
+                                    if (!finalUserId.isBlank() && containsRememberKeyword(finalMessage)) {
+                                        System.out.println("[Memory] 检测到 记住 指令，触发画像抽取");
+                                        profileExtractor.extract(finalUserId, finalSessionId);
+                                    }
+                                }
+                            })
+                        );
+                    })
+                    .onErrorResume(e -> {
+                        System.err.println("[Agent] 流式响应异常: " + e.getMessage());
+                        return Flux.just("抱歉，处理过程中出现了问题，请重新描述您的问题。");
+                    });
+        } catch (Exception e) {
+            System.err.println("[Agent] 请求异常: " + e.getMessage());
+            return Flux.just("抱歉，服务暂时不可用，请稍后再试。");
+        }
     }
 
     /**
@@ -199,6 +232,39 @@ public class ShoppingAgentController {
         return "{\"status\":\"ok\",\"sessionId\":\"" + sessionId + "\",\"messageCount\":" + count + "}";
     }
 
+    /**
+     * 构建 RAG 搜索 query，包含最近对话上下文
+     *
+     * 解决“多少钱”这种短 query 缺少产品上下文的问题。
+     * 把最近的用户消息拼入 query，让向量检索能找到相关商品。
+     */
+    private String buildSearchQuery(String sessionId, String currentMessage) {
+        List<String> messages = memoryManager.getSessionMemory().getMessages(sessionId);
+        if (messages == null || messages.isEmpty()) {
+            return currentMessage;
+        }
+
+        // 取最近 4 条用户消息，提取关键信息拼入 query
+        StringBuilder context = new StringBuilder();
+        int userCount = 0;
+        for (int i = messages.size() - 1; i >= 0 && userCount < 4; i--) {
+            String msg = messages.get(i);
+            if (msg.startsWith("user|")) {
+                String content = msg.substring(5).replace("\\n", " ");
+                context.insert(0, content + " ");
+                userCount++;
+            }
+        }
+        context.append(currentMessage);
+
+        String query = context.toString().trim();
+        // 限制 query 长度，避免过长
+        if (query.length() > 200) {
+            query = query.substring(query.length() - 200);
+        }
+        return query;
+    }
+
     private boolean containsRememberKeyword(String message) {
         if (message == null) return false;
         String[] keywords = {"记住", "记一下", "记着", "请记", "帮我记"};
@@ -234,7 +300,7 @@ public class ShoppingAgentController {
             return "{\"error\":\"检测到不安全的输入\"}";
         }
 
-        String model = modelRouter.selectModel(userNeed);
+        String model = llmRouter.route(userNeed).model();
         String systemPrompt = promptManager.buildSystemPrompt() + """
 
                 ## 输出要求

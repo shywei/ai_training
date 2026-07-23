@@ -1,21 +1,33 @@
 ## Slide Objective
-建立 MCP 协议的认知：为什么需要标准协议、不用 MCP 的问题是什么。
+讲解 ReAct 模式，同时明确 Demo 的边界——Demo 只做到了 Reason + Act，完整的 Agent Loop 需要第八课实现。
 
 ## Suggested Presentation
-不用 MCP 的做法：Tool 代码直接写在 Agent 项目里。`ShoppingAgentController` 里直接调 `RetrievalService`（查 pgvector）、直接调 `UserProfileMapper`（查 MySQL）。能用，但有问题。
+Function Calling 不是凭空出现的，背后有一个重要的思想：ReAct 模式。2022 年 Google 的论文提出，LLM 可以交替进行"推理"和"行动"，而不是只能生成文本。
 
-第一个问题：**耦合**。Agent 和数据库绑定。换数据库（比如从 pgvector 换到 Milvus），Agent 代码要改。第二个问题：**不可复用**。每个 Agent 都要写一遍同样的 Tool 逻辑。导购 Agent 写了查商品的代码，客服 Agent 要再写一遍。第三个问题：**不可独立部署**。Tool 逻辑和 Agent 逻辑在同一个进程里，不能独立扩缩容。商品查询是高频操作，需要多部署几个实例，但 Agent 本身不需要。
+ReAct 的循环：**Reason（推理）** → **Act（行动）** → **Observe（观察）** → 继续推理...
 
-MCP 的做法：Tool 独立部署为 MCP Server，Agent 作为 MCP Client 通过标准协议调用。一次开发，到处复用。换框架只改 Client，Server 不变。换 Agent，MCP Server 通用。
+看实际例子："拯救者和 MacBook 哪个便宜？"LLM 经过两轮 Reason→Act→Observe 循环：推理"需要查两个价格" → 调用 queryProductInfo("NB003") → 观察到"拯救者 ¥8999" → 推理"还需要查 MacBook" → 调用 queryProductInfo("NB002") → 观察到"MacBook ¥14999" → 推理"8999 < 14999" → 回复"拯救者更便宜"。
 
-类比：REST API 之于 Web 服务，MCP 之于 AI Agent 和 Tool。有了标准协议，生态才能繁荣。
+理解 ReAct 的意义：LLM "决定"调用工具不是随机的，是推理的结果。
 
-MCP 是 Anthropic 2024 年底提出的开放标准，已开源（Apache 2.0 协议）。不是 Anthropic 独占——Claude Desktop、Cursor、Windsurf、OpenClaw 都支持。MCP 正在成为 AI Tool 的事实标准。
+**但这里必须说清楚一个重要的边界：Demo 只做到了 Reason + Act，没有做到完整的 ReAct 循环。**
 
-Demo 中有两个 MCP Server：mcp-product-server（端口 8081）提供商品查询 Tool，mcp-knowledge-server（端口 8082）提供知识检索、记忆服务和用户画像。agent-runtime 作为 MCP Client，不直接访问任何数据库。
+Demo 中的 tool_call 是 Spring AI 框架自动处理的——LLM 返回 tool_call，Spring AI 执行，结果回传 LLM，LLM 生成最终回复。这是一次性的处理，不是 LLM 自主控制的多轮循环。
+
+真正的 Agent Loop 是这样的：LLM 返回 tool_call → 执行 → 观察 → LLM 决定"还不够，再调一个" → 再执行 → 再观察 → 直到 LLM 说"够了"。**循环的控制权在 LLM，不在框架。** 这需要一个 Agent Runtime 来管理循环状态、控制终止条件、处理错误。
+
+Demo 中"拯救者和 MacBook 哪个便宜"的例子，实际上是 LLM 在一次推理中返回了两个 tool_call（Spring AI 支持批量 tool_call），不是真正的多轮循环。区别在于：批量 tool_call 是 LLM 提前规划好的，多轮循环是 LLM 根据中间结果动态决定的。
+
+真正的 Agent Loop 在第八课（Agent Runtime）实现。第七课建立概念，第八课工程落地。
 
 ## Key Emphasis
-MCP 的核心价值不是"技术先进"，而是"标准化"。标准化意味着：Tool 可以复用、可以独立部署、可以被任何支持 MCP 的 Agent 调用。这是企业架构的基本原则。
+不要让学员误以为 Demo 已经实现了完整的 ReAct 循环。Demo 实现了 Function Calling（单次 tool_call），但 Agent Loop（多轮自主循环）需要 Runtime 支持，是第八课的内容。
+
+## Take Away
+ReAct = 推理→行动→观察→循环。Demo 做到了单次 tool_call，完整循环在第八课。
+
+## Why This Slide Matters
+没有这页，学员会误以为"Spring AI 处理 tool_call 就是 Agent Loop"，不理解真正的 Agent Loop 需要 Runtime 控制循环。
 
 ## Transition
-MCP 协议定义了四大能力：Tool、Resource、Prompt、Sampling。每个能力解决不同的问题。
+Function Calling 定义了"怎么调用工具"，ReAct 解释了"为什么 LLM 能决定调用工具"。但还有一个问题：工具怎么暴露、怎么发现？MCP 解决这个问题。

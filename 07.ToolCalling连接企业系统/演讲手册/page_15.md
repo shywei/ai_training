@@ -1,30 +1,23 @@
 ## Slide Objective
-讲解 Tool vs Resource 的选型决策——什么时候用 Tool、什么时候用 Resource。
+展示 Function Calling 的完整链路和 MCP Client 的 Tool 发现机制。
 
 ## Suggested Presentation
-Tool 和 Resource 是 MCP 的两个核心概念，本质区别是"谁发起"。
+`McpProductClient.java` 的 `init()` 方法：启动时连接 MCP Server，发现 Tool，包装为 FunctionCallback。
 
-**Tool** 是 LLM 决定调用的。LLM 看到 function definitions，根据用户意图决定"要不要调、调什么、传什么参数"。适合动态查询、写入操作。类比 POST 接口。
+**① 连接 MCP Server**：`HttpClientSseClientTransport.builder(serverUrl)` 创建 SSE 传输，`McpClient.sync(transport).build()` 创建同步 Client，`mcpClient.initialize()` 执行协议握手。握手过程：Client 发送 `initialize` 请求（包含客户端信息和能力），Server 响应（包含服务端信息和能力），Client 发送 `initialized` 通知。三步完成。
 
-**Resource** 是 Client 主动读取的。Client 知道 URI，直接读取数据。不需要 LLM 决策。适合静态上下文、配置数据。类比 GET 接口。
+**② 发现 Tool**：`mcpClient.listTools()` 返回 Server 暴露的所有 Tool。每个 Tool 有 name、description、inputSchema。inputSchema 是 JSON Schema 格式，定义了参数结构。
 
-选型决策树：
-- 需要 LLM 决定是否调用？→ Tool
-- 数据量大、需要搜索？→ Tool
-- 会话开始加载一次？→ Resource
-- 数据相对稳定？→ Resource
-- 全量加载合理？→ Resource
+**③ 包装为 FunctionCallback**：遍历 Tool 列表，用 `FunctionCallbackWrapper.builder(function)` 创建 callback。function 是一个 lambda：接收 `Map<String, Object>` 参数，调用 `mcpClient.callTool(new CallToolRequest(toolName, arguments))`，提取结果中的 `TextContent`，返回字符串。
 
-Demo 中的选型理由：
+名称加 `mcp_` 前缀——`"mcp_" + tool.name()`。这是为了避免和本地 FunctionCallback 冲突。如果本地也有一个 `queryProductInfo` 函数，不加前缀会冲突。
 
-`search_knowledge` 是 Tool——需要语义搜索，数据量增长，全量加载不现实。`save_memory` 是 Tool——LLM 主动决策何时保存，不是每次都保存。`queryProductInfo` 是 Tool——LLM 根据用户意图决定是否查价格。`user://{userId}` 是 Resource——会话开始加载一次，数据相对稳定（用户画像不会每分钟变）。
+调用时序：用户提问 → LlmRouter 判断 TOOL → 注册 FunctionCallback → ChatClient 构建 LLM API 请求（自动把 callback 转成 function definitions）→ LLM 返回 tool_call → Spring AI 拦截 tool_call → 找到对应的 FunctionCallback → 执行 → 结果回传 LLM → LLM 生成最终回复。
 
-商品数据虽然只有 26 个，但**不应该作为 Resource**。原因：商品数据需要语义搜索（"推荐轻薄本"不是简单的 ID 查询），Resource 不支持语义搜索。如果做成 Resource，Client 需要全量加载 26 个商品到 context 中，浪费 token。
-
-有个学员可能会问："Resource 不是更简单吗？为什么不用 Resource 加载所有商品？"答案：Resource 是"读数据"，Tool 是"搜索数据"。26 个商品全量加载到 context 中，LLM 要自己从中筛选，效率低、不准确。Tool 让检索系统做筛选，只返回最相关的 3 个，效率高、准确。
+关键点：LLM 不知道 MCP 的存在。它只看到标准的 function definitions（名称、描述、参数 Schema）。MCP 是 Agent 和 Server 之间的协议，对 LLM 完全透明。
 
 ## Key Emphasis
-选 Tool 还是 Resource，看两个维度：谁发起（LLM 还是 Client）、数据特征（需要搜索还是全量加载）。
+MCP Tool → FunctionCallback → LLM function definitions，这三层转换是自动的。开发者只需要定义 Tool（Server 端）和注册 callback（Client 端），中间的协议转换由 MCP SDK 和 Spring AI 完成。
 
 ## Transition
-知道了 Tool 和 Resource 的区别。现在看 Function Calling 的完整链路——从 MCP Client 到 LLM 调用。
+这里有一个重要的设计决策：记忆保存是系统行为还是 LLM 行为？

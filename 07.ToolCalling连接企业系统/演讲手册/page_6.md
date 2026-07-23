@@ -1,21 +1,19 @@
 ## Slide Objective
-对比两种实现方式，解释 Demo 为什么选 M4，以及代码怎么写。
+展示 Function Calling 的底层协议格式，让学员理解"自动封装"背后发生了什么。
 
 ## Suggested Presentation
-两种方式的底层是一样的——最终都转成 OpenAI function definitions 给 LLM。区别只是代码风格。
+Function Calling 不是魔法，底层就是 JSON。
 
-**方式一：@Tool 注解**（Spring AI 1.0.0+ GA）。声明式，简洁。一个 `@Tool(description="查询商品价格")` 注解搞定，参数用 `@ToolParam("商品ID")` 标注。Spring AI 自动提取方法名、参数名、参数类型，生成 JSON Schema。代码量最少。
+**请求格式**：OpenAI API 请求中的 `functions` 参数是一个数组，每个元素有 `name`、`description`、`parameters`。`parameters` 是标准的 JSON Schema，定义了参数类型、描述、必填项。Spring AI 的 `FunctionCallbackWrapper` 自动生成这段 JSON——开发者定义 Java 函数，Spring AI 通过反射提取参数名和类型，生成对应的 JSON Schema。
 
-**方式二：FunctionCallbackWrapper**（Spring AI 1.0.0-M4）。编程式，灵活。手动定义 `Function<Map, String>`，手动指定 name、description。参数 Schema 需要自己写（或者通过泛型类型推断）。代码量多，但完全可控。
+**响应格式**：LLM 返回的不是普通文本，而是一个包含 `tool_calls` 的消息。`content` 为 null，`tool_calls` 是一个数组（LLM 可以一次请求调用多个函数）。每个 tool_call 有 `id`（用于关联执行结果）、`function.name`（函数名）、`function.arguments`（JSON 字符串格式的参数）。
 
-Demo 用 M4 是因为要保持和前几课 Spring AI 版本一致。M4 版本没有 @Tool 注解——这是 GA 版本才引入的。
+**多轮对话**：执行完函数后，结果作为 `role=tool` 的消息追加到对话历史。tool_call_id 用于关联——"这个结果是哪个 tool_call 的执行结果"。LLM 看到 tool 消息后，基于结果生成最终回复。
 
-看 Demo 代码。`McpProductClient.java` 中的 `wrapMcpToolAsFunctionCallback()` 方法：用 `FunctionCallbackWrapper.builder(function)` 创建 callback，`.withName("mcp_" + toolName)` 设置名称（加 `mcp_` 前缀避免和本地函数冲突），`.withDescription(toolDescription)` 设置描述。function 是一个 lambda，接收 `Map<String, Object>` 参数，调用 MCP Client 的 `callTool()` 方法。
-
-这里有个坑：`Map<String, Object>` 作为参数类型时，Spring AI 无法自动生成 JSON Schema。MCP Tool 的 Schema 来自 MCP Server 的 `listTools()` 返回值，不需要 Spring AI 生成。但如果用 @Tool 注解，Schema 从 Java 方法签名自动生成，不需要手动写。
+Demo 中这些 JSON 是 Spring AI 自动生成的，开发者不需要手写。但理解底层格式很重要。调试时看到 LLM 响应中 content=null、tool_calls 非空，你知道这是正常的 Function Calling 流程，不是报错。很多学员第一次看到这个响应会以为 LLM 出了问题。
 
 ## Key Emphasis
-@Tool 注解更简洁，但需要 GA 版本。FunctionCallbackWrapper 更灵活，适合 M4 版本和需要动态注册的场景。Demo 中 MCP Tool 的动态注册必须用 Wrapper——@Tool 是编译时注解，不能动态注册。
+content=null + tool_calls 非空 = LLM 请求调用函数。这不是错误，是 Function Calling 的正常流程。这是调试时最常见的"误以为报错"。
 
 ## Transition
-两种方式定义了函数。但 Function Calling 的思想比这更深——它背后是 ReAct 模式。
+Spring AI 提供了两种方式来定义函数——@Tool 注解和 FunctionCallbackWrapper。用哪种取决于 Spring AI 版本。

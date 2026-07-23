@@ -1,66 +1,83 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>MCP 架构</title>
+<title>MCP 核心概念</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
 .s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.code{font-size:10px;color:rgba(224,231,255,0.5);line-height:1.5;background:rgba(0,0,0,0.3);padding:6px 8px;border-radius:3px;font-family:monospace}
 </style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 07</div>
-<h1 class="mb-2">MCP 架构 — Client / Server / Transport</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
-<div style="flex:1;display:flex;gap:20px;">
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:14px;">三层架构</div>
-    <div style="display:flex;flex-direction:column;gap:10px;">
-      <div style="padding:14px;background:rgba(0,229,255,0.06);border:2px solid rgba(0,229,255,0.2);border-radius:8px;">
-        <div style="font-size:15px;color:#00E5FF;font-weight:700;">Client Layer</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px;">McpClient / McpSyncClient<br>连接 Server、发现 Tool、调用 Tool</div>
+<div class="s" style="padding:24px 50px;display:flex;flex-direction:column;">
+<div class="mb-1 sn">CHAPTER 03</div>
+<h1 class="mb-1">MCP 核心概念 — 四大能力</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px;"></div>
+<div style="flex:1;display:flex;gap:14px;">
+  <!-- Tools -->
+  <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+    <div style="padding:12px 14px;background:rgba(255,107,53,0.06);border:2px solid rgba(255,107,53,0.2);border-radius:8px;flex:1;display:flex;flex-direction:column;">
+      <div style="font-size:17px;color:#FF6B35;font-weight:700;margin-bottom:6px;">🔧 Tools</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.6);line-height:1.7;margin-bottom:8px;">
+        LLM 可调用的函数<br>
+        搜索、查询、写入、计算<br>
+        <strong style="color:#E0E7FF;">LLM 决定</strong>何时调用
       </div>
-      <div style="text-align:center;font-size:12px;color:rgba(224,231,255,0.3);">↕ JSON-RPC 2.0</div>
-      <div style="padding:14px;background:rgba(168,85,247,0.06);border:2px solid rgba(168,85,247,0.2);border-radius:8px;">
-        <div style="font-size:15px;color:#A855F7;font-weight:700;">Transport Layer</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px;">SSE（HTTP Server-Sent Events）<br>stdio（标准输入输出）· 自定义</div>
-      </div>
-      <div style="text-align:center;font-size:12px;color:rgba(224,231,255,0.3);">↕</div>
-      <div style="padding:14px;background:rgba(255,107,53,0.06);border:2px solid rgba(255,107,53,0.2);border-radius:8px;">
-        <div style="font-size:15px;color:#FF6B35;font-weight:700;">Server Layer</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px;">McpServer / McpSyncServer<br>暴露 Tool、Resource、Prompt</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-bottom:6px;">MCP 协议定义：</div>
+      <div class="code" style="flex:1;">// Server 暴露 Tool<br>Tool {<br>&nbsp;&nbsp;name: "queryPrice"<br>&nbsp;&nbsp;description: "查价格"<br>&nbsp;&nbsp;inputSchema: {<br>&nbsp;&nbsp;&nbsp;&nbsp;type: "object"<br>&nbsp;&nbsp;&nbsp;&nbsp;properties: {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;id: {type:"string"}<br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>&nbsp;&nbsp;}<br>}<br><br>// Client 调用<br>callTool("queryPrice",<br>&nbsp;&nbsp;{id:"NB001"})</div>
+      <div style="margin-top:8px;padding:5px;background:rgba(255,107,53,0.08);border-radius:3px;font-size:10px;color:rgba(224,231,255,0.5);text-align:center;">
+        <strong style="color:#FF6B35;">Demo 已覆盖</strong><br>
+        search_knowledge · queryProductInfo · save_memory
       </div>
     </div>
   </div>
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:14px;">传输方式选型</div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
-      <div style="display:flex;padding:10px 12px;background:rgba(224,231,255,0.02);border-radius:4px;font-size:12px;">
-        <span style="flex:1;color:rgba(224,231,255,0.4);">方式</span>
-        <span style="flex:1;color:rgba(224,231,255,0.4);">场景</span>
-        <span style="flex:1;color:rgba(224,231,255,0.4);">Demo</span>
+  <!-- Resources -->
+  <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+    <div style="padding:12px 14px;background:rgba(0,229,255,0.06);border:2px solid rgba(0,229,255,0.2);border-radius:8px;flex:1;display:flex;flex-direction:column;">
+      <div style="font-size:17px;color:#00E5FF;font-weight:700;margin-bottom:6px;">📄 Resources</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.6);line-height:1.7;margin-bottom:8px;">
+        Client 可读取的数据<br>
+        文件、配置、上下文<br>
+        <strong style="color:#E0E7FF;">Client 主动</strong>读取
       </div>
-      <div style="display:flex;padding:10px 12px;background:rgba(224,231,255,0.02);border-radius:4px;font-size:12px;">
-        <span style="flex:1;color:#00E5FF;">SSE</span>
-        <span style="flex:1;color:rgba(224,231,255,0.55);">远程服务</span>
-        <span style="flex:1;color:#22C55E;">✓ 已覆盖</span>
-      </div>
-      <div style="display:flex;padding:10px 12px;background:rgba(224,231,255,0.02);border-radius:4px;font-size:12px;">
-        <span style="flex:1;color:#A855F7;">stdio</span>
-        <span style="flex:1;color:rgba(224,231,255,0.55);">本地进程</span>
-        <span style="flex:1;color:rgba(224,231,255,0.4);">仅讲解</span>
-      </div>
-      <div style="display:flex;padding:10px 12px;background:rgba(224,231,255,0.02);border-radius:4px;font-size:12px;">
-        <span style="flex:1;color:rgba(224,231,255,0.4);">自定义</span>
-        <span style="flex:1;color:rgba(224,231,255,0.55);">特殊需求</span>
-        <span style="flex:1;color:rgba(224,231,255,0.4);">仅讲解</span>
+      <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-bottom:6px;">MCP 协议定义：</div>
+      <div class="code" style="flex:1;">// Server 暴露 Resource<br>ResourceTemplate {<br>&nbsp;&nbsp;uriTemplate:<br>&nbsp;&nbsp;&nbsp;&nbsp;"user://{userId}"<br>&nbsp;&nbsp;name: "用户画像"<br>&nbsp;&nbsp;description: "读画像"<br>&nbsp;&nbsp;mimeType: "application/json"<br>}<br><br>// Client 读取<br>readResource(<br>&nbsp;&nbsp;"user://U001")<br>// → 返回 JSON 画像</div>
+      <div style="margin-top:8px;padding:5px;background:rgba(0,229,255,0.08);border-radius:3px;font-size:10px;color:rgba(224,231,255,0.5);text-align:center;">
+        <strong style="color:#00E5FF;">Demo 已覆盖</strong><br>
+        user://{userId} 用户画像
       </div>
     </div>
-    <div style="padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
-      <div style="font-size:13px;color:#00E5FF;font-weight:600;">Demo 用 SSE</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px;">
-        Server 端：HttpServletSseServerTransportProvider<br>
-        Client 端：HttpClientSseClientTransport<br>
-        基于 HTTP，适合远程微服务部署
+  </div>
+  <!-- Prompts -->
+  <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+    <div style="padding:12px 14px;background:rgba(168,85,247,0.06);border:2px solid rgba(168,85,247,0.2);border-radius:8px;flex:1;display:flex;flex-direction:column;">
+      <div style="font-size:17px;color:#A855F7;font-weight:700;margin-bottom:6px;">💬 Prompts</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.6);line-height:1.7;margin-bottom:8px;">
+        预定义的 Prompt 模板<br>
+        Server 提供，Client 选择使用<br>
+        <strong style="color:#E0E7FF;">声明式能力暴露</strong>
+      </div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-bottom:6px;">MCP 协议定义：</div>
+      <div class="code" style="flex:1;">// Server 暴露 Prompt<br>Prompt {<br>&nbsp;&nbsp;name: "analyze-review"<br>&nbsp;&nbsp;description: "分析评论"<br>&nbsp;&nbsp;arguments: [{<br>&nbsp;&nbsp;&nbsp;&nbsp;name: "review"<br>&nbsp;&nbsp;&nbsp;&nbsp;description: "评论内容"<br>&nbsp;&nbsp;&nbsp;&nbsp;required: true<br>&nbsp;&nbsp;}]<br>}<br><br>// Client 获取 Prompt<br>getPrompt(<br>&nbsp;&nbsp;"analyze-review",<br>&nbsp;&nbsp;{review: "..."})</div>
+      <div style="margin-top:8px;padding:5px;background:rgba(168,85,247,0.08);border-radius:3px;font-size:10px;color:rgba(224,231,255,0.5);text-align:center;">
+        <span style="color:#A855F7;">仅 PPT 讲解</span><br>
+        企业场景：标准化 Prompt 复用
+      </div>
+    </div>
+  </div>
+  <!-- Sampling -->
+  <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+    <div style="padding:12px 14px;background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.2);border-radius:8px;flex:1;display:flex;flex-direction:column;">
+      <div style="font-size:17px;color:#22C55E;font-weight:700;margin-bottom:6px;">🔄 Sampling</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.6);line-height:1.7;margin-bottom:8px;">
+        Server 请求 Client 调用 LLM<br>
+        服务端发起的编排<br>
+        <strong style="color:#E0E7FF;">反向调用</strong>模式
+      </div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-bottom:6px;">MCP 协议定义：</div>
+      <div class="code" style="flex:1;">// Server 请求 Client<br>createMessage({<br>&nbsp;&nbsp;messages: [{<br>&nbsp;&nbsp;&nbsp;&nbsp;role: "user"<br>&nbsp;&nbsp;&nbsp;&nbsp;content: "分析这段..."<br>&nbsp;&nbsp;}],<br>&nbsp;&nbsp;maxTokens: 1000<br>})<br><br>// Client 调用 LLM<br>// 返回结果给 Server<br><br>// 典型场景：<br>// Server 需要 LLM 做<br>// 中间推理步骤</div>
+      <div style="margin-top:8px;padding:5px;background:rgba(34,197,94,0.08);border-radius:3px;font-size:10px;color:rgba(224,231,255,0.5);text-align:center;">
+        <span style="color:#22C55E;">仅 PPT 讲解</span><br>
+        服务端编排、多 Agent 协作
       </div>
     </div>
   </div>

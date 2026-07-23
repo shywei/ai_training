@@ -1,29 +1,21 @@
 ## Slide Objective
-讲解 Function Calling 的思想基础——ReAct 模式。理解 ReAct 才能理解 LLM 为什么能"决定"调用工具。
+对比两种实现方式，解释 Demo 为什么选 M4，以及代码怎么写。
 
 ## Suggested Presentation
-Function Calling 不是凭空出现的，背后有一个重要的思想：ReAct 模式。2022 年 Google 的论文《ReAct: Synergizing Reasoning and Acting in Language Models》提出，LLM 可以交替进行"推理"和"行动"，而不是只能生成文本。
+两种方式的底层是一样的——最终都转成 OpenAI function definitions 给 LLM。区别只是代码风格。
 
-ReAct 的循环：**Reason（推理）** → **Act（行动）** → **Observe（观察）** → 继续推理...
+**方式一：@Tool 注解**（Spring AI 1.0.0+ GA）。声明式，简洁。一个 `@Tool(description="查询商品价格")` 注解搞定，参数用 `@ToolParam("商品ID")` 标注。Spring AI 自动提取方法名、参数名、参数类型，生成 JSON Schema。代码量最少。
 
-看实际例子："拯救者和 MacBook 哪个便宜？"
+**方式二：FunctionCallbackWrapper**（Spring AI 1.0.0-M4）。编程式，灵活。手动定义 `Function<Map, String>`，手动指定 name、description。参数 Schema 需要自己写（或者通过泛型类型推断）。代码量多，但完全可控。
 
-LLM 的推理过程：
-- **推理1**：用户要比较两个商品的价格，我需要查两个商品的信息
-- **行动1**：调用 queryProductInfo("NB003") — 拯救者
-- **观察1**：返回"价格 ¥8999"
-- **推理2**：拯救者 ¥8999，还需要查 MacBook 的价格
-- **行动2**：调用 queryProductInfo("NB002") — MacBook Pro 14
-- **观察2**：返回"价格 ¥14999"
-- **推理3**：8999 < 14999，拯救者更便宜
-- **回复**："拯救者 ¥8999 比 MacBook Pro ¥14999 便宜 ¥6000"
+Demo 用 M4 是因为要保持和前几课 Spring AI 版本一致。M4 版本没有 @Tool 注解——这是 GA 版本才引入的。
 
-这不是 LLM 一次性回答的，而是经过两轮 Reason→Act→Observe 循环。每次 tool_call 就是一次循环。LLM 在每一步都在"思考"——需要什么信息、该调什么函数、拿到结果后怎么处理。
+看 Demo 代码。`McpProductClient.java` 中的 `wrapMcpToolAsFunctionCallback()` 方法：用 `FunctionCallbackWrapper.builder(function)` 创建 callback，`.withName("mcp_" + toolName)` 设置名称（加 `mcp_` 前缀避免和本地函数冲突），`.withDescription(toolDescription)` 设置描述。function 是一个 lambda，接收 `Map<String, Object>` 参数，调用 MCP Client 的 `callTool()` 方法。
 
-理解 ReAct 的意义：LLM "决定"调用工具不是随机的，是推理的结果。它看到用户问价格，推理出"我需要查数据库"，然后调用 queryProductInfo。这个"推理"过程是 LLM 的核心能力——理解意图、分解任务、选择工具。
+这里有个坑：`Map<String, Object>` 作为参数类型时，Spring AI 无法自动生成 JSON Schema。MCP Tool 的 Schema 来自 MCP Server 的 `listTools()` 返回值，不需要 Spring AI 生成。但如果用 @Tool 注解，Schema 从 Java 方法签名自动生成，不需要手动写。
 
 ## Key Emphasis
-ReAct 是思想，Function Calling 是工程实现。理解思想才能理解 LLM 的行为——为什么它会"决定"调用这个工具而不是那个工具。
+@Tool 注解更简洁，但需要 GA 版本。FunctionCallbackWrapper 更灵活，适合 M4 版本和需要动态注册的场景。Demo 中 MCP Tool 的动态注册必须用 Wrapper——@Tool 是编译时注解，不能动态注册。
 
 ## Transition
-Function Calling 定义了"怎么调用工具"（协议），ReAct 解释了"为什么 LLM 能决定调用工具"（思想）。但还有一个问题：工具怎么暴露、怎么发现？MCP 解决这个问题。
+两种方式定义了函数。但 Function Calling 的思想比这更深——它背后是 ReAct 模式。

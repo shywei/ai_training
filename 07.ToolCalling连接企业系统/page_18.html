@@ -1,44 +1,37 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>数据分层</title>
+<title>路由实现</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
 .s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.code{font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace}
 </style></head><body>
 <div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 14</div>
-<h1 class="mb-2">数据分层 — 第六课 vs 第七课</h1>
+<div class="mb-2 sn">CHAPTER 05</div>
+<h1 class="mb-2">LLM 路由实现 + Demo 代码</h1>
 <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
 <div style="flex:1;display:flex;gap:20px;">
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:10px;">第六课：Agent 直连数据库</div>
-    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
-      <div style="padding:8px 12px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:12px;color:rgba(224,231,255,0.6);">商品知识 → RetrievalService → pgvector</div>
-      <div style="padding:8px 12px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:12px;color:rgba(224,231,255,0.6);">用户记忆 → UserMemoryMapper → pgvector</div>
-      <div style="padding:8px 12px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:12px;color:rgba(224,231,255,0.6);">用户画像 → UserProfileMapper → MySQL</div>
-      <div style="padding:8px 12px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:12px;color:rgba(224,231,255,0.4);">价格库存 → ❌ 第六课没有</div>
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">LlmRouter.java</div>
+    <div class="code" style="margin-bottom:12px;">// LlmRouter.java — 一次调用同时返回路由+模型<br>public RouteResult route(String userMessage) {<br>&nbsp;&nbsp;// ... LLM 分类 ...<br><br>&nbsp;&nbsp;Route route = result.contains("TOOL") ? TOOL<br>&nbsp;&nbsp;&nbsp;&nbsp;: result.contains("KNOWLEDGE") ? KNOWLEDGE : CHAT;<br><br>&nbsp;&nbsp;// 根据路由选择模型<br>&nbsp;&nbsp;String model = switch (route) {<br>&nbsp;&nbsp;&nbsp;&nbsp;case KNOWLEDGE, TOOL -> reasoningModel;<br>&nbsp;&nbsp;&nbsp;&nbsp;default -> chatModel;<br>&nbsp;&nbsp;};<br><br>&nbsp;&nbsp;return new RouteResult(route, model);<br>}</div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.4);">
+      <strong style="color:#E0E7FF;">Demo 已覆盖</strong> · temperature=0 保证确定性输出
     </div>
-    <div style="padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px;">
-      <div style="font-size:11px;color:rgba(224,231,255,0.4);">
-        问题：Agent 和数据库耦合<br>
-        换数据库 → 代码要改<br>
-        其他 Agent 不能复用
-      </div>
+
+    <!-- 避坑卡片 -->
+    <div style="margin-top:10px;padding:8px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.25);border-radius:4px;overflow:auto;">
+      <div style="font-size:11px;color:#FF6B35;font-weight:700;margin-bottom:2px;">🚨 确定性路由与优雅降级</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.5);line-height:1.4;">分类意图判定时，必须强制指定 temperature=0，否则随机性的输出容易产生意图颠倒。同时，在后端获取 mcpClient 绑定的 callback 时需做空指针防御与降级拦截，防止微服务启动顺序导致的进程挂起崩溃。</div>
     </div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#22C55E;font-weight:700;margin-bottom:10px;">第七课：全部通过 MCP</div>
-    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
-      <div style="padding:8px 12px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:12px;color:rgba(224,231,255,0.6);">商品知识 → MCP Tool → knowledge-server → pgvector</div>
-      <div style="padding:8px 12px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:12px;color:rgba(224,231,255,0.6);">用户记忆 → MCP Tool → knowledge-server → pgvector</div>
-      <div style="padding:8px 12px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:12px;color:rgba(224,231,255,0.6);">用户画像 → MCP Resource → knowledge-server → MySQL</div>
-      <div style="padding:8px 12px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:12px;color:rgba(224,231,255,0.6);">价格库存 → MCP Tool → product-server → MySQL</div>
-    </div>
-    <div style="padding:10px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:4px;">
-      <div style="font-size:12px;color:#22C55E;font-weight:600;">agent-runtime 不直接访问任何数据库</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-top:4px;">解耦 · 复用 · 标准化 · 独立部署</div>
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">路由如何影响 context 构建</div>
+    <div class="code" style="margin-bottom:12px;">// ShoppingAgentController.java<br>RouteResult result = llmRouter.route(message);<br>Route route = result.route();<br>String model = result.model();<br>// model: KNOWLEDGE/TOOL → reasoning, CHAT → chat<br><br>String context = memoryManager<br>&nbsp;&nbsp;.buildContext(sessionId, userId, message);<br><br>// 仅 KNOWLEDGE 路由注入 RAG<br>if (route == Route.KNOWLEDGE) {<br>&nbsp;&nbsp;String rag = mcpKnowledgeClient.search(message);<br>&nbsp;&nbsp;context += "## 参考知识\n" + rag;<br>}<br><br>// 仅 TOOL 路由注册 product tools<br>if (route == Route.TOOL) {<br>&nbsp;&nbsp;clientBuilder.functions(<br>&nbsp;&nbsp;&nbsp;&nbsp;mcpProductClient.getFunctionCallbacks());<br>}<br><br>// save_memory 由系统内部调用（自动沉淀）<br>// 不注册给 LLM</div>
+    <div style="padding:10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
+      <div style="font-size:11px;color:#00E5FF;font-weight:600;">路由决定三件事</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.4);">① 注入什么 context ② 注册什么 Tool ③ 是否注入 RAG</div>
     </div>
   </div>
 </div>

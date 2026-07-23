@@ -1,19 +1,25 @@
 ## Slide Objective
-展示 Function Calling 的底层协议格式，让学员理解"自动封装"背后发生了什么。
+展示 Function Calling 的完整 6 步流程和实际例子。
 
 ## Suggested Presentation
-Function Calling 不是魔法，底层就是 JSON。
+完整流程 6 步：
 
-**请求格式**：OpenAI API 请求中的 `functions` 参数是一个数组，每个元素有 `name`、`description`、`parameters`。`parameters` 是标准的 JSON Schema，定义了参数类型、描述、必填项。Spring AI 的 `FunctionCallbackWrapper` 自动生成这段 JSON——开发者定义 Java 函数，Spring AI 通过反射提取参数名和类型，生成对应的 JSON Schema。
+**① 定义函数**：每个函数需要三个要素——名称（如 `queryProductInfo`）、描述（"查询商品价格和库存"）、参数 Schema（JSON Schema 格式，定义参数类型和必填项）。Schema 是关键，它告诉 LLM 这个函数需要什么参数。
 
-**响应格式**：LLM 返回的不是普通文本，而是一个包含 `tool_calls` 的消息。`content` 为 null，`tool_calls` 是一个数组（LLM 可以一次请求调用多个函数）。每个 tool_call 有 `id`（用于关联执行结果）、`function.name`（函数名）、`function.arguments`（JSON 字符串格式的参数）。
+**② 注册到 LLM 请求**：在 OpenAI API 的请求中，有一个 `functions` 参数，把所有可用函数的定义传进去。LLM 收到请求后，知道"我有这些工具可以用"。
 
-**多轮对话**：执行完函数后，结果作为 `role=tool` 的消息追加到对话历史。tool_call_id 用于关联——"这个结果是哪个 tool_call 的执行结果"。LLM 看到 tool 消息后，基于结果生成最终回复。
+**③ 用户提问**：用户说"ThinkPad X1 多少钱"。
 
-Demo 中这些 JSON 是 Spring AI 自动生成的，开发者不需要手写。但理解底层格式很重要。调试时看到 LLM 响应中 content=null、tool_calls 非空，你知道这是正常的 Function Calling 流程，不是报错。很多学员第一次看到这个响应会以为 LLM 出了问题。
+**④ LLM 返回 tool_call**：LLM 不直接回复价格（它不知道实时价格），而是返回一个 tool_call：`{name: "queryProductInfo", arguments: {"productId": "NB001"}}`。注意此时 `content` 字段为 null——LLM 不生成文本回复，只返回调用指令。
+
+**⑤ 系统执行函数**：Spring AI 拦截 tool_call，找到对应的 FunctionCallback，执行函数。函数查 MySQL，返回"价格 ¥9999，库存 58 件，在售"。
+
+**⑥ 结果回传 LLM**：把函数执行结果作为 `role=tool` 的消息追加到对话历史，LLM 基于结果生成最终回复："ThinkPad X1 Carbon 当前售价 ¥9999，库存 58 件，在售。"
+
+实际例子中还有一个细节：LLM 自动把"ThinkPad X1"映射到商品 ID "NB001"。这个映射是 LLM 通过函数描述和上下文推断出来的，不需要我们写映射规则。
 
 ## Key Emphasis
-content=null + tool_calls 非空 = LLM 请求调用函数。这不是错误，是 Function Calling 的正常流程。这是调试时最常见的"误以为报错"。
+Schema 的质量直接决定 LLM 调用的准确性。description 写得清楚，LLM 就能正确判断"什么时候该调这个函数"和"传什么参数"。这是 Function Calling 最核心的工程细节。
 
 ## Transition
-Spring AI 提供了两种方式来定义函数——@Tool 注解和 FunctionCallbackWrapper。用哪种取决于 Spring AI 版本。
+既然了解了这6步，那在底层的网络通信中，这个协议的 JSON 请求和响应体到底长什么样呢？我们看下一页：协议底层格式。

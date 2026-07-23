@@ -1,25 +1,26 @@
 ## Slide Objective
-展示 Function Calling 的完整 6 步流程和实际例子。
+建立 Function Calling 的认知基础——LLM 天生不能"做事"，需要外部机制。不是"技术限制"，是"架构设计"。
 
 ## Suggested Presentation
-完整流程 6 步：
+LLM 的本质是文本生成器。给它一段上下文，它生成下一段文本。它不能访问互联网、不能查数据库、不能调 API。它的"知识"来自训练数据，有截止日期。
 
-**① 定义函数**：每个函数需要三个要素——名称（如 `queryProductInfo`）、描述（"查询商品价格和库存"）、参数 Schema（JSON Schema 格式，定义参数类型和必填项）。Schema 是关键，它告诉 LLM 这个函数需要什么参数。
+但企业场景需要的能力远超"生成文本"：查实时价格（数据库查询）、查库存（数据库查询）、下单（调用订单 API）、发邮件（调用邮件服务）、更新 CRM（调用 CRM API）。这些 LLM 都做不到。
 
-**② 注册到 LLM 请求**：在 OpenAI API 的请求中，有一个 `functions` 参数，把所有可用函数的定义传进去。LLM 收到请求后，知道"我有这些工具可以用"。
+解决方案是 Function Calling：LLM 不直接执行操作，而是返回一个"调用指令"——"我要调用什么函数、传什么参数"。系统执行函数，把结果回传 LLM。LLM 基于结果生成最终回复。
 
-**③ 用户提问**：用户说"ThinkPad X1 多少钱"。
+类比：LLM 是大脑，Tool 是手脚，Function Calling 是大脑告诉手脚"做什么"的指令。大脑不需要知道手脚怎么动肌肉，只需要说"拿杯子"。
 
-**④ LLM 返回 tool_call**：LLM 不直接回复价格（它不知道实时价格），而是返回一个 tool_call：`{name: "queryProductInfo", arguments: {"productId": "NB001"}}`。注意此时 `content` 字段为 null——LLM 不生成文本回复，只返回调用指令。
+这个架构的关键是**分离"决策"和"执行"**。LLM 负责决策（调什么、传什么参数），系统负责执行（查数据库、调 API）。LLM 不需要知道执行细节，只需要知道有哪些函数可用、每个函数做什么。
 
-**⑤ 系统执行函数**：Spring AI 拦截 tool_call，找到对应的 FunctionCallback，执行函数。函数查 MySQL，返回"价格 ¥9999，库存 58 件，在售"。
+实际 Demo 中的例子："ThinkPad X1 多少钱"。LLM 不知道实时价格（训练数据有截止日期），但它知道"我有一个叫 queryProductInfo 的函数可以查价格"。于是它返回 tool_call: `queryProductInfo("NB001")`，系统查 MySQL 拿到价格 ¥9999，回传给 LLM，LLM 生成最终回复。
 
-**⑥ 结果回传 LLM**：把函数执行结果作为 `role=tool` 的消息追加到对话历史，LLM 基于结果生成最终回复："ThinkPad X1 Carbon 当前售价 ¥9999，库存 58 件，在售。"
-
-实际例子中还有一个细节：LLM 自动把"ThinkPad X1"映射到商品 ID "NB001"。这个映射是 LLM 通过函数描述和上下文推断出来的，不需要我们写映射规则。
+注意一个关键细节：LLM 自动把"ThinkPad X1"映射到商品 ID "NB001"。这个映射是 LLM 通过函数描述和上下文推断出来的，不需要我们写映射规则。这就是 LLM 的"理解"能力——它能从自然语言中提取结构化参数。
 
 ## Key Emphasis
-Schema 的质量直接决定 LLM 调用的准确性。description 写得清楚，LLM 就能正确判断"什么时候该调这个函数"和"传什么参数"。这是 Function Calling 最核心的工程细节。
+Function Calling 不是 LLM 的"内置能力"，而是"外部协议"。LLM 本身不会调用函数，是系统告诉 LLM "你有这些函数可以用"，LLM 返回"我要调这个"，系统再去执行。这个分离是整个 Agent 架构的基础。
+
+## Demo 与生产的差距
+Demo 中 LLM 返回 tool_call 后，Spring AI 自动执行并回传结果。生产中需要加很多工程处理：参数校验（防注入）、权限校验（这个用户能不能调这个函数）、超时处理（函数执行超过 N 秒怎么办）、重试策略（失败了要不要重试）、审计日志（记录每次调用）。Demo 没有这些，生产必须有。
 
 ## Transition
-既然了解了这6步，那在底层的网络通信中，这个协议的 JSON 请求和响应体到底长什么样呢？我们看下一页：协议底层格式。
+知道了 Function Calling 的概念。具体怎么告诉 LLM "你有这些函数可以用"？看 OpenAI 的协议格式。

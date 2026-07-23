@@ -1,9 +1,12 @@
 package com.example.agent.memory;
 
 import com.example.agent.tool.McpKnowledgeClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -30,9 +33,9 @@ import java.util.List;
  * 所有持久化存储统一通过 MCP 协议访问，MemoryManager 不直接耦合任何数据库。
  *
  * 自动沉淀机制：
- * - 每 N 轮对话触发一次
- * - 将 Redis 中的消息沉淀到 pgvector（摘要）
- * - 完全清空 Redis（历史上下文由 pgvector 语义检索提供）
+ * - 每 20 条消息触发一次
+ * - 提取前 10 条沉淀到 pgvector，保留后 10 条在 Redis
+ * - 确保每次对话还能带上最近的历史上下文
  *
  * context 演进：
  * - 第四课：null（纯 Prompt）
@@ -50,21 +53,24 @@ import java.util.List;
 public class MemoryManager {
 
     private final SessionMemory sessionMemory;
-    private final SummaryPipeline summaryPipeline;
     private final McpKnowledgeClient mcpKnowledgeClient;
     private final ChatModel chatModel;
+    private final String memoryModel;
 
-    /** 自动沉淀阈值：每 5 轮对话（10条消息）触发一次 */
-    private static final int PRECIPITATE_THRESHOLD = 10;
+    /** 自动沉淀阈值：消息数达到此值时触发 */
+    private static final int PRECIPITATE_THRESHOLD = 20;
+    /** 沉淀后保留的最近消息数 */
+    private static final int KEEP_RECENT = 10;
+    private static final Logger log = LoggerFactory.getLogger("LLM_MEMORY");
 
     public MemoryManager(SessionMemory sessionMemory,
-                         SummaryPipeline summaryPipeline,
                          McpKnowledgeClient mcpKnowledgeClient,
-                         ChatModel chatModel) {
+                         ChatModel chatModel,
+                         @Value("${agent.model.memory}") String memoryModel) {
         this.sessionMemory = sessionMemory;
-        this.summaryPipeline = summaryPipeline;
         this.mcpKnowledgeClient = mcpKnowledgeClient;
         this.chatModel = chatModel;
+        this.memoryModel = memoryModel;
     }
 
     /**
@@ -143,7 +149,10 @@ public class MemoryManager {
     }
 
     /**
-     * 自动沉淀：消息达到阈值时，将 Redis 内容沉淀到 pgvector 并清空
+     * 自动沉淀：消息达到阈值时，提取前 N-KEEP 条沉淀，保留后 KEEP 条
+     *
+     * 策略：满 20 条 → 提取前 10 条 → 保留后 10 条
+     * 确保每次对话还能带上最近的历史上下文
      */
     private void checkAndPrecipitate(String sessionId, String userId) {
         if (userId == null || userId.isBlank()) return;
@@ -156,21 +165,25 @@ public class MemoryManager {
         List<String> messages = sessionMemory.getMessages(sessionId);
         if (messages == null || messages.isEmpty()) return;
 
+        // 取前 N-KEEP 条用于提取摘要
+        int extractEnd = messages.size() - KEEP_RECENT;
+        List<String> toExtract = messages.subList(0, extractEnd);
+
         // 通过 MCP 协议沉淀到 pgvector
         try {
-            String summary = extractConversationSummary(messages);
+            String summary = extractConversationSummary(toExtract);
             if (summary != null && !summary.isBlank()) {
                 mcpKnowledgeClient.saveMemory(userId, "conversation", summary);
-                System.out.println("[Memory] ✅ 自动沉淀完成");
+                System.out.println("[Memory] ✅ 自动沉淀完成，提取了 " + extractEnd + " 条消息");
             }
         } catch (Exception e) {
             System.err.println("[Memory] ⚠️ 自动沉淀失败: " + e.getMessage());
-            return; // 沉淀失败不清空，避免数据丢失
+            return; // 沉淀失败不裁剪，避免数据丢失
         }
 
-        // 完全清空 Redis（历史上下文由 pgvector 语义检索提供）
-        sessionMemory.clear(sessionId);
-        System.out.println("[Memory] Redis 已清空");
+        // 保留后 KEEP_RECENT 条，丢弃更早的消息
+        sessionMemory.keepRecent(sessionId, KEEP_RECENT);
+        System.out.println("[Memory] Redis 已裁剪，保留最近 " + KEEP_RECENT + " 条消息");
     }
 
     /**
@@ -234,29 +247,32 @@ public class MemoryManager {
         String prompt = """
                 请从以下对话中提取关键信息，用简洁的自然语言总结。
 
-                要求：
-                - 提取用户的偏好、需求、决策
-                - 提取关键事实（提到的商品、价格、配置等）
-                - 忽略寒暄和无关内容
-                - 不超过200字
-                - 用中文
+                记录对话中发生的事实：
+                - 用户做了什么决定（选择了哪个商品、放弃了什么）
+                - 用户提到了什么需求或约束（预算、用途、场景）
+                - 对话中涉及的关键商品和价格
+
+                不要提炼用户偏好（那是画像系统的事），只客观记录对话中发生了什么。
+                忽略寒暄和无关内容，不超过200字，用中文。
 
                 对话内容：
                 %s
                 """.formatted(conversation);
 
         try {
+            log.info("\n╔══════════════════════════════════════════════════╗\n║ MEMORY EXTRACT {} ║\n╚══════════════════════════════════════════════════╝\n[Prompt]\n{}", java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), prompt.substring(0, Math.min(200, prompt.length())));
+
             String result = ChatClient.create(chatModel)
                     .prompt()
                     .user(prompt)
                     .options(OpenAiChatOptions.builder()
+                            .withModel(memoryModel)
                             .withTemperature(0.3)
                             .build())
                     .call()
                     .content();
 
-            System.out.println("[Memory] LLM 摘要提取完成: " +
-                    (result != null ? result.length() + "字" : "null"));
+            log.info("[Result] {}", result != null ? result.substring(0, Math.min(200, result.length())) : "null");
             return result;
 
         } catch (Exception e) {

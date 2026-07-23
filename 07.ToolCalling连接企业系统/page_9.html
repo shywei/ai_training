@@ -1,83 +1,60 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>MCP 核心概念</title>
+<title>MCP 协议</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
 .s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-.code{font-size:10px;color:rgba(224,231,255,0.5);line-height:1.5;background:rgba(0,0,0,0.3);padding:6px 8px;border-radius:3px;font-family:monospace}
 </style></head><body>
-<div class="s" style="padding:24px 50px;display:flex;flex-direction:column;">
-<div class="mb-1 sn">CHAPTER 06</div>
-<h1 class="mb-1">MCP 核心概念 — 四大能力</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px;"></div>
-<div style="flex:1;display:flex;gap:14px;">
-  <!-- Tools -->
-  <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
-    <div style="padding:12px 14px;background:rgba(255,107,53,0.06);border:2px solid rgba(255,107,53,0.2);border-radius:8px;flex:1;display:flex;flex-direction:column;">
-      <div style="font-size:17px;color:#FF6B35;font-weight:700;margin-bottom:6px;">🔧 Tools</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.6);line-height:1.7;margin-bottom:8px;">
-        LLM 可调用的函数<br>
-        搜索、查询、写入、计算<br>
-        <strong style="color:#E0E7FF;">LLM 决定</strong>何时调用
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 03</div>
+<h1 class="mb-2">MCP 协议 — 为什么需要标准协议</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+<div style="flex:1;display:flex;gap:20px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="padding:14px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;">
+      <div style="font-size:15px;color:#FF6B35;font-weight:700;margin-bottom:6px;">不用 MCP 的做法</div>
+      <div style="font-size:13px;color:rgba(224,231,255,0.55);line-height:1.8;">
+        Tool 代码直接写在 Agent 项目里<br>
+        Agent 直连数据库、直连外部 API<br>
+        换框架 → 代码重写<br>
+        换 Agent → Tool 不能复用<br>
+        每个 Agent 都写一遍 → 重复劳动
       </div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-bottom:6px;">MCP 协议定义：</div>
-      <div class="code" style="flex:1;">// Server 暴露 Tool<br>Tool {<br>&nbsp;&nbsp;name: "queryPrice"<br>&nbsp;&nbsp;description: "查价格"<br>&nbsp;&nbsp;inputSchema: {<br>&nbsp;&nbsp;&nbsp;&nbsp;type: "object"<br>&nbsp;&nbsp;&nbsp;&nbsp;properties: {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;id: {type:"string"}<br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>&nbsp;&nbsp;}<br>}<br><br>// Client 调用<br>callTool("queryPrice",<br>&nbsp;&nbsp;{id:"NB001"})</div>
-      <div style="margin-top:8px;padding:5px;background:rgba(255,107,53,0.08);border-radius:3px;font-size:10px;color:rgba(224,231,255,0.5);text-align:center;">
-        <strong style="color:#FF6B35;">Demo 已覆盖</strong><br>
-        search_knowledge · queryProductInfo · save_memory
+    </div>
+    <div style="padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
+      <div style="font-size:15px;color:#00E5FF;font-weight:700;margin-bottom:6px;">MCP 的做法</div>
+      <div style="font-size:13px;color:rgba(224,231,255,0.55);line-height:1.8;">
+        Tool 独立部署为 MCP Server<br>
+        Agent 作为 MCP Client，通过标准协议调用<br>
+        换框架 → 只改 Client，Server 不变<br>
+        换 Agent → MCP Server 通用<br>
+        <strong style="color:#E0E7FF;">一次开发，到处复用</strong>
       </div>
     </div>
   </div>
-  <!-- Resources -->
-  <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
-    <div style="padding:12px 14px;background:rgba(0,229,255,0.06);border:2px solid rgba(0,229,255,0.2);border-radius:8px;flex:1;display:flex;flex-direction:column;">
-      <div style="font-size:17px;color:#00E5FF;font-weight:700;margin-bottom:6px;">📄 Resources</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.6);line-height:1.7;margin-bottom:8px;">
-        Client 可读取的数据<br>
-        文件、配置、上下文<br>
-        <strong style="color:#E0E7FF;">Client 主动</strong>读取
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:14px;">类比</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+      <div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;">
+        <div style="font-size:14px;color:#E0E7FF;font-weight:600;">REST API → Web 服务间标准协议</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.45);margin-top:4px;">前端不用关心后端用什么语言/框架</div>
       </div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-bottom:6px;">MCP 协议定义：</div>
-      <div class="code" style="flex:1;">// Server 暴露 Resource<br>ResourceTemplate {<br>&nbsp;&nbsp;uriTemplate:<br>&nbsp;&nbsp;&nbsp;&nbsp;"user://{userId}"<br>&nbsp;&nbsp;name: "用户画像"<br>&nbsp;&nbsp;description: "读画像"<br>&nbsp;&nbsp;mimeType: "application/json"<br>}<br><br>// Client 读取<br>readResource(<br>&nbsp;&nbsp;"user://U001")<br>// → 返回 JSON 画像</div>
-      <div style="margin-top:8px;padding:5px;background:rgba(0,229,255,0.08);border-radius:3px;font-size:10px;color:rgba(224,231,255,0.5);text-align:center;">
-        <strong style="color:#00E5FF;">Demo 已覆盖</strong><br>
-        user://{userId} 用户画像
+      <div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;">
+        <div style="font-size:14px;color:#E0E7FF;font-weight:600;">USB → 硬件设备间标准协议</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.45);margin-top:4px;">键盘不用关心电脑用什么操作系统</div>
       </div>
-    </div>
-  </div>
-  <!-- Prompts -->
-  <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
-    <div style="padding:12px 14px;background:rgba(168,85,247,0.06);border:2px solid rgba(168,85,247,0.2);border-radius:8px;flex:1;display:flex;flex-direction:column;">
-      <div style="font-size:17px;color:#A855F7;font-weight:700;margin-bottom:6px;">💬 Prompts</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.6);line-height:1.7;margin-bottom:8px;">
-        预定义的 Prompt 模板<br>
-        Server 提供，Client 选择使用<br>
-        <strong style="color:#E0E7FF;">声明式能力暴露</strong>
-      </div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-bottom:6px;">MCP 协议定义：</div>
-      <div class="code" style="flex:1;">// Server 暴露 Prompt<br>Prompt {<br>&nbsp;&nbsp;name: "analyze-review"<br>&nbsp;&nbsp;description: "分析评论"<br>&nbsp;&nbsp;arguments: [{<br>&nbsp;&nbsp;&nbsp;&nbsp;name: "review"<br>&nbsp;&nbsp;&nbsp;&nbsp;description: "评论内容"<br>&nbsp;&nbsp;&nbsp;&nbsp;required: true<br>&nbsp;&nbsp;}]<br>}<br><br>// Client 获取 Prompt<br>getPrompt(<br>&nbsp;&nbsp;"analyze-review",<br>&nbsp;&nbsp;{review: "..."})</div>
-      <div style="margin-top:8px;padding:5px;background:rgba(168,85,247,0.08);border-radius:3px;font-size:10px;color:rgba(224,231,255,0.5);text-align:center;">
-        <span style="color:#A855F7;">仅 PPT 讲解</span><br>
-        企业场景：标准化 Prompt 复用
+      <div style="padding:12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
+        <div style="font-size:14px;color:#00E5FF;font-weight:600;">MCP → AI Agent 与 Tool 间标准协议</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.45);margin-top:4px;">Agent 不用关心 Tool 用什么实现</div>
       </div>
     </div>
-  </div>
-  <!-- Sampling -->
-  <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
-    <div style="padding:12px 14px;background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.2);border-radius:8px;flex:1;display:flex;flex-direction:column;">
-      <div style="font-size:17px;color:#22C55E;font-weight:700;margin-bottom:6px;">🔄 Sampling</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.6);line-height:1.7;margin-bottom:8px;">
-        Server 请求 Client 调用 LLM<br>
-        服务端发起的编排<br>
-        <strong style="color:#E0E7FF;">反向调用</strong>模式
-      </div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-bottom:6px;">MCP 协议定义：</div>
-      <div class="code" style="flex:1;">// Server 请求 Client<br>createMessage({<br>&nbsp;&nbsp;messages: [{<br>&nbsp;&nbsp;&nbsp;&nbsp;role: "user"<br>&nbsp;&nbsp;&nbsp;&nbsp;content: "分析这段..."<br>&nbsp;&nbsp;}],<br>&nbsp;&nbsp;maxTokens: 1000<br>})<br><br>// Client 调用 LLM<br>// 返回结果给 Server<br><br>// 典型场景：<br>// Server 需要 LLM 做<br>// 中间推理步骤</div>
-      <div style="margin-top:8px;padding:5px;background:rgba(34,197,94,0.08);border-radius:3px;font-size:10px;color:rgba(224,231,255,0.5);text-align:center;">
-        <span style="color:#22C55E;">仅 PPT 讲解</span><br>
-        服务端编排、多 Agent 协作
+    <div style="padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px;">
+      <div style="font-size:12px;color:rgba(224,231,255,0.4);text-align:center;">
+        <strong style="color:#E0E7FF;">MCP = Model Context Protocol</strong><br>
+        Anthropic 2024 年底提出，已开源<br>
+        不是 Anthropic 独占，是开放标准
       </div>
     </div>
   </div>

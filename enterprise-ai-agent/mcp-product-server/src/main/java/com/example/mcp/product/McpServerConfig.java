@@ -1,10 +1,10 @@
 package com.example.mcp.product;
 
-import io.modelcontextprotocol.sdk.McpServer;
-import io.modelcontextprotocol.sdk.McpServerFeatures;
-import io.modelcontextprotocol.sdk.McpSchema;
-import io.modelcontextprotocol.sdk.server.McpSyncServer;
-import io.modelcontextprotocol.sdk.server.transport.HttpServletSseServerTransportProvider;
+import io.modelcontextprotocol.server.McpServer;
+import io.modelcontextprotocol.server.McpServerFeatures;
+import io.modelcontextprotocol.server.McpSyncServer;
+import io.modelcontextprotocol.server.transport.HttpServletSseServerTransportProvider;
+import io.modelcontextprotocol.spec.McpSchema;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,7 +30,7 @@ public class McpServerConfig {
     @Bean
     public ServletRegistrationBean<?> customServletBean(
             HttpServletSseServerTransportProvider transportProvider) {
-        return new ServletRegistrationBean<>(transportProvider, "/mcp/sse");
+        return new ServletRegistrationBean<>(transportProvider, "/*");
     }
 
     @Bean
@@ -43,7 +43,7 @@ public class McpServerConfig {
                     "properties": {
                         "productId": {
                             "type": "string",
-                            "description": "商品ID，如 NB001, PH001, HP001, TB001"
+                            "description": "单个商品ID（格式：大写字母+数字，如NB001）。从用户消息中提取对应商品的ID，只传一个。"
                         }
                     },
                     "required": ["productId"]
@@ -51,11 +51,11 @@ public class McpServerConfig {
                 """;
 
         // ========== Tool 1: queryProductInfo ==========
-        McpSchema.Tool productInfoTool = new McpSchema.Tool(
-                "queryProductInfo",
-                "查询商品的价格和库存信息，返回商品的完整信息（包括名称、价格、库存、销量、状态）",
-                productIdSchema
-        );
+        McpSchema.Tool productInfoTool = McpSchema.Tool.builder()
+                .name("queryProductInfo")
+                .description("查询商品的价格和库存信息。传入单个商品ID，返回该商品的完整信息。")
+                .inputSchema(jsonSchema(productIdSchema))
+                .build();
 
         McpServerFeatures.SyncToolSpecification productInfoSpec = new McpServerFeatures.SyncToolSpecification(
                 productInfoTool,
@@ -64,10 +64,10 @@ public class McpServerConfig {
                     Map<String, Object> product = productRepository.getProductInfo(productId);
 
                     if (product == null) {
-                        return new McpSchema.CallToolResult(
-                                List.of(new McpSchema.TextContent("未找到商品ID: " + productId + "，请检查商品ID是否正确。")),
-                                true
-                        );
+                        return McpSchema.CallToolResult.builder()
+                                .addTextContent("未找到商品ID: " + productId + "，请检查商品ID是否正确。")
+                                .isError(true)
+                                .build();
                     }
 
                     String result = String.format(
@@ -76,19 +76,19 @@ public class McpServerConfig {
                             product.get("category"), product.get("price"),
                             product.get("stock"), product.get("sales"), product.get("status")
                     );
-                    return new McpSchema.CallToolResult(
-                            List.of(new McpSchema.TextContent(result)),
-                            false
-                    );
+                    return McpSchema.CallToolResult.builder()
+                            .addTextContent(result)
+                            .isError(false)
+                            .build();
                 }
         );
 
         // ========== Tool 2: queryPrice ==========
-        McpSchema.Tool priceTool = new McpSchema.Tool(
-                "queryPrice",
-                "查询商品的价格信息，仅返回商品名称和价格",
-                productIdSchema
-        );
+        McpSchema.Tool priceTool = McpSchema.Tool.builder()
+                .name("queryPrice")
+                .description("查询商品的价格信息。传入单个商品ID，返回该商品名称和价格。")
+                .inputSchema(jsonSchema(productIdSchema))
+                .build();
 
         McpServerFeatures.SyncToolSpecification priceSpec = new McpServerFeatures.SyncToolSpecification(
                 priceTool,
@@ -97,10 +97,10 @@ public class McpServerConfig {
                     Map<String, Object> product = productRepository.getProductPrice(productId);
 
                     if (product == null) {
-                        return new McpSchema.CallToolResult(
-                                List.of(new McpSchema.TextContent("未找到商品ID: " + productId)),
-                                true
-                        );
+                        return McpSchema.CallToolResult.builder()
+                                .addTextContent("未找到商品ID: " + productId)
+                                .isError(true)
+                                .build();
                     }
 
                     String result = String.format(
@@ -108,19 +108,19 @@ public class McpServerConfig {
                             product.get("id"), product.get("name"),
                             product.get("price"), product.get("status")
                     );
-                    return new McpSchema.CallToolResult(
-                            List.of(new McpSchema.TextContent(result)),
-                            false
-                    );
+                    return McpSchema.CallToolResult.builder()
+                            .addTextContent(result)
+                            .isError(false)
+                            .build();
                 }
         );
 
         // ========== Tool 3: queryStock ==========
-        McpSchema.Tool stockTool = new McpSchema.Tool(
-                "queryStock",
-                "查询商品的库存信息，仅返回商品名称、库存数量和状态",
-                productIdSchema
-        );
+        McpSchema.Tool stockTool = McpSchema.Tool.builder()
+                .name("queryStock")
+                .description("查询商品的库存信息。传入单个商品ID，返回该商品库存和状态。")
+                .inputSchema(jsonSchema(productIdSchema))
+                .build();
 
         McpServerFeatures.SyncToolSpecification stockSpec = new McpServerFeatures.SyncToolSpecification(
                 stockTool,
@@ -129,10 +129,10 @@ public class McpServerConfig {
                     Map<String, Object> product = productRepository.getProductStock(productId);
 
                     if (product == null) {
-                        return new McpSchema.CallToolResult(
-                                List.of(new McpSchema.TextContent("未找到商品ID: " + productId)),
-                                true
-                        );
+                        return McpSchema.CallToolResult.builder()
+                                .addTextContent("未找到商品ID: " + productId)
+                                .isError(true)
+                                .build();
                     }
 
                     String result = String.format(
@@ -140,10 +140,10 @@ public class McpServerConfig {
                             product.get("id"), product.get("name"),
                             product.get("stock"), product.get("status")
                     );
-                    return new McpSchema.CallToolResult(
-                            List.of(new McpSchema.TextContent(result)),
-                            false
-                    );
+                    return McpSchema.CallToolResult.builder()
+                            .addTextContent(result)
+                            .isError(false)
+                            .build();
                 }
         );
 
@@ -152,5 +152,18 @@ public class McpServerConfig {
                 .capabilities(McpSchema.ServerCapabilities.builder().tools(true).build())
                 .tools(productInfoSpec, priceSpec, stockSpec)
                 .build();
+    }
+
+    private McpSchema.JsonSchema jsonSchema(String json) {
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            Map<String, Object> map = mapper.readValue(json, new com.fasterxml.jackson.core.type.TypeReference<>() {});
+            String type = (String) map.getOrDefault("type", "object");
+            Map<String, Object> properties = (Map<String, Object>) map.getOrDefault("properties", Map.of());
+            List<String> required = (List<String>) map.getOrDefault("required", List.of());
+            return new McpSchema.JsonSchema(type, properties, required, null, null, null);
+        } catch (Exception e) {
+            throw new RuntimeException("JSON Schema 解析失败", e);
+        }
     }
 }

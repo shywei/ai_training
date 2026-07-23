@@ -1,19 +1,21 @@
 ## Slide Objective
-建立 Function Calling 的认知基础——LLM 天生不能"做事"，需要外部机制。
+回顾第六课的具体技术实现，为第七课的升级建立基线。
 
 ## Suggested Presentation
-LLM 的本质是文本生成器。给它一段上下文，它生成下一段文本。它不能访问互联网、不能查数据库、不能调 API。它的"知识"来自训练数据，有截止日期。
+第六课做了四件事，每件都有具体的代码和架构。
 
-但企业场景需要的能力远超"生成文本"：查实时价格（数据库查询）、查库存（数据库查询）、下单（调用订单 API）、发邮件（调用邮件服务）、更新 CRM（调用 CRM API）。这些 LLM 都做不到。
+**RAG 知识检索**：`RetrievalService.java` 直接调用 `PgVectorStore.similaritySearch()`，把用户问题 Embedding 后在 pgvector 中做余弦相似度搜索。数据流是：用户消息 → Embedding → pgvector cosine similarity → Top-3 结果 → 注入 context。商品描述（名称、配置、亮点、适用场景）存在 `vector_store` 表，每个商品一个 Chunk。
 
-解决方案是 Function Calling：LLM 不直接执行操作，而是返回一个"调用指令"——"我要调用什么函数、传什么参数"。系统执行函数，把结果回传 LLM。LLM 基于结果生成最终回复。
+**记忆增强**：`UserMemoryService.java` 直接调用 `UserMemoryMapper.java`，后者用 `pgvectorJdbcTemplate` 操作 `user_memory` 表。自动沉淀机制：每 10 条消息触发一次，LLM 从对话中提取关键信息，存入 pgvector。下次对话时，语义检索命中相关记忆。
 
-类比：LLM 是大脑，Tool 是手脚，Function Calling 是大脑告诉手脚"做什么"的指令。大脑不需要知道手脚怎么动肌肉，只需要说"拿杯子"。
+**数据分层**：商品描述放 pgvector（RAG），价格库存放 MySQL。但价格库存在第六课没有被使用——Agent 无法查询。
 
-这个架构的关键是分离"决策"和"执行"。LLM 负责决策（调什么、传什么参数），系统负责执行（查数据库、调 API）。LLM 不需要知道执行细节，只需要知道有哪些函数可用、每个函数做什么。
+**数据库直连**：`VectorStoreConfig.java` 手动创建 PostgreSQL 数据源，注入 `PgVectorStore`。`UserMemoryMapper.java` 直接用 `pgvectorJdbcTemplate` 写 SQL。`UserProfileMapper.java` 用 MyBatis Plus 操作 MySQL。Agent 和三个数据库直接耦合。
+
+第七课的变化：同样的数据，同样的 MySQL 和 pgvector，但访问方式变了——全部通过 MCP 协议。
 
 ## Key Emphasis
-Function Calling 不是 LLM 的"内置能力"，而是"外部协议"。LLM 本身不会调用函数，是系统告诉 LLM "你有这些函数可以用"，LLM 返回"我要调这个"，系统再去执行。
+第六课的"直连"不是错误，是当时最合理的实现。第七课的"MCP 化"不是推翻，是架构升级。两者是递进关系。
 
 ## Transition
-具体怎么告诉 LLM "你有这些函数可以用"？看 OpenAI 的 Function Calling 协议格式。
+第七课要解决三个问题：LLM 怎么知道该做什么（路由）、工具怎么标准化暴露（MCP）、LLM 怎么调用工具（Function Calling）。

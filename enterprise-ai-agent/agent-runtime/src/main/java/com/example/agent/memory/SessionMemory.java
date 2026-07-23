@@ -64,4 +64,16 @@ public class SessionMemory {
         Long size = redis.opsForList().size("session:" + sessionId + ":messages");
         return size != null ? size : 0;
     }
+
+    /**
+     * 保留最近 N 条消息，丢弃更早的消息
+     */
+    public void keepRecent(String sessionId, int keepCount) {
+        String key = "session:" + sessionId + ":messages";
+        Long size = redis.opsForList().size(key);
+        if (size == null || size <= keepCount) return;
+        long start = size - keepCount;
+        // LTRIM 保留 [start, -1] 区间
+        redis.opsForList().trim(key, start, -1);
+    }
 }

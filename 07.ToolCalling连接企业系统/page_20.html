@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>Demo vs 生产</title>
+<title>数据分层</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
@@ -8,44 +8,44 @@
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
 </style></head><body>
 <div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 16</div>
-<h1 class="mb-2">Demo vs 生产 — 具体差距</h1>
+<div class="mb-2 sn">CHAPTER 06</div>
+<h1 class="mb-2">数据分层 — 第六课 vs 第七课</h1>
 <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
-<div style="flex:1;display:flex;gap:16px;">
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:8px;">
-    <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
-      <div style="font-size:13px;color:#FF6B35;font-weight:700;">认证</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);">Demo：明文密码对比<br>生产：OAuth2 + JWT + Token 刷新 + 密码 BCrypt 哈希</div>
+<div style="flex:1;display:flex;gap:20px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:10px;">第六课：Agent 直连数据库</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+      <div style="padding:8px 12px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:12px;color:rgba(224,231,255,0.6);">商品知识 → RetrievalService → pgvector</div>
+      <div style="padding:8px 12px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:12px;color:rgba(224,231,255,0.6);">用户记忆 → UserMemoryMapper → pgvector</div>
+      <div style="padding:8px 12px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:12px;color:rgba(224,231,255,0.6);">用户画像 → UserProfileMapper → MySQL</div>
+      <div style="padding:8px 12px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:12px;color:rgba(224,231,255,0.4);">价格库存 → ❌ 第六课没有</div>
     </div>
-    <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
-      <div style="font-size:13px;color:#FF6B35;font-weight:700;">权限</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);">Demo：任何 Agent 能调任何 Tool<br>生产：RBAC 权限表，哪些 Agent 能调哪些 Tool，审批流程</div>
-    </div>
-    <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
-      <div style="font-size:13px;color:#FF6B35;font-weight:700;">幂等</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);">Demo：不处理，LLM 可能重复调用<br>生产：请求 ID 去重，Tool 保证重复调用无副作用</div>
-    </div>
-    <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
-      <div style="font-size:13px;color:#FF6B35;font-weight:700;">超时</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);">Demo：写死 15 秒<br>生产：分级超时（查询 3s / 写入 10s / 批量 30s）+ 指数退避重试 + 熔断</div>
+    <div style="padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px;">
+      <div style="font-size:11px;color:rgba(224,231,255,0.4);">
+        问题：Agent 和数据库耦合<br>
+        换数据库 → 代码要改<br>
+        其他 Agent 不能复用
+      </div>
     </div>
   </div>
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:8px;">
-    <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
-      <div style="font-size:13px;color:#FF6B35;font-weight:700;">审计</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);">Demo：只写日志<br>生产：审计表记录（谁、什么时间、调了什么、参数、结果、耗时），可追溯可回放</div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#22C55E;font-weight:700;margin-bottom:10px;">第七课：全部通过 MCP</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+      <div style="padding:8px 12px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:12px;color:rgba(224,231,255,0.6);">商品知识 → MCP Tool → knowledge-server → pgvector</div>
+      <div style="padding:8px 12px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:12px;color:rgba(224,231,255,0.6);">用户记忆 → MCP Tool → knowledge-server → pgvector</div>
+      <div style="padding:8px 12px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:12px;color:rgba(224,231,255,0.6);">用户画像 → MCP Resource → knowledge-server → MySQL</div>
+      <div style="padding:8px 12px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:12px;color:rgba(224,231,255,0.6);">价格库存 → MCP Tool → product-server → MySQL</div>
     </div>
-    <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
-      <div style="font-size:13px;color:#FF6B35;font-weight:700;">缓存</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);">Demo：无缓存，每次都查数据库<br>生产：语义缓存（相似 query 命中缓存），减少 LLM 调用和数据库查询</div>
+    <div style="padding:10px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:4px;">
+      <div style="font-size:12px;color:#22C55E;font-weight:600;">agent-runtime 不直接访问任何数据库</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-top:4px;">解耦 · 复用 · 标准化 · 独立部署</div>
     </div>
-    <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
-      <div style="font-size:13px;color:#FF6B35;font-weight:700;">监控</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);">Demo：无监控<br>生产：Tool 调用成功率、延迟 P99、LLM token 用量、成本归因</div>
-    </div>
-    <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
-      <div style="font-size:13px;color:#FF6B35;font-weight:700;">安全</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);">Demo：无输入校验<br>生产：SQL 注入防护、PII 脱敏（手机号只存前三位后四位）、Tool 参数校验</div>
+    <div style="margin-top:10px;padding:10px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;">
+      <div style="font-size:11px;color:#FF6B35;font-weight:600;">RAG 检索优化（Demo 未覆盖）</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.45);margin-top:4px;line-height:1.6;">
+        <strong>Metadata Filtering</strong>：metadata 字段存结构化标签（category/brand/price_range），查询时先过滤再向量搜索<br>
+        <strong>Query Rewrite</strong>：LLM 先抽取意图生成结构化 query，再做检索（不直接用用户原文）
+      </div>
     </div>
   </div>
 </div>

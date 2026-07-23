@@ -7,30 +7,23 @@
         </encoder>
     </appender>
 
-    <!-- 日志1：聊天交互 -->
+    <!-- 日志1：对话交互（每次 LLM 调用的完整请求/响应） -->
     <appender name="LLM_CHAT_FILE" class="ch.qos.logback.core.FileAppender">
         <file>logs/llm-chat.log</file>
         <append>false</append>
         <encoder><pattern>%msg%n</pattern></encoder>
     </appender>
 
-    <!-- 日志2：上下文压缩 -->
-    <appender name="LLM_SUMMARY_FILE" class="ch.qos.logback.core.FileAppender">
-        <file>logs/llm-summary.log</file>
+    <!-- 日志2：路由决策 -->
+    <appender name="LLM_ROUTE_FILE" class="ch.qos.logback.core.FileAppender">
+        <file>logs/llm-route.log</file>
         <append>false</append>
         <encoder><pattern>%msg%n</pattern></encoder>
     </appender>
 
-    <!-- 日志3：用户画像抽取 -->
-    <appender name="LLM_PROFILE_FILE" class="ch.qos.logback.core.FileAppender">
-        <file>logs/llm-profile.log</file>
-        <append>false</append>
-        <encoder><pattern>%msg%n</pattern></encoder>
-    </appender>
-
-    <!-- 日志4：记忆沉淀摘要 -->
-    <appender name="LLM_MEMORY_FILE" class="ch.qos.logback.core.FileAppender">
-        <file>logs/llm-memory.log</file>
+    <!-- 日志3：LLM 抽取操作（画像抽取 + 记忆抽取） -->
+    <appender name="LLM_EXTRACT_FILE" class="ch.qos.logback.core.FileAppender">
+        <file>logs/llm-extract.log</file>
         <append>false</append>
         <encoder><pattern>%msg%n</pattern></encoder>
     </appender>
@@ -40,19 +33,23 @@
         <appender-ref ref="CONSOLE"/>
     </root>
 
+    <!-- 对话日志 -->
     <logger name="LLM_CHAT" level="INFO" additivity="false">
         <appender-ref ref="LLM_CHAT_FILE"/>
     </logger>
 
-    <logger name="LLM_SUMMARY" level="INFO" additivity="false">
-        <appender-ref ref="LLM_SUMMARY_FILE"/>
+    <!-- 路由决策 -->
+    <logger name="LLM_ROUTE" level="INFO" additivity="false">
+        <appender-ref ref="LLM_ROUTE_FILE"/>
     </logger>
 
+    <!-- 画像抽取 -->
     <logger name="LLM_PROFILE" level="INFO" additivity="false">
-        <appender-ref ref="LLM_PROFILE_FILE"/>
+        <appender-ref ref="LLM_EXTRACT_FILE"/>
     </logger>
 
+    <!-- 记忆抽取（对话摘要沉淀） -->
     <logger name="LLM_MEMORY" level="INFO" additivity="false">
-        <appender-ref ref="LLM_MEMORY_FILE"/>
+        <appender-ref ref="LLM_EXTRACT_FILE"/>
     </logger>
 </configuration>

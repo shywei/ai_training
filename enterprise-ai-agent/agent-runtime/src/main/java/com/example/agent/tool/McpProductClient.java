@@ -10,7 +10,6 @@ import io.modelcontextprotocol.spec.McpSchema.TextContent;
 import io.modelcontextprotocol.spec.McpSchema.Tool;
 import jakarta.annotation.PreDestroy;
 import org.springframework.ai.model.function.FunctionCallback;
-import org.springframework.ai.model.function.FunctionCallbackWrapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * MCP 商品查询客户端
@@ -99,10 +97,21 @@ public class McpProductClient {
             for (Tool tool : tools) {
                 String toolName = tool.name();
                 String toolDesc = tool.description();
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                mapper.setSerializationInclusion(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL);
+                String toolSchema = tool.inputSchema() != null
+                        ? mapper.writeValueAsString(tool.inputSchema())
+                        : "{\"type\":\"object\"}";
                 System.out.println("[MCP]   - " + toolName + ": " + toolDesc);
 
-                // 将 MCP Tool 包装为 Spring AI FunctionCallback
-                FunctionCallback callback = wrapMcpToolAsFunctionCallback(toolName, toolDesc);
+                // 使用 McpToolCallback 显式传入 MCP Tool 的 inputSchema
+                FunctionCallback callback = new McpToolCallback(
+                        "mcp_" + toolName,
+                        "[MCP] " + toolDesc,
+                        toolSchema,
+                        mcpClient,
+                        toolName
+                );
                 callbacks.add(callback);
                 names.add(toolName);
             }
@@ -122,44 +131,7 @@ public class McpProductClient {
     /**
      * 将单个 MCP Tool 包装为 Spring AI FunctionCallback
      *
-     * MCP Tool 的 inputSchema 描述了参数结构，
-     * Spring AI 的 FunctionCallbackWrapper 会从 Function 的泛型类型
-     * 自动提取 JSON Schema。这里使用 Map<String, Object> 作为通用入参。
      */
-    private FunctionCallback wrapMcpToolAsFunctionCallback(String toolName, String toolDescription) {
-        // 使用 Map 作为通用输入，MCP Tool 的参数是 Map<String, Object>
-        Function<Map<String, Object>, String> function = arguments -> {
-            System.out.println("[MCP] 调用 MCP Tool: " + toolName + ", 参数: " + arguments);
-            try {
-                CallToolRequest request = new CallToolRequest(toolName, arguments);
-                CallToolResult result = mcpClient.callTool(request);
-
-                // 提取文本内容
-                if (result.content() != null && !result.content().isEmpty()) {
-                    StringBuilder sb = new StringBuilder();
-                    for (Object content : result.content()) {
-                        if (content instanceof TextContent textContent) {
-                            sb.append(textContent.text());
-                        } else {
-                            sb.append(content.toString());
-                        }
-                    }
-                    String response = sb.toString();
-                    System.out.println("[MCP] Tool 响应: " + response);
-                    return response;
-                }
-                return "MCP Tool " + toolName + " 返回空结果";
-            } catch (Exception e) {
-                System.err.println("[MCP] 调用 MCP Tool 失败: " + e.getMessage());
-                return "调用 MCP Tool " + toolName + " 失败: " + e.getMessage();
-            }
-        };
-
-        return FunctionCallbackWrapper.builder(function)
-                .withName("mcp_" + toolName)
-                .withDescription("[MCP] " + toolDescription)
-                .build();
-    }
 
     /**
      * 获取所有 MCP FunctionCallback

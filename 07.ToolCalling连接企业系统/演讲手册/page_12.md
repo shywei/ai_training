@@ -1,21 +1,21 @@
 ## Slide Objective
-对比三种路由方案，解释选型理由和每种方案的适用场景。
+展示 Demo 中 MCP Server 的实际代码和 Tool 注册方式。
 
 ## Suggested Presentation
-三种路由方案，从简单到复杂。
+两个 MCP Server 的实现。
 
-**方案一：关键词过滤**。匹配"多少钱"→ TOOL，匹配"推荐"→ KNOWLEDGE，默认 → CHAT。第六课用过。局限很大："帮我看看那个笔记本"不含"推荐"但需要检索；"这个笔记本怎么样"不含"推荐"但也是知识查询。关键词无法理解语义。
+**mcp-product-server**（端口 8081）：`McpServerConfig.java` 中定义了 3 个 Tool。每个 Tool 用 `new McpSchema.Tool(name, description, schema)` 创建，schema 是 JSON Schema 字符串。然后用 `McpServerFeatures.SyncToolSpecification` 把 Tool 和处理函数绑定。处理函数接收 `(exchange, request)` 参数，从 `request.arguments()` 取参数，调用 `ProductRepository` 查 MySQL，返回 `McpSchema.CallToolResult`。
 
-**方案二：Embedding 相似度**。预定义每个意图的描述（如 KNOWLEDGE 的描述是"用户想了解商品信息、寻求推荐"），用户消息 Embedding 后和意图描述做相似度匹配。效果比关键词好，但需要维护意图描述——新增一个意图就要更新描述。
+`ProductRepository.java` 用 `JdbcTemplate` 查 MySQL 的 `product` 表。替代了原来的 `ProductData.java`（内存硬编码）。这是一个升级——从模拟数据变成真实数据库查询。
 
-**方案三：LLM 分类**。用快模型做三分类。Prompt 就一句话："判断用户消息的意图，只输出 KNOWLEDGE、TOOL 或 CHAT"。语义理解，准确率高，不需维护规则。Demo 采用。
+**mcp-knowledge-server**（端口 8082）：4 个 Tool + 1 个 Resource。Tool 注册方式和 product-server 一样。Resource 用 `McpSchema.ResourceTemplate` 定义 URI 模板（`user://{userId}`），用 `McpServerFeatures.SyncResourceSpecification` 绑定读取回调。回调从 URI 中提取 userId，调用 `UserProfileService` 查 MySQL，返回 JSON。
 
-选型建议：意图少（< 10）用 LLM 分类，成本可忽略（每次约 100 token）；意图多（> 50）考虑 Embedding，避免 LLM 调用成本；规则明确（如"退款"一定是 TOOL）用关键词，最快最准。实际项目中三种方案可以**混合使用**：先关键词快速匹配确定性强的意图，匹配不上再用 LLM。
+这里有个设计决策：Resource 的 URI 模板用 `user://{userId}`，而不是 `user://get?userId=xxx`。URI 模板是 MCP 协议推荐的风格——RESTful、语义清晰。Client 看到 `user://U001` 就知道这是在读取用户 U001 的画像。
 
-Demo 用 LLM 分类还有一个好处：路由判断的结果可以直接在日志中看到（`[Router] 用户意图: KNOWLEDGE`），方便演示和调试。关键词过滤的匹配过程不透明，学员看不到"为什么匹配上了"。
+Server 端代码很简洁——定义 Tool/Resource，注册到 McpServer，完成。复杂的业务逻辑在 Service 层（`VectorSearchService`、`MemoryService`、`UserProfileService`）。
 
 ## Key Emphasis
-LLM 路由的成本可以忽略——每次约 100 token，用最便宜的模型（Qwen2.5-7B）。准确率远高于关键词。不要因为"多一次 LLM 调用"就不用 LLM 路由。
+MCP Server 的职责是"暴露能力"，不是"实现业务"。业务逻辑在 Service 层，MCP 层只做协议转换。这是关注点分离。
 
 ## Transition
-既然了解了这些路由方案，那在行业里，MCP 的真实应用生态是什么样的？我们在调用外部工具时又应该注意哪些安全风险？我们看下一页：生态与安全。
+MCP Server 暴露了 Tool，Agent 怎么知道该用哪个？需要路由机制。

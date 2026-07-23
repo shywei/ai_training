@@ -1,23 +1,30 @@
 ## Slide Objective
-展示 LLM 路由的代码实现，以及路由如何影响 context 构建和 Tool 注册。
+讲解 Tool vs Resource 的选型决策——什么时候用 Tool、什么时候用 Resource。
 
 ## Suggested Presentation
-`LlmRouter.java` 的实现。核心是一个方法：`route(String userMessage)`。用快模型（Qwen2.5-7B）做三分类，temperature=0 保证确定性输出。Prompt 很简单："判断用户消息的意图，只输出 KNOWLEDGE、TOOL 或 CHAT"。
+Tool 和 Resource 是 MCP 的两个核心概念，本质区别是"谁发起"。
 
-这里有个细节：temperature=0 是必须的。如果 temperature > 0，同一个消息可能在不同时间得到不同的路由结果——用户体验不一致。路由需要确定性，生成需要创造性。
+**Tool** 是 LLM 决定调用的。LLM 看到 function definitions，根据用户意图决定"要不要调、调什么、传什么参数"。适合动态查询、写入操作。类比 POST 接口。
 
-`ShoppingAgentController.chat()` 中路由如何影响三个决策：
+**Resource** 是 Client 主动读取的。Client 知道 URI，直接读取数据。不需要 LLM 决策。适合静态上下文、配置数据。类比 GET 接口。
 
-**① 注入什么 context**：始终构建 `memoryManager.buildContext(sessionId, userId, message)`（画像 + 记忆 + 历史）。只有 KNOWLEDGE 路由才追加 RAG 结果：`mcpKnowledgeClient.search(message)`。
+选型决策树：
+- 需要 LLM 决定是否调用？→ Tool
+- 数据量大、需要搜索？→ Tool
+- 会话开始加载一次？→ Resource
+- 数据相对稳定？→ Resource
+- 全量加载合理？→ Resource
 
-**② 注册什么 Tool**：只有 TOOL 路由才注册 product tools：`mcpProductClient.getFunctionCallbacks()`。其他路由不注册，节省 token。
+Demo 中的选型理由：
 
-**③ save_memory 跨路由注册**：`mcpKnowledgeClient.getFunctionCallbacks()` 在所有路由下都注册。这是设计决策——用户随时可能表达偏好。
+`search_knowledge` 是 Tool——需要语义搜索，数据量增长，全量加载不现实。`search_memory` 是 Tool——需要语义搜索历史记忆。`queryProductInfo` 是 Tool——LLM 根据用户意图决定是否查价格。`user://{userId}` 是 Resource——会话开始加载一次，数据相对稳定（用户画像不会每分钟变）。画像是从多轮对话中提炼的结构化标签，由专门的抽取系统维护，是"用户是谁"的权威答案。它比 user_memory（对话历史记录）重要得多——画像是结论，记忆是过程。
 
-这里有个坑：`getFunctionCallbacks()` 返回的列表在 MCP Server 未连接时为空。Demo 做了优雅降级——MCP Server 未启动时 Agent 仍可正常运行，只是 Tool 不可用。日志会显示 `[Tool] MCP Server 未连接，无可用 Tool`。
+商品数据虽然只有 26 个，但**不应该作为 Resource**。原因：商品数据需要语义搜索（"推荐轻薄本"不是简单的 ID 查询），Resource 不支持语义搜索。如果做成 Resource，Client 需要全量加载 26 个商品到 context 中，浪费 token。
+
+有个学员可能会问："Resource 不是更简单吗？为什么不用 Resource 加载所有商品？"答案：Resource 是"读数据"，Tool 是"搜索数据"。26 个商品全量加载到 context 中，LLM 要自己从中筛选，效率低、不准确。Tool 让检索系统做筛选，只返回最相关的 3 个，效率高、准确。
 
 ## Key Emphasis
-路由不只是分类，它决定了整个对话的处理方式。这是第七课和第六课的核心区别——第六课每次都注入 RAG，第七课由路由决定。
+选 Tool 还是 Resource，看两个维度：谁发起（LLM 还是 Client）、数据特征（需要搜索还是全量加载）。
 
 ## Transition
-路由逻辑理顺了，但在设计 MCP 接口时，我们应该怎么在 Tool 和 Resource 两个核心概念之间做选型决策呢？我们看下一页：选型决策。
+知道了 Tool 和 Resource 的区别。现在看 Function Calling 的完整链路——从 MCP Client 到 LLM 调用。

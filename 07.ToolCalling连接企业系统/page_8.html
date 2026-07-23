@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>MCP 协议</title>
+<title>ReAct 模式</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
@@ -8,53 +8,64 @@
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
 </style></head><body>
 <div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 05</div>
-<h1 class="mb-2">MCP 协议 — 为什么需要标准协议</h1>
+<div class="mb-2 sn">CHAPTER 02</div>
+<h1 class="mb-2">ReAct 模式 — Function Calling 的思想基础</h1>
 <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
 <div style="flex:1;display:flex;gap:20px;">
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="padding:14px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;">
-      <div style="font-size:15px;color:#FF6B35;font-weight:700;margin-bottom:6px;">不用 MCP 的做法</div>
-      <div style="font-size:13px;color:rgba(224,231,255,0.55);line-height:1.8;">
-        Tool 代码直接写在 Agent 项目里<br>
-        Agent 直连数据库、直连外部 API<br>
-        换框架 → 代码重写<br>
-        换 Agent → Tool 不能复用<br>
-        每个 Agent 都写一遍 → 重复劳动
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:12px;">ReAct = Reasoning + Acting</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="padding:12px;background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:4px;">
+        <div style="font-size:14px;color:#00E5FF;font-weight:700;">🧠 Reason（推理）</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.55);">LLM 分析当前情况，决定下一步该做什么</div>
       </div>
-    </div>
-    <div style="padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
-      <div style="font-size:15px;color:#00E5FF;font-weight:700;margin-bottom:6px;">MCP 的做法</div>
-      <div style="font-size:13px;color:rgba(224,231,255,0.55);line-height:1.8;">
-        Tool 独立部署为 MCP Server<br>
-        Agent 作为 MCP Client，通过标准协议调用<br>
-        换框架 → 只改 Client，Server 不变<br>
-        换 Agent → MCP Server 通用<br>
-        <strong style="color:#E0E7FF;">一次开发，到处复用</strong>
+      <div style="text-align:center;color:rgba(224,231,255,0.3);font-size:18px;">↓</div>
+      <div style="padding:12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+        <div style="font-size:14px;color:#FF6B35;font-weight:700;">🔧 Act（行动）</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.55);">调用工具获取外部信息或执行操作</div>
+      </div>
+      <div style="text-align:center;color:rgba(224,231,255,0.3);font-size:18px;">↓</div>
+      <div style="padding:12px;background:rgba(34,197,94,0.06);border-left:3px solid #22C55E;border-radius:4px;">
+        <div style="font-size:14px;color:#22C55E;font-weight:700;">👁️ Observe（观察）</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.55);">获取工具返回的结果</div>
+      </div>
+      <div style="text-align:center;color:rgba(224,231,255,0.3);font-size:18px;">↓</div>
+      <div style="padding:12px;background:rgba(168,85,247,0.06);border-left:3px solid #A855F7;border-radius:4px;">
+        <div style="font-size:14px;color:#A855F7;font-weight:700;">🔄 循环</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.55);">基于观察结果继续推理，直到任务完成</div>
       </div>
     </div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:14px;">类比</div>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
-      <div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;">
-        <div style="font-size:14px;color:#E0E7FF;font-weight:600;">REST API → Web 服务间标准协议</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.45);margin-top:4px;">前端不用关心后端用什么语言/框架</div>
-      </div>
-      <div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;">
-        <div style="font-size:14px;color:#E0E7FF;font-weight:600;">USB → 硬件设备间标准协议</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.45);margin-top:4px;">键盘不用关心电脑用什么操作系统</div>
-      </div>
-      <div style="padding:12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
-        <div style="font-size:14px;color:#00E5FF;font-weight:600;">MCP → AI Agent 与 Tool 间标准协议</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.45);margin-top:4px;">Agent 不用关心 Tool 用什么实现</div>
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:12px;">实际例子：多步推理</div>
+    <div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;margin-bottom:12px;">
+      <div style="font-size:12px;color:rgba(224,231,255,0.4);margin-bottom:6px;">用户："拯救者和 MacBook 哪个便宜？"</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.8;">
+        <span style="color:#00E5FF;">推理1：</span>需要查两个商品的价格<br>
+        <span style="color:#FF6B35;">行动1：</span>调用 queryProductInfo("NB003")<br>
+        <span style="color:#22C55E;">观察1：</span>拯救者 ¥8999<br>
+        <span style="color:#00E5FF;">推理2：</span>还需要查 MacBook 的价格<br>
+        <span style="color:#FF6B35;">行动2：</span>调用 queryProductInfo("NB002")<br>
+        <span style="color:#22C55E;">观察2：</span>MacBook ¥14999<br>
+        <span style="color:#A855F7;">推理3：</span>8999 < 14999，拯救者更便宜<br>
+        <span style="color:#E0E7FF;">回复：</span>"拯救者 ¥8999 更便宜"
       </div>
     </div>
-    <div style="padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px;">
-      <div style="font-size:12px;color:rgba(224,231,255,0.4);text-align:center;">
-        <strong style="color:#E0E7FF;">MCP = Model Context Protocol</strong><br>
-        Anthropic 2024 年底提出，已开源<br>
-        不是 Anthropic 独占，是开放标准
+    <div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;">
+      <div style="font-size:13px;color:#E0E7FF;font-weight:600;margin-bottom:6px;">Function Calling 是 ReAct 的工程实现</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.5);line-height:1.8;">
+        ReAct 是 2022 年 Google 的论文提出的思想<br>
+        Function Calling 是 OpenAI 将 ReAct 工程化的方案<br>
+        <strong style="color:#E0E7FF;">LLM 每次 tool_call 就是一次 Reason→Act→Observe</strong>
+      </div>
+    </div>
+    <div style="margin-top:10px;padding:10px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;">
+      <div style="font-size:12px;color:#FF6B35;font-weight:700;">⚠️ Demo 只做到了 Reason + Act</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.5);margin-top:4px;line-height:1.7;">
+        Demo 中 Spring AI 框架自动处理了一次 tool_call<br>
+        不是 LLM 自主控制的多轮循环<br>
+        真正的 Agent Loop 需要 Runtime 控制循环<br>
+        <strong style="color:#E0E7FF;">→ 第八课 Agent Runtime 实现完整循环</strong>
       </div>
     </div>
   </div>

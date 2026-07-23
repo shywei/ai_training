@@ -5,32 +5,46 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
- * LLM 路由器 — 用快模型判断用户意图
+ * LLM 路由器 — 用快模型判断用户意图，并决定使用哪个模型。
  *
- * 替代第六课的关键词过滤，升级为语义理解的意图分类。
- *
- * 第七课核心教学点：
- * - 关键词过滤的局限：无法理解语义（"帮我看看那个笔记本"不含"推荐"但需要检索）
- * - LLM 路由：用快模型先判断意图，再决定调什么
- * - 成本：每次路由多一次 LLM 调用，但用最便宜的快模型（~100 token）
+ * 整合了原 ModelRouter（模型选择）和 LlmRouter（意图路由）的功能，
+ * 一次 LLM 调用同时返回路由决策和推荐模型。
  *
  * 路由决策：
- * - KNOWLEDGE：需要检索商品知识（"推荐笔记本"、"有什么手机"）
- * - TOOL：需要查价格/库存/下单（"多少钱"、"有货吗"、"帮我下单"）
- * - CHAT：普通聊天（"你好"、"今天天气怎么样"）
+ * - KNOWLEDGE：需要检索商品知识
+ * - TOOL：需要查价格/库存
+ * - CHAT：普通聊天
+ *
+ * 模型选择：
+ * - KNOWLEDGE：reasoning 模型（理解用户需求、结合知识推荐）
+ * - TOOL：reasoning 模型（理解参数、多步推理）
+ * - CHAT：chat 模型（快、便宜）
  */
 @Component
 public class LlmRouter {
 
     private final ChatModel chatModel;
-    private final String fastModel;
+    private final String routingModel;
+    private final String chatModelName;
+    private final String reasoningModelName;
+    private static final Logger routeLog = LoggerFactory.getLogger("LLM_ROUTE");
+    private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public LlmRouter(ChatModel chatModel,
-                     @Value("${agent.model.fast}") String fastModel) {
+                     @Value("${agent.model.routing}") String routingModel,
+                     @Value("${agent.model.chat}") String chatModelName,
+                     @Value("${agent.model.reasoning}") String reasoningModelName) {
         this.chatModel = chatModel;
-        this.fastModel = fastModel;
+        this.routingModel = routingModel;
+        this.chatModelName = chatModelName;
+        this.reasoningModelName = reasoningModelName;
     }
 
     /**
@@ -43,12 +57,14 @@ public class LlmRouter {
     }
 
     /**
-     * 判断用户意图
-     *
-     * @param userMessage 用户消息
-     * @return 路由决策
+     * 路由结果：包含意图和推荐模型
      */
-    public Route route(String userMessage) {
+    public record RouteResult(Route route, String model) {}
+
+    /**
+     * 判断用户意图并选择模型
+     */
+    public RouteResult route(String userMessage) {
         String prompt = """
                 判断用户消息的意图，只输出一个词：
                 - KNOWLEDGE：需要查询商品信息、推荐商品、了解商品配置和功能
@@ -61,27 +77,55 @@ public class LlmRouter {
                 """.formatted(userMessage);
 
         try {
+            routeLog.info("\n╔══════════════════════════════════════════════════╗\n║ ROUTE REQUEST  {} ║\n╚══════════════════════════════════════════════════╝\n[Model] {}\n[Prompt]\n{}", LocalDateTime.now().format(FMT), routingModel, prompt);
+
+            long start = System.currentTimeMillis();
+
             String result = ChatClient.create(chatModel)
                     .prompt()
                     .user(prompt)
                     .options(OpenAiChatOptions.builder()
-                            .withModel(fastModel)
+                            .withModel(routingModel)
                             .withTemperature(0.0)
                             .build())
                     .call()
                     .content();
 
-            if (result == null) return Route.CHAT;
+            long duration = System.currentTimeMillis() - start;
 
-            result = result.trim().toUpperCase();
+            Route route;
+            if (result == null) {
+                route = Route.CHAT;
+            } else {
+                result = result.trim().toUpperCase();
+                if (result.contains("TOOL")) route = Route.TOOL;
+                else if (result.contains("KNOWLEDGE")) route = Route.KNOWLEDGE;
+                else route = Route.CHAT;
+            }
 
-            if (result.contains("TOOL")) return Route.TOOL;
-            if (result.contains("KNOWLEDGE")) return Route.KNOWLEDGE;
-            return Route.CHAT;
+            // 根据路由选择模型：TOOL 需要推理能力，其他用 chat 模型
+            String model = selectModel(route);
+
+            routeLog.info("\n╔══════════════════════════════════════════════════╗\n║ ROUTE RESPONSE {} ║\n╚══════════════════════════════════════════════════╝\n[Model] {}\n[Duration] {}ms\n[Result] {}\n[Route] {}\n[Selected Model] {}", LocalDateTime.now().format(FMT), routingModel, duration, result, route, model);
+
+            return new RouteResult(route, model);
 
         } catch (Exception e) {
             System.err.println("[Router] 路由判断失败，默认 CHAT: " + e.getMessage());
-            return Route.CHAT;
+            return new RouteResult(Route.CHAT, chatModelName);
         }
+    }
+
+    /**
+     * 根据路由选择模型
+     *
+     * TOOL 路由需要 reasoning 模型（理解参数、多步推理）
+     * 其他路由用 chat 模型（快、便宜）
+     */
+    private String selectModel(Route route) {
+        return switch (route) {
+            case KNOWLEDGE, TOOL -> reasoningModelName;
+            default -> chatModelName;
+        };
     }
 }

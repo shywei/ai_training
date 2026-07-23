@@ -1,23 +1,23 @@
 ## Slide Objective
-展示 Function Calling 的完整链路和 MCP Client 的 Tool 发现机制。
+过渡页——告诉学员接下来的内容不是新概念，而是有了 Tool/MCP 之后，第六课的知识体系怎么升级。
 
 ## Suggested Presentation
-`McpProductClient.java` 的 `init()` 方法：启动时连接 MCP Server，发现 Tool，包装为 FunctionCallback。
+前面 15 页讲了第七课的核心主题：Function Calling（LLM 怎么调工具）、MCP 协议（工具怎么标准化暴露）、Tool vs Resource（工具的两种形态）。这些是全新的概念。
 
-**① 连接 MCP Server**：`HttpClientSseClientTransport.builder(serverUrl)` 创建 SSE 传输，`McpClient.sync(transport).build()` 创建同步 Client，`mcpClient.initialize()` 执行协议握手。握手过程：Client 发送 `initialize` 请求（包含客户端信息和能力），Server 响应（包含服务端信息和能力），Client 发送 `initialized` 通知。三步完成。
+接下来的内容不是新概念，而是**有了这些能力之后，第六课的知识体系怎么升级**。
 
-**② 发现 Tool**：`mcpClient.listTools()` 返回 Server 暴露的所有 Tool。每个 Tool 有 name、description、inputSchema。inputSchema 是 JSON Schema 格式，定义了参数结构。
+**LLM 路由**：第六课每次都自动注入 RAG，不管用户问什么。有了 Tool/MCP 之后，我们可以让 LLM 判断意图，按需注入——问价格时调 Tool，问推荐时注入 RAG，闲聊时什么都不加。路由不是第七课的新概念，是 Tool 能力带来的架构升级。
 
-**③ 包装为 FunctionCallback**：遍历 Tool 列表，用 `FunctionCallbackWrapper.builder(function)` 创建 callback。function 是一个 lambda：接收 `Map<String, Object>` 参数，调用 `mcpClient.callTool(new CallToolRequest(toolName, arguments))`，提取结果中的 `TextContent`，返回字符串。
+**记忆系统设计**：第六课的记忆读写直连 pgvector（UserMemoryMapper）。有了 MCP 之后，记忆读写统一走协议——MemoryManager 通过 McpKnowledgeClient 调用 MCP Server。同时明确了记忆保存是系统行为（自动沉淀），不是 LLM 行为。
 
-名称加 `mcp_` 前缀——`"mcp_" + tool.name()`。这是为了避免和本地 FunctionCallback 冲突。如果本地也有一个 `queryProductInfo` 函数，不加前缀会冲突。
+**数据分层升级**：第六课的 Agent 直连 MySQL 和 pgvector。有了 MCP 之后，所有数据访问统一通过协议——画像走 MCP Resource，记忆走 MCP Tool，商品知识走 MCP Tool，实时数据走 MCP Tool。Agent 不直接碰任何数据库。
 
-调用时序：用户提问 → LlmRouter 判断 TOOL → 注册 FunctionCallback → ChatClient 构建 LLM API 请求（自动把 callback 转成 function definitions）→ LLM 返回 tool_call → Spring AI 拦截 tool_call → 找到对应的 FunctionCallback → 执行 → 结果回传 LLM → LLM 生成最终回复。
+**context 演进**：第六课的 context 是自动拼接所有信息。有了路由之后，context 按需构建——KNOWLEDGE 注入 RAG，TOOL 注册 FunctionCallback，CHAT 只有画像+记忆+历史。
 
-关键点：LLM 不知道 MCP 的存在。它只看到标准的 function definitions（名称、描述、参数 Schema）。MCP 是 Agent 和 Server 之间的协议，对 LLM 完全透明。
+这四页展示的是：**有了新能力之后，旧系统怎么变好**。这是工程课的特点——不是学完概念就结束，要看概念怎么落地到已有系统中。
 
 ## Key Emphasis
-MCP Tool → FunctionCallback → LLM function definitions，这三层转换是自动的。开发者只需要定义 Tool（Server 端）和注册 callback（Client 端），中间的协议转换由 MCP SDK 和 Spring AI 完成。
+这四页不是"第七课的附加内容"，而是"第六课到第七课的演进"。学员应该看到：同样的业务需求（导购推荐），有了 Tool/MCP 之后，架构变了多少。
 
 ## Transition
-这里有一个设计决策需要讲清楚：save_memory 应该在什么路由下注册？
+先看 LLM 路由——有了 Tool 之后，怎么决定调哪个。

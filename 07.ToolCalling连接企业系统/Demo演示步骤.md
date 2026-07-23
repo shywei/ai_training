@@ -78,17 +78,11 @@ mcp:
     ```text
     [MCP] 连接 MCP Server 成功: http://localhost:8081
     [MCP] 连接 MCP Server 成功: http://localhost:8082
-    [Tool] 发现可用外部工具列表：
-      - mcp_queryProductInfo (来自 product)
-      - mcp_queryPrice (来自 product)
-      - mcp_queryStock (来自 product)
-      - mcp_search_knowledge (来自 knowledge)
-      - mcp_search_memory (来自 knowledge)
-      - mcp_save_memory (来自 knowledge)
     ```
 
 **讲解要点：**
 > *   **标准化协议的好处**：与上一节课 Agent 直连数据库耦合不同，现在 Agent 成了 MCP Client。启动时会自动发送 `initialize` 与 8081/8082 端完成协议握手。开发中，我们不需要重新编写任何向量检索代码，只需像调用本地函数一样自动执行动态包装，让整个微服务架构完美解耦。
+> *   **哪些 Tool 暴露给 LLM**：只有 product-server 的 queryProductInfo/Price/Stock 包装为 FunctionCallback 注册给 LLM。knowledge-server 的 search_knowledge、search_memory 由系统内部调用（context 构建），save_memory 由系统自动沉淀调用，都不暴露给 LLM。
 
 ---
 
@@ -138,29 +132,33 @@ mcp:
 
 ---
 
-### 演示 4：大模型主动调用 Tool 写入记忆（3 分钟）
+### 演示 4：记忆自动沉淀（系统行为）（3 分钟）
 
 **操作：**
-1. 在聊天框输入：“`我目前在寻找一台写代码的电脑，预算要在 8000 元以内，想要轻薄的。`”
-2. 观察控制台。
+1. 连续对话多轮（超过10条消息），触发自动沉淀
+2. 观察控制台日志
 
 **预期结果：**
-*   Agent 回复确认，并在此轮常规聊天中自主触发了写记忆逻辑。
+*   对话达到10条消息时，系统自动触发记忆沉淀
 
 **日志观察（agent-runtime）：**
 *   控制台日志：
     ```text
-    [LLM call] 主动选择调用 mcp_save_memory 工具...
-    [UserProfile] 写入 pgvector: {"userId":"zhangsan","preferences":"预算8000元，想要轻薄本"}
+    [Memory] 消息数 10 达到阈值 10，触发自动沉淀
+    [MCP-Knowledge] 保存记忆: userId=zhangsan, type=conversation
+    [MCP-Knowledge] 记忆保存成功
+    [Memory] ✅ 自动沉淀完成
+    [Memory] Redis 已清空
     ```
 *   **PostgreSQL 验证（命令行运行）**：
     ```bash
     psql -U postgres -d agent_db -c "SELECT content FROM user_memory WHERE user_id = 'zhangsan';"
-    # 能够看到成功保存了这一条偏好数据
+    # 能够看到系统自动沉淀的对话摘要
     ```
 
 **讲解要点：**
-> *   **Tool + Prompt 结合机制**：有些 Tool 不需要 LLM 做复杂思考（如查价格），但对于把记忆存盘（`save_memory`）这种隐式行为，我们必须在 `PromptManager` 中配套“记忆使用规则”，告诉大模型：`当用户表达偏好、约束和预算时，主动调用 save_memory 写入。` LLM 结合了 Prompt 规则与 Tool 能力，才实现了主动记忆的构建。
+> *   **记忆保存是系统行为**：save_memory MCP Tool 存在，但不暴露给 LLM。由 MemoryManager 在对话达到阈值时自动调用。
+> *   **画像 vs 记忆**：画像（user_profile MySQL）由 UserProfileExtractor 从对话中提炼结构化标签；记忆（user_memory pgvector）由系统自动沉淀对话事实。画像 > 记忆：画像是结论，记忆是过程。
 
 ---
 
@@ -174,6 +172,14 @@ mcp:
 *   **原因**：路由阶段温度过高，或者问法不够具体，被路由判定为了 `CHAT` 或 `KNOWLEDGE`。
 *   **解决**：检查控制台 `[Router]` 的路由输出。多说几次“多少钱”、“是否有货”，或者在 Prompt 中强化行为规则。
 
+### Q: RAG 检索结果不准确（Demo 未覆盖的优化）
+*   **原因**：Demo 直接用用户原文做向量检索，短 query（如“多少钱”）缺少产品上下文。
+*   **生产优化**：
+    *   **Query Rewrite**：LLM 先抽取意图生成结构化 query，再做检索
+    *   **Metadata Filtering**：metadata 存结构化标签，查询时先过滤再向量搜索
+    *   **Rerank**：用交叉编码器对 Top-K 结果精排
+*   Demo 跳过了这些步骤，学员做项目时需要补上。
+
 ---
 
 ## 演示时间分配
@@ -184,5 +190,5 @@ mcp:
 | 演示 1 | 握手握手握手，SSE 发现 Tools | 2 分钟 |
 | 演示 2 | 闲聊/知识/工具的三意图判定展示 | 3 分钟 |
 | 演示 3 | 查价格/库存 MySQL 与 RAG 的数据分层协作 | 3 分钟 |
-| 演示 4 | LLM 收到偏好自动调 Tool 写入 pgvector 记忆 | 2 分钟 |
+| 演示 4 | 记忆自动沉淀（系统行为） | 2 分钟 |
 | **合计** | | **11 分钟** |

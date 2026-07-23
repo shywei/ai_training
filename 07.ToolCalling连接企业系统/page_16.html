@@ -1,52 +1,63 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>Function Calling 链路</title>
+<title>从能力到应用</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
 .s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-.code{font-size:10px;color:rgba(224,231,255,0.55);line-height:1.5;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace}
 </style></head><body>
 <div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 12</div>
-<h1 class="mb-2">Function Calling 完整链路 + MCP Client 代码</h1>
+<div class="mb-2 sn">CHAPTER 04</div>
+<h1 class="mb-2">从能力到应用 — Tool/MCP 如何改变 Agent</h1>
 <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
 <div style="flex:1;display:flex;gap:20px;">
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:13px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">McpProductClient.java — Tool 发现 + 包装</div>
-    <div class="code" style="margin-bottom:10px;">@PostConstruct<br>public void init() {<br>&nbsp;&nbsp;// 1. 连接 MCP Server<br>&nbsp;&nbsp;mcpClient = McpClient.sync(transport)<br>&nbsp;&nbsp;&nbsp;&nbsp;.requestTimeout(Duration.ofSeconds(10))<br>&nbsp;&nbsp;&nbsp;&nbsp;.build();<br>&nbsp;&nbsp;mcpClient.initialize();<br><br>&nbsp;&nbsp;// 2. 发现 Tool<br>&nbsp;&nbsp;ListToolsResult tools = mcpClient.listTools();<br><br>&nbsp;&nbsp;// 3. 包装为 FunctionCallback<br>&nbsp;&nbsp;for (Tool tool : tools.tools()) {<br>&nbsp;&nbsp;&nbsp;&nbsp;FunctionCallback cb = FunctionCallbackWrapper<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.builder(function)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.withName("mcp_" + tool.name())<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.withDescription(tool.description())<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.build();<br>&nbsp;&nbsp;&nbsp;&nbsp;callbacks.add(cb);<br>&nbsp;&nbsp;}<br>}</div>
-    <div style="font-size:11px;color:rgba(224,231,255,0.4);">
-      <strong style="color:#E0E7FF;">Demo 已覆盖</strong> · 自动发现 MCP Server 的所有 Tool
-    </div>
-  </div>
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:13px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">调用时序</div>
-    <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:14px;">
-      <div style="padding:6px 10px;background:rgba(0,229,255,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
-        <span style="color:#00E5FF;">①</span> 用户："ThinkPad X1 多少钱"
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:12px;">前面讲了什么（能力层）</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+      <div style="padding:10px;background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:4px;">
+        <div style="font-size:13px;color:#00E5FF;font-weight:600;">Function Calling</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);">LLM 能调用工具（怎么调）</div>
       </div>
-      <div style="padding:6px 10px;background:rgba(0,229,255,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
-        <span style="color:#00E5FF;">②</span> LlmRouter → TOOL
+      <div style="padding:10px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+        <div style="font-size:13px;color:#FF6B35;font-weight:600;">MCP 协议</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);">工具标准化暴露（怎么发现）</div>
       </div>
-      <div style="padding:6px 10px;background:rgba(255,107,53,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
-        <span style="color:#FF6B35;">③</span> 注册 FunctionCallback → LLM API 请求携带 functions
-      </div>
-      <div style="padding:6px 10px;background:rgba(255,107,53,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
-        <span style="color:#FF6B35;">④</span> LLM 返回 tool_call: mcp_queryProductInfo("NB001")
-      </div>
-      <div style="padding:6px 10px;background:rgba(34,197,94,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
-        <span style="color:#22C55E;">⑤</span> FunctionCallback → MCP Client → MCP Server → MySQL
-      </div>
-      <div style="padding:6px 10px;background:rgba(34,197,94,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
-        <span style="color:#22C55E;">⑥</span> 结果回传 LLM → 最终回复
+      <div style="padding:10px;background:rgba(34,197,94,0.06);border-left:3px solid #22C55E;border-radius:4px;">
+        <div style="font-size:13px;color:#22C55E;font-weight:600;">Tool vs Resource</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);">工具的两种形态（怎么选）</div>
       </div>
     </div>
     <div style="padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px;">
-      <div style="font-size:11px;color:rgba(224,231,255,0.4);">
-        <strong style="color:#E0E7FF;">LLM 不知道 MCP 的存在</strong><br>
-        它只看到标准的 function definitions<br>
-        MCP 是 Agent ↔ Server 的协议，对 LLM 透明
+      <div style="font-size:12px;color:rgba(224,231,255,0.4);text-align:center;">
+        这些是<strong style="color:#E0E7FF;">第七课的核心主题</strong>——Tool Calling 的基础能力
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;"><div style="font-size:36px;color:rgba(0,229,255,0.3);">→</div></div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:12px;">接下来讲什么（应用层）</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+      <div style="padding:10px;background:rgba(168,85,247,0.06);border-left:3px solid #A855F7;border-radius:4px;">
+        <div style="font-size:13px;color:#A855F7;font-weight:600;">LLM 路由</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);">有了 Tool → 需要决定调哪个（第六课没有）</div>
+      </div>
+      <div style="padding:10px;background:rgba(168,85,247,0.06);border-left:3px solid #A855F7;border-radius:4px;">
+        <div style="font-size:13px;color:#A855F7;font-weight:600;">记忆系统设计</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);">有了 MCP → 记忆读写走协议（第六课直连 DB）</div>
+      </div>
+      <div style="padding:10px;background:rgba(168,85,247,0.06);border-left:3px solid #A855F7;border-radius:4px;">
+        <div style="font-size:13px;color:#A855F7;font-weight:600;">数据分层升级</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);">有了 MCP → 全部通过协议访问（第六课直连 DB）</div>
+      </div>
+      <div style="padding:10px;background:rgba(168,85,247,0.06);border-left:3px solid #A855F7;border-radius:4px;">
+        <div style="font-size:13px;color:#A855F7;font-weight:600;">context 演进</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);">路由决定注入内容（第六课全部自动注入）</div>
+      </div>
+    </div>
+    <div style="padding:10px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:4px;">
+      <div style="font-size:12px;color:rgba(224,231,255,0.4);text-align:center;">
+        这些是<strong style="color:#A855F7;">第六课→第七课的演进</strong>——有了能力之后怎么用
       </div>
     </div>
   </div>

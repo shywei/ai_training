@@ -1,67 +1,61 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>ReAct 模式</title>
+<title>两种实现方式</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
 .s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.code{font-size:11px;color:rgba(224,231,255,0.6);line-height:1.6;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace}
 </style></head><body>
 <div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 06</div>
-<h1 class="mb-2">ReAct 模式 — Function Calling 的思想基础</h1>
+<div class="mb-2 sn">CHAPTER 02</div>
+<h1 class="mb-2">两种实现方式 — @Tool vs FunctionCallbackWrapper</h1>
 <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
 <div style="flex:1;display:flex;gap:20px;">
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:12px;">ReAct = Reasoning + Acting</div>
-    <div style="display:flex;flex-direction:column;gap:8px;">
-      <div style="padding:12px;background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:4px;">
-        <div style="font-size:14px;color:#00E5FF;font-weight:700;">🧠 Reason（推理）</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.55);">LLM 分析当前情况，决定下一步该做什么</div>
-      </div>
-      <div style="text-align:center;color:rgba(224,231,255,0.3);font-size:18px;">↓</div>
-      <div style="padding:12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
-        <div style="font-size:14px;color:#FF6B35;font-weight:700;">🔧 Act（行动）</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.55);">调用工具获取外部信息或执行操作</div>
-      </div>
-      <div style="text-align:center;color:rgba(224,231,255,0.3);font-size:18px;">↓</div>
-      <div style="padding:12px;background:rgba(34,197,94,0.06);border-left:3px solid #22C55E;border-radius:4px;">
-        <div style="font-size:14px;color:#22C55E;font-weight:700;">👁️ Observe（观察）</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.55);">获取工具返回的结果</div>
-      </div>
-      <div style="text-align:center;color:rgba(224,231,255,0.3);font-size:18px;">↓</div>
-      <div style="padding:12px;background:rgba(168,85,247,0.06);border-left:3px solid #A855F7;border-radius:4px;">
-        <div style="font-size:14px;color:#A855F7;font-weight:700;">🔄 循环</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.55);">基于观察结果继续推理，直到任务完成</div>
-      </div>
+    <div style="padding:12px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:6px;margin-bottom:10px;">
+      <div style="font-size:14px;color:#22C55E;font-weight:700;margin-bottom:6px;">方式一：@Tool 注解（Spring AI 1.0.0+ GA）</div>
+      <div class="code">@Tool(description = "查询商品价格")<br>public String getPrice(<br>&nbsp;&nbsp;@ToolParam("商品ID") String productId<br>) {<br>&nbsp;&nbsp;return productRepo.getPrice(productId);<br>}</div>
+      <div style="font-size:11px;color:#22C55E;margin-top:6px;">✓ 声明式，简洁，自动提取 JSON Schema</div>
+    </div>
+    <div style="padding:12px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;">
+      <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:6px;">方式二：FunctionCallbackWrapper（M4 版本）</div>
+      <div class="code">Function&lt;Map, String&gt; fn = args -> {<br>&nbsp;&nbsp;return productRepo.getPrice(<br>&nbsp;&nbsp;&nbsp;&nbsp;(String) args.get("productId"));<br>};<br><br>FunctionCallbackWrapper.builder(fn)<br>&nbsp;&nbsp;.withName("getPrice")<br>&nbsp;&nbsp;.withDescription("查询商品价格")<br>&nbsp;&nbsp;.build();</div>
+      <div style="font-size:11px;color:#FF6B35;margin-top:6px;">✓ 编程式，灵活，手动控制 Schema</div>
     </div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:12px;">实际例子：多步推理</div>
-    <div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;margin-bottom:12px;">
-      <div style="font-size:12px;color:rgba(224,231,255,0.4);margin-bottom:6px;">用户："拯救者和 MacBook 哪个便宜？"</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.8;">
-        <span style="color:#00E5FF;">推理1：</span>需要查两个商品的价格<br>
-        <span style="color:#FF6B35;">行动1：</span>调用 queryProductInfo("NB003")<br>
-        <span style="color:#22C55E;">观察1：</span>拯救者 ¥8999<br>
-        <span style="color:#00E5FF;">推理2：</span>还需要查 MacBook 的价格<br>
-        <span style="color:#FF6B35;">行动2：</span>调用 queryProductInfo("NB002")<br>
-        <span style="color:#22C55E;">观察2：</span>MacBook ¥14999<br>
-        <span style="color:#A855F7;">推理3：</span>8999 < 14999，拯救者更便宜<br>
-        <span style="color:#E0E7FF;">回复：</span>"拯救者 ¥8999 更便宜"
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:12px;">选型对比</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+      <div style="display:flex;padding:8px 12px;background:rgba(224,231,255,0.02);border-radius:4px;font-size:12px;">
+        <span style="flex:1;color:rgba(224,231,255,0.4);">维度</span>
+        <span style="flex:1;color:#22C55E;">@Tool</span>
+        <span style="flex:1;color:#FF6B35;">Wrapper</span>
+      </div>
+      <div style="display:flex;padding:8px 12px;background:rgba(224,231,255,0.02);border-radius:4px;font-size:12px;">
+        <span style="flex:1;color:rgba(224,231,255,0.4);">版本</span>
+        <span style="flex:1;color:rgba(224,231,255,0.55);">1.0.0+ GA</span>
+        <span style="flex:1;color:rgba(224,231,255,0.55);">1.0.0-M4</span>
+      </div>
+      <div style="display:flex;padding:8px 12px;background:rgba(224,231,255,0.02);border-radius:4px;font-size:12px;">
+        <span style="flex:1;color:rgba(224,231,255,0.4);">风格</span>
+        <span style="flex:1;color:rgba(224,231,255,0.55);">声明式</span>
+        <span style="flex:1;color:rgba(224,231,255,0.55);">编程式</span>
+      </div>
+      <div style="display:flex;padding:8px 12px;background:rgba(224,231,255,0.02);border-radius:4px;font-size:12px;">
+        <span style="flex:1;color:rgba(224,231,255,0.4);">Schema</span>
+        <span style="flex:1;color:rgba(224,231,255,0.55);">自动提取</span>
+        <span style="flex:1;color:rgba(224,231,255,0.55);">手动定义</span>
       </div>
     </div>
-    <div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;">
-      <div style="font-size:13px;color:#E0E7FF;font-weight:600;margin-bottom:6px;">Function Calling 是 ReAct 的工程实现</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.5);line-height:1.8;">
-        ReAct 是 2022 年 Google 的论文提出的思想<br>
-        Function Calling 是 OpenAI 将 ReAct 工程化的方案<br>
-        <strong style="color:#E0E7FF;">LLM 每次 tool_call 就是一次 Reason→Act→Observe</strong>
+    <div style="padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
+      <div style="font-size:13px;color:#00E5FF;font-weight:600;">Demo 用 M4（FunctionCallbackWrapper）</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px;">
+        原因：保持和前几课 Spring AI 版本一致<br>
+        生产建议：升级到 GA 版本用 @Tool，更简洁<br>
+        <strong style="color:#E0E7FF;">Demo 已覆盖</strong>，@Tool 仅 PPT 讲解
       </div>
-    </div>
-    <div style="margin-top:10px;padding:10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
-      <div style="font-size:11px;color:#00E5FF;font-weight:600;">为什么这很重要？</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-top:2px;">理解 ReAct，才能理解为什么 LLM 会"决定"调用工具——这不是随机的，是推理的结果</div>
     </div>
   </div>
 </div>

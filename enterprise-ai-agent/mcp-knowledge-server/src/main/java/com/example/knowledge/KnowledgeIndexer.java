@@ -100,6 +100,7 @@ public class KnowledgeIndexer {
     private String buildContent(Map<String, Object> product) {
         StringBuilder sb = new StringBuilder();
 
+        sb.append("商品ID：").append(product.get("id")).append("\n");
         sb.append("商品名称：").append(product.get("name")).append("\n");
         sb.append("品牌：").append(product.get("brand")).append("\n");
         sb.append("类别：").append(product.get("category")).append("\n");

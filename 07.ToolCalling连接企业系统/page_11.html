@@ -1,38 +1,67 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>MCP Server 实现</title>
+<title>MCP 架构</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
 .s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-.code{font-size:10px;color:rgba(224,231,255,0.55);line-height:1.5;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace;overflow:hidden}
 </style></head><body>
 <div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 08</div>
-<h1 class="mb-2">Demo 中的两个 MCP Server</h1>
+<div class="mb-2 sn">CHAPTER 03</div>
+<h1 class="mb-2">MCP 架构 — Client / Server / Transport</h1>
 <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
-<div style="flex:1;display:flex;gap:16px;">
+<div style="flex:1;display:flex;gap:20px;">
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:10px;">mcp-product-server (:8081)</div>
-    <div style="padding:10px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:4px;margin-bottom:8px;">
-      <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-bottom:4px;">McpServerConfig.java — Tool 注册</div>
-      <div class="code">McpSchema.Tool productInfoTool =<br>&nbsp;&nbsp;new McpSchema.Tool(<br>&nbsp;&nbsp;&nbsp;&nbsp;"queryProductInfo",<br>&nbsp;&nbsp;&nbsp;&nbsp;"查询商品价格和库存...",<br>&nbsp;&nbsp;&nbsp;&nbsp;productIdSchema);<br><br>McpServer.sync(transportProvider)<br>&nbsp;&nbsp;.serverInfo("product-server","1.0.0")<br>&nbsp;&nbsp;.capabilities(...)<br>&nbsp;&nbsp;.tools(productInfoSpec, priceSpec, stockSpec)<br>&nbsp;&nbsp;.build();</div>
-    </div>
-    <div style="font-size:11px;color:rgba(224,231,255,0.4);">
-      3 个 Tool · 数据来自 MySQL product 表<br>
-      <strong style="color:#E0E7FF;">Demo 已覆盖</strong>
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:14px;">三层架构</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="padding:14px;background:rgba(0,229,255,0.06);border:2px solid rgba(0,229,255,0.2);border-radius:8px;">
+        <div style="font-size:15px;color:#00E5FF;font-weight:700;">Client Layer</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px;">McpClient / McpSyncClient<br>连接 Server、发现 Tool、调用 Tool</div>
+      </div>
+      <div style="text-align:center;font-size:12px;color:rgba(224,231,255,0.3);">↕ JSON-RPC 2.0</div>
+      <div style="padding:14px;background:rgba(168,85,247,0.06);border:2px solid rgba(168,85,247,0.2);border-radius:8px;">
+        <div style="font-size:15px;color:#A855F7;font-weight:700;">Transport Layer</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px;">SSE（HTTP Server-Sent Events）<br>stdio（标准输入输出）· 自定义</div>
+      </div>
+      <div style="text-align:center;font-size:12px;color:rgba(224,231,255,0.3);">↕</div>
+      <div style="padding:14px;background:rgba(255,107,53,0.06);border:2px solid rgba(255,107,53,0.2);border-radius:8px;">
+        <div style="font-size:15px;color:#FF6B35;font-weight:700;">Server Layer</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px;">McpServer / McpSyncServer<br>暴露 Tool、Resource、Prompt</div>
+      </div>
     </div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:10px;">mcp-knowledge-server (:8082)</div>
-    <div style="padding:10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;margin-bottom:8px;">
-      <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-bottom:4px;">McpServerConfig.java — Tool + Resource</div>
-      <div class="code">// 4 个 Tool<br>searchKnowledgeSpec &nbsp;// RAG 检索<br>searchMemorySpec &nbsp;&nbsp;&nbsp;// 记忆检索<br>saveMemorySpec &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 记忆写入<br>indexKnowledgeSpec &nbsp;// 知识索引<br><br>// 1 个 Resource Template<br>ResourceTemplate userTemplate =<br>&nbsp;&nbsp;new ResourceTemplate("user://{userId}",...);<br><br>.capabilities(tools(true).resources(true))<br>.tools(spec1, spec2, spec3, spec4)<br>.resources(userResourceSpec)</div>
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:14px;">传输方式选型</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+      <div style="display:flex;padding:10px 12px;background:rgba(224,231,255,0.02);border-radius:4px;font-size:12px;">
+        <span style="flex:1;color:rgba(224,231,255,0.4);">方式</span>
+        <span style="flex:1;color:rgba(224,231,255,0.4);">场景</span>
+        <span style="flex:1;color:rgba(224,231,255,0.4);">Demo</span>
+      </div>
+      <div style="display:flex;padding:10px 12px;background:rgba(224,231,255,0.02);border-radius:4px;font-size:12px;">
+        <span style="flex:1;color:#00E5FF;">SSE</span>
+        <span style="flex:1;color:rgba(224,231,255,0.55);">远程服务</span>
+        <span style="flex:1;color:#22C55E;">✓ 已覆盖</span>
+      </div>
+      <div style="display:flex;padding:10px 12px;background:rgba(224,231,255,0.02);border-radius:4px;font-size:12px;">
+        <span style="flex:1;color:#A855F7;">stdio</span>
+        <span style="flex:1;color:rgba(224,231,255,0.55);">本地进程</span>
+        <span style="flex:1;color:rgba(224,231,255,0.4);">仅讲解</span>
+      </div>
+      <div style="display:flex;padding:10px 12px;background:rgba(224,231,255,0.02);border-radius:4px;font-size:12px;">
+        <span style="flex:1;color:rgba(224,231,255,0.4);">自定义</span>
+        <span style="flex:1;color:rgba(224,231,255,0.55);">特殊需求</span>
+        <span style="flex:1;color:rgba(224,231,255,0.4);">仅讲解</span>
+      </div>
     </div>
-    <div style="font-size:11px;color:rgba(224,231,255,0.4);">
-      4 个 Tool + 1 个 Resource · pgvector + MySQL<br>
-      <strong style="color:#E0E7FF;">Demo 已覆盖</strong>
+    <div style="padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
+      <div style="font-size:13px;color:#00E5FF;font-weight:600;">Demo 用 SSE</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px;">
+        Server 端：HttpServletSseServerTransportProvider<br>
+        Client 端：HttpClientSseClientTransport<br>
+        基于 HTTP，适合远程微服务部署
+      </div>
     </div>
   </div>
 </div>

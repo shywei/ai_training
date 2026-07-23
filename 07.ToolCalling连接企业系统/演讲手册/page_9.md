@@ -1,27 +1,21 @@
 ## Slide Objective
-讲解 MCP 的四大核心概念。
+建立 MCP 协议的认知：为什么需要标准协议、不用 MCP 的问题是什么。
 
 ## Suggested Presentation
-MCP 定义了四大能力：
+不用 MCP 的做法：Tool 代码直接写在 Agent 项目里。`ShoppingAgentController` 里直接调 `RetrievalService`（查 pgvector）、直接调 `UserProfileMapper`（查 MySQL）。能用，但有问题。
 
-Tool——LLM 可调用的函数。搜索、查询、写入。LLM 决定何时调用。Demo 中的 search_knowledge、queryProductInfo 都是 Tool。
+第一个问题：**耦合**。Agent 和数据库绑定。换数据库（比如从 pgvector 换到 Milvus），Agent 代码要改。第二个问题：**不可复用**。每个 Agent 都要写一遍同样的 Tool 逻辑。导购 Agent 写了查商品的代码，客服 Agent 要再写一遍。第三个问题：**不可独立部署**。Tool 逻辑和 Agent 逻辑在同一个进程里，不能独立扩缩容。商品查询是高频操作，需要多部署几个实例，但 Agent 本身不需要。
 
-Resource——Client 可读取的数据。文件、配置、上下文。Client 主动读取。Demo 中的 user://{userId} 用户画像是 Resource。
+MCP 的做法：Tool 独立部署为 MCP Server，Agent 作为 MCP Client 通过标准协议调用。一次开发，到处复用。换框架只改 Client，Server 不变。换 Agent，MCP Server 通用。
 
-Prompts——预定义的 Prompt 模板。Server 提供，Client 选择使用。Demo 未覆盖。
+类比：REST API 之于 Web 服务，MCP 之于 AI Agent 和 Tool。有了标准协议，生态才能繁荣。
 
-Sampling——Server 请求 Client 调用 LLM。服务端编排场景。Demo 未覆盖。
+MCP 是 Anthropic 2024 年底提出的开放标准，已开源（Apache 2.0 协议）。不是 Anthropic 独占——Claude Desktop、Cursor、Windsurf、OpenClaw 都支持。MCP 正在成为 AI Tool 的事实标准。
 
-Demo 覆盖了 Tool 和 Resource 两个核心概念。Prompts 和 Sampling 是扩展能力，企业场景中会用到。
+Demo 中有两个 MCP Server：mcp-product-server（端口 8081）提供商品查询 Tool，mcp-knowledge-server（端口 8082）提供知识检索、记忆服务和用户画像。agent-runtime 作为 MCP Client，不直接访问任何数据库。
 
 ## Key Emphasis
-Tool 和 Resource 是最核心的两个概念。Tool 是"做事"，Resource 是"读数据"。后面有专门一页讲选型。
-
-## Take Away
-MCP 四大能力：Tool（做事）、Resource（读数据）、Prompt（模板）、Sampling（编排）。
-
-## Why This Slide Matters
-没有这页，学员只知道 Tool 不知道 Resource，不知道 MCP 的完整能力。
+MCP 的核心价值不是"技术先进"，而是"标准化"。标准化意味着：Tool 可以复用、可以独立部署、可以被任何支持 MCP 的 Agent 调用。这是企业架构的基本原则。
 
 ## Transition
-知道了概念，MCP 的技术架构是什么样的？
+MCP 协议定义了四大能力：Tool、Resource、Prompt、Sampling。每个能力解决不同的问题。

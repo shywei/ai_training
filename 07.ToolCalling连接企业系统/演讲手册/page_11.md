@@ -1,21 +1,25 @@
 ## Slide Objective
-展示 Demo 中 MCP Server 的实际代码和 Tool 注册方式。
+讲解 MCP 的三层架构（Client / Transport / Server）和传输方式选型——学员需要理解 MCP 的通信机制，才能看懂 Demo 中的 transport 配置。
 
 ## Suggested Presentation
-两个 MCP Server 的实现。
+MCP 是三层架构。
 
-**mcp-product-server**（端口 8081）：`McpServerConfig.java` 中定义了 3 个 Tool。每个 Tool 用 `new McpSchema.Tool(name, description, schema)` 创建，schema 是 JSON Schema 字符串。然后用 `McpServerFeatures.SyncToolSpecification` 把 Tool 和处理函数绑定。处理函数接收 `(exchange, request)` 参数，从 `request.arguments()` 取参数，调用 `ProductRepository` 查 MySQL，返回 `McpSchema.CallToolResult`。
+**Client Layer**：`McpClient` / `McpSyncClient`。负责连接 Server、发现 Tool、调用 Tool。Demo 中的 `McpProductClient` 和 `McpKnowledgeClient` 都是 MCP Client。
 
-`ProductRepository.java` 用 `JdbcTemplate` 查 MySQL 的 `product` 表。替代了原来的 `ProductData.java`（内存硬编码）。这是一个升级——从模拟数据变成真实数据库查询。
+**Transport Layer**：通信传输层。MCP 基于 JSON-RPC 2.0 协议（和 JSON API 类似）。传输方式有三种：
 
-**mcp-knowledge-server**（端口 8082）：4 个 Tool + 1 个 Resource。Tool 注册方式和 product-server 一样。Resource 用 `McpSchema.ResourceTemplate` 定义 URI 模板（`user://{userId}`），用 `McpServerFeatures.SyncResourceSpecification` 绑定读取回调。回调从 URI 中提取 userId，调用 `UserProfileService` 查 MySQL，返回 JSON。
+- **SSE（HTTP Server-Sent Events）**：基于 HTTP，适合远程微服务部署。Server 端用 `HttpServletSseServerTransportProvider`，Client 端用 `HttpClientSseClientTransport`。Demo 用的就是这种方式。
+- **stdio（标准输入输出）**：适合本地进程通信。Claude Desktop 调用本地 MCP Server 用的就是 stdio。不需要网络，延迟最低。
+- **自定义传输**：实现 `Transport` 接口，适合特殊需求（如 WebSocket、gRPC）。
 
-这里有个设计决策：Resource 的 URI 模板用 `user://{userId}`，而不是 `user://get?userId=xxx`。URI 模板是 MCP 协议推荐的风格——RESTful、语义清晰。Client 看到 `user://U001` 就知道这是在读取用户 U001 的画像。
+**Server Layer**：`McpServer` / `McpSyncServer`。负责暴露 Tool、Resource、Prompt。Server 启动后监听 SSE 端点，Client 通过 HTTP 连接。
 
-Server 端代码很简洁——定义 Tool/Resource，注册到 McpServer，完成。复杂的业务逻辑在 Service 层（`VectorSearchService`、`MemoryService`、`UserProfileService`）。
+传输方式选型看部署场景：远程微服务用 SSE（Demo 的选择），本地工具用 stdio（Claude Desktop 的选择），特殊需求用自定义。大多数企业场景用 SSE——MCP Server 作为独立服务部署，Agent 通过 HTTP 调用。
+
+Demo 中的 SSE 端点配置：Server 端 `messageEndpoint("/mcp/message")`，Servlet 注册到 `/mcp/sse`。Client 端 `HttpClientSseClientTransport.builder(serverUrl)` 连接。
 
 ## Key Emphasis
-MCP Server 的职责是"暴露能力"，不是"实现业务"。业务逻辑在 Service 层，MCP 层只做协议转换。这是关注点分离。
+三层架构让 MCP 有清晰的职责分离。Client 不关心 Server 用什么语言实现，Server 不关心 Client 是什么框架。Transport 层是中间的桥梁。
 
 ## Transition
-MCP Server 暴露了 Tool，Agent 怎么知道该用哪个？需要路由机制。
+看 Demo 中的两个 MCP Server 具体怎么实现。

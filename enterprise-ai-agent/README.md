@@ -42,7 +42,7 @@ cd web && npm install && npm run dev
 │  context = 画像(MCP Resource) + 记忆(MCP Tool) + 历史(Redis)  │
 │          + RAG(MCP Tool,仅KNOWLEDGE) + Tool结果(仅TOOL)     │
 │                                                      │
-│  save_memory FunctionCallback（跨路由可用）           │
+│  记忆通过系统自动沉淀（不暴露给 LLM）        │
 └───────┬──────────────────────────┬───────────────────┘
         │ MCP (SSE)                │ MCP (SSE)
         ▼                          ▼
@@ -69,30 +69,23 @@ cd web && npm install && npm run dev
 
 | 数据 | 存储 | 访问方式 | MCP Server |
 |------|------|---------|------------|
-| 用户画像 | MySQL | Resource: user://{userId} | mcp-knowledge-server |
-| 用户记忆 | pgvector | Tool: search_memory / save_memory | mcp-knowledge-server |
+| 用户画像 | MySQL | Resource: user://{userId}（会话开始加载） | mcp-knowledge-server |
+| 用户记忆 | pgvector | Tool: search_memory（系统自动沉淀） | mcp-knowledge-server |
 | 商品知识 | pgvector | Tool: search_knowledge | mcp-knowledge-server |
 | 商品实时数据 | MySQL | Tool: queryProductInfo 等 | mcp-product-server |
 
-### 记忆读写路径
+### 记忆架构
 
 ```
-所有持久化存储统一通过 MCP 协议访问：
+用户画像（user_profile MySQL）：用户是谁（提炼后的结构化标签）
+  → UserProfileExtractor 从对话中抽取 → 写入 MySQL
+  → 通过 MCP Resource 读取
 
-画像读取：
-  MemoryManager → McpKnowledgeClient.readUserProfile() → MCP Resource → MySQL
+用户记忆（user_memory pgvector）：对话中发生了什么（事实记录）
+  → MemoryManager 自动沉淀（10条消息触发）→ 通过 MCP 写入 pgvector
+  → 通过 MCP Tool 语义搜索
 
-记忆读取：
-  MemoryManager → McpKnowledgeClient.searchMemory() → MCP Tool → pgvector
-
-记忆写入（系统沉淀）：
-  MemoryManager → McpKnowledgeClient.saveMemory() → MCP Tool → pgvector
-
-记忆写入（LLM 主动）：
-  LLM → mcp_save_memory FunctionCallback → MCP Tool → pgvector
-
-记忆写入（后台提取）：
-  UserProfileExtractor → UserMemoryService → McpKnowledgeClient.saveMemory() → MCP → pgvector
+画像 > 记忆：画像是结论，记忆是过程。画像从多轮记忆中提炼。
 ```
 
 ### Tool vs Resource
@@ -109,7 +102,6 @@ enterprise-ai-agent/
 ├── agent-runtime/               # 后端（Spring Boot, MCP Client）
 │   └── src/main/java/com/example/agent/
 │       ├── core/                # v1.0 核心组件
-│       │   ├── ModelRouter.java
 │       │   ├── PromptManager.java          # System Prompt + User Prompt
 │       │   ├── StructuredOutputHandler.java
 │       │   ├── GuardrailsService.java
@@ -117,16 +109,15 @@ enterprise-ai-agent/
 │       │   └── LlmInteractionLogger.java
 │       ├── memory/              # v2.0 记忆组件
 │       │   ├── SessionMemory.java       # Redis 短期记忆
-│       │   ├── SummaryPipeline.java     # 摘要压缩
-│       │   ├── MemoryManager.java       # context 构建（全部通过 MCP）
+│       │   ├── MemoryManager.java       # context 构建 + 自动沉淀（全部通过 MCP）
 │       │   ├── UserProfile.java         # 用户画像实体
-│       │   ├── UserProfileExtractor.java # 画像抽取（后台任务）
-│       │   ├── UserProfileMapper.java   # MySQL 画像操作
-│       │   └── UserMemoryService.java   # 记忆服务（通过 MCP）
+│       │   ├── UserProfileExtractor.java # 画像抽取（LLM → MySQL）
+│       │   └── UserProfileMapper.java   # MySQL 画像操作
 │       └── tool/                # v4.0 Tool 组件
-│           ├── LlmRouter.java          # LLM 意图路由器
+│           ├── LlmRouter.java          # LLM 路由 + 模型选择（整合 ModelRouter）
 │           ├── McpProductClient.java    # MCP Client（商品查询）
-│           ├── McpKnowledgeClient.java  # MCP Client（知识+记忆+画像+索引）
+│           ├── McpKnowledgeClient.java  # MCP Client（知识检索+记忆+画像+索引）
+│           │   - search() / searchMemory() / saveMemory() / readUserProfile() / indexKnowledge()
 │           └── ProductApiController.java # 商品 REST API（调试用）
 ├── mcp-product-server/          # MCP Server（商品查询, :8081）
 │   └── src/main/java/com/example/mcp/product/
@@ -175,7 +166,7 @@ v1.0: context = null
 v2.0: context = 对话历史 + 用户画像（MySQL 精确查询）
 v3.0: context = 对话历史 + 用户记忆（pgvector 语义检索）+ RAG 知识检索
 v4.0: context = 对话历史 + 用户记忆（MCP Tool）+ RAG（MCP Tool,仅KNOWLEDGE路由）+ Tool调用结果（仅TOOL路由）
-       用户画像通过 MCP Resource 加载，记忆读写通过 MCP Tool
+       用户画像通过 MCP Resource 加载，记忆通过系统自动沉淀（非 LLM 调用）
 ```
 
 v3.0 的核心变化：同一个 pgvector 基础设施，既支撑记忆检索（"这个用户喜欢什么"），又支撑知识检索（"有什么商品推荐"）。

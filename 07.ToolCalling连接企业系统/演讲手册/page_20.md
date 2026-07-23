@@ -1,27 +1,46 @@
 ## Slide Objective
-具体列出 Demo 和生产的八个差距，每个差距要说清"是什么问题、不解决会怎样、怎么解决"。
+对比第六课和第七课的数据分层，讲清"为什么不直接查数据库"。
 
 ## Suggested Presentation
-八个具体差距，每个都是学员做项目时一定会遇到的。
+第六课：Agent 直连数据库。`RetrievalService` → pgvector，`UserMemoryMapper` → pgvector，`UserProfileMapper` → MySQL。Agent 和三个数据库直接耦合。价格库存？第六课没有——Agent 无法查询实时数据。
 
-**认证**：Demo 用明文密码对比（`user.getPassword().equals(password)`）。生产要 OAuth2 + JWT + Token 刷新 + 密码 BCrypt 哈希。不解决会怎样：密码泄露后直接可用。怎么解决：用 Spring Security + OAuth2 Starter，密码用 BCryptPasswordEncoder 哈希存储。
+第七课：全部通过 MCP。商品知识通过 MCP Tool → mcp-knowledge-server → pgvector。用户记忆通过 MCP Tool → mcp-knowledge-server → pgvector。用户画像通过 MCP Resource → mcp-knowledge-server → MySQL。价格库存通过 MCP Tool → mcp-product-server → MySQL。
 
-**权限**：Demo 任何 Agent 能调任何 Tool。生产要 RBAC 权限表——哪些 Agent 能调哪些 Tool。不解决会怎样：一个低权限 Agent 可以调用删除数据的 Tool。怎么解决：MCP Server 端做权限校验，Client 传递 Agent 身份信息。
+数据没变，还是那些 MySQL 和 pgvector。变的是访问方式。
 
-**幂等**：Demo 不处理，LLM 可能重复调用下单接口。不解决会怎样：用户下一单，LLM 重复调用了 3 次，下了 3 单。怎么解决：每个请求带唯一 request_id，Tool 端做去重。
+看起来多了一层网络调用，但价值很大：
 
-**超时**：Demo 写死 15 秒（`requestTimeout(Duration.ofSeconds(15))`）。生产要分级超时（查询 3s / 写入 10s / 批量 30s）+ 指数退避重试 + 熔断。不解决会怎样：一个慢查询阻塞整个对话。怎么解决：用 Resilience4j 做熔断，超时后降级返回"系统繁忙"。
+**解耦**：Agent 不依赖具体数据库。pgvector 换成 Milvus，只改 mcp-knowledge-server 的实现，agent-runtime 代码不变。
 
-**审计**：Demo 只写日志。生产要审计表记录（谁、什么时间、调了什么、参数、结果、耗时）。不解决会怎样：出了问题无法追溯。怎么解决：MCP Client 端加审计拦截器，记录每次 callTool 的完整信息。
+**复用**：MCP Server 可以被多个 Agent 调用。导购 Agent 和客服 Agent 都可以调用同一个 mcp-knowledge-server。
 
-**缓存**：Demo 无缓存。生产要语义缓存——相似 query 命中缓存，减少 LLM 调用和数据库查询。不解决会怎样："推荐笔记本"被问 100 次，每次都检索+生成。怎么解决：用 Redis 存 query 的 Embedding + 结果，新 query 先做相似度匹配。
+**标准化**：Tool 有统一的暴露和发现机制。任何支持 MCP 的 Agent 都能自动发现和调用 Tool。
 
-**监控**：Demo 无监控。生产要 Tool 调用成功率、延迟 P99、LLM token 用量、成本归因。不解决会怎样：不知道哪个 Tool 慢、哪个 Tool 调用失败率高。
+**独立部署**：知识服务和商品服务可以独立扩缩容。商品查询是高频操作，可以多部署几个 mcp-product-server 实例。
 
-**安全**：Demo 无输入校验。生产要 SQL 注入防护、PII 脱敏、Tool 参数白名单校验。不解决会怎样：用户输入中嵌入 SQL 注入，Tool 被操控。
+agent-runtime 不直接访问任何数据库——这是第七课最重要的架构变化。`VectorStoreConfig.java`（PostgreSQL 数据源配置）、`UserMemoryMapper.java`（pgvector SQL 操作）、`RetrievalService.java`（向量检索）全部删除。agent-runtime 的 pom.xml 中移除了 `spring-ai-pgvector-store-spring-boot-starter` 和 `postgresql` 驱动。
+
+### pgvector 内部的数据分层（Demo 未覆盖）
+
+当前 Demo 把商品所有信息都塞进 `content` 字段，没有利用 `metadata` 列。生产中应该做 Metadata Filtering：
+
+- `content`：纯描述文本，用于 Embedding 和语义匹配
+- `metadata`：结构化字段（category、brand、price_range、tags），用于前置过滤
+
+查询时先用 metadata 缩小范围（`category = '笔记本电脑' AND price < 10000`），再做向量相似度搜索。避免“推荐笔记本”搜到手机。
+
+### Query Rewrite（Demo 未覆盖）
+
+当前 Demo 直接拿用户原文做 RAG 检索，准确率低。生产中应该先用 LLM 抽取意图，生成结构化检索 query：
+
+- 用户：“推荐一台笔记本” → LLM 分析：笔记本、无预算 → query：“笔记本电脑 轻薄 办公”
+- 用户：“预算8000写代码” → LLM 分析：笔记本、编程、8000 → query：“笔记本电脑 编程 8000元”
+- 用户：“多少钱” → LLM 分析：问价格、上下文是 ThinkPad → query：“ThinkPad T14s 价格”
+
+Demo 跳过了 Query Rewrite 和 Metadata Filtering，直接拿用户原文检索。生产必须有。
 
 ## Key Emphasis
-这些不是"下一课的内容"，是"学员真正做项目时需要考虑的问题"。每个差距要具体到"是什么问题、不解决会怎样、怎么解决"。
+MCP 化的代价是多一层网络调用（毫秒级），收益是解耦、复用、标准化、独立部署。在企业场景中，收益远大于代价。
 
 ## Transition
-来看项目的代码结构和阅读路线图。
+context 怎么演进的？Prompt 怎么配套？

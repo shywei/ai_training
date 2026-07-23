@@ -78,6 +78,19 @@
             <groupId>io.modelcontextprotocol.sdk</groupId>
             <artifactId>mcp</artifactId>
             <version>1.1.3</version>
+            <exclusions>
+                <!-- 排除 Jackson 3.x，Spring Boot 使用 Jackson 2.x -->
+                <exclusion>
+                    <groupId>io.modelcontextprotocol.sdk</groupId>
+                    <artifactId>mcp-json-jackson3</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- MCP JSON 映射器（Jackson 2.x） -->
+        <dependency>
+            <groupId>io.modelcontextprotocol.sdk</groupId>
+            <artifactId>mcp-json-jackson2</artifactId>
+            <version>1.1.3</version>
         </dependency>
     </dependencies>
 

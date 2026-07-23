@@ -1,29 +1,36 @@
 ## Slide Objective
-展示项目架构和代码阅读路线图，让学员知道从哪开始看代码。
+展示 context 的四课演进和 PromptManager 的三段规则——学员看到 Agent 能力如何通过 context 填充逐步增强。
 
 ## Suggested Presentation
-代码阅读路线图，建议按顺序看：
+context 是 `PromptManager.buildUserPrompt(message, context)` 的第二个参数。每课都在填充它。
 
-**① LlmRouter.java**：路由入口。理解"怎么判断意图"。代码很短，核心就是一个 Prompt + 一次 LLM 调用。
+**第四课**：context = null。纯 Prompt，没有任何上下文。LLM 只看到系统提示词和用户消息。
 
-**② ShoppingAgentController.chat()**：路由 + context + Tool 注册。理解"路由如何影响整个对话处理"。这是最核心的文件——所有逻辑在这里汇聚。
+**第五课**：context = 对话历史 + 用户画像。`SessionMemory` 从 Redis 取历史，`UserProfileMapper` 从 MySQL 取画像。LLM 知道"用户之前说了什么"和"用户是谁"。
 
-**③ McpKnowledgeClient.java**：MCP Client 实现。理解"怎么连接 MCP Server、怎么发现 Tool、怎么包装为 FunctionCallback"。重点看 `init()` 方法和 `discoverTools()` 方法。
+**第六课**：context = 对话历史 + 用户记忆 + RAG 知识。新增 `UserMemoryService` 从 pgvector 语义检索记忆，`RetrievalService` 从 pgvector 语义检索商品知识。LLM 知道"用户之前的需求"和"商品库有什么"。
 
-**④ McpServerConfig.java**（knowledge-server）：Server 端 Tool + Resource。理解"怎么定义 Tool、怎么注册 Resource"。重点看 Tool 的 Schema 定义和处理函数。
+**第七课**：全部通过 MCP。画像通过 `McpKnowledgeClient.readUserProfile()`（MCP Resource）获取，记忆通过 `McpKnowledgeClient.searchMemory()`（MCP Tool）获取。RAG 通过 `McpKnowledgeClient.search()`（MCP Tool）获取。**路由决定注入内容**——只有 KNOWLEDGE 路由才注入 RAG。
 
-**⑤ MemoryManager.java**：context 构建。理解"画像、记忆、历史怎么组装成 context"。重点看 `buildContext()` 方法——全部通过 MCP 访问。
+### PromptManager 三段规则
 
-**⑥ PromptManager.java**：三段规则。理解"怎么引导 LLM 使用 Tool"。重点看「记忆使用规则」。
+**行为规则**："用户问购物相关问题时，基于商品库知识推荐；非购物问题正常聊天。"这告诉 LLM 什么时候该推荐商品。
 
-**⑦ McpServerConfig.java**（product-server）：企业 Tool 实现。理解"Tool 怎么查 MySQL 返回实时数据"。
+**知识使用规则**："如果参考知识中有商品知识，请优先基于这些知识回答；没有则基于常识，但不要编造商品信息。"这告诉 LLM 怎么使用 RAG 结果。
 
-v4.0 新增了 3 个文件：`LlmRouter.java`、`McpProductClient.java`、`McpKnowledgeClient.java`。修改了 4 个文件：`ShoppingAgentController.java`、`PromptManager.java`、`MemoryManager.java`、`UserMemoryService.java`。新增了 2 个模块：`mcp-product-server/`、`mcp-knowledge-server/`。
+**记忆使用规则**（第七课新增）："「参考信息」中的用户记忆，记录了用户之前的需求和决策。推荐商品时，结合记忆了解用户的真实需求。"这告诉 LLM 怎么使用记忆。记忆保存由系统自动处理，不需要 LLM 参与。
 
-删除了 6 个文件：`KnowledgeController.java`、`KnowledgeService.java`、`RetrievalService.java`、`VectorStoreConfig.java`、`UserMemoryMapper.java`、`UserMemory.java`。这些是 v3.0 的遗留代码，MCP 化后不再需要。agent-runtime 的 pom.xml 移除了 `spring-ai-pgvector-store-spring-boot-starter` 和 `postgresql` 驱动——agent-runtime 不再直接连接 PostgreSQL。
+Prompt 的作用：不是把 Tool 暴露给 LLM 就够了，还要告诉 LLM 什么时候用、怎么用。Tool + Prompt = 完整的 Agent 能力。
+
+### 第七课的变化
+
+context 不再自动拼接所有内容。路由决定——KNOWLEDGE 注入 RAG，TOOL 注册 FunctionCallback，CHAT 什么都不加。这是和第六课的核心区别：第六课每次都注入 RAG（浪费 token），第七课按需注入。
 
 ## Key Emphasis
-按路线图顺序阅读代码，从路由入口开始，到 MCP Server 结束。不要随机打开文件——那样看不懂整体流程。
+context 演进体现 Agent 能力增强。每课增加新的信息源，LLM 拥有更多上下文来做决策。但第七课的关键变化是"按需注入"——不是所有信息都需要每次都给 LLM。
+
+## Demo 与生产的差距
+Demo 的 context 构建是同步的——每次对话都要查画像、查记忆、可能查 RAG。生产中应该做异步预加载——画像和记忆在会话开始时预加载到缓存，对话时直接读缓存。Demo 没有做 token 预算控制——context 可能超过模型的 context window。生产中需要按优先级截断：画像（必须）> 记忆（重要）> 对话历史（可截断）> RAG（按需）。
 
 ## Transition
-来看 Agent 构建进度和能力地图。
+Demo 做了简化，和生产环境有什么差距？

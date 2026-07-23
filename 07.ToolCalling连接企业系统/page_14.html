@@ -1,37 +1,77 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>路由实现</title>
+<title>Tool vs Resource</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
 .s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-.code{font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace}
 </style></head><body>
 <div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 10</div>
-<h1 class="mb-2">LLM 路由实现 + Demo 代码</h1>
+<div class="mb-2 sn">CHAPTER 04</div>
+<h1 class="mb-2">Tool vs Resource — 什么时候用哪个</h1>
 <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
 <div style="flex:1;display:flex;gap:20px;">
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">LlmRouter.java</div>
-    <div class="code" style="margin-bottom:12px;">public Route route(String userMessage) {<br>&nbsp;&nbsp;String prompt = """<br>&nbsp;&nbsp;&nbsp;&nbsp;判断用户消息的意图，只输出一个词：<br>&nbsp;&nbsp;&nbsp;&nbsp;- KNOWLEDGE：查询商品信息、推荐<br>&nbsp;&nbsp;&nbsp;&nbsp;- TOOL：查询价格、库存、下单<br>&nbsp;&nbsp;&nbsp;&nbsp;- CHAT：普通聊天<br><br>&nbsp;&nbsp;&nbsp;&nbsp;用户消息：%s<br>&nbsp;&nbsp;&nbsp;&nbsp;只输出 KNOWLEDGE、TOOL 或 CHAT。<br>&nbsp;&nbsp;&nbsp;&nbsp;""".formatted(userMessage);<br><br>&nbsp;&nbsp;String result = ChatClient.create(chatModel)<br>&nbsp;&nbsp;&nbsp;&nbsp;.prompt().user(prompt)<br>&nbsp;&nbsp;&nbsp;&nbsp;.options(OpenAiChatOptions.builder()<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.withModel(fastModel)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.withTemperature(0.0)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.build())<br>&nbsp;&nbsp;&nbsp;&nbsp;.call().content();<br><br>&nbsp;&nbsp;if (result.contains("TOOL")) return TOOL;<br>&nbsp;&nbsp;if (result.contains("KNOWLEDGE")) return KNOWLEDGE;<br>&nbsp;&nbsp;return CHAT;<br>}</div>
-    <div style="font-size:11px;color:rgba(224,231,255,0.4);">
-      <strong style="color:#E0E7FF;">Demo 已覆盖</strong> · temperature=0 保证确定性输出
+    <div style="display:flex;gap:12px;margin-bottom:14px;">
+      <div style="flex:1;padding:14px;background:rgba(255,107,53,0.06);border:2px solid rgba(255,107,53,0.2);border-radius:8px;">
+        <div style="font-size:16px;color:#FF6B35;font-weight:700;margin-bottom:6px;">Tool</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.7;">
+          LLM 决定调用<br>
+          动态查询/写入<br>
+          参数可变<br>
+          类比 POST
+        </div>
+      </div>
+      <div style="flex:1;padding:14px;background:rgba(0,229,255,0.06);border:2px solid rgba(0,229,255,0.2);border-radius:8px;">
+        <div style="font-size:16px;color:#00E5FF;font-weight:700;margin-bottom:6px;">Resource</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.7;">
+          Client 主动读取<br>
+          静态上下文<br>
+          URI 固定<br>
+          类比 GET
+        </div>
+      </div>
     </div>
-
-    <!-- 避坑卡片 -->
-    <div style="margin-top:10px;padding:8px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.25);border-radius:4px;overflow:auto;">
-      <div style="font-size:11px;color:#FF6B35;font-weight:700;margin-bottom:2px;">🚨 确定性路由与优雅降级</div>
-      <div style="font-size:10px;color:rgba(224,231,255,0.5);line-height:1.4;">分类意图判定时，必须强制指定 temperature=0，否则随机性的输出容易产生意图颠倒。同时，在后端获取 mcpClient 绑定的 callback 时需做空指针防御与降级拦截，防止微服务启动顺序导致的进程挂起崩溃。</div>
+    <div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;">
+      <div style="font-size:13px;color:#E0E7FF;font-weight:600;margin-bottom:6px;">选型决策树</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.5);line-height:1.8;">
+        需要 LLM 决定是否调用？→ <strong style="color:#FF6B35;">Tool</strong><br>
+        数据量大、需要搜索？→ <strong style="color:#FF6B35;">Tool</strong><br>
+        会话开始加载一次？→ <strong style="color:#00E5FF;">Resource</strong><br>
+        数据相对稳定？→ <strong style="color:#00E5FF;">Resource</strong><br>
+        全量加载合理？→ <strong style="color:#00E5FF;">Resource</strong>
+      </div>
     </div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">路由如何影响 context 构建</div>
-    <div class="code" style="margin-bottom:12px;">// ShoppingAgentController.java<br>Route route = llmRouter.route(message);<br><br>// context = 画像 + 记忆 + 历史（始终构建）<br>String context = memoryManager<br>&nbsp;&nbsp;.buildContext(sessionId, userId, message);<br><br>// 仅 KNOWLEDGE 路由注入 RAG<br>if (route == Route.KNOWLEDGE) {<br>&nbsp;&nbsp;String rag = mcpKnowledgeClient<br>&nbsp;&nbsp;&nbsp;&nbsp;.search(message);<br>&nbsp;&nbsp;context += "## 参考知识\n" + rag;<br>}<br><br>// 仅 TOOL 路由注册 product tools<br>if (route == Route.TOOL) {<br>&nbsp;&nbsp;clientBuilder.functions(<br>&nbsp;&nbsp;&nbsp;&nbsp;mcpProductClient.getFunctionCallbacks());<br>}<br><br>// save_memory 跨路由注册<br>clientBuilder.functions(<br>&nbsp;&nbsp;mcpKnowledgeClient.getFunctionCallbacks());</div>
-    <div style="padding:10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
-      <div style="font-size:11px;color:#00E5FF;font-weight:600;">路由决定三件事</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.4);">① 注入什么 context ② 注册什么 Tool ③ 是否注入 RAG</div>
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:12px;">Demo 中的选型理由</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+        <span style="font-size:12px;color:#FF6B35;font-weight:600;">Tool</span>
+        <span style="font-size:12px;color:rgba(224,231,255,0.55);"> search_knowledge — 需要语义搜索，数据量增长</span>
+      </div>
+      <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+        <span style="font-size:12px;color:#FF6B35;font-weight:600;">Tool</span>
+        <span style="font-size:12px;color:rgba(224,231,255,0.55);"> search_memory — 持续增长，需要语义搜索</span>
+      </div>
+      <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+        <span style="font-size:12px;color:#FF6B35;font-weight:600;">Tool</span>
+        <span style="font-size:12px;color:rgba(224,231,255,0.55);"> search_memory — 语义检索用户记忆</span>
+      </div>
+      <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+        <span style="font-size:12px;color:#FF6B35;font-weight:600;">Tool</span>
+        <span style="font-size:12px;color:rgba(224,231,255,0.55);"> queryProductInfo — LLM 决定何时查价格</span>
+      </div>
+      <div style="padding:10px 14px;background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:4px;">
+        <span style="font-size:12px;color:#00E5FF;font-weight:600;">Resource</span>
+        <span style="font-size:12px;color:rgba(224,231,255,0.55);"> user://{userId} — 会话开始加载一次，稳定</span>
+      </div>
+    </div>
+    <!-- 避坑卡片 -->
+    <div style="margin-top:10px;padding:8px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.25);border-radius:4px;overflow:auto;">
+      <div style="font-size:11px;color:#FF6B35;font-weight:700;margin-bottom:2px;">🚨 严禁乱用 Resource 注入</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.5);line-height:1.4;">即使商品库极小（如 26 个商品），也不应通过 Resource 一次性全量加载。全量加载不仅会引起 Token 膨胀，而且将检索压力丢给大模型会导致命中精确度大幅下降。必须使用带语义过滤能力的 Tool 动态返回 Top-K 结果。</div>
     </div>
   </div>
 </div>

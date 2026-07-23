@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>跨路由 Tool</title>
+<title>LLM 路由</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
@@ -8,61 +8,63 @@
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
 </style></head><body>
 <div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 13</div>
-<h1 class="mb-2">save_memory — 跨路由 Tool + Prompt 配套</h1>
+<div class="mb-2 sn">CHAPTER 05</div>
+<h1 class="mb-2">LLM 路由 — 三种方案对比</h1>
 <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
-<div style="flex:1;display:flex;gap:20px;">
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">问题：用户随时可能表达偏好</div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
-      <div style="padding:10px;background:rgba(224,231,255,0.02);border-left:3px solid rgba(224,231,255,0.15);border-radius:4px;font-size:12px;color:rgba(224,231,255,0.5);">
-        CHAT："我预算8000" → 应该保存偏好
-      </div>
-      <div style="padding:10px;background:rgba(224,231,255,0.02);border-left:3px solid rgba(224,231,255,0.15);border-radius:4px;font-size:12px;color:rgba(224,231,255,0.5);">
-        KNOWLEDGE："我喜欢轻薄本" → 应该保存偏好
-      </div>
-      <div style="padding:10px;background:rgba(224,231,255,0.02);border-left:3px solid rgba(224,231,255,0.15);border-radius:4px;font-size:12px;color:rgba(224,231,255,0.5);">
-        TOOL："这个太贵了" → 应该保存偏好
-      </div>
+<div style="flex:1;display:flex;gap:16px;">
+  <div style="flex:1;padding:16px;background:rgba(224,231,255,0.02);border:1px solid rgba(224,231,255,0.08);border-radius:8px;">
+    <div style="font-size:16px;color:rgba(224,231,255,0.6);font-weight:700;margin-bottom:8px;">方案一：关键词过滤</div>
+    <div style="font-size:12px;color:rgba(224,231,255,0.45);line-height:1.8;">
+      匹配"多少钱"→ TOOL<br>
+      匹配"推荐"→ KNOWLEDGE<br>
+      默认 → CHAT
     </div>
-    <div style="padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
-      <div style="font-size:13px;color:#00E5FF;font-weight:600;">解决方案：跨路由注册</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px;">
-        save_memory 不限于 TOOL 路由<br>
-        所有路由都注册，LLM 在任何对话中都能调用
-      </div>
+    <div style="margin-top:10px;padding:8px;background:rgba(255,107,53,0.06);border-radius:4px;">
+      <div style="font-size:11px;color:#FF6B35;font-weight:600;">✗ 局限</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.4);">"帮我看看那个笔记本"不含"推荐"</div>
     </div>
+    <div style="margin-top:8px;font-size:11px;color:rgba(224,231,255,0.3);text-align:center;">第六课用过，已淘汰</div>
   </div>
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">Prompt 配套（记忆使用规则）</div>
-    <div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;margin-bottom:12px;">
-      <pre style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;"># 记忆使用规则
-- 如果「参考信息」中有用户记忆，
-  请结合记忆个性化推荐
-- 当用户表达偏好、需求、约束时，
-  主动调用 save_memory 保存
-- 不需要每次都保存，
-  只保存有价值的信息</pre>
+  <div style="flex:1;padding:16px;background:rgba(224,231,255,0.02);border:1px solid rgba(224,231,255,0.08);border-radius:8px;">
+    <div style="font-size:16px;color:rgba(224,231,255,0.6);font-weight:700;margin-bottom:8px;">方案二：Embedding 相似度</div>
+    <div style="font-size:12px;color:rgba(224,231,255,0.45);line-height:1.8;">
+      预定义意图描述<br>
+      用户消息 Embedding 后<br>
+      和意图描述做相似度匹配
     </div>
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">Tool 注册策略对比</div>
-    <div style="display:flex;flex-direction:column;gap:6px;">
-      <div style="display:flex;padding:8px 12px;background:rgba(255,107,53,0.04);border-radius:4px;font-size:12px;">
-        <span style="flex:1;color:#FF6B35;">queryProductInfo</span>
-        <span style="flex:1;color:rgba(224,231,255,0.4);">仅 TOOL 路由</span>
-        <span style="flex:1;color:rgba(224,231,255,0.4);">只有查价格时需要</span>
-      </div>
-      <div style="display:flex;padding:8px 12px;background:rgba(0,229,255,0.04);border-radius:4px;font-size:12px;">
-        <span style="flex:1;color:#00E5FF;">save_memory</span>
-        <span style="flex:1;color:rgba(224,231,255,0.4);">所有路由</span>
-        <span style="flex:1;color:rgba(224,231,255,0.4);">用户随时表达偏好</span>
-      </div>
+    <div style="margin-top:10px;padding:8px;background:rgba(168,85,247,0.06);border-radius:4px;">
+      <div style="font-size:11px;color:#A855F7;font-weight:600;">△ 中等</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.4);">需要维护意图描述，新增意图要更新</div>
     </div>
-    <div style="margin-top:10px;padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px;">
-      <div style="font-size:11px;color:rgba(224,231,255,0.4);text-align:center;">
-        <strong style="color:#E0E7FF;">不是暴露 Tool 就够了</strong>，还要告诉 LLM 什么时候用<br>
-        Tool + Prompt = 完整的 Agent 能力
-      </div>
+    <div style="margin-top:8px;font-size:11px;color:rgba(224,231,255,0.3);text-align:center;">仅 PPT 讲解</div>
+  </div>
+  <div style="flex:1;padding:16px;background:rgba(0,229,255,0.06);border:2px solid rgba(0,229,255,0.2);border-radius:8px;">
+    <div style="font-size:16px;color:#00E5FF;font-weight:700;margin-bottom:8px;">方案三：LLM 分类 ✓</div>
+    <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.8;">
+      用快模型做两件事：<br>
+      ① 意图分类：KNOWLEDGE / TOOL / CHAT<br>
+      ② 模型选择：KNOWLEDGE/TOOL → 推理模型，CHAT → 对话模型
     </div>
+    <div style="margin-top:10px;padding:8px;background:rgba(34,197,94,0.06);border-radius:4px;">
+      <div style="font-size:11px;color:#22C55E;font-weight:600;">✓ 优势</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.4);">一次 LLM 调用同时返回路由+模型，不需维护规则</div>
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:#22C55E;text-align:center;font-weight:600;">Demo 采用</div>
+  </div>
+</div>
+<div style="margin-top:10px;padding:10px 16px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;">
+  <div style="font-size:12px;color:rgba(224,231,255,0.4);text-align:center;">
+    选型建议：意图分类少（< 10）用 LLM；意图多（> 50）考虑 Embedding；规则明确用关键词<br>
+    实际项目中三种方案可以<strong style="color:#E0E7FF;">混合使用</strong>：先关键词快速匹配，匹配不上再用 LLM
+  </div>
+</div>
+<div style="margin-top:8px;padding:8px 16px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:4px;">
+  <div style="font-size:11px;color:#FF6B35;text-align:center;">
+    <strong>标准做法</strong>：<strong style="color:#E0E7FF;">所有 tools 注册给 LLM，LLM 自己决定调哪个</strong><br>
+    以下场景需要路由器预筛选：<br>
+    ① <strong>安全隔离</strong>：某些用户/角色不能访问某些 tools（如普通用户不能调删除接口）<br>
+    ② <strong>成本控制</strong>：tools 多时全部注册 token 浪费，路由器用便宜模型预筛可省 50%+ token<br>
+    ③ <strong>context 按需构建</strong>：不同意图注入不同上下文（如 Demo 中 KNOWLEDGE 才注入 RAG）
   </div>
 </div>
 </div></body></html>
