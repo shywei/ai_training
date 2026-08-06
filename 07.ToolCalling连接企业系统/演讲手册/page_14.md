@@ -6,7 +6,7 @@ Tool 和 Resource 是 MCP 的两个核心概念，本质区别是"谁发起"。
 
 **Tool** 是 LLM 决定调用的。LLM 看到 function definitions，根据用户意图决定"要不要调、调什么、传什么参数"。适合动态查询、写入操作。类比 POST 接口。
 
-**Resource** 是 Client 主动读取的。Client 知道 URI，直接读取数据。不需要 LLM 决策。适合静态上下文、配置数据。类比 GET 接口。
+**Resource** 是 Client 主动读取的结构化数据。Client 知道 URI，直接读取数据。不需要 LLM 决策。类比 GET 接口。注意：Resource 只是“数据源”，读了之后是否注入 LLM context、什么时候读——都是 Client 的实现决策，不是 MCP 协议的规定。
 
 选型决策树：
 - 需要 LLM 决定是否调用？→ Tool

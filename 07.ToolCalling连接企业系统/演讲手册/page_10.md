@@ -1,30 +1,47 @@
 ## Slide Objective
-讲解 MCP 的四大核心概念（Tool / Resource / Prompt / Sampling），让学员理解 MCP 协议的完整能力范围。Demo 覆盖了 Tool 和 Resource，Prompt 和 Sampling 仅做概念介绍。
+讲解 MCP 的四大核心概念(Tool / Resource / Prompt / Sampling),让学员理解 MCP 协议的完整能力范围。Demo 覆盖了 Tool 和 Resource,Prompt 和 Sampling 仅做概念介绍。
 
 ## Suggested Presentation
-MCP 是三层架构。
 
-**Client Layer**：`McpClient` / `McpSyncClient`。负责连接 Server、发现 Tool、调用 Tool。Demo 中的 `McpProductClient` 和 `McpKnowledgeClient` 都是 MCP Client。看代码：`McpClient.sync(transport).build()` 创建 Client，`mcpClient.initialize()` 执行协议握手，`mcpClient.listTools()` 发现 Tool，`mcpClient.callTool(request)` 调用 Tool。
+上一页讲了 MCP 的架构--谁来连接、怎么连接。这一页讲 MCP 连接之后能做什么。MCP 定义了四种能力,不是所有都要用,但学员需要知道完整的能力范围。
 
-**Transport Layer**：通信传输层。MCP 基于 JSON-RPC 2.0 协议（和 JSON API 类似）。传输方式有三种：
+**Tool** 是最核心的能力。LLM 可以调用的函数--搜索、查询、写入、计算。关键点是"LLM 决定何时调用",不是开发者预设的。Demo 中的 `search_knowledge`、`queryProductInfo`、`save_memory` 都是 MCP Tool。看 PPT 右侧的代码:Server 暴露 Tool 的 Schema(name + description + inputSchema),Client 用 `callTool("queryPrice", {id:"NB001"})` 调用。Tool 的核心价值是"LLM 自主决策"--不是写死的 if-else,而是 LLM 看到用户需求后自己判断该调什么。
 
-**SSE（HTTP Server-Sent Events）**：基于 HTTP，适合远程微服务部署。Server 端用 `HttpServletSseServerTransportProvider`，Client 端用 `HttpClientSseClientTransport`。Demo 用的就是这种方式。SSE 是单向的（Server → Client），Client 发消息用普通 HTTP POST。这个组合既支持 Server 推送（SSE 流），又支持 Client 发送（POST 请求）。
+**Resource** 是 Client 可读取的结构化数据。和 Tool 的区别是"谁发起"--Tool 是 LLM 决定调用,Resource 是 Client 主动读取。Demo 中的 `user://{userId}` 用户画像是典型例子:Client 通过 `readResource("user://U001")` 读取画像 JSON。但注意:**MCP 协议没有规定 Resource 读了之后怎么用。** 是否注入 LLM context、什么时候读、缓存还是实时读--这些都是 Client 自己的实现决策。我们的 Demo 选择在会话开始时读取画像并注入 prompt,这是一种常见做法,但不是 MCP 协议的要求。Resource 本质上只是"数据源",怎么用是 Client 的事。
 
-**stdio（标准输入输出）**：适合本地进程通信。Claude Desktop 调用本地 MCP Server 用的就是 stdio。不需要网络，延迟最低。但只能本地用，不能远程。
+**Prompt** 是 Server 预定义的 Prompt 模板。Server 提供标准化的 Prompt,Client 选择使用。比如一个"分析评论"的 MCP Server 可以提供 `analyze-review` Prompt,Client 不需要自己写分析评论的提示词,直接调用 Server 提供的。这是"声明式能力暴露"--Server 不只暴露函数,还暴露最佳实践。Demo 没有实现,但学员需要知道这个能力存在--企业内部可以建立 Prompt 市场,不同部门共享标准化的 Prompt 模板。
 
-**自定义传输**：实现 `Transport` 接口，适合特殊需求（如 WebSocket、gRPC）。Demo 没用。
+**Sampling** 是反向调用模式--Server 请求 Client 调用 LLM。正常流程是 Client 调 Server,Sampling 反过来:Server 在处理过程中需要 LLM 做中间推理,就通过 Sampling 请求 Client 调 LLM。典型场景是多 Agent 协作--一个 MCP Server 内部需要调用另一个 Agent 的能力。Demo 没有实现,学员知道概念就行。这是 MCP 最高级的能力,目前社区用得不多,但未来多 Agent 架构会越来越重要。
 
-**Server Layer**：`McpServer` / `McpSyncServer`。负责暴露 Tool、Resource、Prompt。Server 启动后通过 Servlet 暴露 SSE 端点，Client 通过 HTTP 连接。
-
-Servlet 注册的关键代码：`new ServletRegistrationBean<>(tp, "/*")`。注册到 `/*` 是因为 `HttpServletSseServerTransportProvider` 需要处理两个路径：`/sse`（SSE 连接）和 `/mcp/message`（消息接收）。如果只注册到 `/sse`，消息端点会 404——这是 Demo 中踩过的坑。
-
-传输方式选型看部署场景：远程微服务用 SSE（Demo 的选择），本地工具用 stdio（Claude Desktop 的选择），特殊需求用自定义。大多数企业场景用 SSE——MCP Server 作为独立服务部署，Agent 通过 HTTP 调用。
+四个能力不是都要用。Tool 和 Resource 是基础,覆盖 90% 的场景。Prompt 和 Sampling 是进阶能力,学员知道存在、理解适用场景就够了。
 
 ## Key Emphasis
-三层架构让 MCP 有清晰的职责分离。Client 不关心 Server 用什么语言实现，Server 不关心 Client 是什么框架。Transport 层是中间的桥梁。
 
-## Demo 与生产的差距
-Demo 用 SSE 基于 HTTP/1.1，生产中可能需要 HTTP/2 或 gRPC 提升性能。Demo 没有做连接池管理，生产中 Client 需要维护到多个 Server 的连接池。Demo 没有做 TLS，生产中 MCP 通信必须加密。
+- Tool vs Resource 的核心区别是“谁发起”——Tool 是 LLM 决策，Resource 是 Client 读取。但“谁发起”和“怎么用”是两回事——Resource 读了之后是否注入 context，是 Client 的实现决策，不是 MCP 协议的规定
+- Prompt 和 Sampling 仅做概念介绍,不需要深入代码
+- 不要让学员觉得四个都要用--Tool + Resource 覆盖大多数场景
+- Demo 中 `save_memory` 是 Tool 但不暴露给 LLM(系统内部调用)--不是所有 Tool 都要给 LLM 决策
+
+## Optional Extension
+
+学员问"MCP 和 REST API 有什么区别"时:
+- REST API 是"调用接口",MCP 是"发现+调用+上下文"的完整协议
+- MCP 有 Tool 发现(listTools)、Schema 描述、Resource 读取--REST 没有这些
+- MCP 是给 AI Agent 设计的,REST 是给开发者设计的
+
+学员问"为什么不直接用 Function Calling,要加 MCP"时:
+- Function Calling 是 LLM 的能力,MCP 是工具暴露的标准
+- 没有 MCP:每个工具写一套适配代码
+- 有 MCP:一次暴露,所有 Agent 都能用
+
+## Take Away
+
+MCP 四大能力:Tool(LLM 调用)+ Resource(Client 读取)+ Prompt(标准化模板)+ Sampling(反向调用)。前两个是基础,后两个是进阶。
+
+## Why This Slide Matters
+
+没有这页,学员只知道 MCP 能"调工具",不知道 MCP 还能"读数据"(Resource)、"共享 Prompt"(Prompt)、"反向调用 LLM"(Sampling)。能力范围不完整,选型时会遗漏方案。
 
 ## Transition
-看 Demo 中的两个 MCP Server 具体怎么实现。
+
+四大能力讲完了,下一页看 MCP 的三层架构--Client 怎么连 Server、Transport 用什么协议、Server 怎么暴露能力。从"能做什么"到"怎么实现"。
