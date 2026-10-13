@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>第六课总结</title>
+<title>记忆体系升级</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
@@ -8,45 +8,67 @@
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
 </style></head><body>
 <div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">SUMMARY</div>
-<h1 class="mb-2">第六课总结</h1>
+<div class="mb-2 sn">CHAPTER 06</div>
+<h1 class="mb-2">记忆体系升级 — 向量数据库赋能 Memory</h1>
 <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
 
-<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-  <div style="padding:14px 24px;background:rgba(255,107,53,0.08);border:2px solid #FF6B35;border-radius:8px;text-align:center;margin-bottom:18px;">
-    <div style="font-size:20px;color:#FF6B35;font-weight:700;">Knowledge 不是文档，而是经过治理后能够被 AI 使用的企业知识。</div>
-  </div>
-
-  <div style="display:flex;gap:16px;margin-bottom:16px;">
-    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:10px;">Agent 构建进度</div>
-      <div style="display:flex;flex-direction:column;gap:6px;">
-        <div style="display:flex;align-items:center;gap:8px;"><div style="width:22px;height:22px;background:#00E5FF;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#0B1120;">✓</div><div style="font-size:13px;color:#E0E7FF;">Prompt（LLM 交互）</div></div>
-        <div style="display:flex;align-items:center;gap:8px;"><div style="width:22px;height:22px;background:#00E5FF;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#0B1120;">✓</div><div style="font-size:13px;color:#E0E7FF;">Memory（用户记忆）</div></div>
-        <div style="display:flex;align-items:center;gap:8px;"><div style="width:22px;height:22px;background:#00E5FF;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#0B1120;">✓</div><div style="font-size:13px;color:#E0E7FF;">Knowledge（企业知识）</div></div>
-        <div style="display:flex;align-items:center;gap:8px;"><div style="width:22px;height:22px;border:2px solid rgba(224,231,255,0.2);border-radius:4px;"></div><div style="font-size:13px;color:rgba(224,231,255,0.3);">Tool（系统集成）</div></div>
-        <div style="display:flex;align-items:center;gap:8px;"><div style="width:22px;height:22px;border:2px solid rgba(224,231,255,0.2);border-radius:4px;"></div><div style="font-size:13px;color:rgba(224,231,255,0.3);">Workflow（流程控制）</div></div>
+<div style="flex:1;display:flex;gap:20px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="padding:14px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;">
+      <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:4px;">第五课的局限</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.5);line-height:1.8;">
+        长期记忆只存了结构化画像（MySQL）<br>
+        "喜欢轻薄本"是标签，不是记忆<br>
+        丢失了原始对话的语义细节
       </div>
     </div>
-    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:10px;">第六课能力地图</div>
-      <div style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:rgba(224,231,255,0.55);">
-        <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">Knowledge vs Memory 区别</div>
-        <div style="text-align:center;color:rgba(0,229,255,0.3);">↓</div>
-        <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">Data Pipeline + Chunking + Embedding</div>
-        <div style="text-align:center;color:rgba(0,229,255,0.3);">↓</div>
-        <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">pgvector + 语义检索 + 关键词过滤</div>
-        <div style="text-align:center;color:rgba(0,229,255,0.3);">↓</div>
-        <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">context 演进 + Prompt RAG 集成</div>
-        <div style="text-align:center;color:rgba(0,229,255,0.3);">↓</div>
-        <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">企业优化 + 数据分层 + 记忆升级</div>
+    <div style="text-align:center;color:#00E5FF;font-size:18px;margin-bottom:14px;">↓ 引入 pgvector 后 ↓</div>
+    <div style="padding:14px 16px;background:rgba(34,197,94,0.06);border-left:4px solid #22C55E;margin-bottom:14px;">
+      <div style="font-size:14px;color:#22C55E;font-weight:700;margin-bottom:4px;">第六课的增强</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.5);line-height:1.8;">
+        对话原文片段存入 pgvector（语义检索）<br>
+        "用户说想要一台写代码的笔记本，预算8000"<br>
+        问"推荐笔记本"→ 语义匹配到这段历史<br>
+        <strong style="color:#22C55E;">同一个 pgvector，Knowledge 和 Memory 都用</strong>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <div style="flex:1;padding:10px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:5px;">
+        <div style="font-size:12px;color:#00E5FF;font-weight:600;">MySQL 画像</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.4);margin-top:2px;">结构化标签<br>后台展示、数据分析</div>
+      </div>
+      <div style="flex:1;padding:10px;background:rgba(168,85,247,0.06);border:2px solid rgba(168,85,247,0.2);border-radius:5px;">
+        <div style="font-size:12px;color:#A855F7;font-weight:600;">pgvector 记忆</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.4);margin-top:2px;">语义记忆片段<br>AI Agent 上下文检索</div>
+      </div>
+      <div style="flex:1;padding:10px;background:rgba(234,179,8,0.06);border:1px solid rgba(234,179,8,0.15);border-radius:5px;">
+        <div style="font-size:12px;color:#EAB308;font-weight:600;">Redis 缓冲</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.4);margin-top:2px;">工作缓冲区<br>沉淀后清空</div>
       </div>
     </div>
   </div>
 
-  <div style="padding:10px 16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;text-align:center;">
-    <div style="font-size:14px;color:#E0E7FF;">导购 Agent 能查商品信息了。但它不能查库存、不能下单——它只能"说"，不能"做"。</div>
-    <div style="font-size:12px;color:rgba(224,231,255,0.4);margin-top:4px;">下一课：Tool Calling — 让 Agent 能调用企业系统。</div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:12px;">数据分层：向量库 vs 关系型库</div>
+    <div style="padding:14px;background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.2);border-radius:6px;margin-bottom:12px;">
+      <div style="font-size:14px;color:#22C55E;font-weight:700;margin-bottom:6px;">pgvector — 语义检索</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.8;">
+        商品描述、亮点、适用场景<br>
+        用户记忆片段、对话摘要<br>
+        <strong style="color:#22C55E;">不常变，需要理解"意思"</strong>
+      </div>
+    </div>
+    <div style="padding:14px;background:rgba(59,130,246,0.06);border:2px solid rgba(59,130,246,0.2);border-radius:6px;margin-bottom:12px;">
+      <div style="font-size:14px;color:#3B82F6;font-weight:700;margin-bottom:6px;">MySQL — 精确查询</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.8;">
+        价格、库存、销量、上架状态<br>
+        用户画像标签<br>
+        <strong style="color:#3B82F6;">频繁变化，需要实时准确</strong>
+      </div>
+    </div>
+    <div style="padding:10px 14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
+      <div style="font-size:12px;color:rgba(224,231,255,0.5);"><strong style="color:#00E5FF;">核心思想：</strong>不是所有数据都适合放向量数据库。各取所长。</div>
+    </div>
   </div>
 </div>
 </div></body></html>

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>关键词过滤与检索策略</title>
+<title>语义检索</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
@@ -11,71 +11,66 @@ pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.
 </style></head><body>
 <div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
 <div class="mb-2 sn">CHAPTER 03</div>
-<h1 class="mb-2">关键词过滤 — 什么时候该检索</h1>
+<h1 class="mb-2">语义检索 — 怎么找到相关的知识</h1>
 <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
 
 <div style="flex:1;display:flex;gap:20px;">
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="padding:14px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;">
-      <div style="font-size:15px;color:#FF6B35;font-weight:700;">问题：不是所有消息都需要检索</div>
+    <div style="padding:14px 16px;background:rgba(0,229,255,0.06);border-left:4px solid #00E5FF;margin-bottom:14px;">
+      <div style="font-size:15px;color:#00E5FF;font-weight:700;">语义检索的流程</div>
       <div style="font-size:13px;color:rgba(224,231,255,0.5);margin-top:6px;line-height:1.8;">
-        用户说"你好" → 不需要检索商品知识<br>
-        用户说"推荐笔记本" → 需要检索<br>
-        用户说"今天天气怎么样" → 不需要检索<br><br>
-        每次都检索 = 浪费 token + 注入无关信息干扰 LLM
+        1. 用户问题 → Embedding → 查询向量<br>
+        2. 查询向量和知识库中的向量做<strong style="color:#E0E7FF;">余弦相似度</strong>计算<br>
+        3. 返回最相似的 Top-K 个结果<br>
+        4. 相似度阈值过滤（低于阈值的丢弃）
       </div>
     </div>
 
-    <div style="padding:14px 16px;background:rgba(34,197,94,0.06);border-left:4px solid #22C55E;margin-bottom:14px;">
-      <div style="font-size:15px;color:#22C55E;font-weight:700;">Demo 方案：关键词匹配</div>
-      <div style="font-size:13px;color:rgba(224,231,255,0.5);margin-top:6px;line-height:1.8;">
-        包含"推荐/买/笔记本/手机/耳机"等关键词 → 检索<br>
-        不包含 → 跳过检索<br><br>
-        <strong style="color:#22C55E;">优点：</strong>简单、零延迟、不消耗 token<br>
-        <strong style="color:#FF6B35;">缺点：</strong>关键词列表需要人工维护，语义理解有限
+    <div style="padding:14px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;margin-bottom:14px;">
+      <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">关键参数</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:2;">
+        <strong style="color:#00E5FF;">Top-K</strong>：返回几个结果？Demo 默认 3 个。<br>
+        <strong style="color:#00E5FF;">相似度阈值</strong>：低于多少分的不要？Demo 默认 0.3。<br>
+        <strong style="color:#00E5FF;">距离度量</strong>：用什么算法算相似度？Demo 用 cosine。
       </div>
     </div>
 
-    <div style="padding:12px 16px;background:rgba(168,85,247,0.06);border-left:4px solid #A855F7;">
-      <div style="font-size:14px;color:#A855F7;font-weight:700;">进阶方案：LLM 路由（第七课预告）</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.5);margin-top:4px;line-height:1.8;">
-        用快模型先判断用户意图：需要检索？还是普通对话？<br>
-        优点：能理解语义（"帮我优化代码"不含关键词但需要检索）<br>
-        缺点：每次路由多一次 LLM 调用
+    <div style="padding:12px 16px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;">
+      <div style="font-size:13px;color:#FF6B35;font-weight:700;margin-bottom:4px;">语义检索的局限</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.8;">
+        对专有名词不敏感（"X1 Carbon"可能匹配不到）<br>
+        需要调优（Chunk Size、Top-K、阈值都会影响效果）<br>
+        <strong style="color:#FF6B35;">这就是后面要讲 Hybrid Search 的原因</strong>
       </div>
     </div>
   </div>
 
   <div style="flex:1;display:flex;flex-direction:column;">
-    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">💻 Demo 代码：isProductRelated()</div>
-    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;margin-bottom:14px;">
-      <pre><span class="cm">// 关键词列表</span>
-<span class="kw">private static final</span> String[] PRODUCT_KEYWORDS = {
-  <span class="str">"推荐"</span>, <span class="str">"买"</span>, <span class="str">"什么"</span>, <span class="str">"哪个"</span>,
-  <span class="str">"笔记本"</span>, <span class="str">"手机"</span>, <span class="str">"耳机"</span>, <span class="str">"平板"</span>,
-  <span class="str">"价格"</span>, <span class="str">"多少钱"</span>, <span class="str">"预算"</span>,
-  <span class="str">"联想"</span>, <span class="str">"苹果"</span>, <span class="str">"华为"</span>, <span class="str">"小米"</span>,
-  <span class="str">"游戏"</span>, <span class="str">"办公"</span>, <span class="str">"开发"</span>, <span class="str">"轻薄"</span>
-};
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">💻 Demo 代码：RetrievalService.java</div>
+    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;flex:1;">
+      <pre><span class="kw">public</span> String <span class="fn">retrieve</span>(String query, <span class="kw">int</span> topK) {
+  <span class="cm">// 1. 关键词过滤（下一节讲）</span>
+  <span class="kw">if</span> (!isProductRelated(query))
+    <span class="kw">return null</span>;
 
-<span class="cm">// 匹配任一关键词就检索</span>
-<span class="kw">private boolean</span> <span class="fn">isProductRelated</span>(String q) {
-  <span class="kw">if</span> (q == <span class="kw">null</span>) <span class="kw">return false</span>;
-  String lower = q.toLowerCase();
-  <span class="kw">for</span> (String kw : PRODUCT_KEYWORDS) {
-    <span class="kw">if</span> (lower.contains(kw.toLowerCase()))
-      <span class="kw">return true</span>;
-  }
-  <span class="kw">return false</span>;
+  <span class="cm">// 2. 构建检索请求</span>
+  SearchRequest req = SearchRequest.query(query)
+    .withTopK(topK)           <span class="cm">// 返回几个</span>
+    .withSimilarityThreshold(<span class="str">0.3</span>); <span class="cm">// 最低分数</span>
+
+  <span class="cm">// 3. 执行向量检索（pgvector cosine）</span>
+  List&lt;Document&gt; results =
+    vectorStore.similaritySearch(req);
+
+  <span class="kw">if</span> (results == <span class="kw">null</span> || results.isEmpty())
+    <span class="kw">return null</span>;
+
+  <span class="cm">// 4. 格式化结果</span>
+  <span class="kw">return</span> formatResults(results);
 }</pre>
     </div>
-    <div style="padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
-      <div style="font-size:12px;color:#E0E7FF;font-weight:600;margin-bottom:4px;">检索策略总结</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.5);line-height:1.8;">
-        <strong style="color:#22C55E;">Demo：</strong>关键词匹配（简单、够用）<br>
-        <strong style="color:#A855F7;">生产：</strong>LLM 路由（语义理解、动态判断）<br>
-        <strong style="color:#3B82F6;">进阶：</strong>意图分类模型（快、准、不消耗 LLM）
-      </div>
+    <div style="margin-top:8px;padding:10px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
+      <div style="font-size:11px;color:rgba(224,231,255,0.5);"><strong style="color:#E0E7FF;">流程：</strong>用户问题 → Embedding（Spring AI 自动完成）→ pgvector cosine search → Top-K 结果 → 格式化。</div>
     </div>
   </div>
 </div>

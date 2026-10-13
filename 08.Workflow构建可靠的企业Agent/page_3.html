@@ -1,0 +1,16 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280"><script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script><title>为什么需要 Workflow</title><style>*{margin:0;padding:0;box-sizing:border-box}.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}.code{font-size:10px;color:rgba(224,231,255,0.55);line-height:1.5;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace}</style></head><body><div class="s" style="padding:24px 50px;display:flex;flex-direction:column"><div class="mb-1 sn">CHAPTER 01</div><h1 class="mb-1">为什么需要 Workflow</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px"></div><div style="flex:1;display:flex;gap:14px"><div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:10px">
+<div style="padding:14px 16px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:6px"><div style="font-size:15px;color:#22C55E;font-weight:700;margin-bottom:4px">✓ LLM 路由</div><div style="font-size:13px;color:rgba(224,231,255,0.55)">快模型判断意图：KNOWLEDGE / TOOL / CHAT</div></div>
+<div style="padding:14px 16px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:6px"><div style="font-size:15px;color:#22C55E;font-weight:700;margin-bottom:4px">✓ Function Calling</div><div style="font-size:13px;color:rgba(224,231,255,0.55)">LLM 自主决定调用哪个 Tool，MCP 协议统一数据访问</div></div>
+<div style="padding:14px 16px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:6px"><div style="font-size:15px;color:#22C55E;font-weight:700;margin-bottom:4px">✓ MCP 统一架构</div><div style="font-size:13px;color:rgba(224,231,255,0.55)">agent-runtime 不直接访问任何数据库，全部走 MCP 协议</div></div>
+<div style="padding:14px 16px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:6px"><div style="font-size:15px;color:#22C55E;font-weight:700;margin-bottom:4px">✓ context 完整形态</div><div style="font-size:13px;color:rgba(224,231,255,0.55)">画像 + 记忆 + 对话历史 + RAG + Tool 结果</div></div></div>
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+<div style="padding:16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:16px">
+<div style="font-size:16px;color:#FF6B35;font-weight:700;margin-bottom:8px">但 Agent 还是一问一答</div>
+<div style="font-size:13px;color:rgba(224,231,255,0.7);line-height:1.8">
+<strong style="color:#E0E7FF">"帮我对比拯救者和 MacBook 的价格"</strong><br>→ LLM 一次只能调一个 Tool，无法分步查两次<br><br>
+<strong style="color:#E0E7FF">"帮我下单"</strong><br>→ LLM 直接调用下单 Tool，没有人工确认<br><br>
+<strong style="color:#E0E7FF">Tool 调用超时了</strong><br>→ 直接报错，没有重试，没有降级<br><br>
+<strong style="color:#E0E7FF">Agent 做了什么？</strong><br>→ 看不到执行过程，无法调试</div></div>
+<div style="padding:12px 14px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:6px">
+<div style="font-size:14px;color:#A855F7;font-weight:600">第八课目标</div>
+<div style="font-size:13px;color:rgba(224,231,255,0.55);margin-top:4px">多步编排 · 人工确认 · 容错重试 · 执行追踪</div></div></div></div></div></body></html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280"><script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script><title>状态机</title><style>*{margin:0;padding:0;box-sizing:border-box}.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}.code{font-size:10px;color:rgba(224,231,255,0.55);line-height:1.5;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace}</style></head><body><div class="s" style="padding:24px 50px;display:flex;flex-direction:column"><div class="mb-1 sn">CHAPTER 03</div><h1 class="mb-1">状态机 — 让 Agent 的行为可预测</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px"></div><div style="flex:1;display:flex;gap:14px"><div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+<div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:10px">什么是有限状态机（FSM）</div>
+<div style="font-size:13px;color:rgba(224,231,255,0.65);line-height:1.8;margin-bottom:14px">系统在任意时刻只能处于<strong style="color:#E0E7FF">一个状态</strong>，状态之间的转换由<strong style="color:#E0E7FF">明确的条件</strong>触发。不像 LLM 那样"想到哪算哪"。</div>
+<div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:10px">WorkflowState — 7 个状态</div>
+<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">
+<span style="padding:6px 12px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:4px;font-size:12px;color:#00E5FF">PLANNING</span>
+<span style="padding:6px 12px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:4px;font-size:12px;color:#00E5FF">EXECUTING</span>
+<span style="padding:6px 12px;background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.3);border-radius:4px;font-size:12px;color:#FF6B35">CONFIRMING</span>
+<span style="padding:6px 12px;background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.3);border-radius:4px;font-size:12px;color:#FF6B35">RETRYING</span>
+<span style="padding:6px 12px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:4px;font-size:12px;color:#22C55E">COMPLETED</span>
+<span style="padding:6px 12px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:4px;font-size:12px;color:#EF4444">FAILED</span>
+<span style="padding:6px 12px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:4px;font-size:12px;color:#EF4444">CANCELLED</span></div>
+<div style="padding:10px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:6px"><div style="font-size:13px;color:rgba(224,231,255,0.55);line-height:1.7"><strong style="color:#A855F7">关键设计</strong>：终态不可转换（COMPLETED/FAILED/CANCELLED 是终点），CONFIRMING 只能由用户操作触发。</div></div></div>
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+<div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:10px">状态转换图</div>
+<div style="padding:16px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:8px;margin-bottom:12px">
+<div style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:rgba(224,231,255,0.6);line-height:1.8">
+<div style="text-align:center"><span style="color:#00E5FF;font-weight:700">PLANNING</span> <span style="color:rgba(224,231,255,0.3)">─────→</span> <span style="color:#00E5FF;font-weight:700">EXECUTING</span></div>
+<div style="text-align:center"><span style="color:#00E5FF;font-weight:700">EXECUTING</span> <span style="color:rgba(224,231,255,0.3)">──┬──→</span> <span style="color:#22C55E;font-weight:700">COMPLETED</span></div>
+<div style="text-align:center"><span style="color:rgba(224,231,255,0.3)">├─────→</span> <span style="color:#FF6B35;font-weight:700">CONFIRMING</span> <span style="color:rgba(224,231,255,0.3)">──→</span> <span style="color:#00E5FF;font-weight:700">EXECUTING</span></div>
+<div style="text-align:center"><span style="color:rgba(224,231,255,0.3)">├─────→</span> <span style="color:#FF6B35;font-weight:700">RETRYING</span> <span style="color:rgba(224,231,255,0.3)">──→</span> <span style="color:#00E5FF;font-weight:700">EXECUTING</span></div>
+<div style="text-align:center"><span style="color:rgba(224,231,255,0.3)">└─────→</span> <span style="color:#EF4444;font-weight:700">FAILED</span></div>
+<div style="text-align:center"><span style="color:#FF6B35;font-weight:700">CONFIRMING</span> <span style="color:rgba(224,231,255,0.3)">──→</span> <span style="color:#EF4444;font-weight:700">CANCELLED</span></div></div></div>
+<div style="padding:12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:6px">
+<div style="font-size:13px;color:#00E5FF;font-weight:600;margin-bottom:4px">状态机的价值</div>
+<div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.7"><strong style="color:#E0E7FF">可测试</strong>：每个状态转换可独立测试<br><strong style="color:#E0E7FF">可调试</strong>：出错时知道 Agent 在哪个状态<br><strong style="color:#E0E7FF">可审计</strong>：状态变更记录在 Trace 中</div></div>
+</div></div></div></body></html>

@@ -1,81 +1,81 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>Embedding — 让 AI 理解文本的"意思"</title>
+<title>Data Pipeline 与 Chunking</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
 .s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)} .fn{color:#E0E7FF}
 </style></head><body>
 <div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
 <div class="mb-2 sn">CHAPTER 02</div>
-<h1 class="mb-2">Embedding — 让 AI 理解文本的"意思"</h1>
+<h1 class="mb-2">Data Pipeline 与 Chunking — 知识怎么变成可检索的</h1>
 <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
 
 <div style="flex:1;display:flex;gap:20px;">
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="padding:14px 16px;background:rgba(0,229,255,0.06);border-left:4px solid #00E5FF;margin-bottom:14px;">
-      <div style="font-size:15px;color:#00E5FF;font-weight:700;">什么是 Embedding？</div>
-      <div style="font-size:13px;color:rgba(224,231,255,0.5);margin-top:6px;line-height:1.8;">
-        把文本变成一组数字（向量）。<br>
-        语义相近的文本，数字也相近。<br>
-        <strong style="color:#E0E7FF;">"写代码" 和 "编程" 在向量空间中距离很近。</strong>
+    <div style="padding:14px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.1);border-radius:6px;margin-bottom:14px;">
+      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:10px;">Data Pipeline：原始文档 → 可检索的知识</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+        <div style="padding:8px 10px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:5px;font-size:11px;color:#00E5FF;font-weight:600;text-align:center;">文档解析<br><span style="font-size:9px;color:rgba(224,231,255,0.4);">JSON/PDF/Word</span></div>
+        <div style="color:rgba(0,229,255,0.3);">→</div>
+        <div style="padding:8px 10px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:5px;font-size:11px;color:#00E5FF;font-weight:600;text-align:center;">Chunking<br><span style="font-size:9px;color:rgba(224,231,255,0.4);">文本分块</span></div>
+        <div style="color:rgba(0,229,255,0.3);">→</div>
+        <div style="padding:8px 10px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:5px;font-size:11px;color:#00E5FF;font-weight:600;text-align:center;">Metadata<br><span style="font-size:9px;color:rgba(224,231,255,0.4);">打标签</span></div>
+        <div style="color:rgba(0,229,255,0.3);">→</div>
+        <div style="padding:8px 10px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:5px;font-size:11px;color:#00E5FF;font-weight:600;text-align:center;">Embedding<br><span style="font-size:9px;color:rgba(224,231,255,0.4);">向量化</span></div>
+        <div style="color:rgba(0,229,255,0.3);">→</div>
+        <div style="padding:8px 10px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:5px;font-size:11px;color:#00E5FF;font-weight:600;text-align:center;">Vector DB<br><span style="font-size:9px;color:rgba(224,231,255,0.4);">存储</span></div>
       </div>
     </div>
 
-    <div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;margin-bottom:14px;">
-      <div style="font-size:12px;color:rgba(224,231,255,0.5);font-family:monospace;line-height:1.8;">
-        "ThinkPad X1 Carbon" → [0.023, -0.156, 0.089, ...] <span style="color:#22C55E;">1024维</span><br>
-        "商务轻薄笔记本" &nbsp;&nbsp; → [0.021, -0.148, 0.092, ...] <span style="color:#22C55E;">距离近 ✓</span><br>
-        "今天天气真好" &nbsp;&nbsp;&nbsp;&nbsp; → [0.891, 0.234, -0.567, ...] <span style="color:#FF6B35;">距离远 ✗</span>
-      </div>
-    </div>
-
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">Embedding 模型选型</div>
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">Chunking 策略对比</div>
     <div style="display:flex;gap:10px;margin-bottom:14px;">
-      <div style="flex:1;padding:10px;background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.25);border-radius:5px;">
-        <div style="font-size:12px;color:#22C55E;font-weight:700;">BGE-large-zh <span style="font-size:9px;background:rgba(34,197,94,0.15);padding:1px 6px;border-radius:3px;">Demo</span></div>
-        <div style="font-size:10px;color:rgba(224,231,255,0.45);margin-top:2px;">BAAI · 中文优秀 · 1024维 · 免费</div>
+      <div style="flex:1;padding:12px;background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.25);border-radius:6px;">
+        <div style="font-size:13px;color:#22C55E;font-weight:700;">固定大小 <span style="font-size:9px;background:rgba(34,197,94,0.15);padding:1px 6px;border-radius:3px;">Demo</span></div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;margin-top:4px;">按固定字数切分<br>简单直接<br>可能切断语义<br>适合：结构均匀数据</div>
       </div>
-      <div style="flex:1;padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:5px;">
-        <div style="font-size:12px;color:#E0E7FF;font-weight:600;">ada-002</div>
-        <div style="font-size:10px;color:rgba(224,231,255,0.45);margin-top:2px;">OpenAI · 通用 · 1536维 · 付费</div>
+      <div style="flex:1;padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;">
+        <div style="font-size:13px;color:#E0E7FF;font-weight:600;">语义分块</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;margin-top:4px;">按段落/标题边界<br>保留语义完整<br>大小不均匀<br>适合：文章、报告</div>
       </div>
-      <div style="flex:1;padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:5px;">
-        <div style="font-size:12px;color:#E0E7FF;font-weight:600;">Jina</div>
-        <div style="font-size:10px;color:rgba(224,231,255,0.45);margin-top:2px;">多语言 · 轻量 · 免费额度</div>
+      <div style="flex:1;padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;">
+        <div style="font-size:13px;color:#E0E7FF;font-weight:600;">递归分块</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;margin-top:4px;">先大结构再小粒度<br>兼顾结构和语义<br>参数调优复杂<br>适合：复杂文档</div>
       </div>
     </div>
 
-    <div style="padding:10px 14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
-      <div style="font-size:12px;color:rgba(224,231,255,0.5);"><strong style="color:#00E5FF;">选型维度：</strong>成本 · 语言支持 · 维度大小 · 部署方式。中文场景首选 BGE。</div>
+    <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:5px;">
+      <div style="font-size:12px;color:rgba(224,231,255,0.5);"><strong style="color:#FF6B35;">核心权衡：</strong>Chunk 太大 → 检索不精确（混入无关信息）。Chunk 太小 → 丢失上下文（信息不完整）。需要根据实际数据调优。</div>
     </div>
   </div>
 
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">Embedding 的本质</div>
-    <div style="padding:16px;background:rgba(0,0,0,0.3);border:1px solid rgba(0,229,255,0.15);border-radius:8px;margin-bottom:14px;">
-      <div style="text-align:center;margin-bottom:12px;">
-        <div style="font-size:13px;color:rgba(224,231,255,0.5);margin-bottom:8px;">向量空间示意（降维到2D）</div>
-        <div style="position:relative;height:200px;">
-          <div style="position:absolute;top:30px;left:80px;padding:6px 12px;background:rgba(0,229,255,0.15);border:1px solid rgba(0,229,255,0.3);border-radius:4px;font-size:11px;color:#00E5FF;">ThinkPad X1 Carbon</div>
-          <div style="position:absolute;top:60px;left:120px;padding:6px 12px;background:rgba(0,229,255,0.15);border:1px solid rgba(0,229,255,0.3);border-radius:4px;font-size:11px;color:#00E5FF;">商务轻薄笔记本</div>
-          <div style="position:absolute;top:90px;left:160px;padding:6px 12px;background:rgba(0,229,255,0.15);border:1px solid rgba(0,229,255,0.3);border-radius:4px;font-size:11px;color:#00E5FF;">MacBook Pro</div>
-          <div style="position:absolute;top:140px;left:350px;padding:6px 12px;background:rgba(255,107,53,0.15);border:1px solid rgba(255,107,53,0.3);border-radius:4px;font-size:11px;color:#FF6B35;">AirPods Pro</div>
-          <div style="position:absolute;top:160px;left:400px;padding:6px 12px;background:rgba(255,107,53,0.15);border:1px solid rgba(255,107,53,0.3);border-radius:4px;font-size:11px;color:#FF6B35;">降噪耳机</div>
-        </div>
-      </div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.4);text-align:center;">语义相近 → 向量距离近 → 检索时能匹配上</div>
-    </div>
+  <div style="flex:1;display:flex;flex-direction:column;">
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">💻 Demo：数据库 → ETL → 向量存储</div>
+    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;margin-bottom:10px;">
+      <pre><span class="cm">// KnowledgeController.loadProductDocuments()</span>
+<span class="cm">// 每个商品的所有信息拼成一个文本</span>
 
-    <div style="padding:12px 16px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;">
-      <div style="font-size:13px;color:#FF6B35;font-weight:700;margin-bottom:6px;">⚠️ 踩坑经验</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.8;">
-        Embedding 维度必须和数据库表定义匹配。<br>
-        BGE = 1024维 → 表定义 <code style="color:#00E5FF;">vector(1024)</code><br>
-        换模型（如 ada-002 = 1536维）→ 需要 DROP TABLE 重建。<br>
-        <strong style="color:#FF6B35;">维度写错了不报错，查不出来。</strong>
-      </div>
+StringBuilder content = <span class="kw">new</span> StringBuilder();
+content.append(name).append(<span class="str">"（"</span>).append(brand).append(<span class="str">"）\n"</span>);
+content.append(<span class="str">"类别："</span>).append(category).append(<span class="str">"\n"</span>);
+content.append(<span class="str">"配置："</span>).append(specs).append(<span class="str">"\n"</span>);
+content.append(<span class="str">"亮点："</span>).append(highlights).append(<span class="str">"\n"</span>);
+content.append(<span class="str">"适合："</span>).append(suitable_for).append(<span class="str">"\n"</span>);
+content.append(<span class="str">"总结："</span>).append(summary);
+
+<span class="cm">// 注意：不含价格和库存！</span>
+<span class="cm">// 实时数据放 MySQL，第七课 Tool 查询</span></pre>
+    </div>
+    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
+      <div style="font-size:12px;color:#FF6B35;font-weight:600;margin-bottom:6px;">Metadata 标注</div>
+      <pre>metadata.put(<span class="str">"doc_id"</span>, id);      <span class="cm">// 商品ID</span>
+metadata.put(<span class="str">"name"</span>, name);      <span class="cm">// 商品名</span>
+metadata.put(<span class="str">"brand"</span>, brand);    <span class="cm">// 品牌</span>
+metadata.put(<span class="str">"category"</span>, category); <span class="cm">// 品类</span>
+<span class="cm">// 后续可以按 brand/category 过滤</span></pre>
     </div>
   </div>
 </div>

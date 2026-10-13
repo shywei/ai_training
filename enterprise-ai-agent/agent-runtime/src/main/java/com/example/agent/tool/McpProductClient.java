@@ -158,6 +158,23 @@ public class McpProductClient {
     }
 
     /**
+     * 直接通过 MCP 协议调用指定 Tool
+     *
+     * 供 AgentRuntime 的 ReAct 循环使用，绕过 FunctionCallback 包装。
+     * Agent 在思考过程中决定调用什么工具和参数，直接走 MCP 协议。
+     *
+     * @param toolName MCP Tool 原始名称（不含 mcp_ 前缀）
+     * @param arguments 工具参数
+     * @return MCP 调用结果
+     */
+    public CallToolResult callToolDirectly(String toolName, Map<String, Object> arguments) {
+        if (!connected || mcpClient == null) {
+            throw new RuntimeException("MCP Product Server 未连接");
+        }
+        return mcpClient.callTool(new CallToolRequest(toolName, arguments));
+    }
+
+    /**
      * 优雅关闭 MCP Client 连接
      *
      * Spring 容器销毁时自动调用，释放 SSE 连接资源。

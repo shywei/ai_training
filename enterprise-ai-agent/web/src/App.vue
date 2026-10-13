@@ -98,6 +98,10 @@
           </div>
           <div v-else-if="msg.role === 'assistant'" v-html="renderMarkdown(msg.content)"></div>
           <template v-else>{{ msg.content }}</template>
+          <div v-if="msg.needsConfirm" class="confirm-actions">
+            <el-button type="primary" size="small" @click="confirmAction(msg, true)">确认执行</el-button>
+            <el-button size="small" @click="confirmAction(msg, false)">取消</el-button>
+          </div>
         </div>
       </div>
     </div>
@@ -232,7 +236,8 @@ export default {
 
       try {
         const response = await fetch(
-          `/api/agent/chat?message=${encodeURIComponent(text)}&sessionId=${this.sessionId}&userId=${this.userId}`
+          `/api/agent/workflow/stream?message=${encodeURIComponent(text)}&sessionId=${this.sessionId}&userId=${this.userId}`,
+          { method: 'POST' }
         )
 
         if (!response.ok) {
@@ -255,68 +260,93 @@ export default {
           buffer = lines.pop()
 
           for (const line of lines) {
-            if (line.startsWith('data:')) {
-              const content = line.substring(5)
+            if (!line.startsWith('data:')) continue
+            const jsonStr = line.substring(5).trim()
+            if (!jsonStr) continue
 
-              // 检查模型名标记
-              if (content.startsWith('[MODEL]')) {
-                const modelName = content.substring(7).trim()
-                this.currentModel = modelName
-                this.messages[assistantIndex].modelUsed = modelName
+            try {
+              const event = JSON.parse(jsonStr)
+
+              if (event.type === 'meta') {
+                this.messages[assistantIndex].mode = event.mode
+                this.messages[assistantIndex].traceId = event.traceId
                 continue
               }
 
-              // 检查路由标记（v4.0-tool）
-              if (content.startsWith('[ROUTE]')) {
-                this.messages[assistantIndex].route = content.substring(7).trim()
+              if (event.type === 'token') {
+                fullText += event.content
+                this.messages[assistantIndex].content = fullText
+                this.$nextTick(() => this.scrollToBottom())
                 continue
               }
 
-              // 检查 Tool 调用标记
-              if (content.startsWith('[TOOL_CALL]')) {
-                this.messages[assistantIndex].toolCall = content.substring(12).trim()
+              if (event.type === 'confirm') {
+                this.messages[assistantIndex].content = event.message
+                this.messages[assistantIndex].needsConfirm = true
+                this.messages[assistantIndex].traceId = event.traceId
                 continue
               }
 
-              if (content.trim() === '[DONE]') continue
-              // 空的 data: 事件 = 换行
-              fullText += content === '' ? '\n' : content
-              this.messages[assistantIndex].content = fullText
-              this.$nextTick(() => this.scrollToBottom())
+              if (event.type === 'done') {
+                // 完成
+                continue
+              }
+
+              if (event.type === 'error') {
+                this.messages[assistantIndex].content = event.message || '请求失败'
+                continue
+              }
+            } catch (e) {
+              // 非 JSON 行，忽略
             }
           }
         }
 
         // 处理剩余 buffer
         if (buffer.startsWith('data:')) {
-          const content = buffer.substring(5)
-          if (content.startsWith('[MODEL]')) {
-            this.currentModel = content.substring(7).trim()
-            this.messages[assistantIndex].modelUsed = this.currentModel
-          } else if (content.startsWith('[ROUTE]')) {
-            this.currentRoute = content.substring(7).trim()
-            this.messages[assistantIndex].route = this.currentRoute
-          } else if (content.startsWith('[TOOL_CALL]')) {
-            this.messages[assistantIndex].toolCall = content.substring(12).trim()
-          } else if (content.trim() !== '[DONE]') {
-            fullText += content === '' ? '\n' : content
-            this.messages[assistantIndex].content = fullText
-          }
+          try {
+            const event = JSON.parse(buffer.substring(5).trim())
+            if (event.type === 'token') fullText += event.content
+            if (event.type === 'done' || event.type === 'token') {
+              this.messages[assistantIndex].content = fullText || '（无响应）'
+            }
+          } catch (e) {}
         }
 
-        if (!fullText) {
+        if (!fullText && !this.messages[assistantIndex].needsConfirm) {
           this.messages[assistantIndex].content = '（无响应）'
-        }
-
-        // 检测 Guardrails 拦截
-        if (fullText.includes('检测到不安全的输入')) {
-          this.messages[assistantIndex].bubbleClass = 'guardrails-block'
         }
 
       } catch (err) {
         this.messages[assistantIndex].loading = false
         this.messages[assistantIndex].content = `请求失败: ${err.message}`
         this.$message.error('请求失败，请检查后端服务是否启动')
+      } finally {
+        this.loading = false
+        this.$nextTick(() => this.scrollToBottom())
+      }
+    },
+
+    async confirmAction(msg, confirmed) {
+      if (this.loading) return
+      this.loading = true
+
+      try {
+        msg.needsConfirm = false
+        msg.content += '\n\n' + (confirmed ? '✅ 已确认' : '❌ 已取消') + '...'
+
+        const resp = await fetch('/api/agent/workflow/confirm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `traceId=${msg.traceId}&confirmed=${confirmed}&sessionId=${this.sessionId}&userId=${this.userId}`
+        })
+        const data = await resp.json()
+
+        if (data.message) {
+          msg.content = data.message
+        }
+      } catch (err) {
+        msg.content += '\n\n确认请求失败: ' + err.message
       } finally {
         this.loading = false
         this.$nextTick(() => this.scrollToBottom())
@@ -564,6 +594,12 @@ body {
   background: #fef0f0;
   border-color: #fde2e2;
   color: #c45656;
+}
+
+.confirm-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
 }
 
 /* JSON 输出样式 */

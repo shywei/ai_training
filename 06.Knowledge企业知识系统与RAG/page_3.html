@@ -1,76 +1,14 @@
-<!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>Prompt 的局限</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-</style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 01</div>
-<h1 class="mb-2">Prompt 的局限 — 为什么装不下企业知识</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
-
-<div style="flex:1;display:flex;gap:20px;">
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="padding:14px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:16px;">
-      <div style="font-size:16px;color:#FF6B35;font-weight:700;margin-bottom:6px;">一个实际问题</div>
-      <div style="font-size:13px;color:rgba(224,231,255,0.7);line-height:1.8;">
-        导购 Agent 能聊天、能记住用户。<br>
-        但用户问<strong style="color:#E0E7FF;">"有什么推荐的笔记本？"</strong><br>
-        它答不上来。为什么？
-      </div>
-    </div>
-    <div style="padding:14px 16px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;margin-bottom:16px;">
-      <div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">因为它根本不知道公司卖什么</div>
-      <div style="font-size:13px;color:rgba(224,231,255,0.55);line-height:1.8;">
-        商品信息存在哪？ERP、商品目录、Wiki。<br>
-        这些地方的共同特点：<strong style="color:#FF6B35;">大模型都读不到。</strong><br><br>
-        System Prompt 有长度限制（几千 token），<br>
-        不可能把所有商品信息塞进去。<br>
-        就算塞得下，商品上新了怎么办？改 Prompt？
-      </div>
-    </div>
-    <div style="padding:12px 16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
-      <div style="font-size:14px;color:#00E5FF;font-weight:600;">核心矛盾</div>
-      <div style="font-size:13px;color:rgba(224,231,255,0.55);margin-top:4px;">
-        大模型的训练数据是<strong style="color:#E0E7FF;">公开互联网</strong>，<br>
-        企业知识是<strong style="color:#E0E7FF;">内部私有</strong>的。<br>
-        两者之间有一道天然的鸿沟。
-      </div>
-    </div>
-  </div>
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:14px;">Prompt 能做什么、不能做什么</div>
-    <div style="display:flex;gap:12px;margin-bottom:16px;">
-      <div style="flex:1;padding:14px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:6px;">
-        <div style="font-size:14px;color:#22C55E;font-weight:700;margin-bottom:6px;">✓ Prompt 能做的</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.8;">
-          定义角色和行为<br>
-          设置约束和规则<br>
-          给几个示例（Few-shot）<br>
-          控制输出格式
-        </div>
-      </div>
-      <div style="flex:1;padding:14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;">
-        <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:6px;">✗ Prompt 做不到的</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.8;">
-          包含企业所有商品信息<br>
-          包含内部文档和 FAQ<br>
-          实时更新（商品上新、价格变动）<br>
-          处理大量结构化数据
-        </div>
-      </div>
-    </div>
-    <div style="padding:14px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:6px;">
-      <div style="font-size:14px;color:#A855F7;font-weight:700;margin-bottom:6px;">那怎么办？</div>
-      <div style="font-size:13px;color:rgba(224,231,255,0.55);line-height:1.8;">
-        两个方向：<br>
-        <strong style="color:#E0E7FF;">1. 把知识"烧"进模型</strong>（Fine-tuning）→ 下一页讲<br>
-        <strong style="color:#E0E7FF;">2. 让模型自己"查资料"</strong>（RAG）→ 本课重点
-      </div>
-    </div>
-  </div>
-</div>
-</div></body></html>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>技术选型三角</title><style>*{margin:0;padding:0;box-sizing:border-box}.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}</style></head><body>
+<div class="s" style="padding:24px 50px;display:flex;flex-direction:column"><div class="mb-1 sn">CHAPTER 01</div><h1 class="mb-1">技术选型 — Prompt vs RAG vs 微调</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px"></div>
+<div style="flex:1;display:flex;gap:14px"><div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+<div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:10px">三种技术路线的本质区别</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="padding:14px;background:rgba(0,229,255,0.06);border:2px solid rgba(0,229,255,0.2);border-radius:8px"><div style="font-size:16px;color:#00E5FF;font-weight:700;margin-bottom:6px">① Prompt 工程</div><div style="font-size:13px;color:rgba(224,231,255,0.65);line-height:1.7">改变的是<strong style="color:#E0E7FF">单次推理的行为边界</strong>。<br>定义角色、约束输出格式、注入少量示例。<br>优点：零成本、即时生效。<br>局限：能注入的知识量极其有限。</div></div>
+<div style="padding:14px;background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.2);border-radius:8px"><div style="font-size:16px;color:#22C55E;font-weight:700;margin-bottom:6px">② RAG（知识检索）</div><div style="font-size:13px;color:rgba(224,231,255,0.65);line-height:1.7">改变的是<strong style="color:#E0E7FF">事实与外部知识储备</strong>（开卷考试）。<br>知识可实时更新、支持段落级溯源引用。<br>优点：灵活、可审计、数据可控。<br>本课核心内容。</div></div>
+<div style="padding:14px;background:rgba(255,107,53,0.06);border:2px solid rgba(255,107,53,0.2);border-radius:8px"><div style="font-size:16px;color:#FF6B35;font-weight:700;margin-bottom:6px">③ 微调（Fine-tuning）</div><div style="font-size:13px;color:rgba(224,231,255,0.65);line-height:1.7">改变的是<strong style="color:#E0E7FF">模型的行为风格与专业术语敏感度</strong>。<br>适合：调整输出格式、行业术语、对话风格。<br>不适合存业务数据——知识无法实时更新、仍有幻觉、无法做权限过滤。</div></div></div></div>
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+<div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:10px">企业常见问题</div>
+<div style="padding:14px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;border-radius:6px;margin-bottom:14px"><div style="font-size:14px;color:#FF6B35;font-weight:600;margin-bottom:6px">"为什么不直接拿企业文档去微调专属模型？"</div><div style="font-size:13px;color:rgba(224,231,255,0.65);line-height:1.7">这是企业立项时管理层最常问的问题。<br><br>答案：<strong style="color:#E0E7FF">微调改变的是"怎么说"，不是"知道什么"。</strong><br><br>• 微调不能让模型"记住"你的商品价格——价格每天变<br>• 微调后的模型仍有幻觉——它可能编造不存在的商品<br>• 微调无法做权限过滤——所有用户看到同样的"知识"<br>• 微调更新成本极高——每次数据变化都要重新训练</div></div>
+<div style="padding:14px;background:rgba(34,197,94,0.06);border-left:4px solid #22C55E;border-radius:6px;margin-bottom:14px"><div style="font-size:14px;color:#22C55E;font-weight:600;margin-bottom:6px">正确的组合方式</div><div style="font-size:13px;color:rgba(224,231,255,0.65);line-height:1.7"><strong style="color:#00E5FF">Prompt</strong> 定义行为边界（你是导购助手，推荐商品时引用配置）<br><strong style="color:#22C55E">RAG</strong> 注入实时知识（商品信息、价格、库存、用户记忆）<br><strong style="color:#FF6B35">微调</strong> 优化表达风格（更专业的术语、更自然的对话）<br><br>三者互补，不互斥。企业 Agent 通常三者都用。</div></div>
+<div style="padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px"><div style="font-size:12px;color:rgba(224,231,255,0.45);line-height:1.7"><strong style="color:#E0E7FF">本课聚焦 RAG</strong>：因为它是最适合企业知识管理的技术路线。<br>微调是"改变模型本身"，RAG 是"给模型配一个图书馆"。</div></div></div></div></div></body></html>

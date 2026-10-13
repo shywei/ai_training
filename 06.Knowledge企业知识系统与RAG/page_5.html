@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>RAG 的思路</title>
+<title>Fine-tuning 的问题</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
@@ -9,66 +9,69 @@
 </style></head><body>
 <div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
 <div class="mb-2 sn">CHAPTER 01</div>
-<h1 class="mb-2">RAG — 让 AI 自己"查资料"</h1>
+<h1 class="mb-2">Fine-tuning — 为什么不划算</h1>
 <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
 
-<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-  <div style="padding:14px 24px;background:rgba(34,197,94,0.08);border:2px solid #22C55E;border-radius:8px;text-align:center;margin-bottom:20px;">
-    <div style="font-size:14px;color:#22C55E;font-weight:700;margin-bottom:4px;">RAG = Retrieval-Augmented Generation</div>
-    <div style="font-size:16px;color:#E0E7FF;font-weight:600;">检索增强生成 — 先查资料，再回答问题</div>
-  </div>
-
-  <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:20px;">
-    <div style="padding:14px 20px;background:rgba(0,229,255,0.1);border:2px solid rgba(0,229,255,0.3);border-radius:8px;text-align:center;">
-      <div style="font-size:16px;color:#00E5FF;font-weight:700;">用户提问</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-top:4px;">"推荐一台写代码的笔记本"</div>
-    </div>
-    <div style="color:#00E5FF;font-size:24px;">→</div>
-    <div style="padding:14px 20px;background:rgba(168,85,247,0.1);border:2px solid rgba(168,85,247,0.3);border-radius:8px;text-align:center;">
-      <div style="font-size:16px;color:#A855F7;font-weight:700;">检索</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-top:4px;">从知识库找相关商品</div>
-    </div>
-    <div style="color:#A855F7;font-size:24px;">→</div>
-    <div style="padding:14px 20px;background:rgba(255,107,53,0.1);border:2px solid rgba(255,107,53,0.3);border-radius:8px;text-align:center;">
-      <div style="font-size:16px;color:#FF6B35;font-weight:700;">组装 Prompt</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-top:4px;">用户问题 + 检索结果</div>
-    </div>
-    <div style="color:#FF6B35;font-size:24px;">→</div>
-    <div style="padding:14px 20px;background:rgba(34,197,94,0.1);border:2px solid rgba(34,197,94,0.3);border-radius:8px;text-align:center;">
-      <div style="font-size:16px;color:#22C55E;font-weight:700;">LLM 生成</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-top:4px;">基于检索结果回答</div>
-    </div>
-  </div>
-
-  <div style="display:flex;gap:16px;margin-bottom:16px;">
-    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">本质</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.6;">
-        不是改模型，是改<strong style="color:#E0E7FF;">输入</strong>。<br>
-        把企业知识塞进 Prompt 里，让 LLM "看到"后再回答。<br>
-        知识库在外部，不在模型里。
+<div style="flex:1;display:flex;gap:20px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="padding:14px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:16px;">
+      <div style="font-size:16px;color:#FF6B35;font-weight:700;margin-bottom:6px;">什么是 Fine-tuning？</div>
+      <div style="font-size:13px;color:rgba(224,231,255,0.7);line-height:1.8;">
+        用企业自己的数据，对大模型进行<strong style="color:#E0E7FF;">二次训练</strong>。<br>
+        把商品信息、FAQ、内部文档"烧"进模型参数里。<br>
+        训练完成后，模型"记住"了这些知识。
       </div>
     </div>
-    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">优势</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.6;">
-        知识更新 = 更新文档，不需要重新训练<br>
-        数据不出企业，安全可控<br>
-        成本低，只付 API 调用费
+    <div style="padding:14px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:16px;">
+      <div style="font-size:16px;color:#FF6B35;font-weight:700;margin-bottom:6px;">为什么企业不适合 Fine-tuning？</div>
+      <div style="font-size:13px;color:rgba(224,231,255,0.7);line-height:1.8;">
+        <strong style="color:#FF6B35;">成本高</strong>：训练一次几万到几十万，需要 GPU 集群<br>
+        <strong style="color:#FF6B35;">更新滞后</strong>：商品上新了要重新训练，周期以天计<br>
+        <strong style="color:#FF6B35;">数据安全</strong>：企业数据要交给模型厂商，有泄露风险<br>
+        <strong style="color:#FF6B35;">投入产出比极低</strong>：大部分场景用 RAG 就能解决
       </div>
     </div>
-    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">和 Memory 的区别</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.6;">
-        Memory 记"人"（用户偏好、历史）<br>
-        Knowledge 记"事"（商品信息、企业文档）<br>
-        两者互补，不可替代
+    <div style="padding:12px 16px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;">
+      <div style="font-size:14px;color:#E0E7FF;font-weight:600;margin-bottom:4px;">什么时候才需要 Fine-tuning？</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.8;">
+        模型需要学习<strong style="color:#E0E7FF;">新的输出风格</strong>（如企业特有的报告格式）<br>
+        模型需要掌握<strong style="color:#E0E7FF;">领域专业知识</strong>（如医疗、法律术语）<br>
+        RAG 无法解决的场景（需要"内化"知识，不只是"查阅"）
       </div>
     </div>
   </div>
-
-  <div style="padding:12px 16px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;text-align:center;">
-    <div style="font-size:14px;color:#FF6B35;font-weight:600;">接下来的问题：知识怎么进来？怎么存？怎么查？怎么用？</div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:14px;">Fine-tuning vs RAG 对比</div>
+    <div style="margin-bottom:16px;">
+      <div style="display:flex;gap:2px;margin-bottom:2px;">
+        <div style="flex:1;padding:8px 12px;background:rgba(0,229,255,0.1);font-size:12px;color:#00E5FF;font-weight:600;">维度</div>
+        <div style="flex:1;padding:8px 12px;background:rgba(255,107,53,0.1);font-size:12px;color:#FF6B35;font-weight:600;">Fine-tuning</div>
+        <div style="flex:1;padding:8px 12px;background:rgba(34,197,94,0.1);font-size:12px;color:#22C55E;font-weight:600;">RAG</div>
+      </div>
+      <div style="display:flex;gap:2px;margin-bottom:2px;">
+        <div style="flex:1;padding:8px 12px;background:rgba(224,231,255,0.03);font-size:11px;color:rgba(224,231,255,0.5);">成本</div>
+        <div style="flex:1;padding:8px 12px;background:rgba(255,107,53,0.03);font-size:11px;color:rgba(224,231,255,0.5);">几万~几十万</div>
+        <div style="flex:1;padding:8px 12px;background:rgba(34,197,94,0.03);font-size:11px;color:rgba(224,231,255,0.5);">几千（API 调用）</div>
+      </div>
+      <div style="display:flex;gap:2px;margin-bottom:2px;">
+        <div style="flex:1;padding:8px 12px;background:rgba(224,231,255,0.03);font-size:11px;color:rgba(224,231,255,0.5);">更新速度</div>
+        <div style="flex:1;padding:8px 12px;background:rgba(255,107,53,0.03);font-size:11px;color:rgba(224,231,255,0.5);">天级（重新训练）</div>
+        <div style="flex:1;padding:8px 12px;background:rgba(34,197,94,0.03);font-size:11px;color:rgba(224,231,255,0.5);">分钟级（更新文档）</div>
+      </div>
+      <div style="display:flex;gap:2px;margin-bottom:2px;">
+        <div style="flex:1;padding:8px 12px;background:rgba(224,231,255,0.03);font-size:11px;color:rgba(224,231,255,0.5);">数据安全</div>
+        <div style="flex:1;padding:8px 12px;background:rgba(255,107,53,0.03);font-size:11px;color:rgba(224,231,255,0.5);">数据交给厂商</div>
+        <div style="flex:1;padding:8px 12px;background:rgba(34,197,94,0.03);font-size:11px;color:rgba(224,231,255,0.5);">数据不出企业</div>
+      </div>
+      <div style="display:flex;gap:2px;margin-bottom:2px;">
+        <div style="flex:1;padding:8px 12px;background:rgba(224,231,255,0.03);font-size:11px;color:rgba(224,231,255,0.5);">适用场景</div>
+        <div style="flex:1;padding:8px 12px;background:rgba(255,107,53,0.03);font-size:11px;color:rgba(224,231,255,0.5);">风格/领域学习</div>
+        <div style="flex:1;padding:8px 12px;background:rgba(34,197,94,0.03);font-size:11px;color:rgba(224,231,255,0.5);">知识检索（大部分场景）</div>
+      </div>
+    </div>
+    <div style="padding:12px 16px;background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.2);border-radius:6px;">
+      <div style="font-size:15px;color:#22C55E;font-weight:700;text-align:center;">企业 AI 应用 90% 的场景用 RAG 就够了。<br>Fine-tuning 是最后手段，不是第一选择。</div>
+    </div>
   </div>
 </div>
 </div></body></html>

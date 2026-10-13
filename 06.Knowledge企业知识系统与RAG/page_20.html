@@ -1,0 +1,24 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>Long-Context vs RAG</title><style>*{margin:0;padding:0;box-sizing:border-box}.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}</style></head><body>
+<div class="s" style="padding:24px 50px;display:flex;flex-direction:column"><div class="mb-1 sn">CHAPTER 07</div><h1 class="mb-1">Long-Context vs RAG — 存亡之争</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px"></div>
+<div style="flex:1;display:flex;gap:14px"><div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+<div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:10px">企业决策者的质疑</div>
+<div style="padding:14px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;border-radius:6px;margin-bottom:14px"><div style="font-size:14px;color:#FF6B35;font-weight:600;margin-bottom:6px">"既然模型能吃下 100 万字，为什么不把全量手册直接塞进 Prompt？"</div><div style="font-size:13px;color:rgba(224,231,255,0.65);line-height:1.7">上下文窗口已经扩展到 128K/1M/2M tokens。<br>RAG 看起来可以被淘汰了？</div></div>
+<div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:10px">Long-Context 无法替代 RAG 的四个硬伤</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<div style="padding:10px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px"><div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:2px">① 成本差距</div><div style="font-size:13px;color:rgba(224,231,255,0.65)">每次调用输入 10 万 tokens，API 成本高出 <strong style="color:#E0E7FF">100 倍</strong>。RAG 只检索相关段落，通常几百 tokens。</div></div>
+<div style="padding:10px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px"><div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:2px">② 交互延迟（TTFT）</div><div style="font-size:13px;color:rgba(224,231,255,0.65)">10 万 tokens 输入，首字返回延迟从几百毫秒飙升至<strong style="color:#E0E7FF">十几秒</strong>。用户等不了。</div></div>
+<div style="padding:10px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px"><div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:2px">③ 注意力迷失（Lost in the Middle）</div><div style="font-size:13px;color:rgba(224,231,255,0.65)">上下文过长时，<strong style="color:#E0E7FF">中间段落信息命中率大幅衰减</strong>。LLM 对开头和结尾敏感，中间内容容易被忽略。</div></div>
+<div style="padding:10px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px"><div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:2px">④ 无法做权限过滤</div><div style="font-size:13px;color:rgba(224,231,255,0.65)">全量塞入 = 所有用户看到所有内容。RAG 可以按 <strong style="color:#E0E7FF">tenant_id / role_ids</strong> 做检索过滤。</div></div></div></div>
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+<div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:10px">对比总结</div>
+<div style="padding:14px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:8px;margin-bottom:14px">
+<div style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:rgba(224,231,255,0.65);line-height:1.8">
+<div><span style="color:#00E5FF;font-weight:700">Long-Context</span>：适合<strong style="color:#E0E7FF">单次复杂文档的深度交叉分析</strong><br>例：分析一份 50 页的合同，找出所有风险条款</div>
+<div style="border-top:1px solid rgba(224,231,255,0.08);padding-top:6px"><span style="color:#22C55E;font-weight:700">RAG</span>：适合<strong style="color:#E0E7FF">海量企业知识的高效低成本检索</strong><br>例：从 10 万篇文档中检索相关的 3 段回答用户问题</div>
+<div style="border-top:1px solid rgba(224,231,255,0.08);padding-top:6px"><span style="color:#A855F7;font-weight:700">结论</span>：<strong style="color:#E0E7FF">两者互补，不是替代</strong></div></div></div>
+<div style="padding:14px;background:rgba(34,197,94,0.06);border-left:4px solid #22C55E;border-radius:6px;margin-bottom:14px"><div style="font-size:14px;color:#22C55E;font-weight:600;margin-bottom:6px">工程实践建议</div><div style="font-size:13px;color:rgba(224,231,255,0.65);line-height:1.7">
+<strong style="color:#E0E7FF">默认用 RAG</strong>：企业知识库、客服 FAQ、商品检索<br>
+<strong style="color:#E0E7FF">Long-Context 做补充</strong>：单文档深度分析、长报告总结<br>
+<strong style="color:#E0E7FF">两者结合</strong>：RAG 检索 Top-K 段落 → 塞入 Long-Context 窗口 → LLM 深度分析</div></div>
+<div style="padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px"><div style="font-size:12px;color:rgba(224,231,255,0.45);line-height:1.7"><strong style="color:#E0E7FF">一句话</strong>：上下文窗口变大了，不代表应该把所有东西都塞进去。<br>就像你有一辆卡车，不代表你应该每次都装满——油费和时间都是成本。</div></div></div></div></div></body></html>

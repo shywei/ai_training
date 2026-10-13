@@ -1,62 +1,100 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>企业优化</title>
+<title>Prompt + RAG 集成</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
 .s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:9.5px;line-height:1.3;color:rgba(224,231,255,0.7)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)} .fn{color:#E0E7FF}
 </style></head><body>
 <div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 05</div>
-<h1 class="mb-2">企业优化 — 生产环境必须做的四件事</h1>
+<div class="mb-2 sn">CHAPTER 04</div>
+<h1 class="mb-2">Prompt + RAG 集成 — 检索结果怎么用</h1>
 <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
 
-<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-  <div style="display:flex;gap:14px;margin-bottom:14px;">
-    <div style="flex:1;padding:14px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:6px;">
-      <div style="font-size:14px;color:#A855F7;font-weight:700;margin-bottom:6px;">🔍 Hybrid Search</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
-        <strong style="color:#E0E7FF;">问题：</strong>向量检索对型号/SKU 不敏感<br>
-        <strong style="color:#E0E7FF;">方案：</strong>向量 + BM25 关键词融合<br>
-        <strong style="color:#E0E7FF;">实现：</strong>pgvector + PostgreSQL tsvector<br>
-        <strong style="color:#A855F7;">优先级：第2个做</strong>
+<div style="flex:1;display:flex;gap:20px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="padding:14px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;">
+      <div style="font-size:15px;color:#FF6B35;font-weight:700;">不是把检索结果塞进去就行</div>
+      <div style="font-size:13px;color:rgba(224,231,255,0.5);margin-top:6px;line-height:1.8;">
+        检索结果需要<strong style="color:#E0E7FF;">格式化</strong>后注入 Prompt。<br>
+        LLM 需要知道"这是参考知识，请基于它回答"。<br>
+        否则 LLM 可能忽略检索结果，自己编造。
       </div>
     </div>
-    <div style="flex:1;padding:14px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:6px;">
-      <div style="font-size:14px;color:#A855F7;font-weight:700;margin-bottom:6px;">📊 Rerank 精排</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
-        <strong style="color:#E0E7FF;">问题：</strong>向量检索排序不够精确<br>
-        <strong style="color:#E0E7FF;">方案：</strong>交叉编码器重新打分<br>
-        <strong style="color:#E0E7FF;">实现：</strong>BGE-Reranker 或 Cohere API<br>
-        <strong style="color:#A855F7;">优先级：第3个做</strong>
+
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">RAG 结果注入 Prompt 的格式</div>
+    <div style="padding:8px 12px;background:rgba(0,0,0,0.3);border:1px solid rgba(0,229,255,0.15);border-radius:6px;margin-bottom:10px;overflow:auto;">
+      <div style="font-size:10px;color:rgba(224,231,255,0.6);font-family:monospace;line-height:1.35;">
+        <span style="color:#00E5FF;">## 参考知识（从商品库检索）</span><br>
+        [1] ThinkPad X1 Carbon（联想）— 笔记本电脑<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;配置: i7, 32GB, 1TB SSD, 14寸 2.8K OLED<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;亮点: 超轻机身1.08kg, OLED屏幕...<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;适合: 商务办公, 出差旅行<br>
+        [2] MacBook Pro 14（苹果）— 笔记本电脑<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;配置: M3 Pro, 18GB, 512GB SSD...<br>
+        <br>
+        <span style="color:#00E5FF;">## 用户问题</span><br>
+        推荐一台写代码的笔记本
       </div>
     </div>
-  </div>
-  <div style="display:flex;gap:14px;margin-bottom:14px;">
-    <div style="flex:1;padding:14px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:6px;">
-      <div style="font-size:14px;color:#A855F7;font-weight:700;margin-bottom:6px;">📊 RAG Evaluation</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
-        <strong style="color:#E0E7FF;">问题：</strong>"为什么检索不到？"没有量化依据<br>
-        <strong style="color:#E0E7FF;">方案：</strong>Recall / Precision / Answer Relevancy<br>
-        <strong style="color:#E0E7FF;">实现：</strong>评测集 + 自动计算指标<br>
-        <strong style="color:#A855F7;">优先级：第4个做</strong>
+
+    <div style="padding:12px 16px;background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.2);border-radius:6px;">
+      <div style="font-size:14px;color:#22C55E;font-weight:700;margin-bottom:6px;">System Prompt 加入知识使用规则</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.8;">
+        "请优先参考以下知识回答，不确定时说不知道"<br>
+        "推荐商品时引用具体的配置、亮点来说明理由"<br>
+        "不要编造不存在的商品名称和配置"<br>
+        <strong style="color:#22C55E;">不加这个规则，LLM 会忽略检索结果自己编造。</strong>
       </div>
     </div>
-    <div style="flex:1;padding:14px;background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.2);border-radius:6px;">
-      <div style="font-size:14px;color:#22C55E;font-weight:700;margin-bottom:6px;">⚡ Cache 缓存</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
-        <strong style="color:#E0E7FF;">问题：</strong>相同问题反复检索+生成<br>
-        <strong style="color:#E0E7FF;">方案：</strong>语义缓存（相似问题共用结果）<br>
-        <strong style="color:#E0E7FF;">实现：</strong>Redis 存问题 Embedding + 结果<br>
-        <strong style="color:#22C55E;">优先级：第1个做（最简单最有效）</strong>
-      </div>
+
+    <!-- 避坑卡片 -->
+    <div style="margin-top:10px;padding:8px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.25);border-radius:4px;overflow:auto;">
+      <div style="font-size:11px;color:#FF6B35;font-weight:700;margin-bottom:2px;">🚨 Token 预算与溢出截断</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.5);line-height:1.4;">企业级 context 拼接包含四路信息，容易超出模型的最大 Context Window。Demo 为了简化没有进行长度裁切；生产环境中，必须在 Java 端进行 Token 预算限制与基于优先级（知识 > 画像 > 历史）的截断机制，防止调用超限。</div>
     </div>
   </div>
 
-  <div style="padding:12px 16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
-    <div style="font-size:14px;color:#00E5FF;font-weight:600;text-align:center;">生产落地优先级：Cache → Hybrid Search → Rerank → Evaluation</div>
-    <div style="font-size:12px;color:rgba(224,231,255,0.5);text-align:center;margin-top:4px;">改动最小、效果最明显的先做。每个都可以在现有 Demo 代码上扩展。</div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:13px;color:#FF6B35;font-weight:700;margin-bottom:6px;">💻 Demo：MemoryManager.buildContext()</div>
+    <div style="padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;margin-bottom:8px;overflow:auto;">
+      <pre><span class="kw">public</span> String <span class="fn">buildContext</span>(String sessionId,
+    String userId, String userMessage) {
+  StringBuilder sb = <span class="kw">new</span> StringBuilder();
+
+  <span class="cm">// ① 用户画像（MySQL — 始终查询）</span>
+  UserProfile profile = profileMapper.selectOne(...);
+  <span class="kw">if</span> (profile != <span class="kw">null</span>)
+    sb.append(profile.toContextString());
+
+  <span class="cm">// ② 相关记忆（pgvector — 始终查询）</span>
+  String mem = memoryService.search(
+    userId, userMessage);
+  <span class="kw">if</span> (mem != <span class="kw">null</span>)
+    sb.append(<span class="str">"## 相关记忆\n"</span>).append(mem);
+
+  <span class="cm">// ③ 对话历史（Redis — 沉淀后为空）</span>
+  <span class="cm">// ④ 参考知识（pgvector — 关键词过滤后）</span>
+  String rag = retrievalService.retrieve(
+    userMessage);
+  <span class="kw">if</span> (rag != <span class="kw">null</span>)
+    sb.append(<span class="str">"## 参考知识\n"</span>).append(rag);
+
+  <span class="kw">return</span> sb.toString();
+}</pre>
+    </div>
+    <div style="font-size:13px;color:#FF6B35;font-weight:700;margin-bottom:6px;">💻 Demo：PromptManager 知识使用规则</div>
+    <div style="padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;overflow:auto;">
+      <pre><span class="cm">// System Prompt 中的知识使用规则</span>
+<span class="str">"# 知识使用规则\n"</span> +
+<span class="str">"- 推荐商品必须基于商品库知识\n"</span> +
+<span class="str">"- 引用配置、亮点说明理由\n"</span> +
+<span class="str">"- 不要编造商品名称和配置\n"</span> +
+<span class="str">"- 没有匹配就如实告知\n"</span></pre>
+    </div>
   </div>
 </div>
 </div></body></html>

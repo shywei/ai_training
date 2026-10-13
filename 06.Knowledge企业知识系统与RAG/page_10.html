@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>语义检索</title>
+<title>向量数据库 pgvector</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
@@ -11,66 +11,86 @@ pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.
 </style></head><body>
 <div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
 <div class="mb-2 sn">CHAPTER 03</div>
-<h1 class="mb-2">语义检索 — 怎么找到相关的知识</h1>
+<h1 class="mb-2">向量数据库 — 知识存在哪</h1>
 <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
 
 <div style="flex:1;display:flex;gap:20px;">
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="padding:14px 16px;background:rgba(0,229,255,0.06);border-left:4px solid #00E5FF;margin-bottom:14px;">
-      <div style="font-size:15px;color:#00E5FF;font-weight:700;">语义检索的流程</div>
-      <div style="font-size:13px;color:rgba(224,231,255,0.5);margin-top:6px;line-height:1.8;">
-        1. 用户问题 → Embedding → 查询向量<br>
-        2. 查询向量和知识库中的向量做<strong style="color:#E0E7FF;">余弦相似度</strong>计算<br>
-        3. 返回最相似的 Top-K 个结果<br>
-        4. 相似度阈值过滤（低于阈值的丢弃）
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:12px;">向量数据库选型</div>
+    <div style="display:flex;gap:10px;margin-bottom:14px;">
+      <div style="flex:1;padding:12px;background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.25);border-radius:6px;">
+        <div style="font-size:13px;color:#22C55E;font-weight:700;">pgvector <span style="font-size:9px;background:rgba(34,197,94,0.15);padding:1px 6px;border-radius:3px;">Demo</span></div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;margin-top:4px;">PostgreSQL 扩展<br>企业已有 PG，直接升级<br>SQL 生态复用<br>不引入新基础设施</div>
+      </div>
+      <div style="flex:1;padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;">
+        <div style="font-size:13px;color:#E0E7FF;font-weight:600;">Milvus</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;margin-top:4px;">专用向量库<br>性能最强<br>需独立部署<br>运维成本高</div>
+      </div>
+      <div style="flex:1;padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;">
+        <div style="font-size:13px;color:#E0E7FF;font-weight:600;">Elasticsearch</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;margin-top:4px;">企业已有<br>支持全文搜索<br>资源占用重<br>向量是附加功能</div>
       </div>
     </div>
 
-    <div style="padding:14px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;margin-bottom:14px;">
-      <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">关键参数</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:2;">
-        <strong style="color:#00E5FF;">Top-K</strong>：返回几个结果？Demo 默认 3 个。<br>
-        <strong style="color:#00E5FF;">相似度阈值</strong>：低于多少分的不要？Demo 默认 0.3。<br>
-        <strong style="color:#00E5FF;">距离度量</strong>：用什么算法算相似度？Demo 用 cosine。
+    <div style="padding:12px 16px;background:rgba(0,229,255,0.06);border-left:4px solid #00E5FF;margin-bottom:14px;">
+      <div style="font-size:14px;color:#00E5FF;font-weight:700;">为什么选 pgvector？</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.5);margin-top:4px;line-height:1.8;">
+        <strong style="color:#22C55E;">不引入新基础设施</strong> — 企业已有 PostgreSQL<br>
+        <strong style="color:#22C55E;">SQL 生态复用</strong> — DBA 会管，可以用 SQL 查<br>
+        <strong style="color:#22C55E;">生产可用</strong> — 支持 HNSW/IVFFlat 索引
       </div>
     </div>
 
-    <div style="padding:12px 16px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;">
-      <div style="font-size:13px;color:#FF6B35;font-weight:700;margin-bottom:4px;">语义检索的局限</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.8;">
-        对专有名词不敏感（"X1 Carbon"可能匹配不到）<br>
-        需要调优（Chunk Size、Top-K、阈值都会影响效果）<br>
-        <strong style="color:#FF6B35;">这就是后面要讲 Hybrid Search 的原因</strong>
+    <div style="font-size:13px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">索引策略</div>
+    <div style="display:flex;gap:10px;">
+      <div style="flex:1;padding:10px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:5px;">
+        <div style="font-size:12px;color:#22C55E;font-weight:600;">HNSW <span style="font-size:9px;background:rgba(34,197,94,0.15);padding:1px 6px;border-radius:3px;">Demo</span></div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.45);margin-top:2px;">精度高 · 内存占用大 · 中小规模</div>
       </div>
+      <div style="flex:1;padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:5px;">
+        <div style="font-size:12px;color:#E0E7FF;font-weight:600;">IVFFlat</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.45);margin-top:2px;">速度快 · 精度略低 · 大规模</div>
+      </div>
+    </div>
+
+    <!-- 避坑卡片 -->
+    <div style="margin-top:12px;padding:8px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.25);border-radius:4px;overflow:auto;">
+      <div style="font-size:11px;color:#FF6B35;font-weight:700;margin-bottom:2px;">🚨 多数据源冲突陷阱</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.5);line-height:1.4;">Spring AI 默认会将自动装配的 PgVectorStore 绑定到项目的主数据源。如果业务库用的是 MySQL，启动时会因向 MySQL 写入 PG 向量列而直接崩溃。项目中必须显式定义一个独立的 PostgreSQL DataSource，并手动构建对应的 PgVectorStore Bean。</div>
     </div>
   </div>
 
   <div style="flex:1;display:flex;flex-direction:column;">
-    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">💻 Demo 代码：RetrievalService.java</div>
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">💻 Demo 代码</div>
     <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;flex:1;">
-      <pre><span class="kw">public</span> String <span class="fn">retrieve</span>(String query, <span class="kw">int</span> topK) {
-  <span class="cm">// 1. 关键词过滤（下一节讲）</span>
-  <span class="kw">if</span> (!isProductRelated(query))
-    <span class="kw">return null</span>;
+      <pre><span class="cm">// VectorStoreConfig.java — 独立数据源</span>
+<span class="kw">@Bean</span>
+<span class="kw">public</span> DataSource <span class="fn">pgvectorDataSource</span>() {
+  HikariDataSource ds = <span class="kw">new</span> HikariDataSource();
+  ds.setJdbcUrl(pgUrl);  <span class="cm">// PostgreSQL</span>
+  ds.setUsername(pgUser);
+  ds.setPassword(pgPass);
+  ds.setMaximumPoolSize(<span class="str">5</span>);
+  <span class="kw">return</span> ds;
+}
 
-  <span class="cm">// 2. 构建检索请求</span>
-  SearchRequest req = SearchRequest.query(query)
-    .withTopK(topK)           <span class="cm">// 返回几个</span>
-    .withSimilarityThreshold(<span class="str">0.3</span>); <span class="cm">// 最低分数</span>
+<span class="cm">// PgVectorStore Bean</span>
+<span class="kw">@Bean</span>
+<span class="kw">public</span> PgVectorStore <span class="fn">pgVectorStore</span>(
+    JdbcTemplate pg, EmbeddingModel emb) {
+  <span class="kw">return</span> PgVectorStore.builder(pg, emb).build();
+}
 
-  <span class="cm">// 3. 执行向量检索（pgvector cosine）</span>
-  List&lt;Document&gt; results =
-    vectorStore.similaritySearch(req);
-
-  <span class="kw">if</span> (results == <span class="kw">null</span> || results.isEmpty())
-    <span class="kw">return null</span>;
-
-  <span class="cm">// 4. 格式化结果</span>
-  <span class="kw">return</span> formatResults(results);
-}</pre>
-    </div>
-    <div style="margin-top:8px;padding:10px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
-      <div style="font-size:11px;color:rgba(224,231,255,0.5);"><strong style="color:#E0E7FF;">流程：</strong>用户问题 → Embedding（Spring AI 自动完成）→ pgvector cosine search → Top-K 结果 → 格式化。</div>
+<span class="cm">// schema-knowledge.sql</span>
+<span class="kw">CREATE TABLE</span> vector_store (
+  id        VARCHAR(<span class="str">255</span>) PRIMARY KEY,
+  content   TEXT NOT NULL,
+  metadata  JSONB,
+  embedding <span class="kw">vector</span>(<span class="str">1024</span>) NOT NULL
+);
+<span class="kw">CREATE INDEX</span> idx_vs_embedding
+  <span class="kw">ON</span> vector_store
+  <span class="kw">USING</span> hnsw (embedding vector_cosine_ops);</pre>
     </div>
   </div>
 </div>

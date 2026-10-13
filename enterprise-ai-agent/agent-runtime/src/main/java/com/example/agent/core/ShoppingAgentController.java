@@ -7,13 +7,10 @@ import com.example.agent.tool.McpKnowledgeClient;
 import com.example.agent.tool.McpProductClient;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.model.function.FunctionCallback;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import java.util.List;
 import java.util.Map;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 
 /**
  * 导购 Agent API
@@ -22,6 +19,9 @@ import reactor.core.publisher.Flux;
  * v2.0-memory: 新增 Session Memory、对话历史注入、context 填充
  * v3.0-knowledge: 新增 RAG 知识检索
  * v4.0-tool: 新增 LLM 路由、Tool 调用、数据分层闭环
+ *
+ * 注意：/chat 端点已删除。
+ * 前端统一调用 /api/agent/workflow 或 /api/agent/workflow/stream。
  */
 @RestController
 @RequestMapping("/api/agent")
@@ -58,138 +58,6 @@ public class ShoppingAgentController {
         this.llmRouter = llmRouter;
         this.mcpProductClient = mcpProductClient;
         this.mcpKnowledgeClient = mcpKnowledgeClient;
-    }
-
-    /**
-     * 流式对话接口
-     * v4.0: LLM 路由 → 知识检索 / Tool 调用 / 普通对话
-     */
-    @GetMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> chat(@RequestParam String message,
-                             @RequestParam(defaultValue = "default") String sessionId,
-                             @RequestParam(defaultValue = "") String userId) {
-        if (guardrails.checkInjection(message)) {
-            return Flux.just("检测到不安全的输入,请重新提问。");
-        }
-
-        // v4.0: LLM 路由判断意图 + 选择模型
-        LlmRouter.RouteResult routeResult = llmRouter.route(message);
-        LlmRouter.Route route = routeResult.route();
-        String model = routeResult.model();
-        System.out.println("[Router] 用户意图: " + route + ", 模型: " + model + " (消息: " + message + ")");
-
-
-        // 构建 context（画像 + 记忆 + 对话历史）
-        String context = memoryManager.buildContext(sessionId, userId, message);
-
-        // 根据路由决策，决定是否添加 RAG 知识
-        // KNOWLEDGE 和 TOOL 路由都注入 RAG（TOOL 需要产品 ID 来查价格/库存）
-        if (route == LlmRouter.Route.KNOWLEDGE || route == LlmRouter.Route.TOOL) {
-            // 搜索 query 包含最近对话上下文，避免“多少钱”这种短 query 缺少产品信息
-            String searchQuery = buildSearchQuery(sessionId, message);
-            String ragContext = mcpKnowledgeClient.search(searchQuery);
-            if (ragContext != null && !ragContext.isBlank()) {
-                context = (context != null ? context : "") + "## 参考知识（从商品库检索）\n" + ragContext + "\n";
-            }
-        }
-
-        llmLogger.logMemoryInjection(sessionId, context);
-
-        String systemPrompt = promptManager.buildSystemPrompt();
-        String userPrompt = promptManager.buildUserPrompt(message, context);
-        llmLogger.logRequest(model, systemPrompt, userPrompt);
-
-        String finalModel = model;
-        String finalSessionId = sessionId;
-        String finalMessage = message;
-        String finalUserId = userId;
-
-        // 构建 ChatClient，TOOL 路由时注册 FunctionCallback
-        var clientBuilder = ChatClient.create(chatModel).prompt()
-                .system(systemPrompt)
-                .user(userPrompt)
-                .options(OpenAiChatOptions.builder()
-                        .withModel(model)
-                        .build());
-
-        // 如果是 TOOL 意图，注册 MCP Product Tool
-        // 所有商品查询 Tool 统一通过 MCP 协议从 MCP Server 获取
-        if (route == LlmRouter.Route.TOOL) {
-            List<FunctionCallback> mcpCallbacks = mcpProductClient.getFunctionCallbacks();
-            if (!mcpCallbacks.isEmpty()) {
-                for (FunctionCallback cb : mcpCallbacks) {
-                    System.out.println("[Tool] 注册: name=" + cb.getName());
-                    System.out.println("[Tool]   desc=" + cb.getDescription());
-                    System.out.println("[Tool]   schema=" + cb.getInputTypeSchema());
-                }
-                clientBuilder = clientBuilder.functions(mcpCallbacks.toArray(new FunctionCallback[0]));
-                System.out.println("[Tool] 已注册 " + mcpCallbacks.size() + " 个 Product MCP Tool: " + mcpProductClient.getToolNames());
-            } else {
-                System.out.println("[Tool] Product MCP Server 未连接，无可用 Tool");
-            }
-        }
-
-        String finalRoute = route.name();
-
-        // TOOL 路由用同步调用（流式模式下 tool_call 解析可能丢失函数名）
-        if (route == LlmRouter.Route.TOOL) {
-            try {
-                long start = System.currentTimeMillis();
-                String response = clientBuilder.call().content();
-                llmLogger.logResponse(finalModel, response, System.currentTimeMillis() - start);
-                memoryManager.saveTurn(finalSessionId, finalUserId, finalMessage, response);
-                String sanitized = guardrails.sanitize(response);
-                return Flux.concat(
-                        Flux.just("[MODEL]" + finalModel),
-                        Flux.just("[ROUTE]" + finalRoute),
-                        Flux.just(sanitized)
-                );
-            } catch (Exception e) {
-                System.err.println("[Agent] TOOL 调用异常: " + e.getMessage());
-                return Flux.concat(
-                        Flux.just("[MODEL]" + finalModel),
-                        Flux.just("[ROUTE]" + finalRoute),
-                        Flux.just("抱歉，查询过程中出现了问题，请重新描述您的问题。")
-                );
-            }
-        }
-
-        // 非 TOOL 路由用流式调用
-        try {
-            return clientBuilder
-                    .stream()
-                    .content()
-                    .transform(flux -> {
-                        String modelTag = "[MODEL]" + finalModel;
-                        String routeTag = "[ROUTE]" + finalRoute;
-                        StringBuilder fullResp = new StringBuilder();
-                        long[] start = {System.currentTimeMillis()};
-                        return Flux.concat(
-                            Flux.just(modelTag),
-                            Flux.just(routeTag),
-                            flux.map(chunk -> {
-                                fullResp.append(chunk);
-                                return guardrails.sanitize(chunk);
-                            }).doOnComplete(() -> {
-                                if (fullResp.length() > 0) {
-                                    llmLogger.logResponse(finalModel, fullResp.toString(), System.currentTimeMillis() - start[0]);
-                                    memoryManager.saveTurn(finalSessionId, finalUserId, finalMessage, fullResp.toString());
-                                    if (!finalUserId.isBlank() && containsRememberKeyword(finalMessage)) {
-                                        System.out.println("[Memory] 检测到 记住 指令，触发画像抽取");
-                                        profileExtractor.extract(finalUserId, finalSessionId);
-                                    }
-                                }
-                            })
-                        );
-                    })
-                    .onErrorResume(e -> {
-                        System.err.println("[Agent] 流式响应异常: " + e.getMessage());
-                        return Flux.just("抱歉，处理过程中出现了问题，请重新描述您的问题。");
-                    });
-        } catch (Exception e) {
-            System.err.println("[Agent] 请求异常: " + e.getMessage());
-            return Flux.just("抱歉，服务暂时不可用，请稍后再试。");
-        }
     }
 
     /**

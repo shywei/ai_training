@@ -1,83 +1,80 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>context 演进</title>
+<title>关键词过滤与检索策略</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
 .s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)} .fn{color:#E0E7FF}
 </style></head><body>
 <div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 04</div>
-<h1 class="mb-2">context 演进 — Agent 能力逐步增强</h1>
+<div class="mb-2 sn">CHAPTER 03</div>
+<h1 class="mb-2">关键词过滤 — 什么时候该检索</h1>
 <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
 
-<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-  <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:14px;">context 是整个 Agent 的核心参数，每课逐步填充</div>
+<div style="flex:1;display:flex;gap:20px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="padding:14px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;">
+      <div style="font-size:15px;color:#FF6B35;font-weight:700;">问题：不是所有消息都需要检索</div>
+      <div style="font-size:13px;color:rgba(224,231,255,0.5);margin-top:6px;line-height:1.8;">
+        用户说"你好" → 不需要检索商品知识<br>
+        用户说"推荐笔记本" → 需要检索<br>
+        用户说"今天天气怎么样" → 不需要检索<br><br>
+        每次都检索 = 浪费 token + 注入无关信息干扰 LLM
+      </div>
+    </div>
 
-  <div style="display:flex;gap:12px;margin-bottom:16px;">
-    <div style="flex:1;padding:14px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;">
-      <div style="font-size:14px;color:rgba(224,231,255,0.4);font-weight:700;margin-bottom:8px;">v1.0（第四课）</div>
-      <div style="font-size:13px;color:rgba(224,231,255,0.4);line-height:1.8;">
-        context = <strong>null</strong><br>
-        纯 Prompt，没有上下文<br>
-        每次对话都是陌生人
+    <div style="padding:14px 16px;background:rgba(34,197,94,0.06);border-left:4px solid #22C55E;margin-bottom:14px;">
+      <div style="font-size:15px;color:#22C55E;font-weight:700;">Demo 方案：关键词匹配</div>
+      <div style="font-size:13px;color:rgba(224,231,255,0.5);margin-top:6px;line-height:1.8;">
+        包含"推荐/买/笔记本/手机/耳机"等关键词 → 检索<br>
+        不包含 → 跳过检索<br><br>
+        <strong style="color:#22C55E;">优点：</strong>简单、零延迟、不消耗 token<br>
+        <strong style="color:#FF6B35;">缺点：</strong>关键词列表需要人工维护，语义理解有限
       </div>
     </div>
-    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:8px;">v2.0（第五课）</div>
-      <div style="font-size:13px;color:rgba(224,231,255,0.5);line-height:1.8;">
-        <strong style="color:#00E5FF;">用户画像</strong>（MySQL）<br>
-        + <strong style="color:#00E5FF;">对话历史</strong>（Redis）<br>
-        Agent 记住用户了
-      </div>
-    </div>
-    <div style="flex:1;padding:14px;background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.3);border-radius:6px;">
-      <div style="font-size:14px;color:#22C55E;font-weight:700;margin-bottom:8px;">v3.0（第六课）← 现在</div>
-      <div style="font-size:13px;color:rgba(224,231,255,0.6);line-height:1.8;">
-        用户画像 + 对话历史<br>
-        + <strong style="color:#22C55E;">RAG 检索结果</strong><br>
-        + <strong style="color:#A855F7;">相关记忆</strong>（pgvector）<br>
-        Agent 能查商品了
-      </div>
-    </div>
-    <div style="flex:1;padding:14px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;">
-      <div style="font-size:14px;color:rgba(224,231,255,0.3);font-weight:700;margin-bottom:8px;">v4.0（第七课）</div>
-      <div style="font-size:13px;color:rgba(224,231,255,0.3);line-height:1.8;">
-        + <strong>Tool 调用结果</strong><br>
-        Agent 能查库存、下单<br>
-        从"能说"到"能做"
+
+    <div style="padding:12px 16px;background:rgba(168,85,247,0.06);border-left:4px solid #A855F7;">
+      <div style="font-size:14px;color:#A855F7;font-weight:700;">进阶方案：LLM 路由（第七课预告）</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.5);margin-top:4px;line-height:1.8;">
+        用快模型先判断用户意图：需要检索？还是普通对话？<br>
+        优点：能理解语义（"帮我优化代码"不含关键词但需要检索）<br>
+        缺点：每次路由多一次 LLM 调用
       </div>
     </div>
   </div>
 
-  <div style="display:flex;gap:16px;">
-    <div style="flex:1;padding:14px;background:rgba(0,0,0,0.3);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
-      <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:8px;">v3.0 context 的四部分</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:2;">
-        <strong style="color:#00E5FF;">① 用户画像</strong>（MySQL）— 始终查询<br>
-        <strong style="color:#A855F7;">② 相关记忆</strong>（pgvector）— 始终查询<br>
-        <strong style="color:#EAB308;">③ 对话历史</strong>（Redis）— 沉淀后为空<br>
-        <strong style="color:#22C55E;">④ 参考知识</strong>（pgvector）— 关键词过滤后检索
-      </div>
+  <div style="flex:1;display:flex;flex-direction:column;">
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">💻 Demo 代码：isProductRelated()</div>
+    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;margin-bottom:14px;">
+      <pre><span class="cm">// 关键词列表</span>
+<span class="kw">private static final</span> String[] PRODUCT_KEYWORDS = {
+  <span class="str">"推荐"</span>, <span class="str">"买"</span>, <span class="str">"什么"</span>, <span class="str">"哪个"</span>,
+  <span class="str">"笔记本"</span>, <span class="str">"手机"</span>, <span class="str">"耳机"</span>, <span class="str">"平板"</span>,
+  <span class="str">"价格"</span>, <span class="str">"多少钱"</span>, <span class="str">"预算"</span>,
+  <span class="str">"联想"</span>, <span class="str">"苹果"</span>, <span class="str">"华为"</span>, <span class="str">"小米"</span>,
+  <span class="str">"游戏"</span>, <span class="str">"办公"</span>, <span class="str">"开发"</span>, <span class="str">"轻薄"</span>
+};
+
+<span class="cm">// 匹配任一关键词就检索</span>
+<span class="kw">private boolean</span> <span class="fn">isProductRelated</span>(String q) {
+  <span class="kw">if</span> (q == <span class="kw">null</span>) <span class="kw">return false</span>;
+  String lower = q.toLowerCase();
+  <span class="kw">for</span> (String kw : PRODUCT_KEYWORDS) {
+    <span class="kw">if</span> (lower.contains(kw.toLowerCase()))
+      <span class="kw">return true</span>;
+  }
+  <span class="kw">return false</span>;
+}</pre>
     </div>
-    <div style="flex:1;padding:14px;background:rgba(0,0,0,0.3);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
-      <div style="font-size:13px;color:#FF6B35;font-weight:700;margin-bottom:8px;">Token 预算分配</div>
-      <div style="display:flex;align-items:center;margin-bottom:8px;">
-        <div style="width:80px;font-size:12px;color:rgba(224,231,255,0.5);">画像 10%</div>
-        <div style="flex:1;height:18px;background:rgba(255,255,255,0.03);border-radius:3px;overflow:hidden;"><div style="width:10%;height:100%;background:#00E5FF;border-radius:3px;"></div></div>
-      </div>
-      <div style="display:flex;align-items:center;margin-bottom:8px;">
-        <div style="width:80px;font-size:12px;color:rgba(224,231,255,0.5);">历史 30%</div>
-        <div style="flex:1;height:18px;background:rgba(255,255,255,0.03);border-radius:3px;overflow:hidden;"><div style="width:30%;height:100%;background:#EAB308;border-radius:3px;"></div></div>
-      </div>
-      <div style="display:flex;align-items:center;margin-bottom:8px;">
-        <div style="width:80px;font-size:12px;color:rgba(224,231,255,0.5);">知识 40%</div>
-        <div style="flex:1;height:18px;background:rgba(255,255,255,0.03);border-radius:3px;overflow:hidden;"><div style="width:40%;height:100%;background:#22C55E;border-radius:3px;"></div></div>
-      </div>
-      <div style="display:flex;align-items:center;">
-        <div style="width:80px;font-size:12px;color:rgba(224,231,255,0.5);">余量 20%</div>
-        <div style="flex:1;height:18px;background:rgba(255,255,255,0.03);border-radius:3px;overflow:hidden;"><div style="width:20%;height:100%;background:rgba(255,255,255,0.15);border-radius:3px;"></div></div>
+    <div style="padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
+      <div style="font-size:12px;color:#E0E7FF;font-weight:600;margin-bottom:4px;">检索策略总结</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.5);line-height:1.8;">
+        <strong style="color:#22C55E;">Demo：</strong>关键词匹配（简单、够用）<br>
+        <strong style="color:#A855F7;">生产：</strong>LLM 路由（语义理解、动态判断）<br>
+        <strong style="color:#3B82F6;">进阶：</strong>意图分类模型（快、准、不消耗 LLM）
       </div>
     </div>
   </div>

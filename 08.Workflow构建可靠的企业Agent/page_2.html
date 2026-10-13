@@ -1,0 +1,29 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280"><title>目录</title><script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script><style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:48px!important;color:#E0E7FF;font-weight:700}
+.toc-item{display:flex;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(0,229,255,0.08)}
+.toc-num{font-size:20px;font-weight:700;color:#00E5FF;min-width:44px;line-height:1}
+.toc-title{font-size:14px;color:#E0E7FF;font-weight:600;margin-bottom:2px}
+.toc-desc{font-size:11px;color:rgba(224,231,255,0.45)}
+</style></head><body>
+<div class="s flex">
+  <div class="flex flex-col justify-center" style="width:280px;padding-left:60px;">
+    <h1 class="mb-4">目录</h1>
+    <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+    <p style="font-size:13px;color:rgba(224,231,255,0.4);line-height:1.8;">
+      从"Agent 能做事"到"Agent 可靠地做事"<br>
+      状态机 · Runtime · 容错 · 人在回路
+    </p>
+  </div>
+  <div class="flex flex-col justify-center flex-1" style="padding:10px 50px 10px 20px;">
+    <div class="toc-item"><div class="toc-num">01</div><div><div class="toc-title">为什么需要 Workflow</div><div class="toc-desc">Agent 能"做事"了，但还不够可靠</div></div></div>
+    <div class="toc-item"><div class="toc-num">02</div><div><div class="toc-title">为什么不能相信 LLM</div><div class="toc-desc">ReAct 的致命缺陷 — 不确定性、不可控、无限循环、无审计</div></div></div>
+    <div class="toc-item"><div class="toc-num">03</div><div><div class="toc-title">状态机</div><div class="toc-desc">有限状态机、Node/Edge/Condition、Checkpoint/Resume</div></div></div>
+    <div class="toc-item"><div class="toc-num">04</div><div><div class="toc-title">Agent Runtime</div><div class="toc-desc">六大组件、TaskPlanner、THINK→ACT→OBSERVE 循环、模型路由</div></div></div>
+    <div class="toc-item"><div class="toc-num">05</div><div><div class="toc-title">容错设计</div><div class="toc-desc">三级容错 — 重试（指数退避）→ 熔断 → 降级</div></div></div>
+    <div class="toc-item"><div class="toc-num">06</div><div><div class="toc-title">人在回路与可观测性</div><div class="toc-desc">Human-in-the-loop、TraceService 执行追踪</div></div></div>
+    <div class="toc-item"><div class="toc-num">07</div><div><div class="toc-title">Demo 架构与知识体系</div><div class="toc-desc">项目架构、context 演进、Demo 覆盖 vs 仅 PPT 讲解</div></div></div>
+    <div class="toc-item"><div class="toc-num">08</div><div><div class="toc-title">Demo vs 生产 · 总结</div><div class="toc-desc">六项差距、能力地图、一句话带走</div></div></div>
+  </div>
+</div></body></html>

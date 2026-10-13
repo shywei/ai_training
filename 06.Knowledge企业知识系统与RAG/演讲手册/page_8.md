@@ -1,26 +1,30 @@
 ## Slide Objective
-讲透 Embedding 的原理、模型选型、维度概念，以及踩坑经验。学员需要理解"Embedding 是 RAG 的核心能力，但不是万能的"。
+讲透 Data Pipeline 和 Chunking——原始数据怎么变成可检索的知识块。重点讲清楚"从数据库来的数据怎么走 ETL 管道"。
 
 ## Suggested Presentation
-Embedding 就是把文本变成一组数字（向量）。语义相近的文本，数字也相近。这不是魔法，是数学——通过大量文本训练出来的语义理解能力。
+Data Pipeline 是 RAG 的第一个环节。原始数据进来，经过解析、分块、标注、向量化，最后存到向量数据库。
 
-看向量空间示意。ThinkPad X1 Carbon、商务轻薄笔记本、MacBook Pro 在向量空间中距离很近——因为它们都是笔记本相关。AirPods Pro、降噪耳机距离也很近——因为它们都是耳机相关。但笔记本和耳机之间距离很远。这就是语义检索的基础：通过计算向量距离，找到语义相近的文本。
+看上面的流程图。文档解析 → Chunking → Metadata → Embedding → Vector DB。Demo 用的是 JSON，所以文档解析这一步最简单——直接读 JSON 文件。但生产中要处理 PDF（Apache Tika + OCR）、Word（POI）、Excel（EasyExcel）。PDF 是最难的——扫描件要 OCR，表格要结构化提取，多栏排版要识别布局。
 
-"写代码"和"编程"在向量空间中距离很近——Embedding 模型理解它们是同一个意思。用户问"推荐一台写代码的笔记本"，向量检索能匹配到包含"适合编程开发"的商品描述。这是关键词匹配做不到的。
+但学员要记住：**知识不一定是文件**。商品导购场景下，商品信息在 MySQL 里。ETL 管道是：MySQL product 表 → 提取描述字段（名称、配置、亮点、适用场景）→ 拼成文本 → Embedding → 存入 vector_store。`products.json` 就是这个 ETL 过程的产物，Demo 里用 JSON 文件模拟。
 
-模型选型看左边的三个方案。BGE-large-zh 是国内团队做的，中文效果最好，SiliconFlow 免费调用，1024 维。ada-002 是 OpenAI 的，通用但要付费，1536 维。Jina 多语言支持好，有免费额度。中文场景首选 BGE——免费、中文效果好、SiliconFlow 直接支持。
+看右边的代码。Demo 的做法是一个商品一个 Chunk。每个商品的描述、配置、亮点、适用场景拼成一个文本。因为 JSON 天然有结构边界，不需要复杂的切分逻辑。
 
-选型维度：成本（免费 vs 付费）、语言支持（中文 vs 英文 vs 多语言）、维度大小（影响存储和检索速度）、部署方式（API vs 本地）。
+Metadata 标注很重要。Demo 给每个 Chunk 打了 doc_id、name、brand、category 标签。这些标签存在 vector_store 的 metadata JSONB 列里，后面可以用来做过滤——比如"只在手机品类里检索"。
 
-看右边的代码。Demo 用的是 BGE-large-zh-v1.5，通过 SiliconFlow API 调用。Spring AI 的 `EmbeddingModel` 接口封装了调用细节，代码里只需要调 `embeddingModel.embed(text)` 就能拿到向量。
+**多种知识共享一张表**：如果以后有 FAQ、内部文档，也存同一张 vector_store 表，metadata 加 `type` 字段区分（`type: product`、`type: faq`、`type: report`）。查询时按类型过滤，或者跨类型搜索。这是企业常见的做法——一张表管所有知识，比每个类型一张表简单得多。
 
-踩坑经验很重要。Embedding 维度必须和数据库表定义匹配。BGE = 1024 维，所以表定义是 `vector(1024)`。如果换模型（比如 ada-002 是 1536 维），需要 DROP TABLE 重建。维度写错了不报错，查不出来——这是最隐蔽的坑。学员做项目时，第一件事就是确认 Embedding 模型的维度，然后和表定义对齐。
+Chunking 策略：固定大小最简单，按字数切。语义分块按段落/标题切，保留完整性。递归分块先大后小，兼顾两者。Demo 用固定分块（一个商品一个 Chunk），生产中处理长文档时需要语义分块或递归分块。
+
+核心权衡：Chunk 太大，检索结果里混入无关信息。Chunk 太小，丢失上下文。需要根据实际数据调优，一般 500-1000 token，overlap 10-20%。
+
+注意 content 不含价格和库存。价格会变，向量库里存旧价格会误导检索。实时数据从 MySQL 查。
 
 ## Key Emphasis
-Embedding 是 RAG 的核心能力。但也不要神化它——对专业术语（型号、SKU）的理解不如关键词匹配，这就是后面要讲 Hybrid Search 的原因。
+学员应该理解两个关键点：1) 知识可以从数据库来，不一定从文件来，ETL 管道把结构化数据变成 RAG 可用的文本；2) 多种知识共享一张向量表，用 metadata 区分，比每个类型一张表简单。
 
 ## Demo 与生产的差距
-Demo 没有对比不同 Embedding 模型的效果。生产中应该用评测集测试 BGE vs Jina vs ada-002 的 Recall/Precision，选最优的。Demo 也没有做 Embedding 模型微调——领域专有名词（如"X1 Carbon"、"RTX 4070"）可能需要微调才能正确理解。
+Demo 用 JSON 文件模拟 ETL。生产中应该是：MySQL 数据变更 → 触发 ETL 管道 → 提取描述字段 → 生成 Embedding → 更新向量库。Demo 的固定分块在长文档上效果不好，生产中应该用语义分块或递归分块。Chunk Size 需要根据实际数据调优。
 
 ## Transition
-文本变成了向量，存在哪？怎么建索引？怎么查？
+Chunk 切好了，下一步是：怎么让 AI "理解"这些文本的"意思"？
