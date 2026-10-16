@@ -128,6 +128,29 @@ public class McpProductClient {
         }
     }
 
+    /** 断线重连冷却：避免频繁重试 */
+    private volatile long lastReconnectAttemptMs = 0;
+    private static final long RECONNECT_COOLDOWN_MS = 10_000;
+
+    /**
+     * 确保连接可用（懒重连）
+     *
+     * 启动时 MCP Server 可能未就绪、或运行中重启导致 SSE 断开，
+     * 调用时按需重连，冷却 10 秒避免频繁重试。
+     */
+    private synchronized boolean ensureConnected() {
+        if (connected && mcpClient != null) return true;
+        long now = System.currentTimeMillis();
+        if (now - lastReconnectAttemptMs < RECONNECT_COOLDOWN_MS) return false;
+        lastReconnectAttemptMs = now;
+        if (mcpClient != null) {
+            try { mcpClient.closeGracefully(); } catch (Exception ignored) {}
+            mcpClient = null;
+        }
+        init();
+        return connected;
+    }
+
     /**
      * 将单个 MCP Tool 包装为 Spring AI FunctionCallback
      *
@@ -168,10 +191,16 @@ public class McpProductClient {
      * @return MCP 调用结果
      */
     public CallToolResult callToolDirectly(String toolName, Map<String, Object> arguments) {
-        if (!connected || mcpClient == null) {
+        if (!ensureConnected()) {
             throw new RuntimeException("MCP Product Server 未连接");
         }
-        return mcpClient.callTool(new CallToolRequest(toolName, arguments));
+        try {
+            return mcpClient.callTool(new CallToolRequest(toolName, arguments));
+        } catch (RuntimeException e) {
+            // 调用失败标记断开，下次调用自动重连（MCP Server 重启后可恢复）
+            connected = false;
+            throw e;
+        }
     }
 
     /**

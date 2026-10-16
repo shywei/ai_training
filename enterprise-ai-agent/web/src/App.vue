@@ -98,6 +98,10 @@
           </div>
           <div v-else-if="msg.role === 'assistant'" v-html="renderMarkdown(msg.content)"></div>
           <template v-else>{{ msg.content }}</template>
+          <div v-if="msg.role === 'assistant' && msg.traceId && !msg.loading" class="trace-bar">
+            <span v-if="msg.mode" class="mode-tag">{{ msg.mode === 'workflow' ? '⚙️ 多步执行' : '💬 简单回答' }}</span>
+            <el-button type="text" size="mini" icon="el-icon-guide" @click="viewTrace(msg)">执行链路</el-button>
+          </div>
           <div v-if="msg.needsConfirm" class="confirm-actions">
             <el-button type="primary" size="small" @click="confirmAction(msg, true)">确认执行</el-button>
             <el-button size="small" @click="confirmAction(msg, false)">取消</el-button>
@@ -135,6 +139,32 @@
         title="结构化输出演示（看后端日志）"
       ></el-button>
     </div>
+
+    <!-- 执行链路弹窗 -->
+    <el-dialog :title="'执行链路 · ' + (traceView.traceId || '')" :visible.sync="traceDialogVisible" width="720px" :append-to-body="true">
+      <div v-if="traceView.traceId">
+        <p class="trace-summary">用户消息：{{ traceView.userMessage }}</p>
+        <p class="trace-summary">状态：<b>{{ traceView.state }}</b> · 总耗时：<b>{{ traceView.totalDurationMs }}ms</b> · 步骤数：<b>{{ (traceView.steps || []).length }}</b></p>
+
+        <div v-if="!(traceView.steps || []).length" class="trace-empty">（本次执行没有登记到步骤）</div>
+        <div v-for="step in (traceView.steps || [])" :key="step.step" class="trace-step">
+          <div class="trace-step-head">
+            <b>Step {{ step.step }}</b> · {{ step.action }}
+            <span class="trace-status" :class="String(step.status).toLowerCase()">{{ step.status }}</span>
+            <span class="trace-dur">{{ step.durationMs }}ms</span>
+          </div>
+          <div v-if="step.llmThought" class="trace-line">💭 思考：{{ step.llmThought }}</div>
+          <div v-if="step.toolName" class="trace-line">🔧 工具：{{ step.toolName }}({{ step.toolInput }})</div>
+          <div v-if="step.toolOutput" class="trace-line">📦 结果：{{ step.toolOutput }}</div>
+          <div v-if="step.retryCount" class="trace-line" style="color:#E6A23C;">🔁 重试：{{ step.retryCount }} 次</div>
+        </div>
+
+        <div v-if="(traceView.events || []).length" class="trace-events">
+          <h4>事件</h4>
+          <div v-for="(ev, i) in traceView.events" :key="i" class="trace-event">· {{ ev }}</div>
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -157,7 +187,9 @@ export default {
       sessionId: localStorage.getItem('agent_sessionId') || ('session_' + Date.now()),
       messages: [],
       indexing: false,
-      currentRoute: ''
+      currentRoute: '',
+      traceDialogVisible: false,
+      traceView: {}
     }
   },
   methods: {
@@ -230,7 +262,7 @@ export default {
       this.loading = true
 
       const assistantIndex = this.messages.length
-      this.messages.push({ role: 'assistant', content: '', loading: true, modelUsed: '' })
+      this.messages.push({ role: 'assistant', content: '', loading: true, modelUsed: '', traceId: '', mode: '' })
 
       this.$nextTick(() => this.scrollToBottom())
 
@@ -324,6 +356,17 @@ export default {
       } finally {
         this.loading = false
         this.$nextTick(() => this.scrollToBottom())
+      }
+    },
+
+    async viewTrace(msg) {
+      if (!msg.traceId) return
+      try {
+        const resp = await fetch(`/api/agent/workflow/trace?traceId=${encodeURIComponent(msg.traceId)}`)
+        this.traceView = await resp.json()
+        this.traceDialogVisible = true
+      } catch (e) {
+        this.$message.error('执行链路加载失败')
       }
     },
 
@@ -711,5 +754,78 @@ body {
   font-size: 14px;
   color: #909399;
   margin-bottom: 32px;
+}
+
+/* ===== 执行链路 Trace UI ===== */
+.trace-bar {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mode-tag {
+  font-size: 11px;
+  color: #909399;
+  background: rgba(0,0,0,0.04);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.trace-summary {
+  margin: 4px 0;
+  color: #606266;
+  font-size: 13px;
+}
+.trace-step {
+  border: 1px solid #EBEEF5;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin: 10px 0;
+  background: #FAFAFA;
+}
+.trace-step-head {
+  font-size: 13px;
+  color: #303133;
+  margin-bottom: 6px;
+}
+.trace-status {
+  font-size: 11px;
+  padding: 1px 8px;
+  border-radius: 8px;
+  margin-left: 6px;
+  background: #F0F2F5;
+  color: #909399;
+}
+.trace-status.success { background: #E8F5E9; color: #67C23A; }
+.trace-status.failed { background: #FDECEA; color: #F56C6C; }
+.trace-status.skipped { background: #FDF6EC; color: #E6A23C; }
+.trace-status.running { background: #ECF5FF; color: #409EFF; }
+.trace-dur {
+  float: right;
+  color: #909399;
+  font-size: 11px;
+}
+.trace-line {
+  font-size: 12px;
+  color: #606266;
+  line-height: 1.7;
+  word-break: break-all;
+}
+.trace-events {
+  margin-top: 14px;
+}
+.trace-events h4 {
+  margin: 0 0 6px 0;
+  font-size: 13px;
+  color: #303133;
+}
+.trace-event {
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.8;
+}
+.trace-empty {
+  color: #909399;
+  font-size: 13px;
+  padding: 12px 0;
 }
 </style>

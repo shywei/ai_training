@@ -4,6 +4,18 @@
 
 ## 快速启动
 
+### 方式一：Docker Compose 一键部署（推荐）
+
+```bash
+cp .env.example .env   # 填入 SILICONFLOW_API_KEY
+docker compose up -d --build
+# 访问 http://localhost:3000
+```
+
+自动完成数据库初始化（建表 + 演示数据），详见 [Docker 部署指南](docs/docker-setup.md)。
+
+### 方式二：本地手动启动
+
 ```bash
 # 1. 配置 API Key
 vi agent-runtime/src/main/resources/application-local.yml

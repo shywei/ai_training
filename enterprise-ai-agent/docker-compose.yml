@@ -1,0 +1,149 @@
+# ============================================================
+# 企业导购 Agent — 一键部署编排
+#
+#   docker compose up -d --build
+#
+# 服务拓扑：
+#   web(nginx :3000) ──/api──▶ agent-runtime(:8080)
+#                                 ├──▶ mcp-product-server(:8081) ──▶ MySQL
+#                                 ├──▶ mcp-knowledge-server(:8082) ──▶ MySQL + PostgreSQL(pgvector)
+#                                 ├──▶ MySQL（用户画像）
+#                                 └──▶ Redis（会话缓冲）
+#
+# 首次启动自动执行初始化 SQL：
+#   MySQL  ← docs/schema.sql           （user / user_profile / product）
+#   PG     ← docs/schema-knowledge.sql （vector_store / user_memory）
+# ============================================================
+
+name: enterprise-ai-agent
+
+x-java-env: &java-env
+  SILICONFLOW_API_KEY: ${SILICONFLOW_API_KEY:?请在 .env 中配置 SILICONFLOW_API_KEY}
+  MYSQL_HOST: mysql
+  MYSQL_USER: ${MYSQL_USER:-agent}
+  MYSQL_PASS: ${MYSQL_PASS:-agent}
+
+services:
+  # ---------------- 基础设施 ----------------
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASS:-root}
+      MYSQL_DATABASE: agent_db
+      MYSQL_USER: ${MYSQL_USER:-agent}
+      MYSQL_PASSWORD: ${MYSQL_PASS:-agent}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      # 首次启动自动建表 + 灌演示数据（26 个商品、演示账号）
+      - ./docs/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [backend]
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [backend]
+
+  postgres:
+    # pgvector 镜像（含 CREATE EXTENSION vector）
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_PASSWORD: ${PG_PASS:-postgres}
+      POSTGRES_DB: agent_db
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      # 首次启动自动建向量表（vector_store / user_memory）
+      - ./docs/schema-knowledge.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d agent_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [backend]
+
+  # ---------------- MCP Server ----------------
+  mcp-product-server:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.java
+      args: { MODULE: mcp-product-server }
+    environment:
+      <<: *java-env
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [backend]
+
+  mcp-knowledge-server:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.java
+      args: { MODULE: mcp-knowledge-server }
+    environment:
+      <<: *java-env
+      PG_HOST: postgres
+      PG_USER: ${PG_USER:-postgres}
+      PG_PASS: ${PG_PASS:-postgres}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks: [backend]
+
+  # ---------------- Agent Runtime ----------------
+  agent-runtime:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.java
+      args: { MODULE: agent-runtime }
+    environment:
+      <<: *java-env
+      REDIS_HOST: redis
+      MCP_SERVER_URL: http://mcp-product-server:8081
+      KNOWLEDGE_SERVER_URL: http://mcp-knowledge-server:8082
+    ports:
+      # 调试用（curl 查 trace / 熔断状态）；不需要可注释掉
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      mcp-product-server:
+        condition: service_started
+      mcp-knowledge-server:
+        condition: service_started
+    restart: unless-stopped
+    networks: [backend]
+
+  # ---------------- 前端（nginx：静态文件 + /api 反代） ----------------
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.web
+    ports:
+      - "3000:80"
+    depends_on:
+      - agent-runtime
+    restart: unless-stopped
+    networks: [backend]
+
+networks:
+  backend:
+
+volumes:
+  mysql-data:
+  pg-data:

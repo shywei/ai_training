@@ -59,6 +59,7 @@ public class TaskPlanner {
         String[] multiStepKeywords = {
                 "对比", "比较", "帮我选", "推荐几个", "哪些适合",
                 "然后", "同时", "还要", "顺便",
+                "区别", "差异", "分析",
                 "compare", "recommend several", "which ones"
         };
 
@@ -133,21 +134,28 @@ public class TaskPlanner {
                 return List.of();
             }
 
-            // 确保是数组格式
+            // 确保是数组格式（LLM 常见输出变体兜底）
             if (!json.startsWith("[")) {
-                // 可能 LLM 返回了 {steps: [...]} 格式
+                // 变体1: {"steps": [...]} 包装格式
                 JsonNode root = outputHandler.validate(json);
-                if (root != null && root.has("steps")) {
+                if (root != null && root.has("steps") && root.get("steps").isArray()) {
                     json = root.get("steps").toString();
                 } else {
-                    log.warn("[TaskPlanner] JSON 非数组格式: {}", json);
-                    return List.of();
+                    // 变体2: 多个平铺对象 {...},{...}（LLM 常丢外层数组）→ 自动补 []
+                    String wrapped = "[" + json + "]";
+                    if (outputHandler.validate(wrapped) != null) {
+                        log.info("[TaskPlanner] 检测到平铺对象格式，已自动补全数组括号");
+                        json = wrapped;
+                    } else {
+                        log.warn("[TaskPlanner] JSON 非数组格式: {} | LLM 原始返回: {}", json, result);
+                        return List.of();
+                    }
                 }
             }
 
             JsonNode stepsNode = outputHandler.validate(json);
             if (stepsNode == null || !stepsNode.isArray()) {
-                log.warn("[TaskPlanner] 解析失败: {}", json);
+                log.warn("[TaskPlanner] 解析失败: {} | LLM 原始返回: {}", json, result);
                 return List.of();
             }
 

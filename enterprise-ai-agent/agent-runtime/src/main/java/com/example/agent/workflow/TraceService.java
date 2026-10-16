@@ -59,12 +59,37 @@ public class TraceService {
     }
 
     /**
+     * 记录步骤创建（提前登记，保证 trace 完整记录每一步）
+     */
+    public void recordStepCreated(String traceId, WorkflowStep step) {
+        TraceRecord record = traces.get(traceId);
+        if (record != null && !record.getSteps().contains(step)) {
+            record.addStep(step);
+            log.info("[Trace] {} | Step {} 登记: {}", traceId, step.getStepNumber(), step.getAction());
+        }
+    }
+
+    /**
+     * 记录任意事件（降级、兑底等关键节点）
+     */
+    public void recordEvent(String traceId, String event) {
+        TraceRecord record = traces.get(traceId);
+        if (record != null) {
+            record.addEvent(event);
+            log.info("[Trace] {} | {}", traceId, event);
+        }
+    }
+
+    /**
      * 记录步骤开始
      */
     public void recordStepStart(String traceId, WorkflowStep step) {
         TraceRecord record = traces.get(traceId);
         if (record != null) {
-            record.addStep(step);
+            // 步骤可能已在创建时登记过，避免重复
+            if (!record.getSteps().contains(step)) {
+                record.addStep(step);
+            }
             log.info("[Trace] {} | Step {} 开始: {}", traceId, step.getStepNumber(), step.getAction());
         }
     }
@@ -75,9 +100,19 @@ public class TraceService {
     public void recordStepEnd(String traceId, WorkflowStep step) {
         TraceRecord record = traces.get(traceId);
         if (record != null) {
-            log.info("[Trace] {} | Step {} 完成: {} ({}ms) 状态={}",
+            String output = step.getToolOutput();
+            String outputBrief;
+            if (output == null) {
+                outputBrief = "(无)";
+            } else if (output.equals(step.getLlmThought())) {
+                // 直接回答：结果就是思考内容，正文上面已打过，不再回显
+                outputBrief = "(直接回答，内容同思考，见上)";
+            } else {
+                outputBrief = output.length() > 100 ? output.substring(0, 100) + "..." : output;
+            }
+            log.info("[Trace] {} | Step {} 完成: {} ({}ms) 状态={} 结果={}",
                     traceId, step.getStepNumber(), step.getAction(),
-                    step.getDurationMs(), step.getStatus());
+                    step.getDurationMs(), step.getStatus(), outputBrief);
         }
     }
 
@@ -100,8 +135,9 @@ public class TraceService {
         TraceRecord record = traces.get(traceId);
         if (record != null) {
             record.addEvent("Step " + stepNumber + " 思考: " + thought);
-            log.info("[Trace] {} | Step {} 思考: {}", traceId, stepNumber,
-                    thought.length() > 100 ? thought.substring(0, 100) + "..." : thought);
+            // 正文已由 AgentRuntime 的 THINK 日志输出，这里只记长度，避免同一段文本重复打多遍
+            log.info("[Trace] {} | Step {} 思考已记录（{} 字）", traceId, stepNumber,
+                    thought != null ? thought.length() : 0);
         }
     }
 

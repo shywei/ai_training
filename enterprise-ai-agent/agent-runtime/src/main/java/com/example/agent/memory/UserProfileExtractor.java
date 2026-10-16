@@ -140,11 +140,9 @@ public class UserProfileExtractor {
 
         log.info("\n╔══════════════════════════════════════════════════╗\n║ PROFILE EXTRACT RESPONSE {} ║\n╚══════════════════════════════════════════════════╝\n[Model] {}\n[Duration] {}ms\n\n[Response]\n{}", LocalDateTime.now().format(FMT), extractModel, duration, rawOutput);
 
-        System.out.println("[UserProfile] LLM 原始输出: " + rawOutput);
-
         try {
             String json = extractJson(rawOutput);
-            System.out.println("[UserProfile] 提取 JSON: " + json);
+            log.debug("[UserProfile] 提取 JSON: {}", json);
 
             JsonNode node = objectMapper.readTree(json);
 

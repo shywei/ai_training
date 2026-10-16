@@ -8,7 +8,7 @@
 
 ② AgentRuntime.java — ReAct 循环引擎（核心）。这是最重要的文件，651 行。先看 execute() 方法的整体流程——构建 context → TaskPlanner → ReAct 循环 → 输出结果。再看 executeAgentLoop() 的循环逻辑——THINK→ACT→OBSERVE。最后看 handleConfirmation() 的暂停/恢复逻辑。
 
-③ TaskPlanner.java — 任务规划。看 plan() 方法的 Prompt 设计——怎么让 LLM 输出 JSON 格式的步骤。看 isComplexTask() 的判断逻辑——关键词 + 商品名数量。
+③ TaskPlanner.java — 任务规划。看 plan() 方法的 Prompt 设计——怎么让 LLM 输出 JSON 格式的步骤（注意解析要多兕底：LLM 常丢外层数组）。看 needsPlanning() 的判断逻辑——关键词 + 商品名数量；生产做法是规则快路径 + 快模型兜底分类。
 
 ④ WorkflowState.java + WorkflowStep.java — 状态机。看枚举定义和转换规则。WorkflowStep 是一个步骤的完整描述——序号、描述、工具、参数、状态、重试次数。
 

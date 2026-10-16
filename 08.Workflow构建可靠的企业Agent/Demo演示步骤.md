@@ -1,6 +1,7 @@
 # 第八课 Demo 演示步骤
 
-> 讲师上课时的操作手册，照着做就行。
+> 讲师上课时的操作手册，全部通过页面操作完成，照着做就行。
+> 页面地址：http://localhost:3000
 
 ---
 
@@ -14,39 +15,40 @@ redis-cli ping
 mysql -u root -e "SHOW DATABASES LIKE 'agent_db'"
 ```
 
-### 2. 数据库和 MCP Server
+### 2. 启动服务
 
-同第七课，无新增表、无新增 MCP Server。确认以下服务可正常启动：
-- mcp-knowledge-server (:8082)
-- mcp-product-server (:8081)
-
-### 3. 启动顺序
+**方式一：Docker 一键（推荐）**
 
 ```bash
-# 终端 1：MCP Knowledge Server
+cd enterprise-ai-agent
+cp .env.example .env   # 填入 SILICONFLOW_API_KEY
+docker compose up -d --build
+# 演示容错降级时盯日志：docker compose logs -f agent-runtime
+```
+
+**方式二：四个终端手动启动**
+
+```bash
+# 终端 1：MCP Knowledge Server（:8082）
 cd mcp-knowledge-server && mvn spring-boot:run
 
-# 终端 2：MCP Product Server
+# 终端 2：MCP Product Server（:8081）
 cd mcp-product-server && mvn spring-boot:run
 
-# 终端 3：Agent Runtime
+# 终端 3：Agent Runtime（:8080）
 cd agent-runtime && ./mvnw spring-boot:run
 
-# 终端 4：前端（可选，也可直接用 curl）
+# 终端 4：前端（:3000）
 cd web && npm install && npm run dev
 ```
 
-### 4. 验证服务就绪
+### 3. 页面验证服务就绪
 
-```bash
-# 确认 agent-runtime 启动
-curl -s http://localhost:8080/api/agent/workflow -X POST -d "message=hello&sessionId=test" -d "userId=" 
-# 应返回正常回复
+1. 打开 http://localhost:3000，注册/登录任意账号（如 demo / demo123）
+2. 在输入框发一条 **"你好"**，能收到回复 → 服务链路正常
+3. 点击空状态页的 **「加载商品知识」** 按钮，等提示完成（知识库未加载时 RAG 查不到商品）
 
-# 确认 Workflow 端点可用
-curl -s http://localhost:8080/api/agent/workflow/traces
-# 应返回 {"traces":[]}
-```
+> 💡 后台保留 agent-runtime 的终端窗口，演示 2 要看它的日志。
 
 ---
 
@@ -56,94 +58,73 @@ curl -s http://localhost:8080/api/agent/workflow/traces
 
 ### 操作
 
-```bash
-curl -s "http://localhost:8080/api/agent/workflow" \
-  -X POST \
-  -d "message=帮我对比拯救者和MacBook的价格，预算8000" \
-  -d "sessionId=demo1" \
-  -d "userId=U001" | python3 -m json.tool
-```
+1. 在输入框输入并发送：
+   ```
+   帮我对比拯救者和MacBook的价格，预算8000
+   ```
+2. 等待回复（约 20-40 秒，多轮 LLM 调用），观察消息气泡：
+   - 会出现「⚙️ 多步执行」模式标签
+3. 回复完成后，点消息下方的 **「执行链路」** 按钮
 
 ### 预期结果
 
-```json
-{
-  "traceId": "trace-xxxxxxxx",
-  "status": "completed",
-  "message": "根据对比，拯救者 Y9000P 售价 ¥8999，MacBook Pro 14 售价 ¥14999。您的预算 8000 元，拯救者更接近预算...",
-  "state": "COMPLETED"
-}
-```
+**页面回复**：对比结论，包含两款机型的具体价格和预算建议。
 
-### 查看 Trace
-
-```bash
-# 用返回的 traceId 查看执行链路
-curl -s "http://localhost:8080/api/agent/workflow/trace?traceId=trace-xxxxxxxx" | python3 -m json.tool
-```
-
-预期看到：
-- TaskPlanner 规划了 3 步
-- Step 1: search_knowledge("拯救者") → 成功
-- Step 2: search_knowledge("MacBook") → 成功
-- Step 3: LLM 综合分析 → 完成
-- 每步有 llmThought（LLM 思考过程）和 durationMs（耗时）
+**执行链路弹窗**：
+- 状态 COMPLETED、步骤数 ≥ 2
+- Step 1：🔧 工具 `search_knowledge(拯救者)` → 📦 结果包含拯救者商品信息
+- Step 2：🔧 工具 `search_knowledge(MacBook)` → 📦 结果包含 MacBook 商品信息
+- 每一步都有 💭 思考内容和耗时
+- 事件区有「状态变更: PLANNING → EXECUTING」等记录
 
 ### 讲解要点
 
-- "看 Trace，Agent 不是一步完成的，而是分了 3 步"
+- "看执行链路，Agent 不是一步完成的，而是分了 3 步"
 - "TaskPlanner 先规划，然后 Runtime 逐步执行"
-- "每步都有思考过程，出问题可以回溯"
+- "每步都有思考过程和工具结果，出问题可以回溯"
 
 ---
 
 ## 演示 2：容错降级
 
-> **讲解要点**：生产环境工具会挂，Agent 必须有容错能力。
+> **讲解要点**：生产环境工具会挂，Agent 必须有容错能力。**页面回答 + 后台日志**双屏对照演示。
 
 ### 操作
 
-```bash
-# 先停止 mcp-knowledge-server（终端 2 按 Ctrl+C）
-
-# 然后发起请求
-curl -s "http://localhost:8080/api/agent/workflow" \
-  -X POST \
-  -d "message=查询华为MateBook价格" \
-  -d "sessionId=demo2" \
-  -d "userId=U001" | python3 -m json.tool
-```
+1. **先停止 mcp-knowledge-server**（终端 2 按 Ctrl+C）
+2. 在页面输入并发送：
+   ```
+   查询华为MateBook价格
+   ```
+3. 观察两个地方：**页面气泡** + **agent-runtime 后台日志**（终端 3）
 
 ### 预期结果
 
-在 agent-runtime 终端看到日志：
+**后台日志**（关键行，逐条对照讲解）：
 ```
-[ErrorRecovery] 工具 search_knowledge 失败 (1/3): timeout
-[ErrorRecovery] 重试等待 1000ms (第 1 次重试)
-[ErrorRecovery] 工具 search_knowledge 失败 (2/3): timeout
-[ErrorRecovery] 重试等待 2000ms (第 2 次重试)
-[ErrorRecovery] 工具 search_knowledge 失败 (3/3): timeout
-[AgentRuntime] 工具调用失败，降级为直接回答
+[AgentRuntime] 工具 search_knowledge 调用失败: ...
+[AgentRuntime] ⚠️ 工具 search_knowledge 重试耗尽（3 次），即将降级
+[AgentRuntime] ⚠️ 降级: 工具调用失败且重试耗尽，降级为直接回答（基于已有信息）
 ```
 
-最终返回一个基于已有信息的回答（不是报错）。
+**页面**：返回一个基于已有信息的回答（不是报错、不是白屏）。
+
+**执行链路弹窗**（点该消息的「执行链路」）：
+- 对应 Step 状态为 **FAILED**，带「🔁 重试 3 次」
+- 事件区有：`Step N 降级: 工具调用失败且重试耗尽，降级为直接回答`
 
 ### 讲解要点
 
 - "重试 3 次，指数退避 1s→2s→4s"
 - "重试耗尽后不是报错，而是降级——让 LLM 基于已有信息回答"
+- "日志里的 ⚠️ 降级 标记，运维一眼能看到发生了什么"
 - "有回答总比白屏好"
 
 ### 恢复
 
-```bash
-# 重启 mcp-knowledge-server
-# 然后查看熔断状态
-curl -s "http://localhost:8080/api/agent/workflow/circuit-breaker" | python3 -m json.tool
-
-# 重置熔断器
-curl -s -X POST "http://localhost:8080/api/agent/workflow/circuit-breaker/reset"
-```
+1. 重启 mcp-knowledge-server
+2. 页面再问一次同样的问题 → 正常返回商品信息
+3. 连续触发 5 次失败可演示**熔断**（熔断后日志出现 `⚠️ 降级: 工具 xxx 已熔断，跳过工具调用`）
 
 ---
 
@@ -153,128 +134,80 @@ curl -s -X POST "http://localhost:8080/api/agent/workflow/circuit-breaker/reset"
 
 ### 操作
 
-```bash
-curl -s "http://localhost:8080/api/agent/workflow" \
-  -X POST \
-  -d "message=我要买拯救者" \
-  -d "sessionId=demo3" \
-  -d "userId=U001" | python3 -m json.tool
-```
+1. 在页面输入并发送：
+   ```
+   我要买拯救者
+   ```
+2. 等 Agent 走到下单环节，观察消息气泡下方出现两个按钮：
+   - **「确认执行」** / **「取消」**
 
 ### 预期结果
 
-```json
-{
-  "traceId": "trace-xxxxxxxx",
-  "status": "confirming",
-  "message": "⚠️ 操作确认\n\n即将执行高风险操作：执行 place_order\n工具：place_order\n\n请确认是否继续？",
-  "state": "CONFIRMING",
-  "confirmRequired": true,
-  "pendingTool": "place_order"
-}
-```
+- 气泡显示：⚠️ 操作确认——即将执行高风险操作 place_order，请确认是否继续？
+- **点「确认执行」**→ 回复下单结果（订单号 ORD-xxx）
+- **重新发一次"我要买拯救者"，点「取消」**→ 回复"已取消操作。"
 
-### 用户确认
-
-```bash
-curl -s "http://localhost:8080/api/agent/workflow/confirm" \
-  -X POST \
-  -d "traceId=trace-xxxxxxxx" \
-  -d "confirmed=true" \
-  -d "sessionId=demo3" \
-  -d "userId=U001" \
-  -d "message=我要买拯救者" | python3 -m json.tool
-```
-
-预期：status: "completed"，返回下单结果。
-
-### 用户取消（可选演示）
-
-```bash
-# 重新发起请求，然后取消
-curl -s "http://localhost:8080/api/agent/workflow/confirm" \
-  -X POST \
-  -d "traceId=trace-xxxxxxxx" \
-  -d "confirmed=false" \
-  -d "sessionId=demo3" | python3 -m json.tool
-```
-
-预期：status: "completed"，message: "已取消操作。"
+**执行链路弹窗**：确认前的 Step 状态为 WAITING_CONFIRM，事件区有「Step N 等待用户确认」。
 
 ### 讲解要点
 
 - "place_order 被 ConfirmationService 拦截了"
-- "工作流暂停，等用户确认才继续"
+- "工作流暂停，等用户在页面上点确认才继续"
 - "这是企业安全的底线——AI 不应该对所有操作都有执行权"
 
 ---
 
-## 演示 4：查看 Trace 列表
+## 演示 4：执行链路（简单 vs 复杂对比）
 
-> **讲解要点**：Tracing 是调试、审计、优化的基础。
+> **讲解要点**：Tracing 是调试、审计、优化的基础，且所有对话统一入口、自动区分复杂度。
 
 ### 操作
 
-```bash
-curl -s "http://localhost:8080/api/agent/workflow/traces" | python3 -m json.tool
-```
-
-### 预期结果
-
-返回最近的 Trace 列表，每个包含 traceId、userMessage、state、totalDurationMs、stepCount。
+1. 页面输入 **"推荐一台笔记本"**（简单问题）发送
+   - 气泡标签显示「💬 简单回答」
+   - 点「执行链路」→ **步骤数 1**，只有一次思考直接回答
+2. 页面输入 **"帮我对比游戏本和轻薄本的区别"**（复杂问题）发送
+   - 气泡标签显示「⚙️ 多步执行」
+   - 点「执行链路」→ **步骤数 ≥ 2**，每步有工具调用和结果
 
 ### 讲解要点
 
-- "每次执行都有完整记录"
-- "可以查看每步的思考过程、工具调用、耗时"
-- "出问题时，不用让用户再操作一次，直接看 Trace 就能定位"
+- "前端不用关心复杂度，统一入口，AgentRuntime 自动判断简单/复杂"
+- "每次执行都有完整记录：思考、工具、结果、耗时、重试、降级"
+- "出问题时，不用让用户再操作一次，看执行链路就能定位"
 
 ---
 
-## 演示 5：统一入口演示（可选）
+## 演示 5：快捷能力（可选）
 
-> **讲解要点**：前端统一调 /workflow，AgentRuntime 内部判断简单/复杂。
+> 空状态页和输入区提供了几个一键演示按钮：
 
-### 操作
-
-```bash
-# 简单问题
-curl -s "http://localhost:8080/api/agent/workflow" \
-  -X POST \
-  -d "message=你好" \
-  -d "sessionId=demo5" | python3 -m json.tool
-# 返回：mode: "simple", stepCount: 0
-
-# 复杂任务
-curl -s "http://localhost:8080/api/agent/workflow" \
-  -X POST \
-  -d "message=帮我对比拯救者和MacBook" \
-  -d "sessionId=demo5" | python3 -m json.tool
-# 返回：mode: "workflow", stepCount: 3
-```
-
-### 讲解要点
-
-- "前端不用关心复杂度，统一调 /workflow"
-- "简单任务 mode: simple，一次 THINK 就回答"
-- "复杂任务 mode: workflow，TaskPlanner 拆步骤，多轮执行"
-- "前端统一调 /workflow，简单复杂都走这里"
+| 按钮 | 演示点 |
+|------|--------|
+| 加载商品知识 | RAG 知识库手动索引（第六课知识点） |
+| 推荐笔记本 | 简单问题，mode=simple |
+| 分析对比 | 复杂任务触发 TaskPlanner |
+| 测试注入防御 | Guardrails 拦截，返回"检测到不安全的输入" |
+| 结构化输出演示 | 右下角 ✅ 按钮，看后端日志的 JSON Schema 输出 |
 
 ---
 
 ## 常见问题排查
 
 ### Q: TaskPlanner 没有规划，直接回答了？
-A: 检查日志中 `[TaskPlanner]` 输出。如果消息不含"对比""比较"等关键词，且只包含一个商品名，TaskPlanner 会跳过规划。尝试用"帮我对比 A 和 B"格式。
+A: 消息需包含"对比/比较/区别/分析"等关键词，或提到 ≥2 个商品名才触发规划。用"帮我对比 A 和 B"、"分析 A 和 B 的区别"格式。
 
-### Q: 确认请求没有触发？
-A: LLM 需要判断"要下单"才会调用 place_order Tool。如果 LLM 只是推荐商品而没有调用 Tool，不会触发确认。尝试更明确地说"我要买""帮我下单"。
+### Q: 确认按钮没有出现？
+A: LLM 需要判断"要下单"才会调用 place_order。更明确地说"我要买""帮我下单"。
 
-### Q: 重试日志没看到？
-A: MCP Server 必须真的超时或报错才会触发重试。正常情况下工具调用一次就成功。要演示重试，需要模拟故障（停止 MCP Server 或注入延迟）。
+### Q: 没看到"⚠️ 降级"日志？
+A: 工具必须真的失败（停止 MCP Server）才会触发。注意先确认 mcp-knowledge-server 已停掉，且 Agent 确实走到了工具调用（日志有 `=== 循环第 N 轮 ===`）。
 
-### Q: Trace 中没有 llmThought？
-A: llmThought 是 LLM 在 THINK 阶段的输出。如果 LLM 直接回答而没有调用 Tool，不会有 THINK 阶段的记录。
+### Q: 执行链路弹窗里步骤是空的？
+A: 检查 agent-runtime 是否为最新代码（步骤现在会提前登记到 trace）。点开的是较早的历史消息时注意：重启后端会清空内存中的 trace。
+
+### Q: 页面一直"加载中"不出回答？
+A: 复杂任务 20-40 秒属正常。超过 2 分钟看终端 3 的日志定位卡在哪一步。
 
 ---
 
@@ -283,8 +216,8 @@ A: llmThought 是 LLM 在 THINK 阶段的输出。如果 LLM 直接回答而没�
 | 演示 | 时间 | 说明 |
 |------|------|------|
 | 演示 1：多步查询 | 5 分钟 | 核心场景，必须做 |
-| 演示 2：容错降级 | 3 分钟 | 需要停止 MCP Server，提前准备 |
+| 演示 2：容错降级 | 3 分钟 | 双屏对照（页面 + 后台日志） |
 | 演示 3：人在回路 | 3 分钟 | 核心场景，必须做 |
-| 演示 4：Trace 列表 | 2 分钟 | 看一眼即可 |
-| 演示 5：新旧对比 | 2 分钟 | 可选 |
+| 演示 4：执行链路 | 2 分钟 | 简单 vs 复杂对比 |
+| 演示 5：快捷能力 | 2 分钟 | 可选 |
 | **合计** | **13-15 分钟** | |

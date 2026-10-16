@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
 import java.util.LinkedHashMap;
@@ -305,9 +306,14 @@ public class WorkflowController {
                                        @RequestParam(defaultValue = "") String userId) {
         log.info("[Workflow-Stream] 收到请求: {}", message);
 
-        // 安全检查
+        // 安全检查（事件统一用 type 字段，前端按 type 分发）
+        // ⚠️ 返回裸 JSON 即可：Spring MVC 对 Flux<String> + text/event-stream
+        //    会自动包一层 SSE 框架（data: 前缀），手工再拼会导致 "data:data:{...}"
+        //    前端 JSON.parse 全部静默失败 → 显示"（无响应）"
         if (guardrails.checkInjection(message)) {
-            return Flux.just("data: {\"status\":\"error\",\"message\":\"检测到不安全的输入\"}\n\n");
+            return Flux.just(
+                    "{\"type\":\"error\",\"message\":\"检测到不安全的输入\"}",
+                    "{\"type\":\"done\",\"status\":\"completed\"}");
         }
 
         // 创建 Trace
@@ -316,25 +322,35 @@ public class WorkflowController {
 
         // 立即发送 meta 事件，避免前端超时
         String metaEvent = String.format(
-                "data: {\"type\":\"meta\",\"traceId\":\"%s\",\"mode\":\"processing\"}\n\n", traceId);
+                "{\"type\":\"meta\",\"traceId\":\"%s\",\"mode\":\"processing\"}", traceId);
 
-        // 用 Flux.defer 包装同步执行，先发 meta 再执行工作流
-        return Flux.concat(
-                Flux.just(metaEvent),
-                Flux.defer(() -> {
+        // 用 Flux.defer 包装同步执行，先发 meta 再执行工作流。
+        //
+        // ⚠️ 工作流是同步执行的（THINK→ACT→OBSERVE 多轮 LLM 调用），
+        //    第一个 token 之前可能有较长的静默期。
+        //    两个保护措施：
+        //    1. 执行期间每 10 秒发一个 ping 事件保活（防中间层闲置断连）
+        //    2. application.yml 配置 spring.mvc.async.request-timeout=600000
+        //       （默认约 30 秒，长任务会在第一个 token 前被容器掐断 → 前端显示"（无响应）"）
+        Flux<String> workFlux = Flux.defer(() -> {
                     // 执行工作流（同步）
                     AgentRuntime.WorkflowResult result = agentRuntime.execute(traceId, sessionId, userId, message);
                     int stepCount = trace.getSteps().size();
                     String mode = stepCount <= 1 ? "simple" : "workflow";
 
                     if (result.isSuccess()) {
-                        memoryManager.saveTurn(sessionId, userId, message, result.getMessage());
+                        try {
+                            memoryManager.saveTurn(sessionId, userId, message, result.getMessage());
+                        } catch (Exception e) {
+                            // 记忆保存失败不能影响回复输出
+                            log.warn("[Workflow-Stream] saveTurn 失败（不影响回复）: {}", e.getMessage());
+                        }
                         String answer = guardrails.sanitize(result.getMessage());
                         String finalAnswer = answer != null ? answer : "";
 
                         if (finalAnswer.isEmpty()) {
-                            return Flux.just("data: {\"type\":\"token\",\"content\":\"（无响应）\"}\n\n",
-                                    "data: {\"type\":\"done\",\"status\":\"completed\"}\n\n");
+                            return Flux.just("{\"type\":\"token\",\"content\":\"（无响应）\"}",
+                                    "{\"type\":\"done\",\"status\":\"completed\"}");
                         }
 
                         // 逐 chunk 流式输出（每 20 字符一组，减少事件数）
@@ -346,25 +362,44 @@ public class WorkflowController {
 
                         Flux<String> tokenFlux = Flux.fromIterable(chunks)
                                 .delayElements(Duration.ofMillis(80))
-                                .map(chunk -> "data: {\"type\":\"token\",\"content\":\"" + escapeJson(chunk) + "\"}\n\n");
+                                .map(chunk -> "{\"type\":\"token\",\"content\":\"" + escapeJson(chunk) + "\"}");
 
-                        String doneEvent = "data: {\"type\":\"done\",\"status\":\"completed\"}\n\n";
+                        String doneEvent = "{\"type\":\"done\",\"status\":\"completed\"}";
                         return Flux.concat(tokenFlux, Flux.just(doneEvent));
 
                     } else if (result.isNeedsConfirmation()) {
                         String confirmEvent = String.format(
-                                "data: {\"type\":\"confirm\",\"message\":\"%s\",\"traceId\":\"%s\"}\n\n",
+                                "{\"type\":\"confirm\",\"message\":\"%s\",\"traceId\":\"%s\"}",
                                 escapeJson(result.getMessage()), traceId);
                         return Flux.just(confirmEvent);
 
                     } else {
                         String failEvent = String.format(
-                                "data: {\"type\":\"error\",\"message\":\"%s\"}\n\n",
+                                "{\"type\":\"error\",\"message\":\"%s\"}",
                                 escapeJson(result.getMessage()));
                         return Flux.just(failEvent);
                     }
                 })
-        );
+                // 工作流在独立线程执行，避免阻塞订阅线程
+                .subscribeOn(Schedulers.boundedElastic())
+                // 单次执行，供 ping 停止信号复用
+                .cache();
+
+        // 保活 ping：工作流静默执行期间每 10 秒发一次，首包输出后自动停止
+        Flux<String> pingFlux = Flux.interval(Duration.ofSeconds(10))
+                .map(i -> "{\"type\":\"ping\"}")
+                .takeUntilOther(workFlux);
+
+        return Flux.concat(
+                Flux.just(metaEvent),
+                Flux.merge(workFlux, pingFlux)
+        ).onErrorResume(e -> {
+            // 任何异常都必须以 error 事件收尾，不能让前端拿到静默 EOF（会显示"（无响应）"）
+            log.error("[Workflow-Stream] 执行异常", e);
+            return Flux.just(
+                    "{\"type\":\"error\",\"message\":\"服务内部错误，请查看后端日志\"}",
+                    "{\"type\":\"done\",\"status\":\"error\"}");
+        });
     }
 
     private String escapeJson(String s) {

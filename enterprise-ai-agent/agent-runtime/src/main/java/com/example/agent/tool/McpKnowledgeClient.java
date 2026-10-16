@@ -67,11 +67,35 @@ public class McpKnowledgeClient {
         }
     }
 
+    /** 断线重连冷却：避免频繁重试 */
+    private volatile long lastReconnectAttemptMs = 0;
+    private static final long RECONNECT_COOLDOWN_MS = 10_000;
+
+    /**
+     * 确保连接可用（懒重连）
+     *
+     * 启动时 MCP Server 可能还没就绪（如 docker compose 并行启动），
+     * 或运行中 MCP Server 重启导致 SSE 断开——这里在调用时按需重连，
+     * 冷却 10 秒避免频繁重试。
+     */
+    private synchronized boolean ensureConnected() {
+        if (connected && mcpClient != null) return true;
+        long now = System.currentTimeMillis();
+        if (now - lastReconnectAttemptMs < RECONNECT_COOLDOWN_MS) return false;
+        lastReconnectAttemptMs = now;
+        if (mcpClient != null) {
+            try { mcpClient.closeGracefully(); } catch (Exception ignored) {}
+            mcpClient = null;
+        }
+        init();
+        return connected;
+    }
+
     /**
      * 商品知识语义检索（RAG）
      */
     public String search(String query) {
-        if (!connected || mcpClient == null) {
+        if (!ensureConnected()) {
             log.warn("[MCP-Knowledge] 未连接，跳过知识检索");
             return null;
         }
@@ -82,6 +106,7 @@ public class McpKnowledgeClient {
             return extractText(result);
         } catch (Exception e) {
             log.error("[MCP-Knowledge] 知识检索失败: {}", e.getMessage());
+            connected = false; // 标记断开，下次调用自动重连
             return null;
         }
     }
@@ -90,7 +115,7 @@ public class McpKnowledgeClient {
      * 用户记忆语义检索
      */
     public String searchMemory(String userId, String query) {
-        if (!connected || mcpClient == null) {
+        if (!ensureConnected()) {
             log.warn("[MCP-Knowledge] 未连接，跳过记忆检索");
             return null;
         }
@@ -101,6 +126,7 @@ public class McpKnowledgeClient {
             return extractText(result);
         } catch (Exception e) {
             log.error("[MCP-Knowledge] 记忆检索失败: {}", e.getMessage());
+            connected = false; // 标记断开，下次调用自动重连
             return null;
         }
     }
@@ -109,7 +135,7 @@ public class McpKnowledgeClient {
      * 保存用户记忆（系统调用，不暴露给 LLM）
      */
     public void saveMemory(String userId, String memoryType, String content) {
-        if (!connected || mcpClient == null) {
+        if (!ensureConnected()) {
             log.warn("[MCP-Knowledge] 未连接，跳过记忆保存");
             return;
         }
@@ -128,7 +154,7 @@ public class McpKnowledgeClient {
      * 读取用户画像（MCP Resource）
      */
     public String readUserProfile(String userId) {
-        if (!connected || mcpClient == null) {
+        if (!ensureConnected()) {
             log.warn("[MCP-Knowledge] 未连接，跳过画像读取");
             return null;
         }
@@ -147,6 +173,7 @@ public class McpKnowledgeClient {
             return null;
         } catch (Exception e) {
             log.error("[MCP-Knowledge] 画像读取失败: {}", e.getMessage());
+            connected = false; // 标记断开，下次调用自动重连
             return null;
         }
     }
@@ -155,7 +182,7 @@ public class McpKnowledgeClient {
      * 索引商品知识库
      */
     public String indexKnowledge(boolean force) {
-        if (!connected || mcpClient == null) {
+        if (!ensureConnected()) {
             log.warn("[MCP-Knowledge] 未连接，跳过知识库索引");
             return "未连接 Knowledge MCP Server";
         }

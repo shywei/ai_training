@@ -1,6 +1,11 @@
 server:
   port: 8080
 
+# SSE 长任务保护：工作流先同步执行（多轮 LLM 调用），首包 token 前静默期长。
+# 不配置此项时 Spring MVC 异步请求默认约 30 秒超时，
+# 连接会在第一个 token 前被容器掐断，前端显示"（无响应）"。
+spring.mvc.async.request-timeout: 600000
+
 # ============================================================
 # 硅基流动(SiliconFlow)免费模型
 # 快模型: tencent/Hunyuan-MT-7B(免费)

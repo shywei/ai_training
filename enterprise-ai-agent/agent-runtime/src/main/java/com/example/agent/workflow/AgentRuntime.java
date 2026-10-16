@@ -107,8 +107,12 @@ public class AgentRuntime {
         // 3. 判断是否需要规划
         List<WorkflowStep> plannedSteps = List.of();
         if (taskPlanner.needsPlanning(message)) {
-            traceService.recordStateChange(traceId, WorkflowState.PLANNING, WorkflowState.PLANNING);
+            traceService.recordEvent(traceId, "TaskPlanner 开始规划");
             plannedSteps = taskPlanner.plan(message, context);
+            // 规划出的步骤全部提前登记到 trace，执行前就能看到完整计划
+            for (WorkflowStep plannedStep : plannedSteps) {
+                traceService.recordStepCreated(traceId, plannedStep);
+            }
         }
 
         // 4. 进入 ReAct 循环
@@ -134,10 +138,11 @@ public class AgentRuntime {
 
             log.info("[AgentRuntime] THINK: {}", thinking.length() > 200 ? thinking.substring(0, 200) + "..." : thinking);
 
-            // 记录思考过程
+            // 记录思考过程（步骤提前登记到 trace，保证每一步都有完整记录）
             WorkflowStep currentStep = getCurrentStep(plannedSteps, iteration);
             if (currentStep != null) {
                 currentStep.setLlmThought(thinking);
+                traceService.recordStepCreated(traceId, currentStep);
                 traceService.recordThought(traceId, currentStep.getStepNumber(), thinking);
             }
 
@@ -150,6 +155,10 @@ public class AgentRuntime {
 
                 if (toolResult == null) {
                     // 工具调用失败且重试耗尽，降级
+                    // ⚠️ 演示容错降级时，后台必须能看到这条日志
+                    log.warn("[AgentRuntime] ⚠️ 降级: 工具调用失败且重试耗尽，降级为直接回答（基于已有信息）");
+                    traceService.recordEvent(traceId, "Step " + (currentStep != null ? currentStep.getStepNumber() : iteration)
+                            + " 降级: 工具调用失败且重试耗尽，降级为直接回答");
                     String degradationMsg = "工具调用失败，基于已有信息回答。";
                     conversationHistory.append("系统: ").append(degradationMsg).append("\n");
                     // 让 LLM 直接给出最终答案
@@ -183,6 +192,11 @@ public class AgentRuntime {
                 // 没有工具调用 → LLM 准备直接回答
                 log.info("[AgentRuntime] LLM 决定直接回答，结束循环");
                 finalAnswer.append(thinking);
+                // 直接回答也要作为一步完整登记（含思考内容），否则 trace 会缺这一步
+                if (currentStep != null) {
+                    currentStep.complete(thinking);
+                    traceService.recordStepEnd(traceId, currentStep);
+                }
                 break;
             }
         }
@@ -292,6 +306,7 @@ public class AgentRuntime {
                 sb.append(status).append(" Step ").append(step.getStepNumber())
                         .append(": ").append(step.getAction()).append("\n");
             }
+            sb.append("\n请严格按执行计划的顺序完成 ⬜ 未完成的步骤；✅ 已完成的不要重复查询。\n");
             sb.append("\n");
         }
 
@@ -395,9 +410,11 @@ public class AgentRuntime {
 
         // 检查熔断
         if (errorRecovery.isCircuitBroken(toolName)) {
-            log.warn("[AgentRuntime] 工具 {} 已熔断，跳过", toolName);
+            log.warn("[AgentRuntime] ⚠️ 降级: 工具 {} 已熔断，跳过工具调用，基于已有信息回答", toolName);
+            traceService.recordEvent(traceId, "Step " + (step != null ? step.getStepNumber() : 0)
+                    + " 降级: 工具 " + toolName + " 已熔断，跳过工具调用");
             if (step != null) {
-                step.skip("工具已熔断");
+                step.skip("工具已熔断，降级为跳过");
                 traceService.recordStepEnd(traceId, step);
             }
             return errorRecovery.getDegradationMessage(toolName);
@@ -443,6 +460,8 @@ public class AgentRuntime {
                     // 重试
                 } else {
                     // 重试耗尽
+                    log.warn("[AgentRuntime] ⚠️ 工具 {} 重试耗尽（{} 次），即将降级", toolName,
+                            step != null ? step.getRetryCount() : 0);
                     if (step != null) {
                         step.fail("重试耗尽: " + e.getMessage());
                         traceService.recordStepEnd(traceId, step);
