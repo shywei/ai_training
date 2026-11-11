@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>复杂跨模块 Bug 根因分析（RCA）四步法与防篡改边界</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:22px 65px; display:flex; flex-direction:column; justify-content:space-between; }
+.slide-section-num { font-size:13px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:2px; }
+.slide-container h1 { font-size:28px !important; color:#E0E7FF; font-weight:700; line-height:1.25; margin-bottom:4px; }
+.slide-accent-line { width:50px; height:3px; background:#FF6B35; margin-bottom:8px; }
+.code-box { background:#060A12; border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:6px 8px; font-family:Consolas,monospace; font-size:10.5px; line-height:1.4; color:#E0E7FF; }
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <!-- Header -->
+  <div>
+    <div class="slide-section-num">CHAPTER 02 · 存量复杂工程（BROWNFIELD）破局与安全重构</div>
+    <h1>复杂跨模块 Bug 根因分析（RCA）四步法与防篡改边界</h1>
+    <div class="slide-accent-line"></div>
+    <div style="padding:6px 12px; background:rgba(255,107,53,0.06); border-left:4px solid #FF6B35; font-size:11.5px; color:#E0E7FF; border-radius:3px;">
+      <i class="fas fa-triangle-exclamation mr-1" style="color:#FF6B35;"></i><strong>告别“把一行报错贴给 AI 瞎猜乱改”：</strong>
+      直接贴报错只会让 AI 顺拐打补丁。必须严格执行排障流水线：<strong style="color:#22C55E;">写复现单测 &rarr; 提出假设并验证 &rarr; 实施微创手术 &rarr; 补充防御性断言</strong>。
+    </div>
+  </div>
+
+  <!-- Four Step RCA Grid -->
+  <div class="grid grid-cols-4 gap-3 my-1" style="height:310px;">
+    <!-- Step 1 -->
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(239,68,68,0.25); border-top:4px solid #EF4444; border-radius:4px; padding:10px 12px; display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div style="font-size:11px; font-weight:700; color:#EF4444; margin-bottom:2px;">STEP 1: 编写复现红灯单测</div>
+        <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">先复现，严禁碰源码</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.4; margin-bottom:6px;">
+          用真实入参写单元测试，<strong>亲眼看到红灯报错完全复现线上堆栈</strong>。
+        </div>
+      </div>
+      <div class="code-box">
+        <span style="color:#EF4444;">// 复现用例必须变红:</span><br>
+        @Test void shouldFailOnEscaped() {<br>
+        &nbsp;&nbsp;// 确认抛出 JSONParseException<br>
+        }
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,107,53,0.25); border-top:4px solid #FF6B35; border-radius:4px; padding:10px 12px; display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div style="font-size:11px; font-weight:700; color:#FF6B35; margin-bottom:2px;">STEP 2: 提出假设与验证链</div>
+        <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">建立科学假设链</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.4; margin-bottom:6px;">
+          命令 Agent 列出 3 个根因假设，要求给出代码行号证据，排除伪因。
+        </div>
+      </div>
+      <div class="code-box">
+        <span style="color:#FF6B35;"># 假设检验提示:</span><br>
+        "分析堆栈，给出3个根因假设。为什么状态机没忽略转义？给出证据。"
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(0,229,255,0.25); border-top:4px solid #00E5FF; border-radius:4px; padding:10px 12px; display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div style="font-size:11px; font-weight:700; color:#00E5FF; margin-bottom:2px;">STEP 3: 最小范围微创手术</div>
+        <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">精准修复，杜绝乱改</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.4; margin-bottom:6px;">
+          仅修改引发根因的最小代码（&le; 10 行）。<strong>严禁顺手重构无关代码！</strong>
+        </div>
+      </div>
+      <div class="code-box">
+        <span style="color:#00E5FF;"># 最小 Diff 修复:</span><br>
+        if (c == '\\' &amp;&amp; !isEscaped) {<br>
+        &nbsp;&nbsp;isEscaped = true; continue;<br>
+        }
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(34,197,94,0.25); border-top:4px solid #22C55E; border-radius:4px; padding:10px 12px; display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div style="font-size:11px; font-weight:700; color:#22C55E; margin-bottom:2px;">STEP 4: 补齐防御性回归网</div>
+        <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">红灯变绿 + 全套全绿</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.4; margin-bottom:6px;">
+          第一步的红灯单测变绿，且全套既有测试 100% 保持绿灯，合入回归库。
+        </div>
+      </div>
+      <div class="code-box">
+        <span style="color:#22C55E;"># 运行回归命令:</span><br>
+        $ mvn test -Dtest=RcaRegressionTest<br>
+        <span style="color:#86EFAC;">[INFO] BUILD SUCCESS</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Crucial Security Boundary: Hook Limitation & Defense in Depth -->
+  <div style="padding:9px 14px; background:rgba(15,23,42,0.85); border:1.5px solid rgba(255,107,53,0.35); border-radius:4px;">
+    <div class="flex items-center justify-between mb-1">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-shield-halved" style="color:#FF6B35; font-size:12px;"></i>
+        <span style="font-size:12px; font-weight:700; color:#FF6B35;">架构师警钟：纠偏 Hook 防篡改边界 —— 本地 Hook 可以被绕过！</span>
+      </div>
+      <span style="font-size:11px; color:#22C55E; font-weight:700;">不可把本地 Hook 等同于绝对安全防线</span>
+    </div>
+    <div class="grid grid-cols-4 gap-2.5" style="font-size:10.5px; color:rgba(224,231,255,0.75); line-height:1.4;">
+      <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px; border-left:3px solid #EF4444;">
+        <strong style="color:#EF4444;">本地 Hook 脆弱性：</strong>开发者或 Agent 可能使用 <code>--no-verify</code> 跳过钩子，或误改本地配置。
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px; border-left:3px solid #00E5FF;">
+        <strong style="color:#00E5FF;">1. 远程不可控 CI：</strong>云端流水线强制重新拉取权威单测执行，彻底脱离本地篡改影响。
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px; border-left:3px solid #38BDF8;">
+        <strong style="color:#38BDF8;">2. 主干分支保护：</strong>受保护分支禁止任何人/Agent 直接 push，必须走 PR 校验。
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px; border-left:3px solid #22C55E;">
+        <strong style="color:#22C55E;">3. 强制 Code Review：</strong>运动员与裁判员绝对分离，资深工程师核对测试断言真实性。
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Golden Rule -->
+  <div style="padding:6px 14px; background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.2); border-radius:4px; font-size:11px; color:#E0E7FF; line-height:1.4;">
+    <strong style="color:#00E5FF;">工程纪律：</strong>没有写出“复现红灯单测”前绝不动源码；本地 Hook 提供第一道防线，<strong>远程 CI + 分支保护 + Code Review</strong> 筑牢防篡改终极屏障！
+  </div>
+</div>
+</body>
+</html>

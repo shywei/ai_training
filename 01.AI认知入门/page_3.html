@@ -3,119 +3,76 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>AI的诞生与第一次寒冬</title>
+<title>第一章 · AI 的诞生与第一次寒冬（1943–1973）</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
-.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-era-label { font-size:13px; font-weight:600; letter-spacing:2px; padding:4px 14px; display:inline-block; margin-bottom:14px; }
-.slide-event-row { display:flex; align-items:flex-start; margin-bottom:12px; }
-.slide-event-year { font-size:18px; font-weight:700; min-width:55px; line-height:1; }
-.slide-event-content { flex:1; }
-.slide-event-title { font-size:14px; font-weight:600; color:#E0E7FF; margin-bottom:2px; }
-.slide-event-desc { font-size:12px; color:rgba(224,231,255,0.5); line-height:1.4; }
-.slide-divider-v { width:1px; background:rgba(0,229,255,0.15); margin:0 30px; }
-.slide-note { font-size:13px; color:rgba(224,231,255,0.4); line-height:1.6; font-style:italic; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:38px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 01</div>
-  <h1 class="mb-2">AI的诞生与第一次寒冬（1943-1973）</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:20px;"></div>
+<div class="slide-container">
+  <div style="font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:6px;">CHAPTER 01 · 前大模型时代（1943–2016）</div>
+  <h1 class="mb-2">AI 的诞生与第一次寒冬（1943–1973）：符号主义的幻灭与异或之困</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
 
-  <!-- AI定义 -->
-  <div style="padding:10px 20px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.12); border-left:3px solid #00E5FF; margin-bottom:18px; display:flex; align-items:center; gap:16px;">
-    <div style="font-size:20px; color:#00E5FF;"><i class="fas fa-brain"></i></div>
-    <div>
-      <div style="font-size:14px; color:#E0E7FF; font-weight:600;">什么是人工智能？</div>
-      <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.6;">让机器模拟人类智能行为（学习、推理、决策、感知）的计算系统。1956年达特茅斯会议正式定义了这个学科——<strong style="color:#00E5FF;">用人工方式实现智能，而非生物方式。</strong></div>
+  <div style="font-size:14px; color:rgba(224,231,255,0.6); margin-bottom:16px;">
+    从 1950 图灵测试到 1956 达特茅斯会议，计算机先驱曾坚信：人类思维不过是严格的逻辑符号演算，只要硬件够快，智能即可被逻辑穷举。
+  </div>
+
+  <!-- Dual Pillar Comparison -->
+  <div class="flex gap-5 mb-4">
+    <!-- Left: Symbolic AI & Logic -->
+    <div style="flex:1; padding:16px 20px; background:rgba(255,107,53,0.05); border:1px solid rgba(255,107,53,0.22);">
+      <div class="flex justify-between items-center mb-3">
+        <div style="font-size:16px; font-weight:700; color:#FF6B35;"><i class="fas fa-sitemap" style="margin-right:8px;"></i>符号主义路线（Symbolic AI / 逻辑推理）</div>
+        <span style="font-size:11px; padding:2px 8px; background:rgba(255,107,53,0.15); color:#FF6B35; font-weight:600;">1950s 初创期</span>
+      </div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.65; margin-bottom:10px;">
+        <strong style="color:#E0E7FF;">核心假设：</strong>“智能 = 符号操作与形式逻辑推演”。编写命题逻辑与谓词公式，把现实规则输入计算机即可自动推导出结论。<br>
+        <strong style="color:#E0E7FF;">早期胜利：</strong>Logic Theorist 成功证明罗素《数学原理》38条定理，解决汉诺塔与跳棋。
+      </div>
+      <div style="padding:10px 12px; background:rgba(0,0,0,0.35); font-family:Consolas,monospace; font-size:11px; color:#FF6B35; margin-bottom:10px; border-left:3px solid #FF6B35;">
+        Human(Socrates) ∧ (∀x: Human(x) → Mortal(x)) ⇒ Mortal(Socrates)<br>
+        // 遇到现实世界：下雨时猫是否一定会叫？如果没看见呢？规则空间瞬时爆炸！
+      </div>
+      <div style="font-size:12px; color:#FF6B35; font-weight:600; line-height:1.5;">
+        <i class="fas fa-exclamation-triangle" style="margin-right:6px;"></i>致命死穴（组合爆炸）：一旦脱离封闭玩具世界，状态空间呈几何级数爆炸，纯逻辑推演在现实算力下完全无法解出。
+      </div>
+    </div>
+
+    <!-- Right: Perceptron & Connectionism -->
+    <div style="flex:1; padding:16px 20px; background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.22);">
+      <div class="flex justify-between items-center mb-3">
+        <div style="font-size:16px; font-weight:700; color:#00E5FF;"><i class="fas fa-project-diagram" style="margin-right:8px;"></i>连接主义先声（Perceptron / 感知机）</div>
+        <span style="font-size:11px; padding:2px 8px; background:rgba(0,229,255,0.15); color:#00E5FF; font-weight:600;">1958 罗森布拉特</span>
+      </div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.65; margin-bottom:10px;">
+        <strong style="color:#E0E7FF;">核心假设：</strong>模拟人脑生物神经元，输入特征乘以可调权重，求和经过阈值输出 0 或 1。<br>
+        <strong style="color:#E0E7FF;">轰动一时：</strong>纽约时报头条赞誉感知机为“未来能自己走路、说话、拥有自我意识的机器”。
+      </div>
+      <div style="padding:10px 12px; background:rgba(0,0,0,0.35); font-family:Consolas,monospace; font-size:11px; color:#00E5FF; margin-bottom:10px; border-left:3px solid #00E5FF;">
+        f(x) = Step(w₁·x₁ + w₂·x₂ + b)<br>
+        // 致命数学缺陷：一条直线怎么可能切分 XOR (0^0=0, 0^1=1, 1^0=1, 1^1=0)？
+      </div>
+      <div style="font-size:12px; color:#FF6B35; font-weight:600; line-height:1.5;">
+        <i class="fas fa-times-circle" style="margin-right:6px;"></i>明斯基一击致命（1969《Perceptrons》）：从数学上证明单层感知机无法解决非线性 XOR 问题，全美科研资金断流，AI 陷入第一次寒冬！
+      </div>
     </div>
   </div>
 
-  <div class="flex" style="height:440px;">
-    <!-- Left: The Birth -->
-    <div style="flex:1;">
-      <div class="slide-era-label" style="background:rgba(0,229,255,0.1); color:#00E5FF; border:1px solid rgba(0,229,255,0.3);">学科诞生 1943-1958</div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#00E5FF;">1943</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">第一个神经元模型</div>
-          <div class="slide-event-desc">麦卡洛克和皮茨提出人工神经网络模型，模仿人脑神经元工作方式</div>
-        </div>
-      </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#00E5FF;">1950</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">图灵测试 & AGI雏形</div>
-          <div class="slide-event-desc">图灵发表《计算机器与智能》，提出评估机器智能的标准和"通用智能机器"设想</div>
-        </div>
-      </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#00E5FF;">1956</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">达特茅斯会议</div>
-          <div class="slide-event-desc">麦卡锡、香农、明斯基等召开里程碑会议，"人工智能"作为学科正式诞生</div>
-        </div>
-      </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#00E5FF;">1957</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">通用问题求解器</div>
-          <div class="slide-event-desc">西蒙和纽厄尔开发，当时主流方法是符号主义——认为智能就是操纵符号</div>
-        </div>
-      </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#00E5FF;">1958</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">感知器 & LISP语言</div>
-          <div class="slide-event-desc">罗森布拉特演示第一个可训练神经网络；麦卡锡完成AI编程语言LISP</div>
-        </div>
+  <!-- Bottom Milestone & Engineer Insight -->
+  <div style="display:flex; gap:16px; align-items:stretch;">
+    <div style="flex:2; padding:12px 18px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center;">
+      <div style="font-size:12px; color:rgba(224,231,255,0.65); line-height:1.6;">
+        <strong style="color:#00E5FF;">关键里程碑回顾：</strong>1943 McCulloch-Pitts 提出首个神经元数学模型 → 1950 图灵发表《计算机器与智能》→ 1956 麦卡锡等人召开达特茅斯会议正式定名“人工智能”。
       </div>
     </div>
-
-    <div class="slide-divider-v"></div>
-
-    <!-- Right: Early Apps & Winter -->
-    <div style="flex:1;">
-      <div class="slide-era-label" style="background:rgba(255,107,53,0.1); color:#FF6B35; border:1px solid rgba(255,107,53,0.3);">早期应用与寒冬 1954-1973</div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#FF6B35;">1954</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">首次机器翻译演示</div>
-          <div class="slide-event-desc">IBM与乔治敦大学演示60个俄语句子翻译成英语，引发各国研究热潮</div>
-        </div>
-      </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#FF6B35;">1966</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">ELIZA聊天机器人</div>
-          <div class="slide-event-desc">维森鲍姆在MIT开发首个聊天程序，早期人机交互的里程碑</div>
-        </div>
-      </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#FF6B35;">1966</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">ALPAC报告：机器翻译无实用价值</div>
-          <div class="slide-event-desc">美国政府报告指出机器翻译没有实用价值，翻译泡沫破灭，AI第一次遭遇信任危机</div>
-        </div>
-      </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#FF6B35;">1973</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title" style="color:#FF6B35;">第一次AI寒冬到来</div>
-          <div class="slide-event-desc">英国莱特希尔报告指出AI发现没有产生重大影响，各国大幅削减AI研究经费</div>
-        </div>
-      </div>
-
-      <div style="margin-top:24px; padding:12px 16px; background:rgba(255,107,53,0.06); border-left:3px solid #FF6B35;">
-        <div class="slide-note">
-          <i class="fas fa-exclamation-triangle" style="color:#FF6B35; margin-right:8px;"></i>
-          规律：AI的每次热潮都会因<strong style="color:#E0E7FF;">承诺过高、交付不足</strong>而降温。这个模式在后来反复出现。
-        </div>
+    <div style="flex:3; padding:12px 18px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.2); display:flex; align-items:center;">
+      <div style="font-size:12px; color:#E0E7FF; line-height:1.6;">
+        <i class="fas fa-code" style="color:#00E5FF; margin-right:8px;"></i><strong style="color:#00E5FF;">程序员初识感悟：</strong>很多开发人员总本能地认为“只要 if-else 规则写得足够周密，世界就能被解决”。历史告诉我们：组合爆炸与非线性是纯逻辑推理不可逾越的数学高墙。
       </div>
     </div>
   </div>

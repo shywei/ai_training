@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>02B. AI辅助编程进阶（可选深潜）：企业级研发工作流与存量工程实战</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-glow { position:absolute; width:450px; height:450px; border-radius:50%; background:radial-gradient(circle, rgba(0,229,255,0.08) 0%, transparent 70%); }
+.slide-timeline-line { position:absolute; left:110px; top:80px; bottom:80px; width:3px; background:linear-gradient(to bottom, transparent, #00E5FF, transparent); }
+.slide-timeline-dot { position:absolute; left:102px; width:20px; height:20px; border-radius:50%; border:2px solid #00E5FF; background:#0B1120; }
+.slide-timeline-dot::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:8px; height:8px; border-radius:50%; background:#00E5FF; }
+.slide-container h1 { font-size:46px !important; color:#E0E7FF; font-weight:700; line-height:1.2; }
+.slide-container h2 { font-size:24px !important; color:#00E5FF; font-weight:600; letter-spacing:2px; }
+.slide-pill { display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border-radius:4px; font-size:12.5px; font-weight:600; }
+</style>
+</head>
+<body>
+<div class="slide-container flex items-center">
+  <div class="slide-glow" style="top:-100px; right:-100px;"></div>
+  <div class="slide-glow" style="bottom:-150px; left:200px; width:350px; height:350px;"></div>
+  <div class="slide-timeline-line"></div>
+  <div class="slide-timeline-dot" style="top:120px;"></div>
+  <div class="slide-timeline-dot" style="top:240px;"></div>
+  <div class="slide-timeline-dot" style="top:360px;"></div>
+  <div class="slide-timeline-dot" style="top:480px;"></div>
+  <div class="slide-timeline-dot" style="top:580px;"></div>
+
+  <div class="ml-44 flex flex-col justify-center" style="padding-top:15px; max-width:920px; z-index:10;">
+    <div class="mb-3 flex items-center gap-3">
+      <span style="padding:4px 10px; background:rgba(255,107,53,0.18); border:1px solid rgba(255,107,53,0.4); color:#FF6B35; font-size:13px; font-weight:700; letter-spacing:2px;">COURSE 02B · 可选深潜</span>
+      <span style="color:#00E5FF; font-size:15px; letter-spacing:6px; text-transform:uppercase;">SPEC-DRIVEN AGENTIC ENGINEERING · 2026 EDITION</span>
+    </div>
+    <h1 class="mb-3">02B. AI辅助编程进阶（可选深潜）</h1>
+    <h2 class="mb-5">企业级研发工作流与存量工程实战</h2>
+    <div style="width:90px; height:3px; background:#FF6B35;" class="mb-5"></div>
+
+    <div class="mb-4 flex items-center gap-2" style="padding:7px 14px; background:rgba(255,107,53,0.08); border:1px solid rgba(255,107,53,0.25); border-radius:4px; max-width:820px;">
+      <i class="fas fa-compass" style="color:#FF6B35; font-size:13px;"></i>
+      <span style="font-size:12px; color:rgba(224,231,255,0.9); line-height:1.45;">
+        <strong style="color:#FF6B35;">课程定位</strong>：面向<strong>项目 Leader 与高级开发</strong>深入选修；普通学员学完第 02 课可直接跳过本课进入《第 03 课：AI Agent架构认知入门》。
+      </span>
+    </div>
+
+    <p style="font-size:17px; color:#E0E7FF; font-weight:600; line-height:1.5; margin-bottom:6px;">
+      “代码生成的边际成本已趋近于零，架构对齐与工程审查的成本不降反升。”
+    </p>
+    <p style="font-size:13px; color:rgba(224,231,255,0.55); letter-spacing:0.5px; margin-bottom:20px;">
+      告别玩具 Vibe Coding · 审 Spec 胜过审千行代码 · <strong style="color:#22C55E;">黄金测试锁死祖传代码 · 物理护栏防 AI 作弊</strong>
+    </p>
+    <div class="flex flex-wrap gap-3">
+      <div class="slide-pill" style="background:rgba(0,229,255,0.08); border:1px solid rgba(0,229,255,0.25); color:#00E5FF;">
+        <i class="fas fa-file-signature"></i> Spec-Driven 规格驱动开发闭环
+      </div>
+      <div class="slide-pill" style="background:rgba(255,107,53,0.08); border:1px solid rgba(255,107,53,0.25); color:#FF6B35;">
+        <i class="fas fa-building-shield"></i> Brownfield 存量老代码重构与黄金回归
+      </div>
+      <div class="slide-pill" style="background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.25); color:#22C55E;">
+        <i class="fas fa-shield-halved"></i> Agentic TDD & 防作弊 PreToolUse 护栏
+      </div>
+      <div class="slide-pill" style="background:rgba(168,85,247,0.08); border:1px solid rgba(168,85,247,0.25); color:#A855F7;">
+        <i class="fas fa-arrows-spin"></i> 分层 Context 治理与团队工程免疫飞轮
+      </div>
+    </div>
+  </div>
+
+  <div class="absolute right-14 top-1/2 transform -translate-y-1/2" style="opacity:0.12;">
+    <i class="fas fa-diagram-project" style="font-size:220px; color:#00E5FF;"></i>
+  </div>
+</div>
+</body>
+</html>

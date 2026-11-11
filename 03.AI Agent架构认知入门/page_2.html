@@ -1,56 +1,108 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>目录</title>
+<title>六大核心章节目录</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 *{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
 .slide-container{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.slide-container h1{font-size:48px!important;color:#E0E7FF;font-weight:700}
-.slide-toc-item{display:flex;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(0,229,255,0.1)}
-.slide-toc-num{font-size:24px;font-weight:700;color:#00E5FF;min-width:50px;line-height:1}
-.slide-toc-title{font-size:16px;color:#E0E7FF;font-weight:600;margin-bottom:2px}
-.slide-toc-desc{font-size:12px;color:rgba(224,231,255,0.5)}
-.slide-accent-line{width:50px;height:3px;background:#FF6B35}
+.slide-container h1{font-size:42px!important;color:#E0E7FF;font-weight:700}
+.toc-card{display:flex;align-items:flex-start;gap:14px;padding:14px 18px;border:1px solid rgba(0,229,255,0.14);background:rgba(0,229,255,0.03);border-radius:8px}
+.toc-num{font-size:24px;font-weight:800;line-height:1;min-width:42px;padding-top:2px}
+.toc-title{font-size:16px;color:#E0E7FF;font-weight:700;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between}
+.toc-desc{font-size:12px;color:rgba(224,231,255,0.6);line-height:1.55}
+.page-badge{font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600}
 </style></head><body>
-<div class="slide-container flex">
-  <div class="flex flex-col justify-center" style="width:320px; padding-left:70px;">
-    <h1 class="mb-5">目录</h1>
-    <div class="slide-accent-line mb-5"></div>
-    <p style="font-size:14px; color:rgba(224,231,255,0.4); line-height:1.8;">从能力认知到系统设计</p>
+<div class="slide-container flex" style="padding:40px 56px; gap:36px;">
+  <!-- 左侧导览区 -->
+  <div class="flex flex-col justify-between" style="width:290px; padding:24px 22px; background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.12); border-radius:10px;">
+    <div>
+      <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:8px;">AGENDA · 课程目录</div>
+      <h1 class="mb-4">六大核心章节</h1>
+      <div style="width:56px; height:3px; background:#FF6B35; margin-bottom:18px;"></div>
+      <p style="font-size:13px; color:rgba(224,231,255,0.65); line-height:1.75; margin-bottom:18px;">
+        本课是整套 AI 工程师培训的<b style="color:#00E5FF;">架构总纲（承上启下）</b>：先把智能体的边界、运行时循环与上下文组装立住，再拆解六大核心组件与企业级参考架构蓝图。
+      </p>
+    </div>
+
+    <div style="padding:14px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.22); border-radius:6px;">
+      <div style="font-size:12px; color:#FF6B35; font-weight:700; margin-bottom:6px;"><i class="fas fa-layer-group"></i> 智能体系统五大核心支柱</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.65); line-height:1.65;">
+        • 交互契约：Prompt 工程与结构化输出<br>
+        • 记忆机制：工作记忆与长期画像沉淀<br>
+        • 知识增强：向量知识库混合检索 RAG<br>
+        • 工具连接：Tool Calling 与 MCP 协议<br>
+        • 编排治理：FSM 状态机与生产级容错
+      </div>
+    </div>
   </div>
-  <div class="flex flex-col justify-center flex-1" style="padding:20px 70px 20px 30px;">
-    <div class="slide-toc-item">
-      <div class="slide-toc-num">01</div>
-      <div><div class="slide-toc-title">为什么需要Agent</div><div class="slide-toc-desc">ChatGPT的局限与Agent的出现</div></div>
+
+  <!-- 右侧六大章节 -->
+  <div class="flex-1 grid grid-cols-2 gap-4 content-center">
+    <div class="toc-card" style="border-left:4px solid #00E5FF;">
+      <div class="toc-num" style="color:#00E5FF;">01</div>
+      <div class="flex-1">
+        <div class="toc-title">
+          <span>范式边界：什么是真正的 Agent</span>
+          <span class="page-badge" style="background:rgba(0,229,255,0.12);color:#00E5FF;">P3 - P5</span>
+        </div>
+        <div class="toc-desc">裸 LLM 的四大局限 · Anthropic 架构谱系（5 种确定性 Workflow vs Autonomous Agent）· 通用 Harness（Claude Code/OpenClaw）vs 企业垂直应用 Agent</div>
+      </div>
     </div>
-    <div class="slide-toc-item">
-      <div class="slide-toc-num">02</div>
-      <div><div class="slide-toc-title">先看答案——Agent整体架构</div><div class="slide-toc-desc">整堂课就是理解这一张图</div></div>
+
+    <div class="toc-card" style="border-left:4px solid #A855F7;">
+      <div class="toc-num" style="color:#A855F7;">02</div>
+      <div class="flex-1">
+        <div class="toc-title">
+          <span>运行时引擎与上下文工程</span>
+          <span class="page-badge" style="background:rgba(168,85,247,0.12);color:#A855F7;">P6 - P8</span>
+        </div>
+        <div class="toc-desc">三大认知循环（ReAct / Plan-and-Execute / Reflection）· <b style="color:#E0E7FF;">Context Engineering 动态组装全景图</b> · 企业级 Agent 核心公式与五层能力结构</div>
+      </div>
     </div>
-    <div class="slide-toc-item">
-      <div class="slide-toc-num">03</div>
-      <div><div class="slide-toc-title">Agent能力全景图</div><div class="slide-toc-desc">认知层 + 执行层</div></div>
+
+    <div class="toc-card" style="border-left:4px solid #00E5FF;">
+      <div class="toc-num" style="color:#00E5FF;">03</div>
+      <div class="flex-1">
+        <div class="toc-title">
+          <span>认知层与执行层组件深度拆解</span>
+          <span class="page-badge" style="background:rgba(0,229,255,0.12);color:#00E5FF;">P9 - P13</span>
+        </div>
+        <div class="toc-desc">认知层（Prompt 工程与路由 / 三层 Memory 记忆体系 / 混合检索 RAG）+ 执行层（Tool & MCP/A2A/AG-UI 协议 / FSM 状态机与 Multi-Agent）</div>
+      </div>
     </div>
-    <div class="slide-toc-item">
-      <div class="slide-toc-num">04</div>
-      <div><div class="slide-toc-title">核心能力：原理与实现</div><div class="slide-toc-desc">Prompt · Memory · Knowledge · Tool · Workflow · Multi-Agent</div></div>
+
+    <div class="toc-card" style="border-left:4px solid #FF6B35; background:rgba(255,107,53,0.04);">
+      <div class="toc-num" style="color:#FF6B35;">04</div>
+      <div class="flex-1">
+        <div class="toc-title">
+          <span>架构总蓝图：工业参考模型与能力分级</span>
+          <span class="page-badge" style="background:rgba(255,107,53,0.15);color:#FF6B35;">P14 - P15</span>
+        </div>
+        <div class="toc-desc">企业级智能体系统参考架构全景（分层蓝图） · 交互全流程八步时序拆解 · 智能体能力分级演进全貌</div>
+      </div>
     </div>
-    <div class="slide-toc-item">
-      <div class="slide-toc-num">05</div>
-      <div><div class="slide-toc-title">系统应用：导购Agent</div><div class="slide-toc-desc">系统架构 · 请求流转 · 组件拆解</div></div>
+
+    <div class="toc-card" style="border-left:4px solid #22C55E;">
+      <div class="toc-num" style="color:#22C55E;">05</div>
+      <div class="flex-1">
+        <div class="toc-title">
+          <span>2026 技术生态、决策树与非功能底座</span>
+          <span class="page-badge" style="background:rgba(34,197,94,0.12);color:#22C55E;">P16 - P18</span>
+        </div>
+        <div class="toc-desc">2026 七层技术栈（Spring AI / AgentScope Java 2.0 / LangGraph）· 架构师五问裁剪决策树 · 可观测性 Tracing、Agent Evals 与防提示词注入安全防线</div>
+      </div>
     </div>
-    <div class="slide-toc-item">
-      <div class="slide-toc-num">06</div>
-      <div><div class="slide-toc-title">AI开发生态</div><div class="slide-toc-desc">七层架构 · 每层定位与代表产品</div></div>
-    </div>
-    <div class="slide-toc-item">
-      <div class="slide-toc-num">07</div>
-      <div><div class="slide-toc-title">认知收敛</div><div class="slide-toc-desc">决策树 · 最终认知总图</div></div>
-    </div>
-    <div class="slide-toc-item" style="border-bottom:none;">
-      <div class="slide-toc-num">08</div>
-      <div><div class="slide-toc-title">概念辨析 · 讨论</div><div class="slide-toc-desc">认知误区 · 组件混淆 · 系统共存 · 工程现实</div></div>
+
+    <div class="toc-card" style="border-left:4px solid #00E5FF;">
+      <div class="toc-num" style="color:#00E5FF;">06</div>
+      <div class="flex-1">
+        <div class="toc-title">
+          <span>架构误区辨析与全课总结</span>
+          <span class="page-badge" style="background:rgba(0,229,255,0.12);color:#00E5FF;">P19 - P22</span>
+        </div>
+        <div class="toc-desc">基础认知误区五问 · 组件边界与旧系统 MCP 融合五问 · MVP 最小可行演进原则 · 智能体系统进阶能力路线全景</div>
+      </div>
     </div>
   </div>
 </div>

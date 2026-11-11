@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>分层上下文架构与 Multi-Agent 范式切分（研发态 vs 运行时态）</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:22px 65px; display:flex; flex-direction:column; justify-content:space-between; }
+.slide-section-num { font-size:13px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:2px; }
+.slide-container h1 { font-size:28px !important; color:#E0E7FF; font-weight:700; line-height:1.25; margin-bottom:4px; }
+.slide-accent-line { width:50px; height:3px; background:#FF6B35; margin-bottom:8px; }
+.code-box { background:#060A12; border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:5px 8px; font-family:Consolas,monospace; font-size:10.5px; line-height:1.35; color:#E0E7FF; }
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <!-- Header -->
+  <div>
+    <div class="slide-section-num">CHAPTER 04 · 团队级 CONTEXT 治理与 MULTI-AGENT 范式</div>
+    <h1>分层上下文治理与 Multi-Agent 边界切分（研发态 vs 运行时态）</h1>
+    <div class="slide-accent-line"></div>
+    <div style="font-size:12px; color:rgba(224,231,255,0.65); line-height:1.45;">
+      告别 3000 行大杂烩，通过<strong>三层上下文精准注水</strong>；同时必须厘清<strong>编码阶段研发 Multi-Agent 与第 10 课运行时业务 Multi-Agent</strong> 的本质鸿沟。
+    </div>
+  </div>
+
+  <!-- 3-Tier Hierarchical Context Grid -->
+  <div class="grid grid-cols-3 gap-3 my-1" style="height:230px;">
+    <!-- Tier 1 -->
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(0,229,255,0.3); border-top:4px solid #00E5FF; border-radius:4px; padding:10px 12px; display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span style="font-size:13px; font-weight:700; color:#00E5FF;">第 1 层：根目录全局宪法</span>
+          <span style="font-size:11px; background:rgba(0,229,255,0.15); color:#00E5FF; padding:1px 6px; border-radius:3px;">&le; 100 行</span>
+        </div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.4; margin-bottom:4px;">
+          <strong>位置：</strong> <code>/AGENTS.md</code><br>
+          全工程通用铁律。只写构建命令、多模块职责与安全红线，绝不写局部业务实现细节！
+        </div>
+      </div>
+      <div class="code-box">
+        <span style="color:#00E5FF;"># /AGENTS.md 精简结构:</span><br>
+        1. 快速单测: mvn test -Dtest=...<br>
+        2. 模块拓扑 (core / order / api)<br>
+        3. 安全红线: 禁删单测断言、Fail-Closed
+      </div>
+    </div>
+
+    <!-- Tier 2 -->
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,107,53,0.3); border-top:4px solid #FF6B35; border-radius:4px; padding:10px 12px; display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span style="font-size:13px; font-weight:700; color:#FF6B35;">第 2 层：子模块目录规范</span>
+          <span style="font-size:11px; background:rgba(255,107,53,0.15); color:#FF6B35; padding:1px 6px; border-radius:3px;">就近挂载</span>
+        </div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.4; margin-bottom:4px;">
+          <strong>位置：</strong> <code>core/AGENTS.md</code> / <code>web/AGENTS.md</code><br>
+          仅当 Agent 工作区切入该目录时自动继承。后端关注分布式锁，前端关注状态库。
+        </div>
+      </div>
+      <div class="code-box">
+        <span style="color:#FF6B35;"># core/AGENTS.md 局部规则:</span><br>
+        - 必须复用 RedissonLockTemplate<br>
+        - 敏感字段脱敏使用 MaskUtils<br>
+        - 状态机流转必须校验租户状态
+      </div>
+    </div>
+
+    <!-- Tier 3 -->
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(34,197,94,0.3); border-top:4px solid #22C55E; border-radius:4px; padding:10px 12px; display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span style="font-size:13px; font-weight:700; color:#22C55E;">第 3 层：Glob 按需触发规则</span>
+          <span style="font-size:11px; background:rgba(34,197,94,0.15); color:#22C55E; padding:1px 6px; border-radius:3px;">动态激活</span>
+        </div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.4; margin-bottom:4px;">
+          <strong>位置：</strong> <code>.cursor/rules/*.mdc</code> / <code>.opencode/rules/</code><br>
+          改 SQL 时只激活 SQL 军规，改 Controller 时才激活 REST 规范，零冗余注入。
+        </div>
+      </div>
+      <div class="code-box">
+        <span style="color:#22C55E;"># globs: "src/.../mapper/*.xml"</span><br>
+        - 禁止 SELECT *<br>
+        - 批量插入单批上限 500 条<br>
+        - UPDATE 必须带索引条件
+      </div>
+    </div>
+  </div>
+
+  <!-- Crucial Distinction: Coding Multi-Agent vs Runtime Multi-Agent -->
+  <div style="padding:9px 14px; background:rgba(15,23,42,0.85); border:1.5px solid rgba(0,229,255,0.35); border-radius:4px;">
+    <div class="flex items-center justify-between mb-1">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-network-wired" style="color:#00E5FF; font-size:12px;"></i>
+        <span style="font-size:12px; font-weight:700; color:#00E5FF;">架构师概念对齐：编码阶段 Multi-Agent（本课 02B）vs 运行时业务 Multi-Agent（第 10 课）</span>
+      </div>
+      <span style="font-size:11px; color:#22C55E; font-weight:700;">研发提效 vs 生产协同</span>
+    </div>
+    <div class="grid grid-cols-2 gap-3" style="font-size:11px; line-height:1.45;">
+      <div style="background:rgba(0,229,255,0.05); padding:6px 10px; border-radius:3px; border-left:3px solid #00E5FF;">
+        <strong style="color:#00E5FF;">A. 编码阶段 Multi-Agent（软件研发任务并行 · 本课 02B）：</strong><br>
+        <span style="color:rgba(224,231,255,0.75);">
+          • <strong>定位与目标：</strong>面向本地研发代码库，主控 Agent 拆解 SDD 任务，多个 Worker Agent 在分层上下文和独立 Git Worktree 分支中并行编写代码、运行单测；<br>
+          • <strong>最终交付物：</strong>干净的代码分支、通过回归的单测套件与自动化 Pull Request。
+        </span>
+      </div>
+      <div style="background:rgba(168,85,247,0.05); padding:6px 10px; border-radius:3px; border-left:3px solid #A855F7;">
+        <strong style="color:#A855F7;">B. 运行时业务 Multi-Agent（生产系统业务协作 · 第 10 课）：</strong><br>
+        <span style="color:rgba(224,231,255,0.75);">
+          • <strong>定位与目标：</strong>面向企业线上生产环境，多个独立部署的微服务业务智能体（导购、风控、履约、退款仲裁）通过 A2A 标准协议、事件总线与 Saga 事务分布式协作；<br>
+          • <strong>最终交付物：</strong>企业真实业务流转、在线状态机迁移与客户商业结果。
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Line -->
+  <div style="padding:6px 14px; background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.2); border-radius:4px; font-size:11.5px; color:#E0E7FF; line-height:1.4;">
+    <strong style="color:#00E5FF;">信噪比最大化：</strong>分层上下文让无关规则噪音减少 <strong>85%</strong>；明确切分研发态与运行时态，是掌握后续分布式 Agent 编排的基石。
+  </div>
+</div>
+</body>
+</html>

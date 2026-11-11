@@ -1,46 +1,109 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>Agent基础认知误区</title>
+<title>架构师能力裁剪决策树与最终选型方法论</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
-.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
-.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
-.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
-.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden;padding:30px 52px;display:flex;flex-direction:column}
+.s h1{font-size:27px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px;font-weight:700}
+.q-row{display:grid;grid-template-columns:46px 310px 1fr 270px;gap:12px;align-items:center;padding:10px 14px;border-radius:7px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.16)}
 </style></head><body>
-<div class="s" style="padding:36px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 08</div><h1 class="mb-2">Agent基础认知误区</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+<div class="s">
+  <div class="mb-1 sn">CHAPTER 05 · 2026 技术生态与架构决策树</div>
+  <h1 class="mb-1">架构师能力裁剪决策树：拿到业务需求后按顺序问这“五问”</h1>
+  <div style="font-size:12px;color:rgba(224,231,255,0.65);margin-bottom:12px;">
+    千万不要一上来就把所有组件全堆上去！<b style="color:#FF6B35;">从问题出发而非从技术出发</b>——对照以下五步决策树，回答“是”才引入对应组件，回答“否”坚决裁剪：
+  </div>
 
-<div style="flex:1;display:flex;flex-direction:column;">
-<div style="margin-bottom:10px;">
-    <div style="font-size:13px;color:rgba(224,231,255,0.4);margin-top:6px;">打破"Agent幻想"，建立正确起点</div>
+  <!-- 五问决策树 -->
+  <div class="flex flex-col gap-2.5 flex-1 justify-between" style="min-height:0;">
+    <!-- Q0 基线 -->
+    <div style="padding:8px 14px;background:rgba(0,229,255,0.08);border-left:4px solid #00E5FF;border-radius:5px;display:flex;justify-content:space-between;align-items:center;font-size:12px;">
+      <span><b style="color:#00E5FF;">起点基线 · 纯指令与推理：</b>单次意图理解、文本生成或 JSON 提取？ ➔ 只需 <b style="color:#E0E7FF;">PromptManager + LlmRouter + JSON Self-Correction</b>（无需任何外部存储或工具）</span>
+      <span style="color:#00E5FF;font-weight:700;">复杂度：★☆☆☆☆</span>
+    </div>
+
+    <!-- Q1 Memory -->
+    <div class="q-row">
+      <div style="font-size:20px;font-weight:800;color:#A855F7;text-align:center;">Q1</div>
+      <div>
+        <div style="font-size:13.5px;font-weight:700;color:#E0E7FF;">需要跨轮次连贯对话或记住用户偏好吗？</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);">例：多轮追问导购、记住老客户尺码与禁忌</div>
+      </div>
+      <div style="font-size:12px;color:#A855F7;font-weight:600;">
+        ✅ <b>是 ➔ 引入 Memory 三层记忆体系</b><br>
+        <span style="font-size:11px;color:rgba(224,231,255,0.7);font-weight:400;">Redis 短期窗口 + MySQL <code style="color:#A855F7;">user_profile</code> + pgvector <code style="color:#A855F7;">user_memory</code></span>
+      </div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);padding:6px 10px;background:#070B14;border-radius:4px;">
+        ❌ <b>否</b>（如单次翻译、纯工单分类）➔ 保持无状态 Stateless，省掉 Redis/画像表
+      </div>
+    </div>
+
+    <!-- Q2 RAG -->
+    <div class="q-row">
+      <div style="font-size:20px;font-weight:800;color:#00E5FF;text-align:center;">Q2</div>
+      <div>
+        <div style="font-size:13.5px;font-weight:700;color:#E0E7FF;">需要依据企业私域文档/商品知识回答吗？</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);">例：内部万款商品参数、三包退换货细则</div>
+      </div>
+      <div style="font-size:12px;color:#00E5FF;font-weight:600;">
+        ✅ <b>是 ➔ 引入 Knowledge 企业级 RAG 检索</b><br>
+        <span style="font-size:11px;color:rgba(224,231,255,0.7);font-weight:400;">ETL 切块 + Embedding + PostgreSQL <code style="color:#00E5FF;">pgvector</code> 混合检索 + Rerank</span>
+      </div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);padding:6px 10px;background:#070B14;border-radius:4px;">
+        ❌ <b>否</b>（通识问题或规则不足 2000 字）➔ 直接写进 System Prompt 命中缓存即可
+      </div>
+    </div>
+
+    <!-- Q3 Tool + MCP -->
+    <div class="q-row" style="border-color:rgba(255,107,53,0.25);background:rgba(255,107,53,0.03);">
+      <div style="font-size:20px;font-weight:800;color:#FF6B35;text-align:center;">Q3</div>
+      <div>
+        <div style="font-size:13.5px;font-weight:700;color:#E0E7FF;">需要查实时数据或修改外部业务系统吗？</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);">例：查 MySQL 实时库存价格、算促销、建订单</div>
+      </div>
+      <div style="font-size:12px;color:#FF6B35;font-weight:600;">
+        ✅ <b>是 ➔ 引入 Tool Calling + 标准 MCP 协议</b><br>
+        <span style="font-size:11px;color:rgba(224,231,255,0.7);font-weight:400;">工具 ≤3 个且单应用内嵌用 <code style="color:#FF6B35;">@Tool</code>；多服务复用拆独立 <code style="color:#FF6B35;">MCP Server</code></span>
+      </div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);padding:6px 10px;background:#070B14;border-radius:4px;">
+        ❌ <b>否</b>（纯知识问答）➔ 不开 Tool 权限，杜绝模型胡乱调接口风险
+      </div>
+    </div>
+
+    <!-- Q4 Workflow -->
+    <div class="q-row" style="border-color:rgba(34,197,94,0.25);background:rgba(34,197,94,0.03);">
+      <div style="font-size:20px;font-weight:800;color:#22C55E;text-align:center;">Q4</div>
+      <div>
+        <div style="font-size:13.5px;font-weight:700;color:#E0E7FF;">涉及多步复杂规划、容错或高危写操作吗？</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);">例：先比价再凑单最后下单扣款（需人工确认）</div>
+      </div>
+      <div style="font-size:12px;color:#22C55E;font-weight:600;">
+        ✅ <b>是 ➔ 引入 Workflow 状态机与运行时治理</b><br>
+        <span style="font-size:11px;color:rgba(224,231,255,0.7);font-weight:400;"><code style="color:#22C55E;">AgentRuntime</code> FSM + <code style="color:#22C55E;">TaskPlanner</code> + <code style="color:#22C55E;">ConfirmationService</code> (HITL)</span>
+      </div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);padding:6px 10px;background:#070B14;border-radius:4px;">
+        ❌ <b>否</b>（单步只读工具查询）➔ 用简单 2~3 步 ReAct 循环即可
+      </div>
+    </div>
+
+    <!-- Q5 Multi-Agent -->
+    <div class="q-row">
+      <div style="font-size:20px;font-weight:800;color:#00E5FF;text-align:center;">Q5</div>
+      <div>
+        <div style="font-size:13.5px;font-weight:700;color:#E0E7FF;">工具数 &gt; 15 个或存在跨领域专业冲突吗？</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);">例：同时涵盖售前导购、售后退换、供应链采购</div>
+      </div>
+      <div style="font-size:12px;color:#00E5FF;font-weight:600;">
+        ✅ <b>是 ➔ 拆分为 Multi-Agent 多智能体协同</b><br>
+        <span style="font-size:11px;color:rgba(224,231,255,0.7);font-weight:400;">Supervisor-Worker / Router 分工 + A2A 协议跨智能体协同</span>
+      </div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);padding:6px 10px;background:#070B14;border-radius:4px;">
+        ❌ <b>否</b>（单一垂直领域）➔ 坚决保持<b>单 Agent 架构</b>，避免多跳通信延迟与丢上下文
+      </div>
+    </div>
+  </div>
 </div>
-<div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:16px;flex:1;align-content:stretch;">
-  <div style="padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❶ Agent是不是ChatGPT + 工具？</div>
-    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">不是。ChatGPT + 工具只是一个能调API的聊天机器人。Agent是系统——有Memory、有Knowledge、有Workflow、有架构设计。工具只是Agent的一个组件。</div>
-  </div>
-  <div style="padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❷ Agent是不是自动化系统？</div>
-    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">不是。自动化系统按固定规则执行，Agent能理解意图、动态决策、处理不确定性。自动化写死流程，Agent理解需求。</div>
-  </div>
-  <div style="padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❸ Agent是不是更高级的LLM？</div>
-    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">不是。LLM是组件，Agent是系统。LLM负责理解和生成，Agent负责连接和执行。LLM是大脑，Agent还有手、脚和记忆。</div>
-  </div>
-  <div style="padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❹ Agent和Prompt Engineering有什么区别？</div>
-    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">Prompt Engineering是优化单次LLM调用的技巧。Agent是系统架构——除了Prompt，还有Memory、Knowledge、Tool、Workflow。Prompt是Agent的一个组件。</div>
-  </div>
-  <div style="padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❺ Agent一定比非Agent系统更好吗？</div>
-    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">不是。规则明确的系统用传统程序更好。Agent解决的是传统程序解决不了的问题——需要理解意图、处理不确定性、动态决策的场景。</div>
-  </div>
-</div>
-</div>
-</div></body></html>
+</body></html>

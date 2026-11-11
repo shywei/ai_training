@@ -8,7 +8,10 @@
 
 ```bash
 cp .env.example .env   # 填入 SILICONFLOW_API_KEY
-docker compose up -d --build
+# 1. 本地打包（Linux/macOS 执行 ./build-all.sh，Windows 执行 build-all.bat）
+./build-all.sh
+# 2. 一键启动容器（挂载本地产物，秒级启动）
+docker compose up -d
 # 访问 http://localhost:3000
 ```
 

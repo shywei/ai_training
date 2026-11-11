@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>阶段一与二：预训练/继续预训练与 SFT 指令数据工程</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.s { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:26px 65px; display:flex; flex-direction:column; justify-content:space-between; }
+.s h1 { font-size:28px !important; color:#E0E7FF; font-weight:700; }
+.card { background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.15); border-radius:4px; padding:12px 16px; }
+.badge { font-size:11px; font-weight:700; padding:2px 7px; border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="s">
+  <!-- Header -->
+  <div>
+    <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; margin-bottom:4px;">CHAPTER 03 · 现代模型训练范式与前沿架构</div>
+    <h1 class="mb-1">阶段一与二：预训练/继续预训练与 SFT 指令数据工程</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:10px;"></div>
+    <div style="font-size:12.5px; color:rgba(224,231,255,0.7); line-height:1.45;">
+      从万亿 Token 原始语料清洗，到领域知识继续预训练与 SFT 指令雕琢：<strong>数据质量而非参数量，是模型性能的真正决定者</strong>。
+    </div>
+  </div>
+
+  <!-- Dual Columns: Pretraining & Continual vs SFT -->
+  <div class="grid grid-cols-2 gap-4 my-1">
+    <!-- Left: Pre-training & Continual Pre-training Pipeline -->
+    <div class="card" style="border-top:3px solid #00E5FF;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(0,229,255,0.15); color:#00E5FF;">阶段一 · 数据洗矿与领域灌注</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Pre-train &amp; Continual Pre-train</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">预训练洗矿网与继续预训练（Continual）</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.45; margin-bottom:6px;">
+        海量原始网页必须经过四道过滤；而企业级领域基座则依靠继续预训练增量演进：
+      </div>
+      <div class="space-y-1" style="font-size:11px; color:rgba(224,231,255,0.75);">
+        <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px;">
+          <strong style="color:#00E5FF;">1. 工业级数据清洗：</strong>启发式规则剔除低密度网页 + MinHash/LSH 跨 TB 模糊去重 + 质量打分模型过滤口水话。
+        </div>
+        <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px;">
+          <strong style="color:#00E5FF;">2. 黄金混合配比：</strong>高质量教科书/百科 40% + 权威开源代码 30% + 高质量合成数据 30%。
+        </div>
+        <div style="background:rgba(0,229,255,0.08); padding:5px 8px; border-radius:3px; border-left:3px solid #00E5FF;">
+          <strong style="color:#00E5FF;">3. 继续预训练（Continual Pre-training）：</strong><br>
+          在开源通用 Base 上注入数百亿 Token 垂直领域或专有代码。<strong>核心防遗忘策略：</strong>混入 15%~20% 通用回放数据（Replay Buffer），采用平缓学习率退火，避免原有智商坍塌。
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: SFT Engineering -->
+    <div class="card" style="border-top:3px solid #38BDF8;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(56,189,248,0.15); color:#38BDF8;">阶段二 · 行为雕琢</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Supervised Fine-Tuning</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">LIMA 假说与高质量合成指令集</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.45; margin-bottom:6px;">
+        SFT 的关键不在于“盲目堆量”，而在于“样本纯度”与“指令多样性”：
+      </div>
+      <div style="background:rgba(56,189,248,0.08); border-left:3px solid #38BDF8; padding:7px 9px; font-size:11px; color:rgba(224,231,255,0.75); line-height:1.45; margin-bottom:6px;">
+        <strong style="color:#38BDF8;">LIMA 假说（Less is More for Alignment）：</strong><br>
+        Meta 实验证明：仅仅 1,000 条人工精调的高质量问答数据，指令遵循能力就可以击败用 50,000 条平庸数据微调的模型！
+      </div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.45;">
+        • <strong>Evol-Instruct 自动化指令进化：</strong>利用强模型通过“增加约束、深化逻辑、结合边缘场景”自动繁衍复杂指令；<br>
+        • <strong>工具调用与 Schema 对齐：</strong>强化 Function Call 参数输出，形成结构化代码遵循本能。
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom: SFT Data Schema Template -->
+  <div style="background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.2); border-radius:4px; padding:10px 16px;">
+    <div class="flex justify-between items-center mb-1">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-code" style="color:#22C55E; font-size:12px;"></i>
+        <span style="font-size:12.5px; font-weight:700; color:#22C55E;">工业级对齐格式标准：ShareGPT / ChatML 规范</span>
+      </div>
+      <span style="font-size:11px; color:rgba(224,231,255,0.5);">Loss Masking 核心：仅对 Assistant 吐字计算梯度反向传播</span>
+    </div>
+    <div style="background:rgba(0,0,0,0.3); padding:6px 10px; border-radius:3px; font-family:Consolas,monospace; font-size:11px; color:rgba(224,231,255,0.8); line-height:1.45;">
+      <span style="color:#00E5FF;">&lt;|im_start|&gt;system</span><br>你是一个资深架构师，严格以 JSON 格式输出分析结果。<span style="color:#00E5FF;">&lt;|im_end|&gt;</span><br>
+      <span style="color:#38BDF8;">&lt;|im_start|&gt;user</span><br>请分析 MySQL 慢查询优化的三个关键手段。<span style="color:#38BDF8;">&lt;|im_end|&gt;</span><br>
+      <span style="color:#22C55E;">&lt;|im_start|&gt;assistant</span><br>{"optimizations": ["覆盖索引与最左前缀对齐", "避免深分页游标查询", "分库分表与归档拆分"]}<span style="color:#22C55E;">&lt;|im_end|&gt;</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,58 +1,105 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>Token、Context Window 与模型选型</title>
+<title>协议演进 vs 网关演进 — LLM API 协议与企业网关双轨解耦</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-</style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 03</div>
-<h1 class="mb-2">Token、Context Window 与模型选型</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:18px;"></div>
+.s h1{font-size:30px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px}
+.mb-2{margin-bottom:6px}
+.card{padding:10px 12px;border-radius:6px}
+.card .t{font-size:12.5px;font-weight:700;margin-bottom:3px}
+.card .b{font-size:11px;color:rgba(224,231,255,0.68);line-height:1.55}
+</style></head>
+<body>
+<div class="s" style="padding:22px 50px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 02 · 架构解耦与演进</div>
+  <h1 class="mb-2">协议演进 vs 网关演进 — LLM API 协议与企业网关双轨解耦</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:10px;"></div>
+  
+  <div style="flex:1;display:flex;gap:16px;">
+    <!-- 左轨：模型供应商 API 协议演进 -->
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;">
+      <div style="font-size:13.5px;color:#00E5FF;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:6px;">
+        <span>🌐 轨道一：模型厂商 API 协议演进</span>
+        <span style="font-size:11px;color:rgba(0,229,255,0.6);font-weight:400;">(Provider API Evolution)</span>
+      </div>
 
-<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-  <div style="display:flex;gap:16px;margin-bottom:16px;">
-    <div style="flex:1;padding:16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-      <div style="font-size:16px;color:#00E5FF;font-weight:700;margin-bottom:8px;">什么是 Token？</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.6);line-height:1.7;">
-        大模型不直接处理文字，把文本拆成 <strong style="color:#E0E7FF;">token</strong>（词元）。<br><br>
-        <strong style="color:#00E5FF;">中文：</strong>"你好世界" → [你, 好, 世界] = 3 token<br>
-        <strong style="color:#00E5FF;">英文：</strong>"Hello World" = 2 token<br>
-        <strong style="color:#00E5FF;">代码：</strong>一个函数约 50-200 token<br><br>
-        <strong style="color:#FF6B35;">计费单位。</strong>输出 token 比输入贵 2-5 倍。
+      <div class="card" style="background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.12);">
+        <div class="t" style="color:#94A3B8;">① Completion API (2020 · 早期文本补全) — 纯文本单向预测</div>
+        <div class="b">
+          <strong style="color:#E0E7FF">形态：</strong>POST <span style="color:#94A3B8;">/v1/completions</span>，仅输入 <code style="color:#00E5FF;">prompt</code> 字符串。无 role 角色语义，历史多轮对话只能靠手工文本拼接（如 \nHuman: ...\nAI: ），极易格式漂移与提示词冲突。
+        </div>
+      </div>
+
+      <div class="card" style="background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.22);">
+        <div class="t" style="color:#00E5FF;">② Chat Completions API (2023 · 工业基线) — 结构化对话事实标准</div>
+        <div class="b">
+          <strong style="color:#E0E7FF">形态：</strong>POST <span style="color:#00E5FF;">/v1/chat/completions</span>，奠定 <strong style="color:#E0E7FF">messages: [system, user, assistant]</strong> 角色范式与 Tools/Function Calling 机制。<br>
+          <strong style="color:#22C55E">行业地位：</strong>最大公约数！vLLM、Ollama、硅基流动及绝大多数国产模型全量兼容，<strong style="color:#22C55E">本课 Demo 全部走此基线</strong>。
+        </div>
+      </div>
+
+      <div class="card" style="background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.22);">
+        <div class="t" style="color:#FF6B35;">③ Responses API (2025/2026 · OpenAI) — 面向 Agent 的语义超集</div>
+        <div class="b">
+          <strong style="color:#E0E7FF">形态：</strong>POST <span style="color:#FF6B35;">/v1/responses</span>，将文本、工具调用、思考流原生抽象为统一<strong style="color:#E0E7FF">输出项（items）</strong>，支持对话状态与推理续接。<br>
+          <strong style="color:#FFC832">重大变更：</strong>OpenAI 官方已弃用 Assistants API（2026 关停），能力并入 Responses API。
+        </div>
+      </div>
+
+      <div class="card" style="background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.2);">
+        <div class="t" style="color:#A855F7;">旁系与开放规范：Anthropic Messages API 与 Open Responses</div>
+        <div class="b">
+          Claude 系采用独立的 <span style="color:#A855F7;">/v1/messages</span> 协议；社区正推进开放中立的 <strong style="color:#E0E7FF;">Open Responses</strong> 标准（LiteLLM / OpenRouter 支持），力求实现跨厂商一键互操作。
+        </div>
       </div>
     </div>
-    <div style="flex:1;padding:16px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);border-radius:6px;">
-      <div style="font-size:16px;color:#FF6B35;font-weight:700;margin-bottom:8px;">什么是 Context Window？</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.6);line-height:1.7;">
-        模型一次能处理的<strong style="color:#E0E7FF;">最大 token 数</strong>。输入+输出不能超限。<br><br>
-        <strong style="color:#FF6B35;">GPT-2：</strong>1K token → 约500字<br>
-        <strong style="color:#FF6B35;">GPT-4：</strong>128K → 约6万字<br>
-        <strong style="color:#FF6B35;">2026主流：</strong>100万+ → 约50万字<br><br>
-        <strong style="color:#E0E7FF;">窗口越大，推理越慢、成本越高。</strong>
+
+    <!-- 右轨：企业级 LLM 网关架构演进 -->
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;">
+      <div style="font-size:13.5px;color:#FF6B35;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:6px;">
+        <span>🏢 轨道二：企业级 LLM 网关架构演进</span>
+        <span style="font-size:11px;color:rgba(255,107,53,0.6);font-weight:400;">(Enterprise Gateway Evolution)</span>
       </div>
-    </div>
-    <div style="flex:1;padding:16px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;">
-      <div style="font-size:16px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">推理模型为什么贵？</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.6);line-height:1.7;">
-        推理模型回答前会生成大量<strong style="color:#FF6B35;">思维链</strong>，这些思考过程也消耗 token。<br><br>
-        同样一个问题，推理模型可能消耗 <strong style="color:#FF6B35;">3-10 倍</strong>的 token。<br><br>
-        <strong style="color:#E0E7FF;">这就是为什么需要模型路由 — 简单问题不要用推理模型。</strong>
+
+      <div class="card" style="background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.12);">
+        <div class="t" style="color:#94A3B8;">阶段一：专用 SDK 点对点直连 (碎片化接入)</div>
+        <div class="b">
+          各业务直接引入 OpenAI / 智谱 / 通义官方 SDK。强依赖供应商特定类库，代码侵入严重，缺乏统一监控、配额管控与熔断保护，供应商锁死且运维成本极高。
+        </div>
+      </div>
+
+      <div class="card" style="background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.22);">
+        <div class="t" style="color:#00E5FF;">阶段二：应用内统一客户端抽象 (Spring AI / LangChain)</div>
+        <div class="b">
+          应用层引入 <code style="color:#00E5FF;">ChatClient</code> 统一接口，实现换模型不改业务代码（本课 Demo 形态）。但在多服务分布式场景下，各微服务仍独立持有 Key、独立计算配额，无法跨业务集中治理。
+        </div>
+      </div>
+
+      <div class="card" style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.25);">
+        <div class="t" style="color:#22C55E;">阶段三：企业级独立 LLM 网关 (统一流式代理与治理底座)</div>
+        <div class="b">
+          建立独立集中网关服务（如 OneAPI / LiteLLM / 自研网关）：<br>
+          <strong style="color:#E0E7FF">统一封装：</strong>对外暴露标准协议 ｜ <strong style="color:#E0E7FF">协议适配：</strong>抹平各厂商入参出参方言<br>
+          <strong style="color:#E0E7FF">流式代理：</strong>高性能 SSE 转发与长连接治理 ｜ <strong style="color:#E0E7FF">治理矩阵：</strong>多维路由、Token 计费与多层安全。
+        </div>
+      </div>
+
+      <!-- 避坑红线 -->
+      <div class="card" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);">
+        <div class="t" style="color:#EF4444;">🚨 兼容性严正警示：OpenAI 兼容协议 ≠ 100% 完全兼容！</div>
+        <div class="b" style="color:rgba(255,200,200,0.85);font-size:11px;">
+          许多厂商虽声称“兼容 OpenAI 格式”，但在 <strong>Tool Calling 嵌套解析、JSON 严格模式（Structured Outputs）、流式思考字段（reasoning_content 命名）、多模态 Base64 格式</strong> 上存在差异！必须靠企业网关层做协议适配抹平方言。
+        </div>
       </div>
     </div>
   </div>
 
-  <div style="display:flex;gap:16px;">
-    <div style="flex:1;padding:14px 18px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
-      <div style="font-size:15px;color:#00E5FF;font-weight:700;margin-bottom:4px;">⚡ Fast Model</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.55);">日常对话、简单问答、代码补全 → 快、便宜、够用 → Qwen2.5-7B</div>
-    </div>
-    <div style="flex:1;padding:14px 18px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;">
-      <div style="font-size:15px;color:#FF6B35;font-weight:700;margin-bottom:4px;">🧠 Reasoning Model</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.55);">复杂推理、架构设计、多步分析 → 慢、贵、强 → Qwen3-8B</div>
+  <div style="margin-top:8px;padding:7px 14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:5px;text-align:center;">
+    <div style="font-size:11.5px;color:rgba(224,231,255,0.7);">
+      <strong style="color:#FF6B35;">Demo 映射：</strong>Demo 采用 Spring AI <code style="color:#00E5FF;">ChatClient</code> 直连兼容端点（/v1/chat/completions），这是教学的“代码抽象样本”；生产级系统则必须挂载独立 LLM 网关以实现治理与协议适配解耦。
     </div>
   </div>
 </div>
-</div></body></html>
+</body></html>

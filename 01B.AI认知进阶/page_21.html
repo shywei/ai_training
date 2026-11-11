@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>架构师的技术栈选型全景矩阵</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.s { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.s h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
+.card { background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.15); border-radius:4px; padding:14px 18px; }
+.badge { font-size:11px; font-weight:700; padding:2px 8px; border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="s flex flex-col justify-between">
+  <!-- Header -->
+  <div>
+    <div style="font-size:13px; color:#A855F7; letter-spacing:4px; margin-bottom:4px;">CHAPTER 05 · 物理边界、架构反哺与全栈选型</div>
+    <h1 class="mb-2">架构师的技术栈选型全景矩阵</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:12px;"></div>
+    <div style="font-size:13px; color:rgba(224,231,255,0.7); line-height:1.5;">
+      在公有云 API、端侧本地量化与私有化机房微调之间，架构师需要从数据合规、SLA 保证、成本曲线与算力规模五大维度建立科学决策树。
+    </div>
+  </div>
+
+  <!-- 3 Architectural Deployment Paths -->
+  <div class="grid grid-cols-3 gap-4 my-1">
+    <!-- Path A: Public Cloud API -->
+    <div class="card" style="border-top:3px solid #00E5FF;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(0,229,255,0.15); color:#00E5FF;">路线 A · 云端优先</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Public Cloud API</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">公有云商用 API 服务</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.55; margin-bottom:8px;">
+        • <strong>代表选型：</strong>OpenAI, DeepSeek API, 智谱 GLM, 阿里通义千问。<br>
+        • <strong>核心优势：</strong>零机房硬件运维负担，顶尖旗舰模型开箱即用，按需付费，弹性无上限。
+      </div>
+      <div style="background:rgba(0,229,255,0.06); padding:8px 10px; border-radius:3px; font-size:11px; color:rgba(224,231,255,0.75); line-height:1.45;">
+        <strong style="color:#00E5FF;">考量重点：</strong>数据出域合规风险；日调用量突破千万级时，按 Token 线性计费的总拥有成本（TCO）会急剧攀升；易受公网抖动与厂商 Rate Limit 限流影响。
+      </div>
+    </div>
+
+    <!-- Path B: Edge / Local Quantized -->
+    <div class="card" style="border-top:3px solid #22C55E;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(34,197,94,0.15); color:#22C55E;">路线 B · 单兵轻量</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Local &amp; Edge Quantized</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">端侧与单机本地量化运行</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.55; margin-bottom:8px;">
+        • <strong>代表选型：</strong>Ollama, llama.cpp, vLLM 单卡 (RTX 4090 / Mac M系列)。<br>
+        • <strong>核心优势：</strong>100% 物理离线不出域，零云端调用费用，单兵开发、本地 Code Review 与离线内网系统的极致神器。
+      </div>
+      <div style="background:rgba(34,197,94,0.06); padding:8px 10px; border-radius:3px; font-size:11px; color:rgba(224,231,255,0.75); line-height:1.45;">
+        <strong style="color:#22C55E;">考量重点：</strong>受限于单机物理显存（主跑 7B~32B INT4）；无法支撑几十上百人高并发生产访问；长上下文吞吐有限。
+      </div>
+    </div>
+
+    <!-- Path C: Private On-Premises Cluster -->
+    <div class="card" style="border-top:3px solid #FF6B35;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(255,107,53,0.15); color:#FF6B35;">路线 C · 企业级私有化</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">On-Premises Dedicated Cluster</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">私有算力集群自建与模型微调</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.55; margin-bottom:8px;">
+        • <strong>代表选型：</strong>vLLM 集群 / Ray / SGLang + 专用服务器（A800/H800/4090集群）。<br>
+        • <strong>核心优势：</strong>军工/金融级绝对数据合规；独占毫秒级 SLA 算力池；高并发下长期平均 Token 成本降至云端 1/10；支持企业专属 SFT。
+      </div>
+      <div style="background:rgba(255,107,53,0.06); padding:8px 10px; border-radius:3px; font-size:11px; color:rgba(224,231,255,0.75); line-height:1.45;">
+        <strong style="color:#FF6B35;">考量重点：</strong>前期重资产硬件采购成本高昂；需要具备 GPU 驱动、RoCE/IB 网络互联与模型运维能力的专业 AI 基础设施工程师。
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom: 5-Dimensional Decision Radar -->
+  <div style="background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.2); border-radius:4px; padding:12px 18px;">
+    <div class="flex items-center gap-2 mb-2">
+      <i class="fas fa-sitemap" style="color:#00E5FF; font-size:13px;"></i>
+      <span style="font-size:13px; font-weight:700; color:#00E5FF;">五维科学决策树速查法则</span>
+    </div>
+    <div class="grid grid-cols-5 gap-2" style="font-size:11px; color:rgba(224,231,255,0.75); line-height:1.45;">
+      <div style="background:rgba(255,255,255,0.03); padding:6px 8px; border-radius:3px;">
+        <strong style="color:#E0E7FF;">1. 数据涉密敏感度</strong><br>
+        • 绝密/金融核心 ➔ <strong>路线 C / B</strong><br>
+        • 一般通用脱敏业务 ➔ <strong>路线 A</strong>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); padding:6px 8px; border-radius:3px;">
+        <strong style="color:#E0E7FF;">2. 业务响应 SLA</strong><br>
+        • 强 SLA / 严禁限流 ➔ <strong>路线 C</strong><br>
+        • 容忍微抖动 ➔ <strong>路线 A</strong>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); padding:6px 8px; border-radius:3px;">
+        <strong style="color:#E0E7FF;">3. 长期并发与调用量</strong><br>
+        • 峰值持续高并发 ➔ <strong>路线 C</strong><br>
+        • 波动低频或冷启动 ➔ <strong>路线 A</strong>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); padding:6px 8px; border-radius:3px;">
+        <strong style="color:#E0E7FF;">4. 任务智力复杂度</strong><br>
+        • 超前沿多模态/慢思考 ➔ <strong>路线 A</strong><br>
+        • 垂类专用明确任务 ➔ <strong>路线 C / B</strong>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); padding:6px 8px; border-radius:3px;">
+        <strong style="color:#E0E7FF;">5. 团队工程与运维人效</strong><br>
+        • 研发专注上层应用 ➔ <strong>路线 A</strong><br>
+        • 具备 GPU 底座运维团队 ➔ <strong>路线 C</strong>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

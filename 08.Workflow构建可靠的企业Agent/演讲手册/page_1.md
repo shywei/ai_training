@@ -21,16 +21,16 @@ Tool 调用超时了会怎样？直接报错。MCP Client 写死 15 秒超时，
 
 ## Optional Extension
 **学员问：为什么不直接用 Spring AI 的 Function Calling 多调几次？**
-答：Function Calling 一次调用就结束了。Spring AI 框架自动处理 tool_call，你没法控制"接下来再调另一个 Tool"。要多步执行，必须自己控制循环。这就是第八课 AgentRuntime 的意义。
+答：Function Calling 一次调用就结束了。Spring AI 框架自动处理 tool_call，你没法控制"接下来再调另一个 Tool"。要多步执行，必须自己控制循环。这就是第八课 AgentRuntime 的意义。**Demo 做法**：AgentRuntime 手写 while 循环（最多 10 轮），用 TOOL_CALL 文本约定自己提取工具调用；**生产做法**：工具协议换原生 Function Calling 的结构化 tool_call，但循环控制权仍在 Runtime——第九课用 AgentScope Java 2.0 重构会并排对比框架接管到哪一层。
 
 **学员问：这些问题在第七课的 Demo 里没暴露吗？**
 答：暴露了，但第七课聚焦"怎么调 Tool"，没关注"怎么可靠地调"。Demo 是逐课演进的，第七课先让 Agent 能做事，第八课再让它可靠地做事。
 
 ## Take Away
-"能做事"和"可靠地做事"是两回事。Agent 需要一个操作系统来管理自己的行为。
+判断 Agent 能不能上生产，看可靠性工程要素：多步执行（7状态机与ReAct循环）、高风险确认（人工接管HITL）、三级自动容错（Retry + Circuit Breaker + Fallback）与任务错误重规划、执行可追溯（Tracing）——缺一件就不叫企业可靠。
 
 ## Why This Slide Matters
-如果跳过这页，学员会以为 Workflow 是一个"额外功能"，而不是"必要基础"。这页建立的是痛感——没有 Workflow 的 Agent 在企业环境里会出什么问题。
+跳过这页，学员会把 Workflow 排成"可选增强"后置——先上裸 Agent，多步做不了、误下单、超时崩、无法审计四个坑上线后逐个踩，再回头补的成本翻倍。
 
 ## Transition
-这些问题怎么解？先从最基础的开始——怎么让 Agent 的行为变得可预测。
+先看今天这堂课的完整目录（P2）——八个章节如何把 Agent 从"能做事"升级到"可靠地做事"。

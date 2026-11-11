@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>第六课总结</title>
+<title>v3.0 Demo 全貌</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
@@ -8,45 +8,70 @@
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
 </style></head><body>
 <div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">SUMMARY</div>
-<h1 class="mb-2">第六课总结</h1>
+<div class="mb-2 sn">CHAPTER 06</div>
+<h1 class="mb-2">v3.0（tag v1.3）Demo 全貌 — 做成了什么</h1>
 <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
 
-<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-  <div style="padding:14px 24px;background:rgba(255,107,53,0.08);border:2px solid #FF6B35;border-radius:8px;text-align:center;margin-bottom:18px;">
-    <div style="font-size:20px;color:#FF6B35;font-weight:700;">Knowledge 不是文档，而是经过治理后能够被 AI 使用的企业知识。</div>
-  </div>
-
-  <div style="display:flex;gap:16px;margin-bottom:16px;">
-    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:10px;">Agent 构建进度</div>
-      <div style="display:flex;flex-direction:column;gap:6px;">
-        <div style="display:flex;align-items:center;gap:8px;"><div style="width:22px;height:22px;background:#00E5FF;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#0B1120;">✓</div><div style="font-size:13px;color:#E0E7FF;">Prompt（LLM 交互）</div></div>
-        <div style="display:flex;align-items:center;gap:8px;"><div style="width:22px;height:22px;background:#00E5FF;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#0B1120;">✓</div><div style="font-size:13px;color:#E0E7FF;">Memory（用户记忆）</div></div>
-        <div style="display:flex;align-items:center;gap:8px;"><div style="width:22px;height:22px;background:#00E5FF;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#0B1120;">✓</div><div style="font-size:13px;color:#E0E7FF;">Knowledge（企业知识）</div></div>
-        <div style="display:flex;align-items:center;gap:8px;"><div style="width:22px;height:22px;border:2px solid rgba(224,231,255,0.2);border-radius:4px;"></div><div style="font-size:13px;color:rgba(224,231,255,0.3);">Tool（系统集成）</div></div>
-        <div style="display:flex;align-items:center;gap:8px;"><div style="width:22px;height:22px;border:2px solid rgba(224,231,255,0.2);border-radius:4px;"></div><div style="font-size:13px;color:rgba(224,231,255,0.3);">Workflow（流程控制）</div></div>
+<div style="flex:1;display:flex;gap:20px;">
+  <!-- 左：功能清单 + v2.0 对比 -->
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">v3.0（tag v1.3）vs v2.0 新增能力</div>
+    <div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;margin-bottom:10px;">
+      <div style="display:flex;gap:8px;margin-bottom:6px;">
+        <div style="flex:1;font-size:11px;color:rgba(224,231,255,0.4);text-align:center;padding:4px;background:rgba(255,255,255,0.02);border-radius:3px;">v2.0（第五课）</div>
+        <div style="flex:1;font-size:11px;color:#22C55E;text-align:center;padding:4px;background:rgba(34,197,94,0.06);border-radius:3px;">v3.0 / v1.3 新增（第六课）</div>
+      </div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:2;">
+        <span style="color:rgba(224,231,255,0.3);">对话 + 记忆 + 画像</span> → <span style="color:#22C55E;">+ 商品知识检索（RetrievalService）</span><br>
+        <span style="color:rgba(224,231,255,0.3);">MySQL 精确查画像</span> → <span style="color:#22C55E;">+ pgvector 语义检索记忆（UserMemoryService）</span><br>
+        <span style="color:rgba(224,231,255,0.3);">Redis 只存会话</span> → <span style="color:#22C55E;">+ 自动沉淀到 pgvector user_memory</span><br>
+        <span style="color:rgba(224,231,255,0.3);">上下文 = 画像 + 历史</span> → <span style="color:#22C55E;">+ 语义记忆 + 商品参考知识</span>
       </div>
     </div>
-    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:10px;">第六课能力地图</div>
-      <div style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:rgba(224,231,255,0.55);">
-        <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">Knowledge vs Memory 区别</div>
-        <div style="text-align:center;color:rgba(0,229,255,0.3);">↓</div>
-        <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">Data Pipeline + Chunking + Embedding</div>
-        <div style="text-align:center;color:rgba(0,229,255,0.3);">↓</div>
-        <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">pgvector + 语义检索 + 关键词过滤</div>
-        <div style="text-align:center;color:rgba(0,229,255,0.3);">↓</div>
-        <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">context 演进 + Prompt RAG 集成</div>
-        <div style="text-align:center;color:rgba(0,229,255,0.3);">↓</div>
-        <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">企业优化 + 数据分层 + 记忆升级</div>
+
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">端到端数据流（agent-runtime 单体）</div>
+    <div style="padding:12px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.12);border-radius:6px;margin-bottom:10px;">
+      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:2.15;">
+        <span style="color:#00E5FF;">用户提问</span> → "推荐一台写代码的笔记本"<br>
+        &nbsp;&nbsp;↓ <span style="color:rgba(224,231,255,0.4);">MemoryManager.buildContext()</span><br>
+        <span style="color:#00E5FF;">① MySQL（UserProfileMapper）</span> → 用户画像（偏好、事实结论）<br>
+        <span style="color:#A855F7;">② pgvector（UserMemoryService）</span> → 语义检索用户历史记忆（user_memory）<br>
+        <span style="color:#EAB308;">③ Redis（SessionMemory）</span> → 当前会话历史缓冲<br>
+        <span style="color:#22C55E;">④ pgvector（RetrievalService）</span> → 关键词过滤 + 语义检索商品知识（vector_store）<br>
+        &nbsp;&nbsp;↓ <span style="color:rgba(224,231,255,0.4);">PromptManager 组装 Prompt → LLM 生成</span><br>
+        <span style="color:#FF6B35;">输出</span> → 推荐 ThinkPad X1 Carbon，引用具体配置与亮点说明理由
       </div>
     </div>
   </div>
 
-  <div style="padding:10px 16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;text-align:center;">
-    <div style="font-size:14px;color:#E0E7FF;">导购 Agent 能查商品信息了。但它不能查库存、不能下单——它只能"说"，不能"做"。</div>
-    <div style="font-size:12px;color:rgba(224,231,255,0.4);margin-top:4px;">下一课：Tool Calling — 让 Agent 能调用企业系统。</div>
+  <!-- 右：关键设计 + 演示步骤 -->
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">四个关键架构设计决策</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+      <div style="padding:10px 12px;background:rgba(34,197,94,0.06);border-left:3px solid #22C55E;border-radius:0 5px 5px 0;">
+        <div style="font-size:12px;color:#22C55E;font-weight:600;">数据分层</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.5);">商品描述 → pgvector（语义检索）| 价格库存 → MySQL（第七课 Tool）| 会话 → Redis（缓冲）</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.45);margin-top:3px;"><span style="color:#22C55E;">设计原因：</span>价格库存实时变化，放向量库会存旧值误导用户；按读写模式分层：静态描述给 RAG“懂”，实时库存走 Tool“查”。</div>
+      </div>
+      <div style="padding:10px 12px;background:rgba(168,85,247,0.06);border-left:3px solid #A855F7;border-radius:0 5px 5px 0;">
+        <div style="font-size:12px;color:#A855F7;font-weight:600;">手动索引触发（KnowledgeController）</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.5);">显式调用 <code style="color:#00E5FF;">POST /api/knowledge/index</code> 触发 <code style="color:#00E5FF;">KnowledgeService.indexProducts()</code></div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.45);margin-top:3px;"><span style="color:#A855F7;">设计原因：</span>如果启动即全量自动重建，每次重启都烧 Embedding Token 且流水线黑盒不可见；手动 API 触发让 Data Pipeline 每一步清晰可观测。</div>
+      </div>
+      <div style="padding:10px 12px;background:rgba(234,179,8,0.06);border-left:3px solid #EAB308;border-radius:0 5px 5px 0;">
+        <div style="font-size:12px;color:#EAB308;font-weight:600;">自动沉淀（checkAndPrecipitate）</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.5);">Redis 会话达到阈值自动提要并通过 <code style="color:#00E5FF;">UserMemoryService</code> 向量化沉淀至 pgvector <code style="color:#00E5FF;">user_memory</code></div>
+      </div>
+      <div style="padding:10px 12px;background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:0 5px 5px 0;">
+        <div style="font-size:12px;color:#00E5FF;font-weight:600;">结论与过程记忆不重叠</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.5);">MySQL <code style="color:#00E5FF;">user_profile</code> 存结构化画像（结论）| pgvector <code style="color:#00E5FF;">user_memory</code> 存对话语义片段（过程）</div>
+      </div>
+    </div>
+
+    <div style="padding:12px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;">
+      <div style="font-size:12px;color:#FF6B35;font-weight:700;margin-bottom:4px;">v3.0（tag v1.3）完整交付能力</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.8;">✅ 商品知识索引（<code style="color:#00E5FF;">POST /api/knowledge/index</code>，26条商品 Embedding 过程可见）<br>✅ 商品语义检索（<code style="color:#00E5FF;">RetrievalService</code>：关键词过滤 + <code style="color:#00E5FF;">PgVectorStore</code> 余弦检索）<br>✅ 用户语义记忆检索（<code style="color:#00E5FF;">UserMemoryService</code> + <code style="color:#00E5FF;">UserMemoryMapper</code>）<br>✅ 历史对话自动向 pgvector 沉淀（<code style="color:#00E5FF;">MemoryManager.checkAndPrecipitate()</code>）<br>✅ 四路 Context 组装（画像 + 语义记忆 + 近期会话 + 商品参考知识）</div>
+    </div>
   </div>
 </div>
 </div></body></html>

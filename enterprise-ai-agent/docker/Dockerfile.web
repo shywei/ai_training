@@ -1,15 +1,26 @@
-# 前端构建镜像：node 打包 → nginx 托管静态文件
-FROM node:20-alpine AS build
-WORKDIR /build
-
-# 先拷依赖描述，利用层缓存
-COPY web/package.json web/package-lock.json ./
-RUN npm ci --no-audit --no-fund || npm install --no-audit --no-fund
-
-COPY web/ ./
-RUN npm run build
+# ============================================================
+# 前端 Web 通用轻量镜像（nginx 托管已编译的静态文件 + 反向代理）
+#
+# 说明：
+#   1. 日常本地开发与 Docker 编排：
+#      推荐直接使用 docker-compose.yml 挂载本地预构建的 web/dist 静态目录与 nginx.conf，
+#      无需在 Docker 内执行 Node.js 安装与构建，省去大量内存与网络开销。
+#   2. 单体独立镜像打包（CI/CD、镜像仓库推送或生产独立部署）：
+#      在宿主机先执行前端构建（如运行 ./build-all.sh 或在 web 目录下执行 npm install && npm run build），
+#      然后使用此轻量 Dockerfile 直接将 dist 产物打入 nginx 镜像：
+#
+#      构建示例（在 enterprise-ai-agent 根目录下执行）：
+#        docker build -f docker/Dockerfile.web -t enterprise-ai-agent-web:latest .
+# ============================================================
 
 FROM nginx:1.27-alpine
+
+# 拷贝 nginx 反代与前端路由配置
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /build/dist /usr/share/nginx/html
+
+# 拷贝本地已构建好的静态资源目录
+COPY web/dist /usr/share/nginx/html
+
 EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

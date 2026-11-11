@@ -3,118 +3,87 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>主流Coding Agent产品概览</title>
+<title>职业解惑：AI 会让程序员失业吗？</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
-.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
 .slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:13px; color:#00E5FF; letter-spacing:4px; }
-.slide-product-table { width:100%; border-collapse:collapse; }
-.slide-product-table th { font-size:12px; font-weight:700; padding:10px 12px; text-align:left; border-bottom:2px solid rgba(0,229,255,0.2); color:#00E5FF; }
-.slide-product-table td { font-size:12px; padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.04); color:rgba(224,231,255,0.6); line-height:1.4; }
-.slide-product-name { font-weight:700; color:#E0E7FF; font-size:13px; }
-.slide-product-quote { font-size:11px; color:#00E5FF; font-style:italic; }
-.slide-region { font-size:11px; letter-spacing:2px; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:36px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 04 · 工具全景</div>
-  <h1 class="mb-2">主流 Coding Agent 产品概览（2026）</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:6px;"></div>
-  <div style="font-size:13px; color:rgba(224,231,255,0.4); margin-bottom:16px;">产品边界正在模糊——Cursor内置终端，Claude Code有IDE插件，Copilot同时做补全和Agent。真正需要学的不是某一个产品，而是Agent的工作方式。</div>
+<div class="slide-container">
+  <div style="font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:6px;">CHAPTER 03 · 程序员视角的四大灵魂解惑</div>
+  <h1 class="mb-2">职业解惑：AI 会让程序员失业吗？—— 价值重心的结构性转移</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
 
-  <table class="slide-product-table">
-    <thead>
-      <tr>
-        <th style="width:120px;">产品</th>
-        <th style="width:100px;">厂商</th>
-        <th>主要场景</th>
-        <th style="width:130px;">支持模型</th>
-        <th style="width:130px;">价格</th>
-        <th style="width:80px;">中国可用</th>
-        <th>一句话定位</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><div class="slide-product-name">GitHub Copilot</div></td>
-        <td style="color:rgba(224,231,255,0.5);">GitHub / Microsoft</td>
-        <td>IDE辅助编程、CLI工具、PR审查、企业协作</td>
-        <td>GPT、Claude、Gemini 等</td>
-        <td>Free / Pro $10 / Pro+ $39</td>
-        <td class="slide-region" style="color:#00E5FF;">★★★★☆</td>
-        <td><span class="slide-product-quote">最普及的 AI 编程助手</span></td>
-      </tr>
-      <tr>
-        <td><div class="slide-product-name">Cursor</div></td>
-        <td style="color:rgba(224,231,255,0.5);">Anysphere</td>
-        <td>AI原生IDE、多文件编辑、后台远程Agent</td>
-        <td>Claude、GPT、Gemini 等</td>
-        <td>免费版 + Pro $20/月</td>
-        <td class="slide-region" style="color:#00E5FF;">★★★★☆</td>
-        <td><span class="slide-product-quote">当前最成熟的 AI 原生 IDE</span></td>
-      </tr>
-      <tr>
-        <td><div class="slide-product-name">Claude Code</div></td>
-        <td style="color:rgba(224,231,255,0.5);">Anthropic</td>
-        <td>终端开发、复杂重构、多Agent协作、CI集成</td>
-        <td>Claude（可代理接入第三方）</td>
-        <td>Pro $20 / Max $100-200</td>
-        <td class="slide-region" style="color:#FF6B35;">★★☆☆☆</td>
-        <td><span class="slide-product-quote">工程能力最强的 Terminal Agent</span></td>
-      </tr>
-      <tr>
-        <td><div class="slide-product-name">Codex</div></td>
-        <td style="color:rgba(224,231,255,0.5);">OpenAI</td>
-        <td>Agent协作、并行任务、CLI/桌面/移动端</td>
-        <td style="color:#FFC832;">GPT-5.5 + 开源模型</td>
-        <td>Go $8 / Plus $20 / Pro $100</td>
-        <td class="slide-region" style="color:#FF6B35;">★★☆☆☆</td>
-        <td><span class="slide-product-quote">2026年增长最快的 Coding Agent</span></td>
-      </tr>
-      <tr>
-        <td><div class="slide-product-name">Windsurf</div></td>
-        <td style="color:rgba(224,231,255,0.5);">Codeium</td>
-        <td>免费AI IDE，Cascade智能体模式</td>
-        <td>多模型支持</td>
-        <td style="color:#00E5FF;">免费版 + Pro $15/月</td>
-        <td class="slide-region" style="color:#00E5FF;">★★★★☆</td>
-        <td><span class="slide-product-quote">免费方案，适合预算有限的团队</span></td>
-      </tr>
-      <tr>
-        <td><div class="slide-product-name">Trae</div></td>
-        <td style="color:rgba(224,231,255,0.5);">字节跳动</td>
-        <td>AI IDE，中文场景优化</td>
-        <td>多模型支持</td>
-        <td style="color:#00E5FF;">免费</td>
-        <td class="slide-region" style="color:#00E5FF;">★★★★★</td>
-        <td><span class="slide-product-quote">免费、中文友好，国内开发者首选</span></td>
-      </tr>
-      <tr>
-        <td><div class="slide-product-name">通义灵码</div></td>
-        <td style="color:rgba(224,231,255,0.5);">阿里</td>
-        <td>IDE插件，企业级代码补全</td>
-        <td>通义系列模型</td>
-        <td>免费 / 企业版</td>
-        <td class="slide-region" style="color:#00E5FF;">★★★★★</td>
-        <td><span class="slide-product-quote">深度集成Java/Spring生态</span></td>
-      </tr>
-      <tr>
-        <td><div class="slide-product-name">OpenCode</div></td>
-        <td style="color:rgba(224,231,255,0.5);">开源社区</td>
-        <td>开源Agent、私有化部署、多模型自由切换</td>
-        <td>75+ 提供商（含本地模型）</td>
-        <td style="color:#00E5FF;">免费开源（模型费用另计）</td>
-        <td class="slide-region" style="color:#00E5FF;">★★★★★</td>
-        <td><span class="slide-product-quote">开源、灵活、模型自由</span></td>
-      </tr>
-    </tbody>
-  </table>
+  <div style="font-size:14px; color:rgba(224,231,255,0.6); margin-bottom:16px;">
+    面对强大的代码生成与自动修复能力，开发者的价值不是被抹杀，而是正在经历软件工程 70 年来最大规模的“价值重心大迁移”。
+  </div>
 
+  <!-- Dual Value Contrast -->
+  <div class="flex gap-5 mb-4">
+    <!-- Left: Devalued Zone -->
+    <div style="flex:1; padding:16px 20px; background:rgba(255,107,53,0.05); border:1px solid rgba(255,107,53,0.22);">
+      <div class="flex justify-between items-center mb-3">
+        <div style="font-size:16px; font-weight:700; color:#FF6B35;"><i class="fas fa-arrow-down" style="margin-right:8px;"></i>边际价值暴跌区域（机器替代区）</div>
+        <span style="font-size:11px; padding:2px 8px; background:rgba(255,107,53,0.15); color:#FF6B35; font-weight:600;">打字机码农淘汰</span>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px; font-size:12px; color:rgba(224,231,255,0.7); line-height:1.5;">
+        <div>
+          <strong style="color:#FF6B35;">1. 记忆特定语法与 API 参数：</strong>不再需要人脑死记硬背复杂函数的入参顺序与标志位；
+        </div>
+        <div>
+          <strong style="color:#FF6B35;">2. 机械手写样板代码（Boilerplate）：</strong>基础的 Controller-Service-DAO 结构、DTO 转换、Getter/Setter；
+        </div>
+        <div>
+          <strong style="color:#FF6B35;">3. 单纯的单元测试空壳编写：</strong>机械填充 Mock 测试用例、写简单的正则表达式与 SQL 增删改查。
+        </div>
+      </div>
+      <div style="margin-top:10px; padding:8px 10px; background:rgba(0,0,0,0.3); font-size:11px; color:#FF6B35; border-left:2px solid #FF6B35;">
+        这部分工作原本消耗了工程师 70% 的工作时长，其边际交付成本现已趋近于 0！
+      </div>
+    </div>
 
+    <!-- Right: Amplified Zone -->
+    <div style="flex:1; padding:16px 20px; background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.22);">
+      <div class="flex justify-between items-center mb-3">
+        <div style="font-size:16px; font-weight:700; color:#00E5FF;"><i class="fas fa-arrow-up" style="margin-right:8px;"></i>边际价值百倍放大区域（人类主导区）</div>
+        <span style="font-size:11px; padding:2px 8px; background:rgba(0,229,255,0.15); color:#00E5FF; font-weight:600;">系统架构师黄金期</span>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px; font-size:12px; color:rgba(224,231,255,0.7); line-height:1.5;">
+        <div>
+          <strong style="color:#00E5FF;">1. 业务需求澄清与真伪辨别：</strong>真正看透客户痛点，识别伪需求，将混乱的业务意图转化为严密的软件规格（Spec）；
+        </div>
+        <div>
+          <strong style="color:#00E5FF;">2. 架构设计与系统边界把控：</strong>微服务解耦、高并发高可用容灾、状态一致性与分布式事务选型；
+        </div>
+        <div>
+          <strong style="color:#00E5FF;">3. 验证护栏与质量红线设计：</strong>编写严密的端到端验收用例，对生成系统的安全性与合规性做最终兜底。
+        </div>
+      </div>
+      <div style="margin-top:10px; padding:8px 10px; background:rgba(0,0,0,0.3); font-size:11px; color:#00E5FF; border-left:2px solid #00E5FF;">
+        软件的产出瓶颈从“编码实现速度”转移到了“系统设计与意图表达的精准度”！
+      </div>
+    </div>
+  </div>
+
+  <!-- Jevons Paradox Insight -->
+  <div class="flex gap-4 mb-4">
+    <div style="flex:1; padding:10px 14px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center;">
+      <div style="font-size:12px; color:rgba(224,231,255,0.65); line-height:1.5;">
+        <strong style="color:#E0E7FF;">杰文斯悖论（Jevons Paradox）：</strong>当写代码的边际成本降低 90%，人类对高质量软件的需求不会减少 90%，反而会暴增 10 倍！每个行业、每个部门都将涌现大量过去由于研发成本过高而无法立项的全新数字化需求。
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Engineer Takeaway -->
+  <div style="padding:12px 18px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.2); display:flex; align-items:center;">
+    <div style="font-size:12px; color:#E0E7FF; line-height:1.6;">
+      <i class="fas fa-user-check" style="color:#00E5FF; margin-right:8px;"></i><strong style="color:#00E5FF;">终极结论：</strong>AI 不会消灭程序员，但会彻底消灭“只负责敲语法的低效码农”。在这个时代，一位懂得用自然语言精准定义需求、用架构眼光设计系统、用自动化测试驾驭 AI 的高级工程师，一个人就能爆发出一支传统技术团队的惊人战斗力！
+    </div>
+  </div>
 </div>
 </body>
 </html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>量化维度拆解：量化精度位宽（INT4/INT8）与优化算法（AWQ/GPTQ）</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.s { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:26px 65px; display:flex; flex-direction:column; justify-content:space-between; }
+.s h1 { font-size:28px !important; color:#E0E7FF; font-weight:700; }
+.card { background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.15); border-radius:4px; padding:12px 16px; }
+.badge { font-size:11px; font-weight:700; padding:1px 6px; border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="s">
+  <!-- Header -->
+  <div>
+    <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; margin-bottom:4px;">CHAPTER 04 · 模型文件、量化与算力底座</div>
+    <h1 class="mb-1">量化双维度拆解：量化位宽（INT4/INT8）与优化算法（AWQ/GPTQ）</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:10px;"></div>
+    <div style="font-size:12.5px; color:rgba(224,231,255,0.7); line-height:1.45;">
+      量化是让大模型走入千家万户的工程杠杆：<strong>清晰区分“量化目标位宽”与“量化算法”的数学优化本质</strong>。
+    </div>
+  </div>
+
+  <!-- Dual Top Cards: Bit-width vs Mapping Math -->
+  <div class="grid grid-cols-2 gap-4 my-1">
+    <!-- Float Precision & Bit-Width -->
+    <div class="card" style="border-top:3px solid #00E5FF;">
+      <div class="flex justify-between items-center mb-1.5">
+        <span class="badge" style="background:rgba(0,229,255,0.15); color:#00E5FF;">维度 4 · 量化位宽与精度</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Precision &amp; Bit-Width</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">从 16 位浮点到 4 位整数的物理存储</div>
+      <div class="space-y-1" style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.45;">
+        <div>• <strong>FP16/BF16（16 bit / 2 字节）：</strong>生产基准精度。BF16 具备 8 位指数（动态范围同 FP32），是训练与基准推理标配。</div>
+        <div>• <strong>INT8（8 bit / 1 字节）：</strong>每个参数砍掉 50% 显存。工业界成熟度极高，精度折损往往 &lt; 0.5%，首选平替。</div>
+        <div style="background:rgba(0,229,255,0.06); padding:5px 8px; border-radius:3px; border-left:3px solid #00E5FF;">
+          <strong style="color:#00E5FF;">INT4 / FP4（4 bit / 0.5 字节 · 现代黄金标准）：</strong><br>
+          将显存压缩至仅原版 <strong>25%~30%</strong>（含缩放冗余），让 70B 模型在单台服务器即可加载运转！
+        </div>
+      </div>
+    </div>
+
+    <!-- Quantization Math -->
+    <div class="card" style="border-top:3px solid #38BDF8;">
+      <div class="flex justify-between items-center mb-1.5">
+        <span class="badge" style="background:rgba(56,189,248,0.15); color:#38BDF8;">映射机理</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Scale &amp; Zero-Point</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">线性映射公式与计算时动态反量化</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.45; margin-bottom:4px;">
+        将连续浮点数 $x \in [\alpha, \beta]$ 线性映射为离散整数集合（INT4: $[0, 15]$ 或 $[-8, 7]$）：
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:6px 8px; border-radius:3px; font-size:10.5px; color:#38BDF8; font-family:Consolas,monospace; line-height:1.4; margin-bottom:4px;">
+        量化公式：q = clip( round( x / Scale ) + Zero_point )<br>
+        反量化运算：x̂ = Scale × ( q - Zero_point )
+      </div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.65);">
+        计算时在张量核心内部动态反量化为浮点，真正节省的是<strong>静态显存与显存总线搬运带宽（Memory-Bound 救星）</strong>。
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom: Advanced Quantization Algorithms Comparison -->
+  <div style="background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.2); border-radius:4px; padding:10px 16px;">
+    <div class="flex items-center gap-2 mb-1.5">
+      <i class="fas fa-microchip" style="color:#22C55E; font-size:12px;"></i>
+      <span style="font-size:12.5px; font-weight:700; color:#22C55E;">维度 3 · 量化算法演进（AWQ vs GPTQ vs RTN）：如何实现 INT4 仅微损 1%~2% 精度？</span>
+    </div>
+    <div class="grid grid-cols-3 gap-3" style="font-size:11px;">
+      <div style="background:rgba(255,255,255,0.03); padding:7px 9px; border-radius:3px; border-left:3px solid rgba(224,231,255,0.3);">
+        <strong style="color:#E0E7FF;">1. RTN (Round-to-Nearest 舍入)</strong><br>
+        <span style="color:rgba(224,231,255,0.55);">朴素就近取整 · 初级算法</span><br>
+        <span style="color:rgba(224,231,255,0.7); line-height:1.4;">机械四舍五入。对所有权重一视同仁，在 INT4 激进压缩下精度直接崩塌，无法用于生产。</span>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); padding:7px 9px; border-radius:3px; border-left:3px solid #38BDF8;">
+        <strong style="color:#38BDF8;">2. GPTQ (海森矩阵二阶补偿)</strong><br>
+        <span style="color:rgba(224,231,255,0.55);">二阶梯度误差逆矩阵校准</span><br>
+        <span style="color:rgba(224,231,255,0.7); line-height:1.4;">逐列量化一个权重后，自动对其余未量化的权重进行误差补偿更新，极大缓解累计误差。</span>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); padding:7px 9px; border-radius:3px; border-left:3px solid #22C55E;">
+        <strong style="color:#22C55E;">3. AWQ (激活感知量化 · 工业标配)</strong><br>
+        <span style="color:rgba(224,231,255,0.55);">保护关键 1% 显著特征通道</span><br>
+        <span style="color:rgba(224,231,255,0.7); line-height:1.4;">观察推理激活值发现：只有 1% 的权重通道决定核心输出。保持这 1% 高精度，对其余 99% 激进 INT4 量化，实现几乎无损！</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

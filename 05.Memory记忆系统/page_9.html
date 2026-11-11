@@ -30,8 +30,8 @@ pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.
         <div style="font-size:11px;color:rgba(224,231,255,0.5);">成本高，每轮调 LLM。适合高价值场景。</div>
       </div>
       <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border:2px solid rgba(255,107,53,0.2);border-radius:5px;">
-        <div style="font-size:12px;color:#FF6B35;font-weight:700;">事件触发（Demo 选择）</div>
-        <div style="font-size:11px;color:rgba(224,231,255,0.5);">用户说"记住"时触发 + 会话结束兜底。<strong style="color:#E0E7FF;">成本可控，用户有感知。</strong></div>
+        <div style="font-size:12px;color:#FF6B35;font-weight:700;">指令与事件触发（Demo 选择）</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.65);">显式指令触发（“记住”关键词）+ 会话清空兜底触发（生产推荐 @Async/MQ 解耦）。<strong style="color:#E0E7FF;">不阻塞主请求，成本可控。</strong></div>
       </div>
       <div style="padding:10px 14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:5px;">
         <div style="font-size:12px;color:#00E5FF;font-weight:700;">批量抽取（定时任务）</div>

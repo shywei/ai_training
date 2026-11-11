@@ -1,73 +1,113 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>先看答案——Agent整体架构</title>
+<title>架构第一分水岭：Workflows vs Autonomous Agents</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
-.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
-.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
-.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
-.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden;padding:32px 56px;display:flex;flex-direction:column}
+.s h1{font-size:28px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px;font-weight:700}
+.wf-item{padding:8px 11px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.16);border-radius:5px}
 </style></head><body>
-<div class="s" style="padding:36px 60px;">
-<div class="mb-2 sn">CHAPTER 02</div><h1 class="mb-2">先看答案——Agent整体架构</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+<div class="s">
+  <div class="mb-1 sn">CHAPTER 01 · 范式边界：BUILDING EFFECTIVE AGENTS (ANTHROPIC 经典谱系)</div>
+  <h1 class="mb-2">架构第一分水岭：Workflows（确定性编排）vs Autonomous Agents（自主智能体）</h1>
+  <div style="width:56px;height:3px;background:#FF6B35;margin-bottom:14px;"></div>
 
-<div style="margin-bottom:14px;">
-  <div style="font-size:16px;color:#E0E7FF;text-align:center;">今天整堂课，就是理解这一张图。</div>
-</div>
+  <div class="flex gap-5 flex-1" style="min-height:0;">
+    <!-- 左栏：5种确定性 Workflows -->
+    <div style="width:650px;display:flex;flex-direction:column;justify-content:space-between;padding:14px 16px;background:rgba(0,229,255,0.025);border:1px solid rgba(0,229,255,0.2);border-radius:8px;">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span style="font-size:15px;font-weight:700;color:#00E5FF;">① Workflows（工作流编排）：代码控制流（Code-Driven Control Flow）</span>
+          <span style="font-size:11px;padding:2px 8px;background:rgba(0,229,255,0.12);color:#00E5FF;border-radius:4px;">路径预定义 · 可预测 · 易测试</span>
+        </div>
+        <div style="font-size:11.5px;color:rgba(224,231,255,0.6);margin-bottom:8px;">LLM 和工具按照<b style="color:#E0E7FF;">开发者预先写死的代码分支/图拓扑</b>执行，包含 Anthropic 总结的 <b style="color:#00E5FF;">5 种标准设计模式</b>：</div>
 
-<div style="padding:18px 24px;background:rgba(0,229,255,0.02);border:1px solid rgba(0,229,255,0.08);border-radius:8px;">
-  <div style="text-align:center;margin-bottom:8px;">
-    <div style="display:inline-block;padding:4px 16px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);border-radius:4px;font-size:12px;color:#00E5FF;font-weight:600;">User</div>
-  </div>
-  <div style="text-align:center;font-size:12px;color:rgba(0,229,255,0.3);margin-bottom:8px;">▼</div>
-  <div style="text-align:center;margin-bottom:8px;">
-    <div style="display:inline-block;padding:4px 16px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);border-radius:4px;font-size:12px;color:#00E5FF;">Frontend</div>
-  </div>
-  <div style="text-align:center;font-size:12px;color:rgba(0,229,255,0.3);margin-bottom:8px;">▼</div>
-  <div style="text-align:center;margin-bottom:8px;">
-    <div style="display:inline-block;padding:5px 18px;background:rgba(255,107,53,0.1);border:2px solid rgba(255,107,53,0.3);border-radius:5px;font-size:12px;color:#FF6B35;font-weight:700;">Agent Runtime<div style="font-size:11px;color:rgba(224,231,255,0.3);">编排调度引擎</div></div>
-  </div>
-  <div style="text-align:center;font-size:11px;color:rgba(224,231,255,0.35);margin-bottom:8px;">就像操作系统，协调LLM、Memory、Knowledge、Workflow等能力，让Agent运行起来</div>
-  <div style="display:flex;justify-content:center;gap:10px;margin-bottom:8px;">
-    <div style="padding:7px 12px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);border-radius:4px;text-align:center;min-width:90px;">
-      <div style="font-size:12px;color:#00E5FF;font-weight:600;">Memory</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.3);">记住用户</div>
+        <div class="flex flex-col gap-2">
+          <div class="wf-item">
+            <div class="flex justify-between items-center">
+              <span style="font-size:12.5px;font-weight:700;color:#00E5FF;">1. Prompt Chaining（提示词串行链）</span>
+              <span style="font-size:11px;color:rgba(224,231,255,0.45);">Step 1 → Gate 校验 → Step 2 → Step 3</span>
+            </div>
+            <div style="font-size:11.5px;color:rgba(224,231,255,0.68);">将任务拆成固定线性步骤，中间可插入代码断言（Gate）。例：先生成商品文案 → 代码校验违禁词 → 再翻译多语言。</div>
+          </div>
+
+          <div class="wf-item">
+            <div class="flex justify-between items-center">
+              <span style="font-size:12.5px;font-weight:700;color:#00E5FF;">2. Routing（意图路由分流）</span>
+              <span style="font-size:11px;color:rgba(224,231,255,0.45);">Classifier → 分发至专用分支/模型</span>
+            </div>
+            <div style="font-size:11.5px;color:rgba(224,231,255,0.68);">入口先用轻量模型分类意图，再路由给不同 Prompt 或流程。例：闲聊走 Fast 模型、退换货走售后流程、导购走推荐流程。</div>
+          </div>
+
+          <div class="wf-item">
+            <div class="flex justify-between items-center">
+              <span style="font-size:12.5px;font-weight:700;color:#00E5FF;">3. Parallelization（并行化：Sectioning / Voting）</span>
+              <span style="font-size:11px;color:rgba(224,231,255,0.45);">并发执行 → Aggregator 聚合</span>
+            </div>
+            <div style="font-size:11.5px;color:rgba(224,231,255,0.68);">子任务切片并发或多次采样投票。例：<b style="color:#E0E7FF;">业务回答生成</b>与<b style="color:#E0E7FF;">安全合规审查（Guardrails）</b>并行调用，大幅降低首字延迟。</div>
+          </div>
+
+          <div class="wf-item">
+            <div class="flex justify-between items-center">
+              <span style="font-size:12.5px;font-weight:700;color:#00E5FF;">4. Orchestrator-Workers（主从动态拆解）</span>
+              <span style="font-size:11px;color:rgba(224,231,255,0.45);">中央 Orchestrator 拆解 → Workers 并发 → 汇总</span>
+            </div>
+            <div style="font-size:11.5px;color:rgba(224,231,255,0.68);">子任务数量无法提前写死，由主模型根据输入动态拆解派发给多个专职 Worker，最后由 Synthesizer 合并结果。</div>
+          </div>
+
+          <div class="wf-item">
+            <div class="flex justify-between items-center">
+              <span style="font-size:12.5px;font-weight:700;color:#00E5FF;">5. Evaluator-Optimizer（评估-优化循环）</span>
+              <span style="font-size:11px;color:rgba(224,231,255,0.45);">Generator 生成 ⇄ Evaluator 评审打回</span>
+            </div>
+            <div style="font-size:11.5px;color:rgba(224,231,255,0.68);">一个模型生成方案，另一个评估器（代码或模型）按评分标准打回修改，直到达标或达到最大迭代次数。</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div style="padding:7px 12px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);border-radius:4px;text-align:center;min-width:90px;">
-      <div style="font-size:12px;color:#00E5FF;font-weight:600;">Knowledge</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.3);">理解企业知识</div>
+
+    <!-- 右栏：Autonomous Agents + 受控自主融合之道 -->
+    <div class="flex-1 flex flex-col justify-between">
+      <div style="padding:14px 18px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.25);border-radius:8px;">
+        <div class="flex items-center justify-between mb-2">
+          <span style="font-size:15px;font-weight:700;color:#FF6B35;">② Autonomous Agents：模型控制流</span>
+          <span style="font-size:11px;padding:2px 8px;background:rgba(255,107,53,0.15);color:#FF6B35;border-radius:4px;">Model-Driven Loop</span>
+        </div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.7);line-height:1.6;margin-bottom:10px;">
+          不预设固定步骤，由<b style="color:#FF6B35;">模型根据每一步的环境反馈（Observation）自主决定</b>下一步调什么工具、循环多少轮、何时终止：
+        </div>
+        <div style="padding:10px 12px;background:#070B14;border:1px solid rgba(255,107,53,0.2);border-radius:5px;font-family:Consolas,monospace;font-size:11.5px;color:#E0E7FF;margin-bottom:10px;">
+          <span style="color:#FF6B35;">while</span> (!taskDone && step &lt; MAX_STEPS) {<br>
+          &nbsp;&nbsp;action = llm.decideNextAction(context, tools);<br>
+          &nbsp;&nbsp;observation = executeTool(action); <span style="color:#22C55E;">// 真实环境反馈</span><br>
+          &nbsp;&nbsp;context.append(action, observation);<br>
+          }
+        </div>
+        <div class="grid grid-cols-2 gap-2" style="font-size:11.5px;">
+          <div style="padding:7px 9px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:4px;color:rgba(224,231,255,0.75);">
+            <b style="color:#22C55E;">✓ 适用场景：</b>开放式问题、步骤数不可预知（如全栈 Coding、复杂跨品类导购探索）
+          </div>
+          <div style="padding:7px 9px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.2);border-radius:4px;color:rgba(224,231,255,0.75);">
+            <b style="color:#FF6B35;">⚠ 生产风险：</b>死循环烧光 Token、乱调高危接口、延迟与成本成倍放大
+          </div>
+        </div>
+      </div>
+
+      <!-- 工业级架构融合方案 -->
+      <div style="padding:14px 18px;background:linear-gradient(135deg, rgba(34,197,94,0.08), rgba(0,229,255,0.06));border:1px solid rgba(34,197,94,0.35);border-radius:8px;">
+        <div style="font-size:14px;font-weight:700;color:#22C55E;margin-bottom:6px;">
+          <i class="fas fa-shield-alt mr-1"></i> 企业级最佳实践：用“状态机 Workflow”关住“自主 Agent”的笼子
+        </div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.78);line-height:1.65;">
+          在生产环境中，我们既不用纯写死的传统规则，也不放任无边际的裸 ReAct 循环，而是采用<b style="color:#00E5FF;">受控自主架构（Bounded Autonomy）</b>：<br>
+          • <b style="color:#E0E7FF;">宏观骨架用 Workflow 状态机（FSM）</b>：<code style="color:#00E5FF;">INIT → PLANNING → EXECUTING → WAITING_CONFIRM → COMPLETED</code>，严格卡住最大步数（如 <code style="color:#FF6B35;">maxSteps=5</code>）与状态合法迁移；<br>
+          • <b style="color:#E0E7FF;">微观节点内用 Autonomous Loop</b>：在 <code style="color:#00E5FF;">EXECUTING</code> 态内允许模型自主选工具、查 RAG；一旦触发下单/扣款等高危操作，状态机强制切入 <code style="color:#FF6B35;">WAITING_CONFIRM</code> 等待人工审批！
+        </div>
+      </div>
     </div>
-    <div style="padding:7px 12px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);border-radius:4px;text-align:center;min-width:90px;">
-      <div style="font-size:12px;color:#00E5FF;font-weight:600;">Workflow</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.3);">完成复杂任务</div>
-    </div>
-    <div style="padding:7px 12px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);border-radius:4px;text-align:center;min-width:90px;">
-      <div style="font-size:12px;color:#00E5FF;font-weight:600;">Prompt</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.3);">定义角色</div>
-    </div>
-  </div>
-  <div style="display:flex;justify-content:center;gap:24px;margin-bottom:8px;">
-    <div style="text-align:center;">
-      <div style="font-size:14px;color:rgba(0,229,255,0.3);">▼</div>
-      <div style="padding:6px 18px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);border-radius:4px;font-size:12px;color:#00E5FF;font-weight:600;">LLM</div>
-    </div>
-    <div style="text-align:center;">
-      <div style="font-size:14px;color:rgba(0,229,255,0.3);">▼</div>
-      <div style="padding:6px 18px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);border-radius:4px;font-size:12px;color:#00E5FF;font-weight:600;">Vector DB</div>
-    </div>
-  </div>
-  <div style="display:flex;justify-content:center;gap:10px;margin-bottom:6px;">
-    <div style="padding:6px 14px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);border-radius:4px;font-size:12px;color:#00E5FF;font-weight:600;">Tool</div>
-    <div style="padding:6px 14px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);border-radius:4px;font-size:12px;color:#00E5FF;font-weight:600;">MCP</div>
-    <div style="padding:6px 14px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);border-radius:4px;font-size:12px;color:#00E5FF;">Business</div>
   </div>
 </div>
-<div style="margin-top:14px;text-align:center;">
-  
-</div>
-</div></body></html>
+</body></html>

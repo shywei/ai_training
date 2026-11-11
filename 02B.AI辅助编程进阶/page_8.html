@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>接手陌生老项目第一步：Repo Wiki 与模块级架构地图自动生成</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:4px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; line-height:1.25; margin-bottom:8px; }
+.slide-accent-line { width:50px; height:3px; background:#FF6B35; margin-bottom:14px; }
+.slide-card { padding:12px 15px; margin-bottom:9px; display:flex; align-items:flex-start; gap:12px; border-radius:6px; }
+.slide-icon { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.slide-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
+.slide-desc { font-size:12px; color:rgba(224,231,255,0.65); line-height:1.45; }
+.code-box { background:#060A12; border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:10px 12px; font-family:Consolas,monospace; font-size:11.5px; line-height:1.5; color:#E0E7FF; }
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <div class="slide-section-num">CHAPTER 02 · 存量复杂工程（BROWNFIELD）破局与安全重构</div>
+  <h1>接手陌生老项目第一步：Repo Wiki 与模块级架构地图自动生成</h1>
+  <div class="slide-accent-line"></div>
+<div class="flex gap-4" style="height:535px;">
+    <div style="flex:1.1; display:flex; flex-direction:column; gap:10px;">
+      <div style="font-size:13.5px; font-weight:700; color:#00E5FF;">
+        <i class="fas fa-map-location-dot mr-2"></i>使用只读 Subagent 开展三层逆向测绘（十万行黑盒白盒化）：
+      </div>
+
+      <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(0,229,255,0.2); border-left:4px solid #00E5FF; border-radius:6px; padding:12px 14px;">
+        <div class="flex items-center justify-between mb-1">
+          <span style="font-size:13.5px; font-weight:700; color:#E0E7FF;">第 1 层：多模块依赖拓扑与边界扫描</span>
+          <span style="font-size:11px; color:#00E5FF;">Macro Topology</span>
+        </div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.5;">
+          自动解析多模块 `pom.xml` 与 Spring Bean 注入关系，输出 Mermaid 模块依赖图，明确核心领域层与基础服务层，杜绝反向依赖。
+        </div>
+      </div>
+
+      <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,107,53,0.2); border-left:4px solid #FF6B35; border-radius:6px; padding:12px 14px;">
+        <div class="flex items-center justify-between mb-1">
+          <span style="font-size:13.5px; font-weight:700; color:#E0E7FF;">第 2 层：核心业务入口与端到端调用时序</span>
+          <span style="font-size:11px; color:#FF6B35;">Call Sequence</span>
+        </div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.5;">
+          从 Controller/MQ 入口出发，追踪完整调用链（如 `OrderController &rarr; ValidationService &rarr; OrderEngine &rarr; ResponseFormatter`），标明外部 IO 与 DB 读写边界。
+        </div>
+      </div>
+
+      <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(239,68,68,0.2); border-left:4px solid #EF4444; border-radius:6px; padding:12px 14px;">
+        <div class="flex items-center justify-between mb-1">
+          <span style="font-size:13.5px; font-weight:700; color:#E0E7FF;">第 3 层：历史怪癖与隐式坑点扫描清单</span>
+          <span style="font-size:11px; color:#EF4444;">Chesterton's Fence</span>
+        </div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.5;">
+          专门扫描 `TODO / FIXME / HACK` 注释、特殊硬编码分支与易踩坑并发状态，生成<strong>《绝对禁止随意删除的历史兼容清单》</strong>。
+        </div>
+      </div>
+
+      <div style="margin-top:auto; padding:10px 14px; background:rgba(0,229,255,0.06); border-radius:4px; font-size:12px; color:#E0E7FF;">
+        <i class="fas fa-bullhorn mr-1" style="color:#00E5FF;"></i><strong>交付工件：</strong>在工程根目录生成 `.repo-wiki/ARCHITECTURE.md`，成为后续所有 Agent 的背景知识库！
+      </div>
+    </div>
+
+    <div style="flex:0.95; display:flex; flex-direction:column;">
+      <div style="font-size:13.5px; font-weight:700; color:#22C55E; margin-bottom:8px;">
+        <i class="fas fa-terminal mr-2"></i>Repo Wiki 自动生成指令（只读模式）：
+      </div>
+      <div class="code-box flex-1">
+        <div style="color:#00E5FF;"># 架构测绘 Prompt 模板 (Read-Only):</div>
+        <div style="color:rgba(224,231,255,0.85); margin-top:4px;">
+"你是一名资深架构师。请检索当前仓库，不要修改任何代码。<br>
+在 .repo-wiki/ 下输出系统测绘分析：<br><br>
+1. <strong>模块拓扑图</strong>: 用 Mermaid 输出多模块依赖方向。<br>
+2. <strong>核心调用链</strong>: 梳理用户请求从 Controller 到 DB/外部 API 的完整调用时序。<br>
+3. <strong>复用资产表</strong>: 整理通用工具类、分布式锁、统一异常处理的完整包名与类名。<br>
+4. <strong>历史怪癖清单</strong>: 找出所有包含 HACK/兼容逻辑的代码段，解释其存在理由并加粗告警。<br><br>
+请只输出 Markdown 文件，完成后汇报架构概览。"
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>2026 现代大模型训练演进全景：从预训练到蒸馏闭环</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.s { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:26px 65px; display:flex; flex-direction:column; justify-content:space-between; }
+.s h1 { font-size:28px !important; color:#E0E7FF; font-weight:700; }
+.stage-card { flex:1; background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.18); border-radius:4px; padding:11px 13px; display:flex; flex-direction:column; justify-content:space-between; }
+.badge { font-size:11px; font-weight:700; padding:1px 6px; border-radius:3px; }
+.arrow-sep { display:flex; align-items:center; justify-content:center; color:#00E5FF; font-size:13px; padding:0 2px; }
+</style>
+</head>
+<body>
+<div class="s">
+  <!-- Header -->
+  <div>
+    <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; margin-bottom:4px;">CHAPTER 03 · 现代模型训练范式与前沿架构</div>
+    <h1 class="mb-1">2026 现代大模型训练演进全景：从预训练到蒸馏闭环</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:10px;"></div>
+    <div style="font-size:12.5px; color:rgba(224,231,255,0.7); line-height:1.45;">
+      工业级大模型并非单一的线性流水线，而是包含预训练、继续预训练、后训练对齐、推理强化与蒸馏压缩的完整闭环演进体系：
+    </div>
+  </div>
+
+  <!-- 4-Stage Horizontal Pipeline with Continual & Distillation -->
+  <div class="flex items-stretch my-1 gap-1" style="height:355px;">
+    <!-- Stage 1: Pre-training & Continual Pre-training -->
+    <div class="stage-card" style="border-top:3px solid #00E5FF;">
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="badge" style="background:rgba(0,229,255,0.15); color:#00E5FF;">STAGE 1</span>
+          <span style="font-size:11px; color:#F59E0B; font-weight:700;">算力消耗 &gt; 90%</span>
+        </div>
+        <div style="font-size:13.5px; font-weight:700; color:#E0E7FF; margin-bottom:2px;">预训练 &amp; 继续预训练</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.5); margin-bottom:6px;">Pre-training &amp; Continual Pre-train</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.45; margin-bottom:6px;">
+          • <strong>基础预训练：</strong>10T~20T 原始海量语料自回归 Next-Token 预测，构建高维世界表征；<br>
+          • <strong>继续预训练（Continual）：</strong>在已有 Base 模型上增量喂入数千亿 Token 垂直领域语料/私有代码，注入基座新知识并控制遗忘。
+        </div>
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:6px 8px; border-radius:3px; font-size:11px;">
+        <strong style="color:#00E5FF;">产物：Base / Domain-Base</strong><br>
+        <span style="color:rgba(224,231,255,0.6);">博闻强记，但只会盲目顺拐续写，不具备遵循人类对话指令的形态。</span>
+      </div>
+    </div>
+
+    <div class="arrow-sep"><i class="fas fa-chevron-right"></i></div>
+
+    <!-- Stage 2: SFT -->
+    <div class="stage-card" style="border-top:3px solid #38BDF8;">
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="badge" style="background:rgba(56,189,248,0.15); color:#38BDF8;">STAGE 2</span>
+          <span style="font-size:11px; color:rgba(224,231,255,0.5);">算力占比 ~2%</span>
+        </div>
+        <div style="font-size:13.5px; font-weight:700; color:#E0E7FF; margin-bottom:2px;">指令监督微调</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.5); margin-bottom:6px;">Supervised Fine-Tuning (SFT)</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.45; margin-bottom:6px;">
+          • <strong>高质量问答对：</strong>利用数万至数十万条高质量多轮对话，通过 Loss Masking 训练；<br>
+          • <strong>行为规范：</strong>教模型听懂人类角色扮演指令、结构化输出格式（JSON/Markdown）与工具调用意图。
+        </div>
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:6px 8px; border-radius:3px; font-size:11px;">
+        <strong style="color:#38BDF8;">产物：Instruct 指令模型</strong><br>
+        <span style="color:rgba(224,231,255,0.6);">懂礼貌、能对话、按指令格式输出，但面对复杂数理问题可能产生逻辑幻觉。</span>
+      </div>
+    </div>
+
+    <div class="arrow-sep"><i class="fas fa-chevron-right"></i></div>
+
+    <!-- Stage 3: Preference & RLVR/GRPO -->
+    <div class="stage-card" style="border-top:3px solid #22C55E;">
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="badge" style="background:rgba(34,197,94,0.15); color:#22C55E;">STAGE 3</span>
+          <span style="font-size:11px; color:#22C55E; font-weight:700;">对齐与推理爆发</span>
+        </div>
+        <div style="font-size:13.5px; font-weight:700; color:#E0E7FF; margin-bottom:2px;">偏好对齐与推理强化</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.5); margin-bottom:6px;">RLHF/DPO &amp; RLVR/GRPO</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.45; margin-bottom:6px;">
+          • <strong>主观偏好对齐（DPO）：</strong>直接偏好优化消除有害与偏激回复；<br>
+          • <strong>客观推理强化（RLVR/GRPO）：</strong>代码沙箱与数学确定性真理裁判驱动大规模自博弈，涌现 <code>&lt;think&gt;</code> 长链慢思考。
+        </div>
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:6px 8px; border-radius:3px; font-size:11px;">
+        <strong style="color:#22C55E;">产物：Reasoning / R1 类模型</strong><br>
+        <span style="color:rgba(224,231,255,0.6);">具备深度反思、自我假设检验与长推理链条，数理与编程能力登顶。</span>
+      </div>
+    </div>
+
+    <div class="arrow-sep"><i class="fas fa-chevron-right"></i></div>
+
+    <!-- Stage 4: Distillation & Compression -->
+    <div class="stage-card" style="border-top:3px solid #FF6B35;">
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="badge" style="background:rgba(255,107,53,0.15); color:#FF6B35;">STAGE 4</span>
+          <span style="font-size:11px; color:#FF6B35; font-weight:700;">演进与部署闭环</span>
+        </div>
+        <div style="font-size:13.5px; font-weight:700; color:#E0E7FF; margin-bottom:2px;">知识蒸馏与轻量化</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.5); margin-bottom:6px;">Distillation &amp; Compression</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.45; margin-bottom:6px;">
+          • <strong>推理链蒸馏：</strong>将超大模型（如 R1 671B）生成的慢思考数据蒸馏给中小模型（1.5B~14B/32B）；<br>
+          • <strong>量化与裁剪：</strong>INT4/AWQ 压缩显存占用，使小模型兼具卓越推理能力与极低推理成本。
+        </div>
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:6px 8px; border-radius:3px; font-size:11px;">
+        <strong style="color:#FF6B35;">产物：Distilled Small LLM</strong><br>
+        <span style="color:rgba(224,231,255,0.6);">单卡即可低成本高效部署，支撑企业大规模高并发落地。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Core Axiom -->
+  <div style="background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.2); border-radius:4px; padding:10px 18px;">
+    <div style="font-size:12.5px; font-weight:700; color:#00E5FF; margin-bottom:3px;">
+      <i class="fas fa-compass" style="margin-right:8px;"></i>训练流水线的现代演进认知闭环
+    </div>
+    <div style="font-size:11.5px; color:rgba(224,231,255,0.75); line-height:1.5;">
+      <strong>预训练决定智力上限，后训练（SFT + DPO + RLVR）唤醒对齐能力，而蒸馏（Distillation）让顶级推理能力下沉普惠。</strong>
+      企业做模型落地时，不要误以为必须自研预训练，利用开源强模型的蒸馏产物做针对性 SFT 与 RAG，是性价比最高的工程路径。
+    </div>
+  </div>
+</div>
+</body>
+</html>

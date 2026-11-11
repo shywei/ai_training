@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>祖传代码安全重构四步法：黄金回归测试保护（Characterization Testing）</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:4px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; line-height:1.25; margin-bottom:8px; }
+.slide-accent-line { width:50px; height:3px; background:#FF6B35; margin-bottom:14px; }
+.slide-card { padding:12px 15px; margin-bottom:9px; display:flex; align-items:flex-start; gap:12px; border-radius:6px; }
+.slide-icon { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.slide-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
+.slide-desc { font-size:12px; color:rgba(224,231,255,0.65); line-height:1.45; }
+.code-box { background:#060A12; border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:10px 12px; font-family:Consolas,monospace; font-size:11.5px; line-height:1.5; color:#E0E7FF; }
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <div class="slide-section-num">CHAPTER 02 · 存量复杂工程（BROWNFIELD）破局与安全重构</div>
+  <h1>祖传代码安全重构四步法：黄金回归测试保护（Characterization Testing）</h1>
+  <div class="slide-accent-line"></div>
+  <div style="padding:8px 14px; background:rgba(0,229,255,0.06); border-left:4px solid #00E5FF; font-size:12px; color:#E0E7FF; margin-bottom:12px;">
+    <strong>什么是 Characterization Test（黄金特征测试）？</strong> 源自《修改代码的艺术》：面对不敢动的祖传代码，<strong>先不纠结它对不对，而是用参数化测试把“当前真实的输入输出行为”100% 拍快照锁死</strong>，作为重构手术时的绝对安全网！
+  </div>
+
+  <div class="grid grid-cols-4 gap-3 mb-3">
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(0,229,255,0.25); border-top:3px solid #00E5FF; border-radius:6px; padding:10px 12px;">
+      <div style="font-size:12.5px; font-weight:700; color:#00E5FF; margin-bottom:3px;">① 锁死现状（拍快照）</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.45;">
+        不改业务源码！生成 15~30 个用例覆盖所有边界，确认老代码上 100% 绿灯。
+      </div>
+    </div>
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,107,53,0.25); border-top:3px solid #FF6B35; border-radius:6px; padding:10px 12px;">
+      <div style="font-size:12.5px; font-weight:700; color:#FF6B35; margin-bottom:3px;">② 焊死护栏（防篡改）</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.45;">
+        提交 Git，通过 Hook 严禁 Agent 在重构阶段修改测试文件中的任何断言！
+      </div>
+    </div>
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(168,85,247,0.25); border-top:3px solid #A855F7; border-radius:6px; padding:10px 12px;">
+      <div style="font-size:12.5px; font-weight:700; color:#A855F7; margin-bottom:3px;">③ 小步手术（解耦）</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.45;">
+        拆分嵌套为策略模式或纯函数，消除重复魔法值，对外签名保持不变。
+      </div>
+    </div>
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(34,197,94,0.25); border-top:3px solid #22C55E; border-radius:6px; padding:10px 12px;">
+      <div style="font-size:12.5px; font-weight:700; color:#22C55E; margin-bottom:3px;">④ 秒级回归（零偏差）</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.45;">
+        每改一步跑测试。一旦变红说明改坏了历史行为，3 秒内撤销纠正。
+      </div>
+    </div>
+  </div>
+
+  <div class="flex gap-4" style="height:370px;">
+    <div style="flex:1; display:flex; flex-direction:column;">
+      <div style="font-size:12.5px; font-weight:700; color:#00E5FF; margin-bottom:4px;">
+        <i class="fas fa-lock mr-1"></i>工件：黄金特征回归测试（只读锁定断言）
+      </div>
+      <div class="code-box flex-1" style="font-size:11px; line-height:1.45;">
+        <span style="color:#60A5FA;">@ParameterizedTest</span>(name = <span style="color:#FBBF24;">"{0}"</span>)<br>
+        <span style="color:#60A5FA;">@CsvSource</span>(delimiter = <span style="color:#FBBF24;">'|'</span>, textBlock = <span style="color:#FBBF24;">"""</span><br>
+        &nbsp;&nbsp;标准JSON&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;{"name":"MacBook"}&nbsp;|&nbsp;{"name":"MacBook"}<br>
+        &nbsp;&nbsp;Markdown包裹&nbsp;|&nbsp;```json\n{"k":"v"}\n```&nbsp;|&nbsp;{"k":"v"}<br>
+        &nbsp;&nbsp;思维链清理&nbsp;&nbsp;&nbsp;|&nbsp;&lt;think&gt;思考&lt;/think&gt;{"a":1}&nbsp;|&nbsp;{"a":1}<br>
+        &nbsp;&nbsp;转义字符串&nbsp;&nbsp;&nbsp;|&nbsp;{"desc":"a\\"b"}&nbsp;|&nbsp;{"desc":"a\\"b"}<br>
+        &nbsp;&nbsp;历史怪癖兼容&nbsp;|&nbsp;null&nbsp;|&nbsp;""<br>
+        &nbsp;&nbsp;嵌套伪括号&nbsp;&nbsp;&nbsp;|&nbsp;{"k":"{nested}"}&nbsp;|&nbsp;{"k":"{nested}"}<br>
+        <span style="color:#FBBF24;">"""</span>)<br>
+        <span style="color:#F472B6;">void</span> <span style="color:#38BDF8;">shouldCharacterizeLegacyBehavior</span>(String desc, String input, String expected) {<br>
+        &nbsp;&nbsp;String actual = legacyParser.extractJson(input);<br>
+        &nbsp;&nbsp;<span style="color:#38BDF8;">assertEquals</span>(expected, actual);<br>
+        }
+      </div>
+    </div>
+
+    <div style="flex:1; display:flex; flex-direction:column;">
+      <div style="font-size:12.5px; font-weight:700; color:#22C55E; margin-bottom:4px;">
+        <i class="fas fa-code mr-1"></i>Step 3 &amp; 4 产出：将 200 行乱麻重构为清晰状态机管道
+      </div>
+      <div class="code-box flex-1" style="font-size:11px; line-height:1.45;">
+        <span style="color:#6B7280;">// 重构后：单一职责三阶段解析管道（生产代码）</span><br>
+        <span style="color:#F472B6;">public class</span> <span style="color:#FBBF24;">LegacyParser</span> {<br>
+        &nbsp;&nbsp;<span style="color:#F472B6;">public</span> String <span style="color:#38BDF8;">extractJson</span>(String raw) {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#F472B6;">if</span> (raw == <span style="color:#F472B6;">null</span>) <span style="color:#F472B6;">return</span> <span style="color:#FBBF24;">""</span>;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;String stripped = <span style="color:#38BDF8;">stripThinkingAndFences</span>(raw); <span style="color:#6B7280;">// 阶段1: 剥离外壳</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#F472B6;">int</span> start = <span style="color:#38BDF8;">findJsonStart</span>(stripped);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#6B7280;">// 阶段2: 定位定界符</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#F472B6;">return</span> <span style="color:#38BDF8;">extractBalancedJson</span>(stripped, start);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#6B7280;">// 阶段3: 平衡状态机</span><br>
+        &nbsp;&nbsp;}<br>
+        <br>
+        &nbsp;&nbsp;<span style="color:#6B7280;">// 提取独立纯函数，消灭 6 层嵌套与重复魔法值</span><br>
+        &nbsp;&nbsp;<span style="color:#F472B6;">private</span> String <span style="color:#38BDF8;">extractBalancedJson</span>(String text, <span style="color:#F472B6;">int</span> start) {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#6B7280;">/* 具备严格转义处理的状态机扫描，对外表现与老代码 100% 等价 */</span><br>
+        &nbsp;&nbsp;}<br>
+        }
+      </div>
+      <div style="margin-top:8px; padding:10px 14px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.3); border-radius:4px; display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <div style="font-size:11px; color:#A7F3D0; font-family:Consolas,monospace;">$ mvn test -Dtest=LegacyParserCharacterizationTest</div>
+          <div style="font-size:11px; color:#E0E7FF; font-weight:600; margin-top:2px;">
+            <i class="fas fa-check-circle text-green-400 mr-1"></i>自动化回归验证：24 个黄金用例，耗时 0.42 秒，0 失败
+          </div>
+        </div>
+        <span style="background:#22C55E; color:#060A12; font-weight:700; font-size:11px; padding:3px 8px; border-radius:3px;">ALL PASSED</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

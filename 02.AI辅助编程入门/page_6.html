@@ -3,115 +3,113 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>模型形态与产品计费</title>
+<title>2026 编程大模型选型与“Plan + Act 双模组合拳”</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
 .slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-model-card { flex:1; padding:18px 20px; display:flex; flex-direction:column; }
-.slide-model-icon { font-size:28px; margin-bottom:10px; }
-.slide-model-name { font-size:18px; font-weight:700; color:#E0E7FF; margin-bottom:8px; }
-.slide-model-feature { font-size:13px; color:rgba(224,231,255,0.55); line-height:1.5; margin-bottom:4px; }
-.slide-model-use { font-size:12px; padding:6px 10px; background:rgba(0,229,255,0.06); margin-top:auto; }
-.slide-billing-table { width:100%; border-collapse:collapse; }
-.slide-billing-table th { font-size:12px; font-weight:700; padding:8px 10px; text-align:left; border-bottom:2px solid rgba(0,229,255,0.2); color:#00E5FF; }
-.slide-billing-table td { font-size:12px; padding:7px 10px; border-bottom:1px solid rgba(255,255,255,0.04); color:rgba(224,231,255,0.6); }
+.slide-container h1 { font-size:29px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; }
+.model-table { width:100%; border-collapse:collapse; margin-bottom:14px; }
+.model-table th { font-size:12px; font-weight:700; padding:8px 10px; text-align:left; border-bottom:2px solid rgba(0,229,255,0.25); color:#00E5FF; background:rgba(0,229,255,0.05); }
+.model-table td { font-size:12px; padding:8px 10px; border-bottom:1px solid rgba(255,255,255,0.06); color:rgba(224,231,255,0.75); line-height:1.4; }
+.model-tag { display:inline-block; padding:2px 6px; font-size:11px; border-radius:3px; font-weight:700; font-family:monospace; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:30px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 02</div>
-  <h1 class="mb-2">模型形态与产品计费</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:18px;"></div>
+<div class="slide-container" style="padding:26px 65px;">
+  <div class="mb-1 slide-section-num">CHAPTER 02 · TOKEN、缓存与编程模型选型</div>
+  <h1 class="mb-2">2026 编程大模型全景选型与“Plan + Act 双模组合拳”</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:12px;"></div>
 
-  <!-- 3 model types -->
-  <div class="flex gap-4 mb-5">
-    <div class="slide-model-card" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.15);">
-      <div class="slide-model-icon" style="color:#00E5FF;"><i class="fas fa-comments"></i></div>
-      <div class="slide-model-name">通用对话模型</div>
-      <div class="slide-model-feature"><strong style="color:#E0E7FF;">快、便宜、广覆盖</strong></div>
-      <div class="slide-model-feature">回答问题、写文章、翻译、基础代码生成</div>
-      <div class="slide-model-feature">代表：GPT-5.5 Instant、Claude Sonnet 4.6</div>
-      <div class="slide-model-use" style="color:#00E5FF;"><i class="fas fa-check" style="margin-right:4px;"></i>日常90%的场景用这个就够了</div>
-    </div>
-    <div class="slide-model-card" style="background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.15);">
-      <div class="slide-model-icon" style="color:#FF6B35;"><i class="fas fa-brain"></i></div>
-      <div class="slide-model-name">推理模型</div>
-      <div class="slide-model-feature"><strong style="color:#E0E7FF;">慢、贵、深度思考</strong></div>
-      <div class="slide-model-feature">复杂编程、数学推理、架构设计、多步规划</div>
-      <div class="slide-model-feature">代表：Claude Opus 4.8、DeepSeek-R1</div>
-      <div class="slide-model-use" style="color:#FF6B35;"><i class="fas fa-check" style="margin-right:4px;"></i>Agent编程的核心驱动力</div>
-    </div>
-    <div class="slide-model-card" style="background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.12);">
-      <div class="slide-model-icon" style="color:#E0E7FF;"><i class="fas fa-image"></i></div>
-      <div class="slide-model-name">多模态模型</div>
-      <div class="slide-model-feature"><strong style="color:#E0E7FF;">图文音视频通吃</strong></div>
-      <div class="slide-model-feature">图片理解、UI截图分析、视频内容提取</div>
-      <div class="slide-model-feature">代表：GPT-5.5、Gemini 3.1 Pro</div>
-      <div class="slide-model-use" style="color:rgba(224,231,255,0.5);"><i class="fas fa-check" style="margin-right:4px;"></i>看截图写前端、分析设计稿</div>
-    </div>
+  <!-- Top Table: 2026 Mainstream Coding Models -->
+  <table class="model-table">
+    <thead>
+      <tr>
+        <th style="width:185px;">2026 主力模型家族</th>
+        <th style="width:110px;">核心定位</th>
+        <th style="width:110px;">上下文窗口</th>
+        <th>软件工程强项与真实表现</th>
+        <th style="width:170px;">最佳适用阶段</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong style="color:#E0E7FF; font-size:13px;">Claude 4.6 / 4.8</strong><br><span style="font-size:11px; color:#00E5FF;">Sonnet & Opus (Anthropic)</span></td>
+        <td><span class="model-tag" style="background:rgba(0,229,255,0.15); color:#00E5FF;">Agentic 标杆</span></td>
+        <td style="font-family:monospace;">200K ~ 1M</td>
+        <td>工具调用成功率、多文件精准重构、遵循复杂 `AGENTS.md` 约束能力全行业断层领先；Opus 擅长疑难架构，Sonnet 是日常主力。</td>
+        <td><span style="color:#22C55E; font-weight:700;">全栈主力 (Plan + Act)</span></td>
+      </tr>
+      <tr>
+        <td><strong style="color:#E0E7FF; font-size:13px;">GPT-5.5 / o3</strong><br><span style="font-size:11px; color:#FF6B35;">OpenAI 深度推理系</span></td>
+        <td><span class="model-tag" style="background:rgba(255,107,53,0.18); color:#FF6B35;">架构与推理王</span></td>
+        <td style="font-family:monospace;">256K ~ 1M</td>
+        <td>极强形式化逻辑与跨层深水区 Bug 推演，擅长并发死锁排查、复杂算法设计与系统级 Spec 评审。</td>
+        <td><span style="color:#FF6B35; font-weight:700;">高难度 Plan / 深度排障</span></td>
+      </tr>
+      <tr>
+        <td><strong style="color:#E0E7FF; font-size:13px;">DeepSeek V4 / R1</strong><br><span style="font-size:11px; color:#22C55E;">深度求索 (国产开源旗舰)</span></td>
+        <td><span class="model-tag" style="background:rgba(34,197,94,0.18); color:#22C55E;">极致性价比</span></td>
+        <td style="font-family:monospace;">128K ~ 256K</td>
+        <td>R1 推理链透明扎实，V4 代码生成速度极快且 API 成本仅为海外闭源模型的 1/10，支持硬盘级自動 Prefix Cache。</td>
+        <td><span style="color:#00E5FF; font-weight:700;">R1 做 Plan + V4 高频 Act</span></td>
+      </tr>
+      <tr>
+        <td><strong style="color:#E0E7FF; font-size:13px;">Qwen3-Coder</strong><br><span style="font-size:11px; color:#A855F7;">阿里通义代码专精</span></td>
+        <td><span class="model-tag" style="background:rgba(168,85,247,0.18); color:#A855F7;">内网私有化首选</span></td>
+        <td style="font-family:monospace;">128K ~ 1M</td>
+        <td>针对中文企业技术栈（Spring Cloud / 阿里中间件 / 国产数据库）深度特训，32B/72B 规格极适合金融政企内网私有化部署。</td>
+        <td><span style="color:#A855F7; font-weight:700;">高频编码 Act / 内网合规</span></td>
+      </tr>
+      <tr>
+        <td><strong style="color:#E0E7FF; font-size:13px;">Gemini 3.1 Pro</strong><br><span style="font-size:11px; color:#FFC832;">Google 原生多模态</span></td>
+        <td><span class="model-tag" style="background:rgba(255,200,50,0.18); color:#FFC832;">超大仓库吞吐</span></td>
+        <td style="font-family:monospace;">2M Tokens</td>
+        <td>原生 200 万超长窗口 + 极强视觉多模态理解（直接看 UI 设计稿/报错录屏生成前端代码），整库考古检索利器。</td>
+        <td><span style="color:#FFC832; font-weight:700;">整库考古 / UI 多模态还原</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Bottom Dual-Mode Strategy: Plan + Act -->
+  <div style="font-size:14px; font-weight:700; color:#FF6B35; margin-bottom:8px;">
+    <i class="fas fa-chess-knight" style="margin-right:6px;"></i>2026 黄金实战法则：拒绝“一个模型用到底”，打好 Plan（规划）+ Act（执行）双模组合拳！
   </div>
 
-  <!-- Billing -->
-  <div class="flex" style="gap:24px;">
-    <div style="flex:1;">
-      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:8px;">
-        <i class="fas fa-receipt" style="color:#FF6B35; margin-right:6px;"></i>主流模型计费（每百万token）
+  <div class="flex" style="gap:20px;">
+    <!-- Stage 1: Plan Mode -->
+    <div style="flex:1; padding:12px 16px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.3); border-left:4px solid #FF6B35;">
+      <div class="flex justify-between items-center mb-2">
+        <span style="font-size:14px; font-weight:700; color:#FF6B35;"><i class="fas fa-compass-drafting" style="margin-right:6px;"></i>第一阶段：Architect / Plan Mode（只读规划）</span>
+        <span class="model-tag" style="background:#FF6B35; color:#0B1120;">高智商推理模型</span>
       </div>
-      <table class="slide-billing-table">
-        <thead><tr><th>模型</th><th>输入</th><th>输出</th><th>缓存</th><th>场景</th></tr></thead>
-        <tbody>
-          <tr><td style="color:#E0E7FF; font-weight:600;">GPT-5.5</td><td>$2.00</td><td>$8.00</td><td>$0.50</td><td>通用+推理</td></tr>
-          <tr><td style="color:#E0E7FF; font-weight:600;">Claude Opus 4.8</td><td>$15.00</td><td>$75.00</td><td>$3.75</td><td>编程Agent</td></tr>
-          <tr><td style="color:#E0E7FF; font-weight:600;">Claude Sonnet 4.6</td><td>$3.00</td><td>$15.00</td><td>$0.75</td><td>性价比之选</td></tr>
-          <tr><td style="color:#E0E7FF; font-weight:600;">DeepSeek V4-Flash</td><td style="color:#00E5FF;">¥0.2</td><td style="color:#00E5FF;">¥1.0</td><td style="color:#00E5FF;">¥0.05</td><td>成本敏感</td></tr>
-          <tr><td style="color:#E0E7FF; font-weight:600;">DeepSeek V4-Pro</td><td>¥4.0</td><td>¥12.0</td><td>¥1.0</td><td>开源高性能</td></tr>
-        </tbody>
-      </table>
+      <div style="font-size:12px; color:rgba(224,231,255,0.75); line-height:1.5; margin-bottom:6px;">
+        · <strong style="color:#E0E7FF;">选用模型：</strong>`Claude 4.6/4.8 Opus`、`GPT-5.5 / o3` 或 `DeepSeek-R1`<br>
+        · <strong style="color:#E0E7FF;">核心动作：</strong>严禁直接改代码！让模型通读关联文件，识别边界条件，输出结构化的《修改方案与文件清单 (`PLAN.md`)》，由人类架构师拍板确认。
+      </div>
+      <div style="font-size:11px; color:#FF6B35; font-family:monospace;">Cost: 仅消耗少量 Output Token，却能拦截 80% 的方向性返工！</div>
     </div>
-    <div style="flex:1;">
-      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:8px;">
-        <i class="fas fa-tags" style="color:#00E5FF; margin-right:6px;"></i>产品计费模式（2026年主流）
-      </div>
-      <div style="padding:10px 14px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.12); margin-bottom:8px;">
-        <div style="font-size:13px; font-weight:700; color:#00E5FF; margin-bottom:4px;">Coding Plan（按任务包）</div>
-        <div style="font-size:11px; color:rgba(224,231,255,0.5); line-height:1.5;">按月订阅，含固定任务额度。如Codex Plus $20/月含15-80个任务/5小时窗口。适合用量可预测的开发者。</div>
-      </div>
-      <div style="padding:10px 14px; background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.12); margin-bottom:8px;">
-        <div style="font-size:13px; font-weight:700; color:#FF6B35; margin-bottom:4px;">Token Plan / Credit Plan（按量计费）</div>
-        <div style="font-size:11px; color:rgba(224,231,255,0.5); line-height:1.5;">2026年4月Codex改为token-based credit计费：简单bug fix约5 credits，大型重构约45 credits。费用与实际消耗直接挂钩。</div>
-      </div>
-      <div style="padding:10px 14px; background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.1); margin-bottom:8px;">
-        <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">OpenCode Go（开源免费）</div>
-        <div style="font-size:11px; color:rgba(224,231,255,0.5); line-height:1.5;">开源终端Agent，Go语言编写，<strong style="color:#00E5FF;">工具本身免费</strong>。只需支付所选模型的API费用。配合DeepSeek V4，月成本可低至几十元。</div>
-      </div>
-      <div style="padding:8px 12px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.12);">
-        <div style="font-size:11px; color:rgba(224,231,255,0.5); line-height:1.5;"><i class="fas fa-lightbulb" style="color:#00E5FF; margin-right:4px;"></i>国内厂商也纷纷推出Coding Plan：MiniMax ¥29起、智谱Max ¥469，价格跨度16倍。<strong style="color:#E0E7FF;">选型关键：匹配任务复杂度和使用频率。</strong></div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Model selection strategy -->
-  <div style="margin-top:10px; padding:14px 18px; background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.12);">
-    <div style="font-size:14px; font-weight:700; color:#FF6B35; margin-bottom:8px;"><i class="fas fa-chess-knight" style="margin-right:6px;"></i>模型选择策略：<strong style="color:#E0E7FF;">便宜模型执行，贵模型规划</strong></div>
-    <div style="display:flex; gap:16px;">
-      <div style="flex:1; padding:8px 12px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.1); border-radius:6px;">
-        <div style="font-size:12px; font-weight:700; color:#00E5FF; margin-bottom:4px;">代码补全 / 解释 / 翻译</div>
-        <div style="font-size:11px; color:rgba(224,231,255,0.5);">→ <strong style="color:#E0E7FF;">快速模型</strong>（Flash/Sonnet）</div>
-      </div>
-      <div style="flex:1; padding:8px 12px; background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.1); border-radius:6px;">
-        <div style="font-size:12px; font-weight:700; color:#FF6B35; margin-bottom:4px;">架构设计 / 复杂重构</div>
-        <div style="font-size:11px; color:rgba(224,231,255,0.5);">→ <strong style="color:#E0E7FF;">推理模型</strong>（Opus/R1）</div>
-      </div>
-      <div style="flex:1; padding:8px 12px; background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.1); border-radius:6px;">
-        <div style="font-size:12px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">Agent Loop（循环执行）</div>
-        <div style="font-size:11px; color:rgba(224,231,255,0.5);">→ <strong style="color:#FF6B35;">快速模型执行 + 推理模型规划</strong></div>
-      </div>
+    <!-- Arrow -->
+    <div class="flex flex-col items-center justify-center" style="width:48px; flex-shrink:0;">
+      <i class="fas fa-angles-right" style="font-size:24px; color:#00E5FF;"></i>
+      <span style="font-size:11px; color:#00E5FF; margin-top:4px; font-weight:700; white-space:nowrap;">切换模型</span>
     </div>
-    <div style="font-size:11px; color:rgba(224,231,255,0.45); margin-top:8px;">不是"什么都用最贵的模型"，而是<strong style="color:#E0E7FF;">任务复杂度匹配模型能力</strong>。简单任务用贵模型是浪费钱，复杂任务用便宜模型是浪费时间。</div>
+
+    <!-- Stage 2: Act Mode -->
+    <div style="flex:1; padding:12px 16px; background:rgba(34,197,94,0.06); border:1px solid rgba(34,197,94,0.3); border-left:4px solid #22C55E;">
+      <div class="flex justify-between items-center mb-2">
+        <span style="font-size:14px; font-weight:700; color:#22C55E;"><i class="fas fa-bolt" style="margin-right:6px;"></i>第二阶段：Code / Act Mode（高速编码闭环）</span>
+        <span class="model-tag" style="background:#22C55E; color:#0B1120;">高吞吐编码模型</span>
+      </div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.75); line-height:1.5; margin-bottom:6px;">
+        · <strong style="color:#E0E7FF;">选用模型：</strong>`Claude 4.6 Sonnet`、`DeepSeek-V4` 或 `Qwen3-Coder`<br>
+        · <strong style="color:#E0E7FF;">核心动作：</strong>严格照着已批准的 `PLAN.md` 批量落盘代码、补齐单元测试、调用终端跑 `mvn test` 循环自愈，速度快且成本低廉。
+      </div>
+      <div style="font-size:11px; color:#22C55E; font-family:monospace;">Result: 综合 Token 账单立降 50%+，一次通过率提升一倍以上！</div>
+    </div>
   </div>
 </div>
 </body>

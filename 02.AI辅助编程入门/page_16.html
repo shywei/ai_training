@@ -3,67 +3,120 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>OpenClaw类Agent框架</title>
+<title>2026 主流 Coding Agent 四大阵营全景矩阵</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
 .slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-feature-card { padding:14px 16px; background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.1); margin-bottom:10px; }
-.slide-feature-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:5px; }
-.slide-feature-desc { font-size:12px; color:rgba(224,231,255,0.55); line-height:1.5; }
-.slide-feature-tag { font-size:11px; padding:2px 6px; margin-right:4px; }
+.slide-container h1 { font-size:29px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; }
+.camp-card { padding:12px 15px; border-radius:4px; display:flex; flex-direction:column; justify-content:space-between; }
+.camp-header { font-size:14.5px; font-weight:700; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; }
+.prod-row { padding:6px 9px; background:rgba(0,0,0,0.35); margin-bottom:5px; font-size:11.5px; color:rgba(224,231,255,0.78); line-height:1.42; border-left:2px solid; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:38px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 06</div>
-  <h1 class="mb-2">OpenClaw类Agent框架</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:8px;"></div>
-  <div style="font-size:13px; color:rgba(224,231,255,0.4); margin-bottom:16px;">Coding Agent 专注软件开发；Agent 框架面向通用任务自动化——编程只是它的一个能力</div>
+<div class="slide-container" style="padding:24px 65px;">
+  <div class="mb-1 slide-section-num">CHAPTER 05 · 2026 主流 CODING AGENT 四大阵营与选型</div>
+  <h1 class="mb-2">2026 主流 Coding Agent 四大阵营全景矩阵</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:10px;"></div>
 
-  <div class="flex" style="gap:24px;">
-    <div style="flex:1;">
-      <div class="slide-feature-card">
-        <div class="slide-feature-title"><span class="slide-feature-tag" style="background:rgba(0,229,255,0.15); color:#00E5FF;">核心</span>多平台连接</div>
-        <div class="slide-feature-desc">一个Agent连接50+平台——Discord、微信、Telegram、飞书、钉钉等。你在任何平台发消息，Agent都能响应并执行任务。</div>
-      </div>
-      <div class="slide-feature-card">
-        <div class="slide-feature-title"><span class="slide-feature-tag" style="background:rgba(255,107,53,0.15); color:#FF6B35;">核心</span>Memory（记忆系统）</div>
-        <div class="slide-feature-desc">Agent有长期记忆（MEMORY.md）和短期记忆（每日笔记）。跨会话保持上下文——上次聊过什么、做过什么决策，下次还记得。</div>
-      </div>
-      <div class="slide-feature-card">
-        <div class="slide-feature-title"><span class="slide-feature-tag" style="background:rgba(224,231,255,0.1); color:#E0E7FF;">核心</span>Agent自进化</div>
-        <div class="slide-feature-desc">Agent通过Memory、Rules、Skills持续积累经验——踩过的坑记录下来，后续任务复用之前的做法，而不是每次都从零开始。<strong style="color:#E0E7FF;">注意：不是模型自己训练自己，而是把经验写入文件供后续读取。</strong></div>
-      </div>
-      <div class="slide-feature-card">
-        <div class="slide-feature-title"><span class="slide-feature-tag" style="background:rgba(0,229,255,0.15); color:#00E5FF;">能力</span>子Agent（Sub-agent）</div>
-        <div class="slide-feature-desc">主Agent可以派生子Agent处理子任务，完成后汇报结果。类似线程池——并行处理多个任务，提高效率。</div>
-      </div>
-    </div>
-    <div style="flex:1;">
-      <div class="slide-feature-card">
-        <div class="slide-feature-title"><span class="slide-feature-tag" style="background:rgba(255,107,53,0.15); color:#FF6B35;">能力</span>定时任务（Cron）</div>
-        <div class="slide-feature-desc">Agent可以设置定时任务——每天检查邮件、每周生成报告、定时监控服务状态。不是被动响应，而是主动工作。</div>
-      </div>
-      <div class="slide-feature-card">
-        <div class="slide-feature-title"><span class="slide-feature-tag" style="background:rgba(224,231,255,0.1); color:#E0E7FF;">能力</span>文件与代码操作</div>
-        <div class="slide-feature-desc">读写文件、执行Shell命令、操作Git、调用API——Agent有完整的操作系统级能力。结合MCP，能力可以无限扩展。</div>
-      </div>
-
-      <div style="padding:14px 16px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.12); margin-top:6px;">
-        <div style="font-size:13px; color:#00E5FF; font-weight:700; margin-bottom:8px;"><i class="fas fa-code-branch" style="margin-right:6px;"></i>OpenClaw架构</div>
-        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.7;">
-          <strong style="color:#E0E7FF;">Gateway（网关）</strong>：接收各平台消息，路由到Agent<br>
-          <strong style="color:#E0E7FF;">Agent（智能体）</strong>：读取SOUL.md/AGENTS.md理解自己是谁、能做什么<br>
-          <strong style="color:#E0E7FF;">Skills（技能库）</strong>：可插拔的能力模块，按需加载<br>
-          <strong style="color:#E0E7FF;">Memory（记忆）</strong>：文件系统实现的持久化记忆<br>
-          <strong style="color:#E0E7FF;">Tools（工具）</strong>：exec、read、write、web_fetch等内置工具
+  <!-- 2x2 Matrix of the 4 Camps -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; height:470px;">
+    <!-- Camp 1: Overseas AI-Native IDEs -->
+    <div class="camp-card" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.22);">
+      <div>
+        <div class="camp-header" style="color:#00E5FF;">
+          <span><i class="fas fa-window-restore" style="margin-right:6px;"></i>阵营 ① · 海外 AI-Native IDE 阵营</span>
+          <span style="font-size:11px; padding:2px 6px; border-radius:3px; background:rgba(0,229,255,0.15);">交互体验与多模态标杆</span>
+        </div>
+        <div class="prod-row" style="border-color:#00E5FF;">
+          <strong style="color:#E0E7FF;">Cursor：</strong>最成熟的 AI 原生 IDE，Tab 预测补全（Next-Edit Prediction）如丝般顺滑，支持 Background Agent 远程异步改代码与 `.cursor/rules`。
+        </div>
+        <div class="prod-row" style="border-color:#00E5FF;">
+          <strong style="color:#00E5FF;">Google Antigravity：</strong>2026 Agent-First 新锐 IDE，主打<strong>多 Agent 并行工作台（Mission Control）</strong>、内嵌浏览器视觉联调与结构化 <strong>Artifacts（实施计划/验证报告）</strong>评审流。
+        </div>
+        <div class="prod-row" style="border-color:#00E5FF; margin-bottom:0;">
+          <strong style="color:#E0E7FF;">AWS Kiro &amp; Windsurf：</strong>`Kiro` 将 <strong>Spec 规格驱动三阶段（Requirements → Design → Tasks）</strong>与可视化 Agent Hooks 做成 IDE 一等公民；`Windsurf` 擅长 Cascade 上下文流感知。
         </div>
       </div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.5); padding-top:4px; border-top:1px solid rgba(255,255,255,0.06);">
+        适用：习惯 VS Code 生态、追求极致交互体验的前端/全栈/云原生团队
+      </div>
     </div>
+
+    <!-- Camp 2: Domestic Enterprise Flagships (Highlight Qoder / CodeBuddy / Trae) -->
+    <div class="camp-card" style="background:rgba(255,107,53,0.05); border:1.5px solid #FF6B35;">
+      <div>
+        <div class="camp-header" style="color:#FF6B35;">
+          <span><i class="fas fa-building-flag" style="margin-right:6px;"></i>阵营 ② · 国内大厂主力平台（内网直连 &amp; 本土生态）</span>
+          <span style="font-size:11px; padding:2px 6px; border-radius:3px; background:#FF6B35; color:#0B1120; font-weight:700;">国内企业落地主力</span>
+        </div>
+        <div class="prod-row" style="border-color:#FF6B35;">
+          <strong style="color:#FF6B35;">阿里 Qoder / 通义灵码 Agent：</strong>覆盖<strong>独立 AI IDE + CLI (`qodercli`) + JetBrains IDEA/VS Code 插件</strong>全形态！具备 <strong>10 万文件级深度仓库检索</strong>、<strong>Repo Wiki 架构文档自动生成</strong>与 <strong>Quest Mode（Spec 驱动自主长任务）</strong>，完美适配 Java/Spring 体系。
+        </div>
+        <div class="prod-row" style="border-color:#FF6B35;">
+          <strong style="color:#FFC832;">腾讯 CodeBuddy：</strong>同样提供<strong>独立 IDE + 插件 + CLI</strong> 三栖形态，深度打通微信/腾讯云生态与内部 DevOps 研发流，主打金融政企私有化安全合规与 Spec 驱动研发。
+        </div>
+        <div class="prod-row" style="border-color:#FF6B35; margin-bottom:0;">
+          <strong style="color:#E0E7FF;">字节 Trae：</strong>国内高人气免费/普惠 AI IDE，内置 <strong>SOLO 全自主开发模式</strong>与 Builder 工作流，从需求文档到前后端预览一键闭环。
+        </div>
+      </div>
+      <div style="font-size:11px; color:#FF6B35; padding-top:4px; border-top:1px solid rgba(255,107,53,0.2);">
+        适用：国内网络直连、重度 Java/IDEA 技术栈、要求私有化部署与数据不出境的企业
+      </div>
+    </div>
+
+    <!-- Camp 3: Terminal CLI Agents -->
+    <div class="camp-card" style="background:rgba(34,197,94,0.04); border:1px solid rgba(34,197,94,0.25);">
+      <div>
+        <div class="camp-header" style="color:#22C55E;">
+          <span><i class="fas fa-terminal" style="margin-right:6px;"></i>阵营 ③ · Terminal CLI Agent 阵营（工程天花板）</span>
+          <span style="font-size:11px; padding:2px 6px; border-radius:3px; background:rgba(34,197,94,0.18);">架构师与自动化首选</span>
+        </div>
+        <div class="prod-row" style="border-color:#22C55E;">
+          <strong style="color:#22C55E;">Claude Code (Anthropic)：</strong>2026 全球复杂工程重构与多文件 Agentic Loop 的<strong>绝对标杆</strong>；支持终端 TUI + JetBrains/VS Code 伴生插件，原生具备最完善的 `Hooks`、`Skills` 与 `Subagents` 体系。
+        </div>
+        <div class="prod-row" style="border-color:#22C55E;">
+          <strong style="color:#E0E7FF;">OpenCode（开源标杆）：</strong>GitHub 超高星开源 Terminal Agent，<strong>100% 模型中立（BYOK）</strong>，可自由接入 Claude / DeepSeek-V4 / 企业内网 vLLM 部署的 Qwen3-Coder。
+        </div>
+        <div class="prod-row" style="border-color:#22C55E; margin-bottom:0;">
+          <strong style="color:#E0E7FF;">OpenAI Codex CLI &amp; Gemini CLI：</strong>分别绑定 GPT-5.5/o3 与 Gemini 3.1 Pro（免费额度慷慨、2M 超大窗口），极易嵌入 GitLab CI / GitHub Actions 流水线。
+        </div>
+      </div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.5); padding-top:4px; border-top:1px solid rgba(255,255,255,0.06);">
+        适用：复杂跨模块重构、SSH 远程服务器开发、Headless CI/CD 批量自动化任务
+      </div>
+    </div>
+
+    <!-- Camp 4: Modular Open-Source IDE Extensions -->
+    <div class="camp-card" style="background:rgba(168,85,247,0.04); border:1px solid rgba(168,85,247,0.25);">
+      <div>
+        <div class="camp-header" style="color:#A855F7;">
+          <span><i class="fas fa-puzzle-piece" style="margin-right:6px;"></i>阵营 ④ · IDE 模块化开源插件阵营</span>
+          <span style="font-size:11px; padding:2px 6px; border-radius:3px; background:rgba(168,85,247,0.2);">不换 IDE · 源码透明</span>
+        </div>
+        <div class="prod-row" style="border-color:#A855F7;">
+          <strong style="color:#A855F7;">Cline / Roo Code：</strong>坚守 <strong>IntelliJ IDEA 或原生 VS Code</strong> 研发团队的开源首选插件！客户端代码完全开源可审计，零中间商留存代码，直接连企业内部大模型网关。
+        </div>
+        <div class="prod-row" style="border-color:#A855F7;">
+          <strong style="color:#E0E7FF;">多角色模式自由定制（Custom Modes）：</strong>Roo Code 原生内置 <strong>Architect（只读架构规划）、Code（编码）、Ask（问答）、Debug（排障）、Orchestrator（子任务编排）</strong> 五大模式，可为不同模式绑定不同单价的模型！
+        </div>
+        <div class="prod-row" style="border-color:#A855F7; margin-bottom:0;">
+          <strong style="color:#E0E7FF;">细粒度人机审批：</strong>每一步文件读写、终端命令执行均可配置自动放行白名单或人工点击 Approve。
+        </div>
+      </div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.5); padding-top:4px; border-top:1px solid rgba(255,255,255,0.06);">
+        适用：绝不放弃 IntelliJ IDEA 重度重构快捷键的 Java 老兵 + 自建大模型网关的团队
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Bar -->
+  <div style="margin-top:10px; padding:7px 14px; background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.2); font-size:12px; color:rgba(224,231,255,0.75); display:flex; justify-content:space-between;">
+    <span><strong style="color:#00E5FF;">底层相通：</strong>四大阵营虽然界面不同，但底层全部收敛到了第 4 章所讲的 <strong style="color:#E0E7FF;">Harness 六件套 (`AGENTS.md` + `Hooks` + `Skills` + `MCP` + `Subagents`)</strong>！</span>
+    <span style="color:#FF6B35; font-weight:700;">一通百通，切换零成本</span>
   </div>
 </div>
 </body>

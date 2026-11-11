@@ -1,6 +1,8 @@
 .git
-**/target
 web/node_modules
-web/dist
 *.log
 .env
+
+# 忽略 target 下的编译中间文件，保留最终产物 app.jar 供 Dockerfile 构建使用
+**/target/*
+!**/target/app.jar

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>02B. AI辅助编程进阶（可选深潜）全课总结：从工具使用者到架构师跃迁</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:4px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; line-height:1.25; margin-bottom:8px; }
+.slide-accent-line { width:50px; height:3px; background:#FF6B35; margin-bottom:14px; }
+.slide-card { padding:12px 15px; margin-bottom:9px; display:flex; align-items:flex-start; gap:12px; border-radius:6px; }
+.slide-icon { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.slide-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
+.slide-desc { font-size:12px; color:rgba(224,231,255,0.65); line-height:1.45; }
+.code-box { background:#060A12; border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:10px 12px; font-family:Consolas,monospace; font-size:11.5px; line-height:1.5; color:#E0E7FF; }
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <div class="slide-section-num">SUMMARY · 02B（可选深潜）全课总结与工程能力跃迁</div>
+  <h1>02B. AI辅助编程进阶（可选深潜）：架构师能力跃迁与收官</h1>
+  <div class="slide-accent-line"></div>
+<div class="grid grid-cols-4 gap-3.5 mb-3" style="height:235px;">
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(148,163,184,0.3); border-top:4px solid #64748B; border-radius:6px; padding:12px; display:flex; flex-direction:column;">
+      <div style="font-size:11px; color:#94A3B8; font-weight:700;">LEVEL 1 · 问答补全者</div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin:2px 0 6px 0;">Chat &amp; Tab 搬运工</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.65); line-height:1.45;">
+        • 单函数补全与报错复制粘贴<br>
+        • 人肉充当剪贴板与 I/O 总线<br>
+        • 提效上限：15%~20%
+      </div>
+    </div>
+
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,107,53,0.3); border-top:4px solid #FF6B35; border-radius:6px; padding:12px; display:flex; flex-direction:column;">
+      <div style="font-size:11px; color:#FF6B35; font-weight:700;">LEVEL 2 · 凭感觉盲改者</div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin:2px 0 6px 0;">Vibe Coder 抽卡</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.65); line-height:1.45;">
+        • 快速搭 Demo，但存量工程翻车<br>
+        • 无 Spec、无单测，常被 AI 欺骗<br>
+        • 风险：代码腐化、巨型 PR 审查瘫痪
+      </div>
+    </div>
+
+    <div style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.35); border-top:4px solid #00E5FF; border-radius:6px; padding:12px; display:flex; flex-direction:column;">
+      <div style="font-size:11px; color:#00E5FF; font-weight:700;">LEVEL 3 · 规格驱动工程师</div>
+      <div style="font-size:14px; font-weight:700; color:#00E5FF; margin:2px 0 6px 0;">SDD 存量掌控者 (02B核心)</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.85); line-height:1.45;">
+        • <strong>先审 Spec 再编码</strong><br>
+        • 黄金回归锁死祖传代码，秒级自愈<br>
+        • Hook 拦截作弊，worktree 并行提效 300%+
+      </div>
+    </div>
+
+    <div style="background:rgba(34,197,94,0.04); border:1px solid rgba(34,197,94,0.35); border-top:4px solid #22C55E; border-radius:6px; padding:12px; display:flex; flex-direction:column;">
+      <div style="font-size:11px; color:#22C55E; font-weight:700;">LEVEL 4 · 复利与 Harness 架构师</div>
+      <div style="font-size:14px; font-weight:700; color:#22C55E; margin:2px 0 6px 0;">团队免疫构建者</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.85); line-height:1.45;">
+        • 分层级 AGENTS.md 与按需规则治理<br>
+        • 踩坑沉淀为全员共享 Rule/Skill 疫苗<br>
+        • Headless Agent 融入 CI/CD 自动化
+      </div>
+    </div>
+  </div>
+
+  <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(0,229,255,0.22); border-radius:6px; padding:12px 16px; margin-bottom:12px;">
+    <div style="font-size:13.5px; font-weight:700; color:#00E5FF; margin-bottom:6px;">
+      <i class="fas fa-award mr-2"></i>明天回到工位即可落地的《企业级 AI 研发六大黄金军规》：
+    </div>
+    <div class="grid grid-cols-2 gap-x-6 gap-y-1.5" style="font-size:11.5px; color:rgba(224,231,255,0.88);">
+      <div><span style="color:#00E5FF; font-weight:700;">1. 审 Spec 胜过审千行代码：</span>超 3 个文件的需求必须先出 design.md，人类把关架构与复用。</div>
+      <div><span style="color:#FF6B35; font-weight:700;">2. 不锁测试不动老代码：</span>重构祖传代码前先让 Agent 生成黄金特征测试并锁定全绿。</div>
+      <div><span style="color:#22C55E; font-weight:700;">3. 定向单测做 AI 的眼睛：</span>把 mvn test -Dtest=... 写入 AGENTS.md，赋予 Agent 2 秒自愈闭环。</div>
+      <div><span style="color:#EF4444; font-weight:700;">4. 物理护栏防 Reward Hacking：</span>用 PreToolUse Hook 锁死测试目录，杜绝 AI 篡改断言作弊。</div>
+      <div><span style="color:#A855F7; font-weight:700;">5. 根目录 AGENTS.md 严控 150 行：</span>格式废话交给 Linter，领域规范拆入子模块与 Glob Rules。</div>
+      <div><span style="color:#00E5FF; font-weight:700;">6. 踩坑必留疫苗（复利飞轮）：</span>每修一个 AI 翻车的 Bug，随 PR 补充 3 行规则让团队永久免疫。</div>
+    </div>
+  </div>
+
+  <div style="padding:10px 18px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.25); border-left:4px solid #00E5FF; border-radius:4px; display:flex; align-items:center; justify-content:space-between;">
+    <div>
+      <div style="font-size:11px; color:#00E5FF; font-weight:700; letter-spacing:2px; margin-bottom:2px;">02B 进阶收官 · 汇聚通向第 03 课</div>
+      <div style="font-size:12.5px; font-weight:700; color:#E0E7FF;">
+        恭喜完成 02B 选修深潜！至此已掌握团队级 SDD 与多 Agent 并行研发体系。下一步统一跨入——<strong style="color:#00E5FF;">《第 03 课：AI Agent架构认知入门》</strong>！
+      </div>
+    </div>
+    <div style="min-width:180px; text-align:right;">
+      <span style="display:inline-block; padding:6px 14px; background:rgba(0,229,255,0.15); border:1px solid rgba(0,229,255,0.35); color:#00E5FF; font-weight:700; font-size:12px; border-radius:4px;">
+        下一站：第 03 课 <i class="fas fa-arrow-right ml-1"></i>
+      </span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

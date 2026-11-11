@@ -1,18 +1,59 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280"><script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script><title>状态机 vs 纯 ReAct</title><style>*{margin:0;padding:0;box-sizing:border-box}.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}.code{font-size:10px;color:rgba(224,231,255,0.55);line-height:1.5;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace}</style></head><body><div class="s" style="padding:24px 50px;display:flex;flex-direction:column"><div class="mb-1 sn">CHAPTER 03</div><h1 class="mb-1">状态机 vs 纯 ReAct — 对比</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px"></div><div style="flex:1;display:flex;gap:14px"><div style="flex:1;display:flex;flex-direction:column;justify-content:center">
-<div style="font-size:15px;color:#FF6B35;font-weight:700;margin-bottom:10px">纯 ReAct（第七课）</div>
-<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
-<div style="padding:10px 12px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:13px;color:rgba(224,231,255,0.65);line-height:1.7">LLM 自主决定 THINK→ACT→OBSERVE，<strong style="color:#E0E7FF">没有外部约束</strong></div>
-<div style="padding:10px 12px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:13px;color:rgba(224,231,255,0.65);line-height:1.7">没有停止条件，<strong style="color:#E0E7FF">可能无限循环</strong></div>
-<div style="padding:10px 12px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:13px;color:rgba(224,231,255,0.65);line-height:1.7">工具失败直接报错，<strong style="color:#E0E7FF">无重试无降级</strong></div>
-<div style="padding:10px 12px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:13px;color:rgba(224,231,255,0.65);line-height:1.7">高风险操作无拦截，<strong style="color:#E0E7FF">LLM 直接执行</strong></div>
-<div style="padding:10px 12px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:13px;color:rgba(224,231,255,0.65);line-height:1.7">无执行记录，<strong style="color:#E0E7FF">出错无法回溯</strong></div></div>
-<div style="padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px"><div style="font-size:12px;color:rgba(224,231,255,0.45);line-height:1.7">适合：原型验证、Demo、个人工具<br><strong style="color:#FF6B35">不适合：企业生产环境</strong></div></div></div>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280"><script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script><title>状态机 vs 纯 ReAct 对比</title><style>*{margin:0;padding:0;box-sizing:border-box}.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}.s h1{font-size:30px!important;color:#E0E7FF;font-weight:700}.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}</style></head><body>
+<div class="s" style="padding:22px 48px;display:flex;flex-direction:column">
+<div class="mb-1 sn">CHAPTER 03 · 架构对比</div>
+<h1 class="mb-1">状态机 vs 纯 ReAct — 概率规划与确定性 FSM 约束</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:10px"></div>
+<div style="flex:1;display:flex;gap:14px">
+
+<!-- 左侧：纯 ReAct 概率型无约束 -->
 <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
-<div style="font-size:15px;color:#22C55E;font-weight:700;margin-bottom:10px">状态机 + Agent Runtime（第八课）</div>
-<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
-<div style="padding:10px 12px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:13px;color:rgba(224,231,255,0.65);line-height:1.7">Runtime 控制循环，<strong style="color:#E0E7FF">最大 10 轮强制停止</strong></div>
-<div style="padding:10px 12px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:13px;color:rgba(224,231,255,0.65);line-height:1.7">每个状态有<strong style="color:#E0E7FF">明确的转换条件</strong>，行为可预测</div>
-<div style="padding:10px 12px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:13px;color:rgba(224,231,255,0.65);line-height:1.7">工具失败 → <strong style="color:#E0E7FF">重试 3 次 → 熔断 → 降级</strong></div>
-<div style="padding:10px 12px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:13px;color:rgba(224,231,255,0.65);line-height:1.7">高风险操作<strong style="color:#E0E7FF">暂停，等待用户确认</strong></div>
-<div style="padding:10px 12px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:13px;color:rgba(224,231,255,0.65);line-height:1.7">每步记录 Trace，<strong style="color:#E0E7FF">可回溯可审计</strong></div></div>
-<div style="padding:12px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:6px"><div style="font-size:13px;color:#A855F7;font-weight:600;margin-bottom:4px">LLM 仍然是"大脑"</div><div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.7">状态机不替代推理能力，而是<strong style="color:#E0E7FF">约束行为边界</strong>。<br>LLM 负责"想"，Runtime 负责"管"。</div></div></div></div></div></body></html>
+<div style="font-size:14.5px;color:#FF6B35;font-weight:700;margin-bottom:8px">纯 ReAct（无外部确定性约束）</div>
+<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
+<div style="padding:9px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;font-size:11.5px;color:rgba(224,231,255,0.78);line-height:1.55">
+  <strong style="color:#FF6B35;">概率型推进：</strong>LLM 自主决定 THINK→ACT→OBSERVE，单步预测存在随机抖动与不确定性
+</div>
+<div style="padding:9px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;font-size:11.5px;color:rgba(224,231,255,0.78);line-height:1.55">
+  <strong style="color:#FF6B35;">无拓扑依赖约束：</strong>步骤前后依赖无程序校验，大模型可能因幻觉颠倒执行顺序
+</div>
+<div style="padding:9px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;font-size:11.5px;color:rgba(224,231,255,0.78);line-height:1.55">
+  <strong style="color:#FF6B35;">死循环风险：</strong>缺乏刚性外部停止边界，模型在失败时容易陷入自言自语死循环
+</div>
+<div style="padding:9px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;font-size:11.5px;color:rgba(224,231,255,0.78);line-height:1.55">
+  <strong style="color:#FF6B35;">高危无拦截：</strong>写操作与破坏性动作直接裸调，无状态机挂起与审批机制
+</div>
+</div>
+<div style="padding:8px 12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px">
+  <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5">
+    适合：单步查询、个人实验、原型验证<br><strong style="color:#FF6B35;">不适合：涉及多系统协作、资金扣款的企业生产环境</strong>
+  </div>
+</div>
+</div>
+
+<!-- 右侧：概率规划 + 确定性 FSM 约束 -->
+<div style="flex:1.15;display:flex;flex-direction:column;justify-content:center">
+<div style="font-size:14.5px;color:#22C55E;font-weight:700;margin-bottom:8px">概率规划 + 确定性 FSM 约束（企业级架构）</div>
+<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
+<div style="padding:9px 12px;background:rgba(34,197,94,0.06);border-left:3px solid #22C55E;border-radius:4px;font-size:11.5px;color:rgba(224,231,255,0.78);line-height:1.55">
+  <strong style="color:#00E5FF;">确定性状态收敛：</strong>FSM 接管执行生命周期，最大循环轮次硬编码兜底（如上限 10 轮）
+</div>
+<div style="padding:9px 12px;background:rgba(34,197,94,0.06);border-left:3px solid #22C55E;border-radius:4px;font-size:11.5px;color:rgba(224,231,255,0.78);line-height:1.55">
+  <strong style="color:#00E5FF;">拓扑与前置校验：</strong>规划 DAG 必须经确定性代码校验前置条件与无环依赖后方可推进
+</div>
+<div style="padding:9px 12px;background:rgba(34,197,94,0.06);border-left:3px solid #22C55E;border-radius:4px;font-size:11.5px;color:rgba(224,231,255,0.78);line-height:1.55">
+  <strong style="color:#00E5FF;">四层容错协同：</strong>重试（Retry）+ 熔断降级 + 错误重规划（Replanning）+ 人工介入
+</div>
+<div style="padding:9px 12px;background:rgba(34,197,94,0.06);border-left:3px solid #22C55E;border-radius:4px;font-size:11.5px;color:rgba(224,231,255,0.78);line-height:1.55">
+  <strong style="color:#00E5FF;">高危挂起与审批：</strong>高危操作强制中断挂起为 <code>CONFIRMING</code>，等待人工确认
+</div>
+</div>
+<div style="padding:8px 12px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.2);border-radius:4px">
+  <div style="font-size:11.5px;color:rgba(224,231,255,0.75);line-height:1.55">
+    <strong style="color:#A855F7;">架构分工准则：</strong>
+    大模型（TaskPlanner/LLM）是<strong>认知与概率规划引擎（想什么）</strong>；<br>
+    状态机（FSM）是<strong>确定性控制底座（怎么管）</strong>——以确定性状态流收敛不可控模型概率输出。
+  </div>
+</div>
+</div>
+
+</div>
+</div></body></html>

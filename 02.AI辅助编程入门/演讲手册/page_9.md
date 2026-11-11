@@ -1,34 +1,38 @@
-# Harness概念体系
-
 ## Slide Objective
-拆解 Agent 的驾驭层（Harness）架构，让学员理解大模型是如何被约束和扩展，从而变成“能干活的 Agent”的。
+全景展示 Harness 驾驭层架构体系，建立“用确定性工程体系与安全底座死死约束大模型”的系统性世界观。重点突出 Coding Agent 的三大安全执行基石：Tool Permission（工具授权策略）、Approval Policy（人工审批机制）与 Sandbox（多维沙箱隔离），并阐明从任务规划、上下文装配到安全执行与测试反馈的完整闭环。
 
 ## Suggested Presentation
-我们一直在说 Agent，那大模型到底是怎么变成 Agent 的呢？
-核心就在于这一层：Harness，也就是“驾驭层”。它就像是大脑外面的四肢和规矩。
-我们来看它包含哪些核心组件。
-首先是 System Prompt，它决定了 Agent 的“人格”，就像员工入职时的企业文化培训。
-然后是 Rules（规则），它规定了 Agent 的行为边界，比如你的项目必须用 TypeScript，不能用 JS。
-接下来是 Skills（技能）。它就像给 AI 装备了不同的工具箱，你可以让它学会怎么生成 PPT，怎么分析数据。
-如果 AI 还需要操作外部系统怎么办？这就是 MCP（模型上下文协议），它是一个标准接口，让 AI 能够连接你的数据库、文件系统、甚至服务器。
-最后是上下文管理，决定了在有限的 Token 窗口里，AI 能“记”住哪些最重要的信息。
-有了这套体系，AI 就不再只是个聊天机器人了。
+请大家打起十二分精神，看第 9 页：Harness 驾驭层全景架构。
+这是 2026 年高水平 AI 架构师最核心的知识护城河。
 
-## Key Emphasis
-重点讲清楚 Harness 的五大组件（System Prompt, Rules, Skills, MCP, Context）及其作用。
-必须强调它们之间的协作关系：人格+规则+技能+工具+记忆 = Agent。
+很多非专业开发者以为 Coding Agent 就是“大模型帮我写代码”。
+但如果你作为技术 Leader，在企业团队里放任模型在没有防护的情况下跑，不出三天就会发生删库删代码的重大生产事故！
+大模型就像一匹烈马，智商极高但天生具有概率性和不可控性。这套给大模型套上的“缰绳、马鞍、围栏与操作系统”，就叫做 **Harness（驾驭层）**！
 
-## Optional Extension
-如果学员对 Harness 觉得陌生，可以强调：这是一个概念集合，不同的工具（如 Cursor, Claude Code）都在底层实现了这些机制，只是叫法可能略有不同，但本质一致。
+今天我们必须首先确立顶部的**三大安全执行基石（Three Security Foundations）**：
+任何没有安全基石的 Coding Agent，本质上等同于一个拥有 `rm -rf` 和 `curl` 权限的高危脚本！
+1. **第一基石：Tool Permission（授权策略）**。
+   工具必须实行细粒度分级：读取文件（Read/Grep）是只读安全操作，可以自动放行；但写文件、执行 Shell、调用外部系统必须遵循白名单授权，默认禁止任何未受控的提权行为；
+2. **第二基石：Approval Policy（人工审批机制 / HITL）**。
+   凡是高危不可逆的操作（比如 `git push`、修改生产环境变量 `.env`、执行数据库清空操作），系统必须物理阻断并向人类工程师弹出审批确认框（Human-in-the-Loop），只有人点了允许，Agent 才能落地执行；
+3. **第三基石：Sandbox（多维沙箱隔离）**。
+   Agent 的文件系统访问必须被死死限制在当前项目的工作区（Workspace）内，严禁翻阅宿主机的 `~/.ssh/id_rsa` 或其他系统路径；Shell 必须在非特权沙箱中运行；网络出口（Egress）必须设防火墙，杜绝任何将企业私有代码向公网外联泄密的风险！
 
-## Classroom Interaction
-在座的各位，有谁之前听说过 MCP 这个概念的？（不管有没有，借此引出下一页对 MCP 的详细解释）
+在三大安全基石的托底下，Harness 展开了**六大确定性支柱**：
+- **System Prompt**：基座行为协议与工具格式（类似 OS 内核）；
+- **AGENTS.md / Rules**：项目常驻工程宪法与代码红线；
+- **Hooks（2026 核心升级）**：在工具调用前后毫秒级执行的确定性脚本门禁；
+- **Skills**：按需渐进加载的专业领域工作流；
+- **MCP & CLI**：连接外部系统与数据库的标准化客户端总线；
+- **Subagents & Context**：主智能体与只读子智能体分工，实现上下文物理隔离。
 
-## Take Away
-Harness 体系（规则、技能、工具、上下文）是将通用大模型转化为专用编程 Agent 的核心架构。
+大家看底部的**闭环执行流**：
+用户下发需求 $\rightarrow$ 结合上下文装配 Prompt $\rightarrow$ 大模型输出调用工具的意图 $\rightarrow$ **三大基石与 Hooks 强力拦截校验** $\rightarrow$ 在沙箱中执行落地 $\rightarrow$ 提取单测和编译器报错反哺给模型自愈迭代！
+这就是工业级 Coding Agent 可靠运行的真正秘密。
 
-## Why This Slide Matters
-这是整门课程最核心的架构认知。如果不理解 Harness，学员在使用各种 AI 编程工具时只会知其然而不知其所以然。
+## Key Q&A / Clarifications
+**Q：如果我已经配置了 AGENTS.md 告诉模型“不要删除文件”，还需要 Tool Permission 和 Sandbox 吗？**
+A：绝对需要！`AGENTS.md` 只是写在 Prompt 里的“道德劝说（Soft Constraint）”。在长对话、上下文膨胀或遇到复杂异常时，大模型有一定概率产生注意力漂移从而违背规则。凡是关乎系统安全、不可逆破坏的操作，必须通过 Tool Permission、Approval Policy 和 Sandbox 进行底层“物理级阻断（Hard Constraint）”，绝不能寄希望于模型的自觉！
 
 ## Transition
-在整个 Harness 体系中，有两个组件对我们开发者扩展 Agent 能力最重要，那就是 Skills 和 MCP。我们来专门拆解一下这两个武器。
+在 Harness 体系中，到底如何用代码写出 100% 强制生效的确定性门禁？为什么说 Hooks 是对抗模型遗忘的终极武器？下一页，我们深入剖析支柱三：Hooks 确定性工程护栏。

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>企业级 SDD 四步实操 SOP（人机协同控制点）</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:4px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; line-height:1.25; margin-bottom:8px; }
+.slide-accent-line { width:50px; height:3px; background:#FF6B35; margin-bottom:14px; }
+.slide-card { padding:12px 15px; margin-bottom:9px; display:flex; align-items:flex-start; gap:12px; border-radius:6px; }
+.slide-icon { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.slide-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
+.slide-desc { font-size:12px; color:rgba(224,231,255,0.65); line-height:1.45; }
+.code-box { background:#060A12; border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:10px 12px; font-family:Consolas,monospace; font-size:11.5px; line-height:1.5; color:#E0E7FF; }
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <div class="slide-section-num">CHAPTER 01 · SPEC-DRIVEN DEVELOPMENT 企业级闭环</div>
+  <h1>企业级 SDD 四步实操 SOP（人机协同控制点）</h1>
+  <div class="slide-accent-line"></div>
+<div class="grid grid-cols-4 gap-3.5 mb-4" style="height:380px;">
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(0,229,255,0.25); border-top:4px solid #00E5FF; border-radius:6px; padding:15px; display:flex; flex-direction:column;">
+      <div class="flex items-center justify-between mb-2">
+        <span style="font-size:13px; font-weight:700; color:#00E5FF;">STEP 01 · 只读调研</span>
+        <span style="font-size:11px; background:rgba(0,229,255,0.15); color:#00E5FF; padding:2px 6px; border-radius:3px;">Plan Mode</span>
+      </div>
+      <div style="font-size:15px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">扫描存量代码，起草 Spec</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.5; margin-bottom:10px;">
+        开启只读 Plan 模式，禁止修改任何源码。让 Agent 检索工程结构与二方包，输出 <code style="color:#00E5FF;">requirements.md</code> 与 <code style="color:#00E5FF;">design.md</code>。
+      </div>
+      <div class="code-box mt-auto" style="font-size:11px;">
+        <span style="color:#00E5FF;"># 只读起草指令:</span><br>
+        "请先检索相关模块，不要修改源码。针对幂等需求编写 requirements.md (EARS) 与 design.md，明确复用类。"
+      </div>
+    </div>
+
+    <div style="background:rgba(255,107,53,0.06); border:2px solid #FF6B35; border-radius:6px; padding:15px; display:flex; flex-direction:column; box-shadow:0 0 20px rgba(255,107,53,0.12);">
+      <div class="flex items-center justify-between mb-2">
+        <span style="font-size:13px; font-weight:700; color:#FF6B35;"><i class="fas fa-crown mr-1"></i>STEP 02 · 最高杠杆点</span>
+        <span style="font-size:11px; background:#FF6B35; color:#0B1120; font-weight:700; padding:2px 6px; border-radius:3px;">人类把关</span>
+      </div>
+      <div style="font-size:15px; font-weight:700; color:#FF6B35; margin-bottom:6px;">审查并修正 Spec 架构契约</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.85); line-height:1.5; margin-bottom:10px;">
+        <strong>在写代码前拦截 80% 跑偏！</strong>花 5 分钟把关：是否漏用公司二方包？事务边界是否安全？异常码与降级是否规范？
+      </div>
+      <div class="code-box mt-auto" style="font-size:11px; border-color:rgba(255,107,53,0.4);">
+        <span style="color:#FF6B35;"># 人类架构纠偏:</span><br>
+        "design.md 第2节有误：不要自己写锁，改为复用 RedissonLockTemplate；库存不足需抛特定异常。"
+      </div>
+    </div>
+
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(168,85,247,0.25); border-top:4px solid #A855F7; border-radius:6px; padding:15px; display:flex; flex-direction:column;">
+      <div class="flex items-center justify-between mb-2">
+        <span style="font-size:13px; font-weight:700; color:#A855F7;">STEP 03 · 切片拆解</span>
+        <span style="font-size:11px; background:rgba(168,85,247,0.15); color:#A855F7; padding:2px 6px; border-radius:3px;">Task Slicing</span>
+      </div>
+      <div style="font-size:15px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">生成 tasks.md 单步执行</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.5; margin-bottom:10px;">
+        审批通过后拆解为原子任务列表。<strong>严禁一次性跑全部任务</strong>，每次只授权执行 1 个 Task 并即时审查。
+      </div>
+      <div class="code-box mt-auto" style="font-size:11px;">
+        <span style="color:#A855F7;"># 单步切片指令:</span><br>
+        "基于 design.md 生成 tasks.md（每项限改&le;3个文件并绑定单测）。先只执行 Task 1，汇报单测结果。"
+      </div>
+    </div>
+
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(34,197,94,0.25); border-top:4px solid #22C55E; border-radius:6px; padding:15px; display:flex; flex-direction:column;">
+      <div class="flex items-center justify-between mb-2">
+        <span style="font-size:13px; font-weight:700; color:#22C55E;">STEP 04 · 闭环与清理</span>
+        <span style="font-size:11px; background:rgba(34,197,94,0.15); color:#22C55E; padding:2px 6px; border-radius:3px;">Verify &amp; Clear</span>
+      </div>
+      <div style="font-size:15px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">跑单测打勾 + 跨任务重置</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.5; margin-bottom:10px;">
+        单测通过自动勾选 <code style="color:#22C55E;">[x]</code>。每完成 1~2 个任务执行 <code style="color:#22C55E;">/clear</code> 清理历史对话，新会话读 <code style="color:#22C55E;">.specs/</code> 无损接力。
+      </div>
+      <div class="code-box mt-auto" style="font-size:11px;">
+        <span style="color:#22C55E;"># 无损接力指令:</span><br>
+        "/clear 之后：读 .specs/ 目录，查看 tasks.md 进度，继续执行下一个未勾选的 Task 2 并跑通单测。"
+      </div>
+    </div>
+  </div>
+
+  <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(0,229,255,0.2); border-radius:6px; padding:12px 18px; display:flex; align-items:center; justify-content:space-between;">
+    <div style="font-size:12.5px; color:rgba(224,231,255,0.85);">
+      <i class="fas fa-chart-line mr-2" style="color:#00E5FF;"></i><strong>缺陷放大定律：</strong>在需求阶段纠正 1 个设计缺陷成本为 <strong>$1</strong>，进入代码实现纠正需 <strong>$10</strong>，上线引发故障排查需 <strong>$100+</strong>！审 Spec 具有最高杠杆比。
+    </div>
+    <span style="font-size:12px; color:#FF6B35; font-weight:700;"><i class="fas fa-shield mr-1"></i>消灭 80% 跑偏</span>
+  </div>
+</div>
+</body>
+</html>

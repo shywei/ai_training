@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>2026 业界标准：Spec-Driven Development (SDD) 三阶段规格工件</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:4px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; line-height:1.25; margin-bottom:8px; }
+.slide-accent-line { width:50px; height:3px; background:#FF6B35; margin-bottom:14px; }
+.slide-card { padding:12px 15px; margin-bottom:9px; display:flex; align-items:flex-start; gap:12px; border-radius:6px; }
+.slide-icon { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.slide-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
+.slide-desc { font-size:12px; color:rgba(224,231,255,0.65); line-height:1.45; }
+.code-box { background:#060A12; border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:10px 12px; font-family:Consolas,monospace; font-size:11.5px; line-height:1.5; color:#E0E7FF; }
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <div class="slide-section-num">CHAPTER 01 · SPEC-DRIVEN DEVELOPMENT 企业级闭环</div>
+  <h1>2026 业界标准：Spec-Driven Development (SDD) 三阶段规格工件</h1>
+  <div class="slide-accent-line"></div>
+<div class="flex gap-4" style="height:535px;">
+    <div style="flex:1; background:rgba(255,255,255,0.02); border:1px solid rgba(0,229,255,0.25); border-top:4px solid #00E5FF; border-radius:6px; padding:15px; display:flex; flex-direction:column;">
+      <div class="flex items-center justify-between mb-2">
+        <span style="font-size:15px; font-weight:700; color:#00E5FF;"><i class="fas fa-file-circle-check mr-2"></i>① requirements.md</span>
+        <span style="font-size:11px; padding:2px 7px; background:rgba(0,229,255,0.15); color:#00E5FF; border-radius:4px;">WHAT &amp; WHY</span>
+      </div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); margin-bottom:8px; line-height:1.5;">
+        <strong>工业级 EARS 语法：</strong>消除自然语言歧义，直接映射为单测断言。<br>
+        <code style="color:#00E5FF;">WHEN [前置触发] THE SYSTEM SHALL [系统响应]</code>
+      </div>
+      <div class="code-box flex-1">
+        <div style="color:#64748B;"># 订单防重与库存预占 AC</div>
+        <div style="color:#FF6B35; margin-top:4px;">- AC1 (正常流):</div>
+        <div><strong>WHEN</strong> 携带合法 `Idempotency-Key` 首次提交且库存充足，<strong>THE SYSTEM SHALL</strong> 扣减 Redis 预占并在 200ms 内返回 200。</div>
+        <div style="color:#FF6B35; margin-top:6px;">- AC2 (并发重放):</div>
+        <div><strong>WHEN</strong> 相同幂等键 15m 内重放，<strong>THE SYSTEM SHALL</strong> 拦截并返回首单快照。</div>
+        <div style="color:#FF6B35; margin-top:6px;">- AC3 (边界拒绝):</div>
+        <div><strong>WHEN</strong> 缺失幂等键头，<strong>THE SYSTEM SHALL</strong> 抛出 `BizException(40001)`。</div>
+      </div>
+    </div>
+
+    <div style="flex:1; background:rgba(255,255,255,0.02); border:1px solid rgba(255,107,53,0.25); border-top:4px solid #FF6B35; border-radius:6px; padding:15px; display:flex; flex-direction:column;">
+      <div class="flex items-center justify-between mb-2">
+        <span style="font-size:15px; font-weight:700; color:#FF6B35;"><i class="fas fa-sitemap mr-2"></i>② design.md</span>
+        <span style="font-size:11px; padding:2px 7px; background:rgba(255,107,53,0.15); color:#FF6B35; border-radius:4px;">HOW &amp; BOUNDARY</span>
+      </div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); margin-bottom:8px; line-height:1.5;">
+        <strong>架构设计与边界约束：</strong>扫描存量工程，明确复用现有类、方法签名、DB/缓存 Key 及事务回滚边界，严禁重复造轮。
+      </div>
+      <div class="code-box flex-1">
+        <div style="color:#64748B;"># Technical Design: Idempotency</div>
+        <div style="color:#FF6B35; margin-top:4px;">## 1. 存量资产复用清单</div>
+        <div>- 锁机制: 复用 `RedissonLockTemplate`</div>
+        <div>- 异常码: 复用 `BizException` 与统一拦截</div>
+        <div style="color:#FF6B35; margin-top:6px;">## 2. 接口契约与 Key 规范</div>
+        <div>- Redis Key: `ord:idem:{tenantId}:{key}`</div>
+        <div>- 切面定义: `@Idempotent(ttl = 900)`</div>
+        <div style="color:#FF6B35; margin-top:6px;">## 3. 事务安全边界</div>
+        <div>- 幂等锁置于 `@Transactional` 外部释放</div>
+        <div>- 库存失败自动清理幂等 Key 允许重试</div>
+      </div>
+    </div>
+
+    <div style="flex:1; background:rgba(255,255,255,0.02); border:1px solid rgba(34,197,94,0.25); border-top:4px solid #22C55E; border-radius:6px; padding:15px; display:flex; flex-direction:column;">
+      <div class="flex items-center justify-between mb-2">
+        <span style="font-size:15px; font-weight:700; color:#22C55E;"><i class="fas fa-list-check mr-2"></i>③ tasks.md</span>
+        <span style="font-size:11px; padding:2px 7px; background:rgba(34,197,94,0.15); color:#22C55E; border-radius:4px;">ATOMIC STEPS</span>
+      </div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); margin-bottom:8px; line-height:1.5;">
+        <strong>原子任务拆解单：</strong>拆解为 5–15 分钟可编译跑单测的 Checkbox 队列。每个任务绑定<strong style="color:#E0E7FF;">修改文件 + 关联 AC + 验证命令</strong>。
+      </div>
+      <div class="code-box flex-1">
+        <div style="color:#64748B;"># Implementation Tasks</div>
+        <div style="color:#22C55E; margin-top:4px;">- [x] <strong>Task 1: 定义注解与错误码</strong></div>
+        <div style="color:#94A3B8; padding-left:12px;">• 文件: `Idempotent.java`, `ErrorCode.java`</div>
+        <div style="color:#94A3B8; padding-left:12px;">• 验证: `mvn test-compile`</div>
+        <div style="color:#22C55E; margin-top:6px;">- [x] <strong>Task 2: 实现切面与定向单测</strong></div>
+        <div style="color:#94A3B8; padding-left:12px;">• 文件: `IdempotentAspect.java`, `*Test.java`</div>
+        <div style="color:#94A3B8; padding-left:12px;">• 验证: `mvn test -Dtest=IdempotentTest`</div>
+        <div style="color:#FCA5A5; margin-top:6px;">- [ ] <strong>Task 3: 集成库存预占补偿</strong></div>
+        <div style="color:#94A3B8; padding-left:12px;">• 文件: `OrderServiceImpl.java`</div>
+        <div style="color:#94A3B8; padding-left:12px;">• 验证: `mvn test -Dtest=OrderServiceTest`</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

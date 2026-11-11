@@ -1,31 +1,17 @@
-# OpenClaw类Agent框架
-
 ## Slide Objective
-通过 OpenClaw 这一开源 Agent 框架，向学员展示 Agent 除了“写代码”之外更通用的自动化能力，拓宽对 Agent 边界的认知。
+全面展现 2026 主流 Coding Agent 四大阵营全景矩阵，破除单一产品崇拜，建立客观的横向选型视野。
 
 ## Suggested Presentation
-刚才我们讲的 Coding Agent 都是专门用来写代码的。但在真实世界里，我们要处理的任务远不止写代码。这就引出了以 OpenClaw 为代表的通用 Agent 框架。
-什么是通用 Agent 框架？
-你看，OpenClaw 不仅能连终端，还能连 50 多个社交和办公平台。你可以在飞书里发一句语音，它就能在后台去执行代码编译，然后把结果发给你。
-更重要的是它的“记忆系统”和“自进化”能力。它能记住你上周遇到的一个 bug，下次再遇到类似问题，它会直接翻出之前的经验。记住，这不是大模型在自己训练自己，而是 Agent 把经验写进了持久化文件（Memory.md）里，供以后读取。
-此外，它还能派生子任务（Sub-agent），甚至可以设为定时任务，每天自动巡检你的服务器。
-所以大家看，Coding Agent 只是软件开发的工具，而通用 Agent 框架是整个业务工作流的自动化引擎。
+我们来到第五章：2026 主流 Coding Agent 四大阵营与选型。请看第 16 页。
+市面上产品眼花缭乱，但本质上可以划分为四大清晰形态阵营：
+1. **AI-Native 独立 IDE 阵营**：标杆是 **Cursor**（首创 Composer 跨文件多行编辑）、**Google Antigravity**（多智能体与计划评审流）、**AWS Kiro**（原生支持 Spec 驱动与 Hooks 机制）、**Windsurf**。特点是体验丝滑，针对 AI 工作流彻底重构了 IDE 交互；
+2. **国内大厂主力自研平台**：**阿里 Qoder（通义灵码 Agent）**（依托 Qwen3-Coder，独步于 10 万文件全仓索引与 Repo Wiki 自动生成）、**字节 Trae**（SOLO 模式）、**腾讯 CodeBuddy**（主打企业合规与 Spec 闭环）。国内网络友好，中文理解极强，企业合规首选；
+3. **Terminal 终端 CLI Agent 阵营**：标杆是 **Claude Code**（官方原生终端神作，极客与全栈工程师的最爱）、**Gemini CLI**、**OpenCode**（开源多模型 BYOK）、**Codex CLI**。在无界面服务器、CI/CD 自动化和多任务并行中具备无与伦比的高效；
+4. **IDE 模块化开源插件阵营**：坚守 IntelliJ IDEA 或 VS Code 传统环境团队的首选 —— **Cline / Roo Code**。开源透明，支持自定义切换任何本地模型与 API Key，细粒度权限审批极其严谨。
 
-## Key Emphasis
-重点区分“Coding Agent（专业辅助编程）”与“通用 Agent 框架（综合任务自动化）”。
-解释“自进化”的本质是经验的文本固化（Memory），而非模型的权重更新。
-
-## Optional Extension
-如果学员问什么是“子Agent（Sub-agent）”，可以打比方：就像主程接到一个大需求，他不会自己全干，而是把前端分配给前端子Agent，把后端分配给后端子Agent，最后他来汇总。
-
-## Classroom Interaction
-大家想象一下，如果把这样的 Agent 接入到你们公司的 DevOps 流水线里，每天自动分析报错日志并推送修补方案，能省多少事？
-
-## Take Away
-Agent 框架不止能写代码，更能实现跨平台、带记忆的复杂工作流自动化。
-
-## Why This Slide Matters
-打破学员“AI 只能在 IDE 里帮我补全代码”的局限思维，上升到“自动化引擎”的系统思维层面。
+## Key Q&A / Clarifications
+**Q：为什么国内团队很多选用阿里 Qoder 或通义灵码 Agent？**
+A：一方面国内直接访问网络合规且低延迟，另一方面阿里 Qoder 在超大型单体仓库的代码符号图谱检索（Code Graph）和私域模型微调上有强大沉淀，更适合中国企业的内网开发环境。
 
 ## Transition
-随着 Agent 能力越来越强，我们的整个开发模式，也就是软件工程的方法论，其实正在发生根本性的改变。
+面对这四大阵营，我们企业技术团队该如何制定理性、合规的工具组合策略？看第 17 页决策树。

@@ -1,36 +1,58 @@
 ## Slide Objective
-展示 context 的四课演进和 PromptManager 的三段规则——学员看到 Agent 能力如何通过 context 填充逐步增强。
+对比第六课和第七课的数据分层，讲清"为什么不直接查数据库"。
 
 ## Suggested Presentation
-context 是 `PromptManager.buildUserPrompt(message, context)` 的第二个参数。每课都在填充它。
+第六课：Agent 直连数据库。`RetrievalService` → pgvector，`UserMemoryMapper` → pgvector，`UserProfileMapper` → MySQL。Agent 和三个数据库直接耦合。价格库存？第六课没有——Agent 无法查询实时数据。
 
-**第四课**：context = null。纯 Prompt，没有任何上下文。LLM 只看到系统提示词和用户消息。
+第七课：全部通过 MCP。商品知识通过 MCP Tool → mcp-knowledge-server → pgvector。用户记忆通过 MCP Tool → mcp-knowledge-server → pgvector。用户画像通过 MCP Resource → mcp-knowledge-server → MySQL。价格库存通过 MCP Tool → mcp-product-server → MySQL。
 
-**第五课**：context = 对话历史 + 用户画像。`SessionMemory` 从 Redis 取历史，`UserProfileMapper` 从 MySQL 取画像。LLM 知道"用户之前说了什么"和"用户是谁"。
+数据没变，还是那些 MySQL 和 pgvector。变的是访问方式。
 
-**第六课**：context = 对话历史 + 用户记忆 + RAG 知识。新增 `UserMemoryService` 从 pgvector 语义检索记忆，`RetrievalService` 从 pgvector 语义检索商品知识。LLM 知道"用户之前的需求"和"商品库有什么"。
+看起来多了一层网络调用，但价值很大：
 
-**第七课**：全部通过 MCP。画像通过 `McpKnowledgeClient.readUserProfile()`（MCP Resource）获取，记忆通过 `McpKnowledgeClient.searchMemory()`（MCP Tool）获取。RAG 通过 `McpKnowledgeClient.search()`（MCP Tool）获取。**路由决定注入内容**——只有 KNOWLEDGE 路由才注入 RAG。
+**解耦**：Agent 不依赖具体数据库。pgvector 换成 Milvus，只改 mcp-knowledge-server 的实现，agent-runtime 代码不变。
 
-### PromptManager 三段规则
+**复用**：MCP Server 可以被多个 Agent 调用。导购 Agent 和客服 Agent 都可以调用同一个 mcp-knowledge-server。
 
-**行为规则**："用户问购物相关问题时，基于商品库知识推荐；非购物问题正常聊天。"这告诉 LLM 什么时候该推荐商品。
+**标准化**：Tool 有统一的暴露和发现机制。任何支持 MCP 的 Agent 都能自动发现和调用 Tool。
 
-**知识使用规则**："如果参考知识中有商品知识，请优先基于这些知识回答；没有则基于常识，但不要编造商品信息。"这告诉 LLM 怎么使用 RAG 结果。
+**独立部署**：知识服务和商品服务可以独立扩缩容。商品查询是高频操作，可以多部署几个 mcp-product-server 实例。
 
-**记忆使用规则**（第七课新增）："「参考信息」中的用户记忆，记录了用户之前的需求和决策。推荐商品时，结合记忆了解用户的真实需求。"这告诉 LLM 怎么使用记忆。记忆保存由系统自动处理，不需要 LLM 参与。
+agent-runtime 不直接访问任何数据库——这是第七课最重要的架构变化。`VectorStoreConfig.java`（PostgreSQL 数据源配置）、`UserMemoryMapper.java`（pgvector SQL 操作）、`RetrievalService.java`（向量检索）全部删除。agent-runtime 的 pom.xml 中移除了 `spring-ai-pgvector-store-spring-boot-starter` 和 `postgresql` 驱动。
 
-Prompt 的作用：不是把 Tool 暴露给 LLM 就够了，还要告诉 LLM 什么时候用、怎么用。Tool + Prompt = 完整的 Agent 能力。
+### pgvector 内部的数据分层（Demo 未覆盖）
 
-### 第七课的变化
+当前 Demo 把商品所有信息都塞进 `content` 字段，没有利用 `metadata` 列。生产中应该做 Metadata Filtering：
 
-context 不再自动拼接所有内容。路由决定——KNOWLEDGE 注入 RAG，TOOL 注册 FunctionCallback，CHAT 什么都不加。这是和第六课的核心区别：第六课每次都注入 RAG（浪费 token），第七课按需注入。
+- `content`：纯描述文本，用于 Embedding 和语义匹配
+- `metadata`：结构化字段（category、brand、price_range、tags），用于前置过滤
+
+查询时先用 metadata 缩小范围（`category = '笔记本电脑' AND price < 10000`），再做向量相似度搜索。避免“推荐笔记本”搜到手机。
+
+### Query Rewrite（Demo 未覆盖）
+
+当前 Demo 直接拿用户原文做 RAG 检索，准确率低。生产中应该先用 LLM 抽取意图，生成结构化检索 query：
+
+- 用户：“推荐一台笔记本” → LLM 分析：笔记本、无预算 → query：“笔记本电脑 轻薄 办公”
+- 用户：“预算8000写代码” → LLM 分析：笔记本、编程、8000 → query：“笔记本电脑 编程 8000元”
+- 用户：“多少钱” → LLM 分析：问价格、上下文是 ThinkPad → query：“ThinkPad T14s 价格”
+
+Demo 跳过了 Query Rewrite 和 Metadata Filtering，直接拿用户原文检索。生产必须有。
 
 ## Key Emphasis
-context 演进体现 Agent 能力增强。每课增加新的信息源，LLM 拥有更多上下文来做决策。但第七课的关键变化是"按需注入"——不是所有信息都需要每次都给 LLM。
+MCP 化的代价是多一层网络调用（毫秒级），收益是解耦、复用、标准化、独立部署。在企业场景中，收益远大于代价。
 
-## Demo 与生产的差距
-Demo 的 context 构建是同步的——每次对话都要查画像、查记忆、可能查 RAG。生产中应该做异步预加载——画像和记忆在会话开始时预加载到缓存，对话时直接读缓存。Demo 没有做 token 预算控制——context 可能超过模型的 context window。生产中需要按优先级截断：画像（必须）> 记忆（重要）> 对话历史（可截断）> RAG（按需）。
+## Optional Extension
+**学员问：MCP 化多了一跳网络，性能是不是变差了？值吗？**
+答：一跳是毫秒级开销，换来的是三个边界：扩缩容边界、权限边界、变更边界。值不值看你要不要这三个边界。
+Demo 做法：agent-runtime 删掉 `VectorStoreConfig`、pgvector 直连和对应依赖，访问统一走 `McpKnowledgeClient` / `McpProductClient`——商品知识、记忆在 mcp-knowledge-server，价格库存在 mcp-product-server，各查各的库。
+生产做法：热点查询加缓存抵消网络开销；检索侧补 Metadata Filtering（先按 category/price 过滤再向量匹配）和 Query Rewrite（LLM 先把口语检索词结构化）——就是本页下半段讲的两件 Demo 未覆盖项。取舍：独立扩缩容意味着商品查询能单独加实例，这在直连架构里做不到；代价是要管两个服务的部署与监控。
+
+## Take Away
+判断"多包一层"值不值的标准：它换没换来独立的扩缩容/权限/变更边界——换来了是架构收益，没换来的包装只是装饰。
+
+## Why This Slide Matters
+跳过这页，学员会嫌多一跳就让 Agent 直连数据库（绑死存储、无法独立扩缩容、权限混在一起），或走向另一头——盲目包协议层却什么都不隔离，白付网络成本。
 
 ## Transition
-Demo 做了简化，和生产环境有什么差距？
+context 怎么演进的？Prompt 怎么配套？

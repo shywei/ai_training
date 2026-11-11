@@ -249,11 +249,26 @@ public class AgentRuntime {
         confirmationService.confirm(traceId);
         traceService.recordStateChange(traceId, WorkflowState.CONFIRMING, WorkflowState.EXECUTING);
 
-        WorkflowStep step = new WorkflowStep(pending.getStepNumber(), pending.getDescription());
-        step.setToolName(pending.getToolName());
-        step.setToolInput(pending.getToolInput());
+        // 复用已有步骤或新建步骤，避免重复记录相同步骤号
+        WorkflowStep step = null;
+        if (trace != null && trace.getSteps() != null) {
+            for (WorkflowStep s : trace.getSteps()) {
+                if (s.getStepNumber() == pending.getStepNumber()) {
+                    step = s;
+                    break;
+                }
+            }
+        }
+        if (step == null) {
+            step = new WorkflowStep(pending.getStepNumber(), pending.getDescription());
+            step.setToolName(pending.getToolName());
+            step.setToolInput(pending.getToolInput());
+            traceService.recordStepStart(traceId, step);
+        } else {
+            step.setToolName(pending.getToolName());
+            step.setToolInput(pending.getToolInput());
+        }
         step.start();
-        traceService.recordStepStart(traceId, step);
 
         String toolResult = callToolDirectly(pending.getToolName(), pending.getToolInput());
 
@@ -261,9 +276,14 @@ public class AgentRuntime {
             step.complete(toolResult);
             traceService.recordStepEnd(traceId, step);
 
+            // 若前端未传入 originalMessage，兜底使用 trace 中的 userMessage
+            String effectiveMessage = (originalMessage != null && !originalMessage.isBlank())
+                    ? originalMessage
+                    : (trace != null && trace.getUserMessage() != null ? trace.getUserMessage() : "");
+
             // 让 LLM 基于工具结果生成最终回复
-            String context = memoryManager.buildContext(sessionId, userId, originalMessage);
-            String finalPrompt = "用户请求: " + originalMessage + "\n\n" +
+            String context = memoryManager.buildContext(sessionId, userId, effectiveMessage);
+            String finalPrompt = "用户请求: " + effectiveMessage + "\n\n" +
                     "工具 \"" + pending.getToolName() + "\" 执行结果:\n" + toolResult + "\n\n" +
                     "请基于以上结果，给用户一个简洁的回复。";
 

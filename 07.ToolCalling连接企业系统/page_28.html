@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>补偿</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.mb-2{margin-bottom:8px}
+.card{padding:10px 12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:6px}
+.card .t{font-size:12px;color:#00E5FF;font-weight:700;margin-bottom:5px}
+.b{font-size:10.5px;color:rgba(224,231,255,0.72);line-height:1.65}
+.m{padding:9px 11px;background:rgba(168,85,247,0.06);border-left:3px solid #A855F7;border-radius:4px}
+.m .t{font-size:11.5px;color:#A855F7;font-weight:700;margin-bottom:3px}
+.m .b{font-size:10.5px;color:rgba(224,231,255,0.72);line-height:1.6}
+.g{padding:8px 10px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px}
+.g .t{font-size:11px;color:#FF6B35;font-weight:700;margin-bottom:3px}
+.g .b{font-size:10px;color:rgba(224,231,255,0.72);line-height:1.55}
+</style></head>
+<body>
+<div class="s" style="padding:28px 56px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 07</div>
+  <h1 class="mb-2">补偿 — 失败之后，世界怎么回到一致</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px;"></div>
+
+  <div style="flex:1;display:flex;gap:14px;">
+    <!-- 左：失败怎么回滚 -->
+    <div style="flex:1;display:flex;flex-direction:column;gap:9px;">
+      <div class="card" style="flex:1;">
+        <div class="t">① 失败怎么回滚：三条路按操作性质选</div>
+        <div class="b">
+          <strong style="color:#22C55E;">不补偿：</strong>纯读、幂等写（重复无影响）——记录即可。<br>
+          <strong style="color:#FFD166;">反向操作（补偿动作）：</strong>下单→取消订单、扣库存→回补、发券→作废。
+          反向操作必须<strong style="color:#FF6B35;">成对设计</strong>：设计正向 Tool 时就定义它的补偿 Tool（`place_order` ↔ `cancel_order`），
+          不要等出事再想怎么撤。<br>
+          <strong style="color:#FF6B35;">人工介入：</strong>不可逆操作（已发货、已付款已清算）——系统只能标记异常 + 告警 + 工单，靠人收尾。
+          <br><strong style="color:#E0E7FF;">判断标准：</strong>先问"能不能反向"，再问"反向的代价是否小于不一致的代价"。
+        </div>
+      </div>
+      <div class="card" style="background:rgba(255,107,53,0.06);border-color:rgba(255,107,53,0.2);">
+        <div class="t" style="color:#FF6B35;">② Demo 现状（v1.4）：无事前确认，也无事后补偿</div>
+        <div class="b">
+          本课 <code>v1.4</code> 的 <code>mcp-product-server</code> 仅暴露 3 个只读查询 Tool（<code>queryProductInfo</code> / <code>queryPrice</code> / <code>queryStock</code>），尚不敢开放真实下单/扣库存写接口。
+          <strong>下一课（第八课）</strong>将引入 <code>ConfirmationService</code> 对高危写操作做<strong style="color:#E0E7FF;">事前人工确认拦截</strong>，但即便有了事前确认，<strong style="color:#FF6B35;">一旦"下单成功但后续扣库存失败"，事后回退与对账补偿仍需专门设计！</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- 中：Saga / 本地消息表 / 对账 -->
+    <div style="flex:1.1;display:flex;flex-direction:column;gap:9px;">
+      <div class="m" style="background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;">
+        <div class="t" style="color:#00E5FF;">③ Saga：把"多步写操作"编排成可回退的链</div>
+        <div class="b">
+          <strong style="color:#E0E7FF;">编排式（集中协调）：</strong>一个协调器按序调 T1→T2→T3，任一步失败就逆序调 C3→C2→C1。
+          链路清晰、好调试；协调器是单点，逻辑集中容易变胖。下一课第八课 <code>AgentRuntime</code> 的多步执行天然像编排器——
+          在每个 <code>WorkflowStep</code> 上挂"补偿动作"字段就是最简 Saga。<br>
+          <strong style="color:#E0E7FF;">协同式（事件驱动）：</strong>每个服务做完发事件，下游监听并各自决定下一步/补偿。
+          解耦好、可扩展；链路分散，排查要靠 Trace/审计串起来。<br>
+          <strong style="color:#FF6B35;">取舍：</strong>步数少（≤5）、流程固定用编排式；跨团队、多系统用协同式。
+          两边共同前提：<strong style="color:#E0E7FF;">每一步幂等</strong>（补偿本身也会重试）。
+        </div>
+      </div>
+      <div class="m">
+        <div class="t">④ 本地消息表：不用分布式事务，也要最终一致</div>
+        <div class="b">
+          做法：业务操作和"待发消息"在<strong style="color:#E0E7FF;">同一个本地事务</strong>里写库（订单 + outbox 消息表一起提交），
+          后台任务扫表投递到 MQ / 直调下游，成功后标记已发。<br>
+          为什么不用两阶段提交：跨 ERP/订单/库存的 2PC 又慢又脆（锁资源、部分场景根本不支持）。
+          本地消息表保证<strong style="color:#22C55E;">"要么都生效、要么最终补上"</strong>，代价是短暂不一致 + 投递重试。
+        </div>
+      </div>
+      <div class="m">
+        <div class="t">⑤ 对账：最后一道防线</div>
+        <div class="b">
+          T+1（或小时级）跑对账任务：把 Agent 侧的调用/订单记录（审计表里带幂等键与下游单号）与 ERP 侧数据逐条比对，
+          找出<strong style="color:#FF6B35;">孤儿单</strong>（我方有、对方无）和<strong style="color:#FF6B35;">重复单</strong>（一幂等键多单）。
+          处理：自动触发补偿（取消重复单）或转人工工单。<strong style="color:#E0E7FF;">补偿解决"当下"，对账兜住"漏网"。</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右：三格 -->
+    <div style="flex:1;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+      <div class="g"><div class="t">✗ 补偿事务与对账 ｜ 问题</div>
+        <div class="b">写操作失败即终止，没有反向操作、没有幂等键支撑的重试、没有跨系统对账——多步任务（下单→扣库存→发通知）半途失败只留下中间态。</div></div>
+      <div class="g"><div class="t">不解决</div>
+        <div class="b">订单下了库存没扣（超卖/发不出货）、库存扣了单没成（货压死）、重复单无人发现——数据不一致靠客诉暴露，越晚发现代价越大。</div></div>
+      <div class="g" style="background:rgba(34,197,94,0.06);border-left:3px solid #22C55E;">
+        <div class="t" style="color:#22C55E;">怎么解决</div>
+        <div class="b">正向/补偿 Tool 成对定义，Saga 编排式（≤5 步固定流程）或协同式（跨团队）执行；本地消息表保证"业务+消息"同事务、异步投递最终一致；
+          定时对账比对双方数据，孤儿/重复单自动补偿或转人工。取舍：没有银弹——补偿链会叠加延迟与复杂度，只给真正需要一致性的写链路用，读操作不做补偿。</div></div>
+    </div>
+  </div>
+</div>
+</body></html>

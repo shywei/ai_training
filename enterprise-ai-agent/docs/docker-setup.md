@@ -16,10 +16,13 @@ cd enterprise-ai-agent
 cp .env.example .env
 vi .env    # 填入 SILICONFLOW_API_KEY
 
-# 2. 一键启动（首次构建约 5-10 分钟，含 Maven/npm 依赖下载）
-docker compose up -d --build
+# 2. 一键本地打包（Linux/macOS 用 ./build-all.sh，Windows 用 build-all.bat）
+./build-all.sh
 
-# 3. 打开页面
+# 3. 启动容器编排（直接挂载 jar 包与 dist 静态目录，秒级启动）
+docker compose up -d
+
+# 4. 打开页面
 # http://localhost:3000
 ```
 
@@ -77,5 +80,5 @@ docker compose down -v             # 停止并清空数据（重新初始化）
 | 页面能开但发消息无响应 | `docker compose logs agent-runtime` 看报错；确认 .env 里 API Key 有效 |
 | 启动报数据库连接失败 | 首次初始化较慢，`docker compose ps` 等 MySQL/PG 变 healthy 后 `docker compose up -d` 再拉一次 |
 | RAG 查不到商品 | 页面点「加载商品知识」手动索引 |
-| 改了 SQL 想重新初始化 | `docker compose down -v && docker compose up -d --build`（会清空数据） |
-| 构建慢 | 首次正常；Maven/npm 均有镜像层缓存，增量构建只需 1-2 分钟 |
+| 改了 SQL 想重新初始化 | `docker compose down -v && docker compose up -d`（会清空数据） |
+| 打包与构建慢 | 本地构建支持多核与本地 Maven/npm 缓存；容器直接挂载产物，无需在 Docker 内重新编译 |

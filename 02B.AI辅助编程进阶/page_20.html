@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>实战演练（二）：基于 OpenCode 演练 SDD 规格驱动与 Agentic TDD 闭环</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:4px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; line-height:1.25; margin-bottom:8px; }
+.slide-accent-line { width:50px; height:3px; background:#FF6B35; margin-bottom:14px; }
+.slide-card { padding:12px 15px; margin-bottom:9px; display:flex; align-items:flex-start; gap:12px; border-radius:6px; }
+.slide-icon { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.slide-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
+.slide-desc { font-size:12px; color:rgba(224,231,255,0.65); line-height:1.45; }
+.code-box { background:#060A12; border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:10px 12px; font-family:Consolas,monospace; font-size:11.5px; line-height:1.5; color:#E0E7FF; }
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <div class="slide-section-num">CHAPTER 06 · 基于 OPENCODE 的企业靶场实战演练</div>
+  <h1>实战演练（二）：基于 OpenCode 演练 SDD 规格驱动与 Agentic TDD 闭环</h1>
+  <div class="slide-accent-line"></div>
+<div class="flex items-center justify-between mb-2">
+    <div style="font-size:13px; color:#00E5FF; font-weight:700;"><i class="fas fa-laptop-code mr-2"></i>两大典型场景真刀真枪演练：新特性开发 vs 祖传代码安全重构</div>
+    <span style="font-size:12px; color:#22C55E; font-weight:700;"><i class="fas fa-file-code mr-1"></i>对应实操指南：《Demo演示步骤.md》演示 2 &amp; 3</span>
+  </div>
+
+  <div class="flex gap-4" style="height:510px;">
+    <div style="flex:1; background:rgba(255,255,255,0.02); border:1px solid rgba(0,229,255,0.25); border-top:4px solid #00E5FF; border-radius:6px; padding:14px; display:flex; flex-direction:column;">
+      <div class="flex items-center justify-between mb-2">
+        <span style="font-size:14px; font-weight:700; color:#00E5FF;"><i class="fas fa-user-secret mr-1"></i>演练 A（新特性 SDD）：PII 敏感数据脱敏</span>
+        <span style="font-size:11px; background:rgba(0,229,255,0.15); color:#00E5FF; padding:2px 6px; border-radius:3px;">PiiMaskUtils</span>
+      </div>
+      <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.45; margin-bottom:8px;">
+        <strong>背景：</strong>报文夹带真实手机号与身份证有泄露风险。在工具类 `PiiMaskUtils` 新增 `mask(text)` 脱敏能力。
+      </div>
+      <div class="code-box flex-1" style="font-size:11px; border-color:rgba(0,229,255,0.3);">
+        <div style="color:#00E5FF;">📄 Step 1: requirements.md (EARS 契约)</div>
+        <div>• <strong>AC1 (手机号)</strong>: WHEN 包含大陆11位手机号 THE SYSTEM SHALL 替换为 138****5678。</div>
+        <div>• <strong>AC2 (身份证)</strong>: WHEN 包含18位二代身份证 THE SYSTEM SHALL 掩码为 110101********123X。</div>
+        <div>• <strong>AC3 (防误伤)</strong>: WHEN 包含20位单号或SKU 保持原样不误脱敏。</div>
+        <div style="margin-top:6px; color:#22C55E;">✅ Step 2-4: 预编译正则 + 定向单测全绿</div>
+        <div>opencode run "mvn test -Dtest=PiiMaskUtilsTest"</div>
+        <div style="color:#86EFAC;">[INFO] Tests run: 8, Failures: 0, 8/8 通过！</div>
+      </div>
+    </div>
+
+    <div style="flex:1; background:rgba(255,255,255,0.02); border:1px solid rgba(255,107,53,0.25); border-top:4px solid #FF6B35; border-radius:6px; padding:14px; display:flex; flex-direction:column;">
+      <div class="flex items-center justify-between mb-2">
+        <span style="font-size:14px; font-weight:700; color:#FF6B35;"><i class="fas fa-screwdriver-wrench mr-1"></i>演练 B（存量重构）：复杂文本解析器安全解耦</span>
+        <span style="font-size:11px; background:rgba(255,107,53,0.15); color:#FF6B35; padding:2px 6px; border-radius:3px;">LegacyParser</span>
+      </div>
+      <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.45; margin-bottom:8px;">
+        <strong>背景：</strong>存量 `LegacyParser` 混杂思维链清理、代码块剥离与括号匹配，圈复杂度过高。需零行为偏差重构。
+      </div>
+      <div class="code-box flex-1" style="font-size:11px; border-color:rgba(255,107,53,0.3);">
+        <div style="color:#FF6B35;">🔒 Step 1 &amp; 2: 生成黄金测试并开启 LOCK_TESTS=1</div>
+        <div>1. 命令 Agent 生成覆盖 12 种刁钻边界的特征回归用例；</div>
+        <div>2. 确认 12/12 绿灯后，执行 `export LOCK_TESTS=1` 激活护栏！</div>
+        <div style="margin-top:6px; color:#A855F7;">⚡ Step 3 &amp; 4: 重构 + 现场作弊拦截验证</div>
+        <div>• 故意诱导 Agent 修改 test 目录 &rarr; <strong>Hook 弹出红色拦截告警</strong>！</div>
+        <div>• 逼迫 Agent 修正业务状态机，最终 12 条用例 0.2s 全绿通过！</div>
+        <div style="color:#86EFAC; margin-top:2px;">[INFO] Tests run: 12, Failures: 0 — 零事故交付！</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

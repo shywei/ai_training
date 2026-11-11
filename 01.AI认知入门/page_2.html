@@ -3,50 +3,76 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>目录</title>
+<title>课程目录：五大核心篇章</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
 .slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:48px !important; color:#E0E7FF; font-weight:700; }
-.slide-toc-item { display:flex; align-items:flex-start; padding:10px 0; border-bottom:1px solid rgba(0,229,255,0.1); }
-.slide-toc-num { font-size:28px; font-weight:700; color:#00E5FF; min-width:60px; line-height:1; }
+.slide-container h1 { font-size:44px !important; color:#E0E7FF; font-weight:700; }
+.slide-toc-item { display:flex; align-items:flex-start; padding:12px 18px; margin-bottom:9px; background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.12); border-left:4px solid #00E5FF; }
+.slide-toc-num { font-size:24px; font-weight:700; color:#00E5FF; min-width:52px; line-height:1.1; }
 .slide-toc-text { flex:1; }
-.slide-toc-title { font-size:18px; color:#E0E7FF; font-weight:600; margin-bottom:2px; }
-.slide-toc-desc { font-size:13px; color:rgba(224,231,255,0.5); }
-.slide-accent-line { width:50px; height:3px; background:#FF6B35; }
+.slide-toc-title { font-size:16px; color:#E0E7FF; font-weight:700; margin-bottom:3px; display:flex; justify-content:space-between; align-items:center; }
+.slide-toc-pages { font-size:12px; font-weight:600; color:#00E5FF; padding:2px 8px; background:rgba(0,229,255,0.1); border-radius:3px; }
+.slide-toc-desc { font-size:12px; color:rgba(224,231,255,0.58); line-height:1.5; }
+.slide-accent-line { width:60px; height:3px; background:#FF6B35; }
 </style>
 </head>
 <body>
 <div class="slide-container flex">
-  <div class="flex flex-col justify-center" style="width:360px; padding-left:80px;">
-    <h1 class="mb-6">目录</h1>
-    <div class="slide-accent-line mb-6"></div>
-    <p style="font-size:15px; color:rgba(224,231,255,0.4); line-height:1.8;">
-      从AI诞生到编程革命<br>一条80年的技术进化之路
+  <div class="flex flex-col justify-center" style="width:370px; padding-left:65px; padding-right:25px;">
+    <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; margin-bottom:8px;">COURSE AGENDA</div>
+    <h1 class="mb-4">课程目录</h1>
+    <div class="slide-accent-line mb-5"></div>
+    <p style="font-size:14px; color:rgba(224,231,255,0.6); line-height:1.8; margin-bottom:20px;">
+      用程序员熟悉的代码、架构、编译器与编译产物直觉，一次性打通从感知机到 Coding Agent 的全景认知路径。
     </p>
+    <div style="padding:14px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.18);">
+      <div style="font-size:12px; color:#FF6B35; font-weight:700; margin-bottom:4px;"><i class="fas fa-compass" style="margin-right:6px;"></i>本课定位</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.65); line-height:1.6;">AI 认知重塑的基石之作：理解大模型为什么强大、为什么有软肋、工程师如何完成时代跃迁。</div>
+    </div>
   </div>
-  <div class="flex flex-col justify-center flex-1" style="padding:30px 80px 30px 40px;">
+
+  <div class="flex flex-col justify-center flex-1" style="padding:28px 65px 28px 15px;">
     <div class="slide-toc-item">
       <div class="slide-toc-num">01</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">AI的探索：80年的曲折</div><div class="slide-toc-desc">符号主义、专家系统、搜索与推荐、深度学习（第3-7页）</div></div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title"><span>前大模型时代：从规则系统到特征自学习（1943–2016）</span><span class="slide-toc-pages">P03 - P07</span></div>
+        <div class="slide-toc-desc">图灵测试与达特茅斯 · 感知机与异或之困 · 专家系统崩溃 · 搜索与推荐时代 · 深度学习特征自学习</div>
+      </div>
     </div>
+
     <div class="slide-toc-item">
       <div class="slide-toc-num">02</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">Transformer与统一建模</div><div class="slide-toc-desc">注意力机制、并行计算、原生多模态（第8-9页）</div></div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title"><span>大模型架构奇点与本质祛魅（2017–2022）</span><span class="slide-toc-pages">P08 - P12</span></div>
+        <div class="slide-toc-desc">Transformer 并行计算奇点 · BERT vs GPT 路线之争 · Scaling Laws 与能力涌现 · Next-Token 概率预测机本质</div>
+      </div>
     </div>
-    <div class="slide-toc-item">
-      <div class="slide-toc-num">03</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">大模型为什么成功</div><div class="slide-toc-desc">GPT进化、三大要素、Scaling Laws、为什么这次不一样（第10-15页）</div></div>
+
+    <div class="slide-toc-item" style="border-left-color:#FF6B35;">
+      <div class="slide-toc-num" style="color:#FF6B35;">03</div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title"><span>程序员视角的四大灵魂解惑</span><span class="slide-toc-pages" style="color:#FF6B35; background:rgba(255,107,53,0.12);">P13 - P17</span></div>
+        <div class="slide-toc-desc">大模型是巨型只读 .jar 包 · 微调重编 vs RAG 挂库 · 为何 Coding 率先闭环 · 幻觉根源与程序员职业重塑</div>
+      </div>
     </div>
-    <div class="slide-toc-item">
-      <div class="slide-toc-num">04</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">AI编程革命</div><div class="slide-toc-desc">从补全到Agent、工具全景（第16-18页）</div></div>
+
+    <div class="slide-toc-item" style="border-left-color:#22C55E;">
+      <div class="slide-toc-num" style="color:#22C55E;">04</div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title"><span>软件工程范式革命：迈向 AI 原生编程时代</span><span class="slide-toc-pages" style="color:#22C55E; background:rgba(34,197,94,0.12);">P18 - P20</span></div>
+        <div class="slide-toc-desc">Software 1.0 → 2.0 → 3.0 · 从补全插件到终端自主 Agent · 角色重塑：Spec & Harness 架构师</div>
+      </div>
     </div>
-    <div class="slide-toc-item" style="border-bottom:none;">
-      <div class="slide-toc-num">05</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">概念辨析与总结</div><div class="slide-toc-desc">核心概念、训练过程、硬件基础（第19-27页）</div></div>
+
+    <div class="slide-toc-item" style="border-left-color:#A855F7; margin-bottom:0;">
+      <div class="slide-toc-num" style="color:#A855F7;">05</div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title"><span>裸模型软肋与全课认知跃迁</span><span class="slide-toc-pages" style="color:#A855F7; background:rgba(168,85,247,0.12);">P21 - P22</span></div>
+        <div class="slide-toc-desc">裸模型四大先天软肋（易幻觉/无记忆/无手脚/窗口受限）· 软件工程的护栏价值 · 全课复盘与平滑进阶</div>
+      </div>
     </div>
   </div>
 </div>

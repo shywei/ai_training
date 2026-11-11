@@ -3,84 +3,102 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>Skills与MCP详解</title>
+<title>支柱 ① & ② · AGENTS.md（跨工具开放标准）与 Scoped Rules</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
 .slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-flow-step { padding:10px 14px; text-align:center; font-size:13px; font-weight:600; }
-.slide-flow-arrow { font-size:16px; color:#00E5FF; padding:0 6px; }
-.slide-mcp-server { padding:10px 14px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.1); margin-bottom:6px; display:flex; align-items:center; gap:10px; }
-.slide-mcp-name { font-size:13px; font-weight:700; color:#E0E7FF; min-width:100px; }
-.slide-mcp-desc { font-size:12px; color:rgba(224,231,255,0.5); }
-.slide-skill-example { padding:10px 14px; background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.1); margin-bottom:6px; }
-.slide-skill-name { font-size:13px; font-weight:700; color:#FF6B35; margin-bottom:3px; }
-.slide-skill-desc { font-size:12px; color:rgba(224,231,255,0.5); }
+.slide-container h1 { font-size:29px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; }
+.code-box { padding:10px 12px; background:rgba(0,0,0,0.45); border:1px solid rgba(0,229,255,0.2); font-family:monospace; font-size:11px; color:#E0E7FF; line-height:1.5; }
+.rule-layer { padding:10px 14px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.15); margin-bottom:8px; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:32px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 04 · 深入</div>
-  <h1 class="mb-2">Skills与MCP详解</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:20px;"></div>
+<div class="slide-container" style="padding:26px 65px;">
+  <div class="mb-1 slide-section-num">CHAPTER 04 · HARNESS 驾驭层“六件套”详解</div>
+  <h1 class="mb-2">支柱 ① & ② · `AGENTS.md`（跨工具开放标准）与 Scoped Rules</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:12px;"></div>
 
-  <div class="flex" style="gap:30px;">
+  <div class="flex" style="gap:24px;">
+    <!-- Left Column: AGENTS.md Open Standard & Symlink with CLAUDE.md -->
     <div style="flex:1;">
-      <div style="font-size:16px; font-weight:700; color:#FF6B35; margin-bottom:12px;"><i class="fas fa-puzzle-piece" style="margin-right:6px;"></i>Skills — 预定义能力模块</div>
-      <div style="font-size:13px; color:rgba(224,231,255,0.5); margin-bottom:14px; line-height:1.5;">每个Skill是一个SKILL.md文件，包含任务说明、工具用法、示例。Agent读取后就知道怎么做某件事。</div>
-      <div class="slide-skill-example">
-        <div class="slide-skill-name"><i class="fas fa-file-powerpoint" style="margin-right:6px;"></i>html-ppt-generator</div>
-        <div class="slide-skill-desc">7步流水线：意图分析→内容大纲→设计规范→逐页生成HTML→自检修复→转PPTX</div>
+      <div style="padding:12px 16px; background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.22); margin-bottom:12px;">
+        <div style="font-size:15px; font-weight:700; color:#00E5FF; margin-bottom:6px;">
+          <i class="fas fa-globe" style="margin-right:6px;"></i>1. `AGENTS.md`：Linux 基金会 Agentic AI 跨工具开放标准
+        </div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.5; margin-bottom:8px;">
+          过去团队里有人用 Cursor、有人用 Claude Code、有人用阿里 Qoder，不得不维护五六份重复的规则文件。2025–2026 年，由 OpenAI、Google、Anthropic 与开源社区共建的 <strong style="color:#E0E7FF;">`AGENTS.md`（已纳入 Linux 基金会 AAIF 标准）</strong> 实现了“一份文件、全工具通用”：
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+          <span style="padding:2px 8px; background:rgba(0,229,255,0.15); color:#00E5FF; font-size:11px; border-radius:3px;">OpenAI Codex</span>
+          <span style="padding:2px 8px; background:rgba(0,229,255,0.15); color:#00E5FF; font-size:11px; border-radius:3px;">Cursor</span>
+          <span style="padding:2px 8px; background:rgba(0,229,255,0.15); color:#00E5FF; font-size:11px; border-radius:3px;">OpenCode</span>
+          <span style="padding:2px 8px; background:rgba(0,229,255,0.15); color:#00E5FF; font-size:11px; border-radius:3px;">Google Antigravity</span>
+          <span style="padding:2px 8px; background:rgba(0,229,255,0.15); color:#00E5FF; font-size:11px; border-radius:3px;">阿里 Qoder</span>
+          <span style="padding:2px 8px; background:rgba(0,229,255,0.15); color:#00E5FF; font-size:11px; border-radius:3px;">腾讯 CodeBuddy</span>
+          <span style="padding:2px 8px; background:rgba(0,229,255,0.15); color:#00E5FF; font-size:11px; border-radius:3px;">Cline / Roo Code</span>
+        </div>
+        <div class="code-box" style="border-left:3px solid #22C55E;">
+          <span style="color:#22C55E;"># 兼容 Claude Code (`CLAUDE.md`) 的企业级双保险写法：</span><br>
+          $ git add AGENTS.md<br>
+          $ <strong style="color:#FFC832;">ln -s AGENTS.md CLAUDE.md</strong> &nbsp;<span style="color:rgba(224,231,255,0.5);"># 软链接同步，或在 CLAUDE.md 中写 @AGENTS.md</span>
+        </div>
       </div>
-      <div class="slide-skill-example">
-        <div class="slide-skill-name"><i class="fas fa-database" style="margin-right:6px;"></i>data-analysis</div>
-        <div class="slide-skill-desc">数据分析技能：连接数据源、执行查询、生成图表和报告</div>
+
+      <!-- Enterprise AGENTS.md Template -->
+      <div style="font-size:13.5px; font-weight:700; color:#FF6B35; margin-bottom:6px;">
+        <i class="fas fa-file-signature" style="margin-right:6px;"></i>2. `AGENTS.md` 黄金三段式模板（控制在 150 行以内！）
       </div>
-      <div class="slide-skill-example">
-        <div class="slide-skill-name"><i class="fas fa-globe" style="margin-right:6px;"></i>agent-browser</div>
-        <div class="slide-skill-desc">浏览器操作技能：打开网页、提取内容、自动化表单填写</div>
-      </div>
-      <div style="padding:12px 14px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.12); margin-top:10px;">
-        <div style="font-size:12px; color:rgba(224,231,255,0.5); line-height:1.5;"><strong style="color:#FF6B35;">自定义Skill：</strong>你可以为团队的常见任务编写专属Skill。比如"代码审查规范"、"部署流程"、"数据库迁移检查清单"。写一个SKILL.md放进项目，Agent就能自动执行。</div>
+      <div class="code-box">
+        <div><span style="color:#00E5FF;"># 1. Build &amp; Verify Commands (精确构建与单测命令)</span></div>
+        <div>- 编译检查：`mvn clean test-compile`</div>
+        <div>- 跑单个测试：`mvn test -Dtest=ClassName#methodName`</div>
+        <div style="margin-top:5px;"><span style="color:#FF6B35;"># 2. Architecture &amp; Tech Stack (架构与技术栈基准)</span></div>
+        <div>- JDK 21 + Spring Boot 3.2 + MyBatis-Plus 3.5.5</div>
+        <div>- 统一响应包装：`Result&lt;T&gt;`，业务异常抛 `BizException(ErrorCode)`</div>
+        <div style="margin-top:5px;"><span style="color:#22C55E;"># 3. Red Lines (工程禁令)</span></div>
+        <div>- 严禁使用 Lombok `@Data` 注解在 JPA Entity 上；</div>
+        <div>- 严禁未经批准修改 `db/migration/` 下已提交的 Flyway SQL。</div>
       </div>
     </div>
 
+    <!-- Right Column: Global vs Scoped Rules -->
     <div style="flex:1;">
-      <div style="font-size:16px; font-weight:700; color:#00E5FF; margin-bottom:12px;"><i class="fas fa-plug" style="margin-right:6px;"></i>MCP — 标准化工具连接</div>
-      <div style="font-size:13px; color:rgba(224,231,255,0.5); margin-bottom:14px; line-height:1.5;">MCP (Model Context Protocol) 定义了AI与外部工具通信的标准接口。一次接入，所有支持MCP的Agent都能调用你的工具。</div>
-
-      <!-- MCP flow -->
-      <div class="flex items-center justify-center mb-4" style="gap:0;">
-        <div class="slide-flow-step" style="background:rgba(0,229,255,0.1); color:#00E5FF; border:1px solid rgba(0,229,255,0.2);">Agent</div>
-        <div class="slide-flow-arrow"><i class="fas fa-arrows-left-right"></i></div>
-        <div class="slide-flow-step" style="background:rgba(255,107,53,0.1); color:#FF6B35; border:1px solid rgba(255,107,53,0.2);">MCP协议</div>
-        <div class="slide-flow-arrow"><i class="fas fa-arrows-left-right"></i></div>
-        <div class="slide-flow-step" style="background:rgba(224,231,255,0.06); color:#E0E7FF; border:1px solid rgba(224,231,255,0.15);">外部工具</div>
+      <div style="font-size:15px; font-weight:700; color:#22C55E; margin-bottom:8px;">
+        <i class="fas fa-sitemap" style="margin-right:6px;"></i>3. 为什么需要 Scoped Rules（按目录/后缀动态挂载规则）？
+      </div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.68); line-height:1.5; margin-bottom:10px;">
+        如果把前端 Vue 规范、后端 Java 规范、DBA SQL 规范全部塞进根目录 `AGENTS.md`，不仅浪费 Token，还会互相干扰注意力。2026 主流工具均支持<strong style="color:#E0E7FF;">三层规则作用域（Scoped Rules）</strong>：
       </div>
 
-      <div style="font-size:13px; font-weight:600; color:rgba(224,231,255,0.6); margin-bottom:8px;">常见MCP Server：</div>
-      <div class="slide-mcp-server">
-        <div class="slide-mcp-name"><i class="fas fa-folder" style="margin-right:4px; color:#00E5FF;"></i>文件系统</div>
-        <div class="slide-mcp-desc">读写文件、目录操作、搜索代码</div>
+      <div class="rule-layer" style="border-left:3px solid #00E5FF;">
+        <div style="font-size:13px; font-weight:700; color:#00E5FF;">Layer 1 · 仓库根级常驻（Always On）</div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.65); margin-top:2px;">
+          根目录 `/AGENTS.md`（或 `/CLAUDE.md`）：只放全仓通用的构建命令、核心目录导航与最高安全红线，每次会话自动命中 Prefix Cache。
+        </div>
       </div>
-      <div class="slide-mcp-server">
-        <div class="slide-mcp-name"><i class="fas fa-database" style="margin-right:4px; color:#00E5FF;"></i>数据库</div>
-        <div class="slide-mcp-desc">执行SQL查询、查看表结构、数据迁移</div>
+
+      <div class="rule-layer" style="border-left:3px solid #22C55E;">
+        <div style="font-size:13px; font-weight:700; color:#22C55E;">Layer 2 · 按文件后缀 Glob 条件激活（File-Pattern Scoped）</div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.65); margin-top:2px;">
+          在 `.cursor/rules/*.mdc` 或 `.claude/rules/*.md` 中通过 `globs`/`paths` 声明：**只有当 Agent 读写匹配文件时才自动注入上下文！**
+        </div>
+        <div class="code-box" style="margin-top:6px; padding:6px 10px;">
+          <span style="color:#FF6B35;">---</span><br>
+          <span style="color:#00E5FF;">description</span>: MyBatis XML 与 SQL 编写规范<br>
+          <span style="color:#00E5FF;">globs</span>: <span style="color:#22C55E;">["src/main/resources/mapper/**/*.xml", "**/*.sql"]</span><br>
+          <span style="color:#FF6B35;">---</span><br>
+          - 严禁 `SELECT *`；分页查询必须显式命中联合索引；禁止使用 `#&#123;&#125;` 以外的 `$&#123;&#125;` 拼接。
+        </div>
       </div>
-      <div class="slide-mcp-server">
-        <div class="slide-mcp-name"><i class="fas fa-code-branch" style="margin-right:4px; color:#00E5FF;"></i>Git</div>
-        <div class="slide-mcp-desc">提交代码、查看diff、创建分支、发PR</div>
-      </div>
-      <div class="slide-mcp-server">
-        <div class="slide-mcp-name"><i class="fas fa-globe" style="margin-right:4px; color:#00E5FF;"></i>Web搜索</div>
-        <div class="slide-mcp-desc">搜索文档、API参考、Stack Overflow</div>
-      </div>
-      <div class="slide-mcp-server">
-        <div class="slide-mcp-name"><i class="fas fa-server" style="margin-right:4px; color:#00E5FF;"></i>服务器</div>
-        <div class="slide-mcp-desc">SSH执行命令、Docker操作、K8s管理</div>
+
+      <div class="rule-layer" style="border-left:3px solid #A855F7; margin-bottom:0;">
+        <div style="font-size:13px; font-weight:700; color:#A855F7;">Layer 3 · 子模块就近覆盖（Subdirectory `AGENTS.md`）</div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.65); margin-top:2px;">
+          在 Monorepo 大仓中，`/payment-service/AGENTS.md` 与 `/web-admin/AGENTS.md` 仅在 Agent 进入对应子目录工作时动态合并生效。
+        </div>
       </div>
     </div>
   </div>

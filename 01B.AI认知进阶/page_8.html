@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>自回归采样解码的数学本质：Temperature、Top-P、Top-K 深度拆解</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.s { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.s h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
+.card { background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.15); border-radius:4px; padding:14px 18px; }
+.badge { font-size:11px; font-weight:700; padding:2px 8px; border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="s flex flex-col justify-between">
+  <!-- Header -->
+  <div>
+    <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; margin-bottom:4px;">CHAPTER 02 · 模型推理核心机理</div>
+    <h1 class="mb-2">自回归采样解码的数学本质：Temperature、Top-P、Top-K 深度拆解</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:12px;"></div>
+    <div style="font-size:13px; color:rgba(224,231,255,0.7); line-height:1.5;">
+      模型输出的 Logits 只是未归一化的能量得分，采样算法通过调节概率分布形状与截断长尾，控制模型的创造性与确定性。
+    </div>
+  </div>
+
+  <!-- Middle: Formula & Mechanics -->
+  <div class="grid grid-cols-3 gap-4 my-1">
+    <!-- Temperature -->
+    <div class="card" style="border-top:3px solid #00E5FF;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(0,229,255,0.15); color:#00E5FF;">温度系数</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Temperature (T)</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">改变 Softmax 分布陡峭度</div>
+      <div style="font-size:11px; color:#38BDF8; font-family:Consolas,monospace; margin-bottom:6px;">
+        P(wᵢ) = exp(zᵢ / T) / ∑ exp(zⱼ / T)
+      </div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.5;">
+        • <strong>T ➔ 0（贪婪搜索）：</strong>分布趋近狄拉克冲激，强制选概率最大的 Token，输出确定、保守；<br>
+        • <strong>T = 1.0：</strong>无偏原始概率分布；<br>
+        • <strong>T &gt; 1.0：</strong>拉平分布，低频词获得更多抽样机会，提升发散性，但过高会胡言乱语。
+      </div>
+    </div>
+
+    <!-- Top-K -->
+    <div class="card" style="border-top:3px solid #38BDF8;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(56,189,248,0.15); color:#38BDF8;">绝对截断</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Top-K Truncation</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">剔除极低概率的垃圾长尾</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.5; margin-bottom:8px;">
+        将数十万词表中概率最高的前 $K$ 个词（如 $K=50$）保留，其余所有词的概率强制置为 0，然后在前 $K$ 个词中重新归一化抽样。
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:3px; font-size:11px; color:rgba(224,231,255,0.7); line-height:1.45;">
+        <i class="fas fa-shield-alt" style="color:#38BDF8; margin-right:4px;"></i><strong>工程价值：</strong>筑起一道硬防护栏，彻底杜绝小概率乱码词（如生僻标点、外语符号）被意外抽中。
+      </div>
+    </div>
+
+    <!-- Top-P -->
+    <div class="card" style="border-top:3px solid #FF6B35;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(255,107,53,0.15); color:#FF6B35;">核采样</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Top-P (Nucleus)</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">动态累积概率自适应候选池</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.5; margin-bottom:8px;">
+        按概率降序排列，自上而下累加，当累加和达到阈值 $P$（如 $P=0.9$ 或 $0.95$）时立即截断。
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:3px; font-size:11px; color:rgba(224,231,255,0.7); line-height:1.45;">
+        <i class="fas fa-sliders-h" style="color:#FF6B35; margin-right:4px;"></i><strong>动态自适应：</strong>遇到确定场景（如“人工智能的英文是”），候选池自动缩为 1 个词；遇到发散场景，候选池自动扩张为几十个词。
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom: Enterprise Param Configuration Matrix -->
+  <div style="background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.2); border-radius:4px; padding:12px 18px;">
+    <div class="flex items-center gap-2 mb-2">
+      <i class="fas fa-table" style="color:#22C55E; font-size:13px;"></i>
+      <span style="font-size:13px; font-weight:700; color:#22C55E;">企业级主流业务场景调参工程实战基准</span>
+    </div>
+    <div class="grid grid-cols-3 gap-3" style="font-size:11px;">
+      <div style="background:rgba(255,255,255,0.03); padding:8px 10px; border-radius:3px; border-left:3px solid #22C55E;">
+        <strong style="color:#E0E7FF;">代码生成 / JSON 提取 / 数理逻辑</strong><br>
+        <span style="color:rgba(224,231,255,0.65);">推荐参数：</span><code style="color:#22C55E;">T = 0.0 ~ 0.2, Top-P = 0.8</code><br>
+        <span style="color:rgba(224,231,255,0.5);">消除随机性，保证语法与 Schema 严谨对齐</span>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); padding:8px 10px; border-radius:3px; border-left:3px solid #38BDF8;">
+        <strong style="color:#E0E7FF;">通用企业问答 / 客服 / 文档摘要</strong><br>
+        <span style="color:rgba(224,231,255,0.65);">推荐参数：</span><code style="color:#38BDF8;">T = 0.5 ~ 0.7, Top-P = 0.9</code><br>
+        <span style="color:rgba(224,231,255,0.5);">兼顾回答的准确度与表达的自然流畅性</span>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); padding:8px 10px; border-radius:3px; border-left:3px solid #FF6B35;">
+        <strong style="color:#E0E7FF;">创意策划 / 头脑风暴 / 故事编写</strong><br>
+        <span style="color:rgba(224,231,255,0.65);">推荐参数：</span><code style="color:#FF6B35;">T = 0.8 ~ 1.0, Top-P = 0.95</code><br>
+        <span style="color:rgba(224,231,255,0.5);">充分激活词表长尾想象力，最大化观点多样性</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

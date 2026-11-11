@@ -7,6 +7,14 @@
 
 ## 演示前准备
 
+### 0. 检出对应版本源码（关键前置步骤）
+
+```bash
+# 若前序演练过第 04~07 课处于历史标签，请务必先切回包含完整 Workflow 状态机与 Docker 编排的主分支：
+cd enterprise-ai-agent
+git checkout main
+```
+
 ### 1. 基础环境确认
 
 ```bash
@@ -19,10 +27,18 @@ mysql -u root -e "SHOW DATABASES LIKE 'agent_db'"
 
 **方式一：Docker 一键（推荐）**
 
+免去了在 Docker 容器内部重复下载依赖与构建的漫长等待，直接挂载本地打包产物（jar 包与 dist 静态目录），实现秒级启动：
+
 ```bash
 cd enterprise-ai-agent
 cp .env.example .env   # 填入 SILICONFLOW_API_KEY
-docker compose up -d --build
+
+# 1. 本地统一打包（Linux/macOS 执行 ./build-all.sh，Windows 执行 build-all.bat）
+./build-all.sh
+
+# 2. 挂载产物秒级启动
+docker compose up -d
+
 # 演示容错降级时盯日志：docker compose logs -f agent-runtime
 ```
 

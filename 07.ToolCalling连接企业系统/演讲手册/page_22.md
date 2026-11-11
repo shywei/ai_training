@@ -1,31 +1,48 @@
 ## Slide Objective
-具体列出 Demo 和生产的八个差距，每个差距要说清"是什么问题、不解决会怎样、怎么解决"。
+展示 context 的四课演进和 PromptManager 的三段规则——学员看到 Agent 能力如何通过 context 填充逐步增强。
 
 ## Suggested Presentation
-八个具体差距，每个都是学员做项目时一定会遇到的。
+context 是 `PromptManager.buildUserPrompt(message, context)` 的第二个参数。每课都在填充它。
 
-**认证**：Demo 用明文密码对比（`user.getPassword().equals(password)`）。生产要 OAuth2 + JWT + Token 刷新 + 密码 BCrypt 哈希。不解决会怎样：密码泄露后直接可用。怎么解决：用 Spring Security + OAuth2 Starter，密码用 BCryptPasswordEncoder 哈希存储。
+**第四课**：context = null。纯 Prompt，没有任何上下文。LLM 只看到系统提示词和用户消息。
 
-**权限**：Demo 任何 Agent 能调任何 Tool。生产要 RBAC 权限表——哪些 Agent 能调哪些 Tool。不解决会怎样：一个低权限 Agent 可以调用删除数据的 Tool。怎么解决：MCP Server 端做权限校验，Client 传递 Agent 身份信息。
+**第五课**：context = 对话历史 + 用户画像。`SessionMemory` 从 Redis 取历史，`UserProfileMapper` 从 MySQL 取画像。LLM 知道"用户之前说了什么"和"用户是谁"。
 
-**幂等**：Demo 不处理，LLM 可能重复调用下单接口。不解决会怎样：用户下一单，LLM 重复调用了 3 次，下了 3 单。怎么解决：每个请求带唯一 request_id，Tool 端做去重。
+**第六课**：context = 对话历史 + 用户记忆 + RAG 知识。新增 `UserMemoryService` 从 pgvector 语义检索记忆，`RetrievalService` 从 pgvector 语义检索商品知识。LLM 知道"用户之前的需求"和"商品库有什么"。
 
-**超时**：Demo 写死 15 秒（`requestTimeout(Duration.ofSeconds(15))`）。生产要分级超时（查询 3s / 写入 10s / 批量 30s）+ 指数退避重试 + 熔断。不解决会怎样：一个慢查询阻塞整个对话。怎么解决：用 Resilience4j 做熔断，超时后降级返回"系统繁忙"。
+**第七课**：全部通过 MCP。画像通过 `McpKnowledgeClient.readUserProfile()`（MCP Resource）获取，记忆通过 `McpKnowledgeClient.searchMemory()`（MCP Tool）获取。RAG 通过 `McpKnowledgeClient.search()`（MCP Tool）获取。**路由决定注入内容**——只有 KNOWLEDGE 路由才注入 RAG。
 
-**审计**：Demo 只写日志。生产要审计表记录（谁、什么时间、调了什么、参数、结果、耗时）。不解决会怎样：出了问题无法追溯。怎么解决：MCP Client 端加审计拦截器，记录每次 callTool 的完整信息。
+### PromptManager 三段规则
 
-**缓存**：Demo 无缓存。生产要语义缓存——相似 query 命中缓存，减少 LLM 调用和数据库查询。不解决会怎样："推荐笔记本"被问 100 次，每次都检索+生成。怎么解决：用 Redis 存 query 的 Embedding + 结果，新 query 先做相似度匹配。
+**行为规则**："用户问购物相关问题时，基于商品库知识推荐；非购物问题正常聊天。"这告诉 LLM 什么时候该推荐商品。
 
-**监控**：Demo 无监控。生产要 Tool 调用成功率、延迟 P99、LLM token 用量、成本归因。不解决会怎样：不知道哪个 Tool 慢、哪个 Tool 调用失败率高。
+**知识使用规则**："如果参考知识中有商品知识，请优先基于这些知识回答；没有则基于常识，但不要编造商品信息。"这告诉 LLM 怎么使用 RAG 结果。
 
-**安全**：Demo 无输入校验。生产要 SQL 注入防护、PII 脱敏、Tool 参数白名单校验。不解决会怎样：用户输入中嵌入 SQL 注入，Tool 被操控。
+**记忆使用规则**（第七课新增）："「参考信息」中的用户记忆，记录了用户之前的需求和决策。推荐商品时，结合记忆了解用户的真实需求。"这告诉 LLM 怎么使用记忆。记忆保存由系统自动处理，不需要 LLM 参与。
 
-**Query Rewrite**：Demo 直接拿用户原文做 RAG 检索。不解决会怎样：“多少钱”这种短 query 缺少产品上下文，检索不到相关内容。怎么解决：用 LLM 先抽取用户意图（产品类别、需求、预算），生成结构化检索 query 再搜索。
+Prompt 的作用：不是把 Tool 暴露给 LLM 就够了，还要告诉 LLM 什么时候用、怎么用。Tool + Prompt = 完整的 Agent 能力。
 
-**Metadata Filtering**：Demo 把所有信息塞进 content 字段，没有利用 metadata 列。不解决会怎样：“推荐笔记本”可能搜到手机（价格接近）。怎么解决：metadata 存结构化标签（category、brand、price_range），查询时先用 metadata 过滤再做向量搜索。
+### 第七课的变化
+
+context 不再自动拼接所有内容。路由决定——KNOWLEDGE 注入 RAG，TOOL 注册 FunctionCallback，CHAT 什么都不加。这是和第六课的核心区别：第六课每次都注入 RAG（浪费 token），第七课按需注入。
 
 ## Key Emphasis
-这些不是"下一课的内容"，是"学员真正做项目时需要考虑的问题"。每个差距要具体到"是什么问题、不解决会怎样、怎么解决"。
+context 演进体现 Agent 能力增强。每课增加新的信息源，LLM 拥有更多上下文来做决策。但第七课的关键变化是"按需注入"——不是所有信息都需要每次都给 LLM。
+
+## Demo 与生产的差距
+Demo 的 context 构建是同步的——每次对话都要查画像、查记忆、可能查 RAG。生产中应该做异步预加载——画像和记忆在会话开始时预加载到缓存，对话时直接读缓存。Demo 没有做 token 预算控制——context 可能超过模型的 context window。生产中需要按优先级截断：画像（必须）> 记忆（重要）> 对话历史（可截断）> RAG（按需）。
+
+## Optional Extension
+**学员问：context 里的画像、记忆、历史、检索结果，为什么不干脆全塞进去？反正模型窗口越来越大。**
+答：窗口大不等于预算无限——token 是钱，噪声是准确率。全量拼接还有个隐性问题：信息越多，LLM 越容易挑错重点。
+Demo 做法：路由决定注入——KNOWLEDGE 才追加 `mcpKnowledgeClient.search(message)` 的检索结果，TOOL 只注册 FunctionCallback，CHAT 不注入 RAG、不注册 Tool；`PromptManager` 三段规则（行为/知识使用/记忆使用）告诉 LLM 每块信息怎么用。
+生产做法：context 构建带 token 预算，按"缺了会答错"的优先级裁剪：画像（必须）> 记忆 > 历史（可截断）> 检索（按需），加上异步预取与缓存（本页差距段）。取舍：裁剪规则要配评测回归，防止"省了 token 但答案变差"没被发现。
+
+## Take Away
+context 构建要带预算和优先级——先保"缺了会答错"的必选项，再按 token 预算裁可选项，全量拼接省事但费钱、降准确率。
+
+## Why This Slide Matters
+跳过这页，学员会延续第六课的全量注入——token 成本随对话量线性失控，或动手裁剪时裁错优先级把关键上下文裁掉，答案质量莫名下滑还找不到原因。
 
 ## Transition
-来看项目的代码结构和阅读路线图。
+Demo 做了简化，和生产环境有什么差距？先把治理底座看清——下一部分用六页把企业治理五件套（限流/幂等/超时/补偿/审计）逐个讲透，最后收进 Demo vs 生产的差距清单。

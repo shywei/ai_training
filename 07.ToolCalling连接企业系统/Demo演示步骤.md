@@ -6,6 +6,14 @@
 
 ## 演示前准备
 
+### 0. 检出对应版本源码（关键前置步骤）
+
+```bash
+# 必须先切换到第七课对应的代码标签（v1.4 双 MCP 微服务 + agent-runtime 矩阵）
+cd enterprise-ai-agent
+git checkout v1.4
+```
+
 ### 1. 基础环境确认
 
 ```bash
@@ -115,7 +123,7 @@ mcp:
 1. 在聊天框提问：“`帮我查一下拯救者 Y9000P 还有货吗？我想买一部。`”
 
 **预期结果：**
-*   Agent 能够精准识别并返回：“`拯救者 Y9000P 当前售价 8999 元，库存 58 件，在售。`”
+*   Agent 能够精准识别并返回：“`拯救者 Y9000P 当前售价 8999 元，库存 12 件，在售。`”
 
 **日志观察（agent-runtime）：**
 *   查看后端日志或 `logs/llm-chat.log` 包含的响应内容：
@@ -123,8 +131,8 @@ mcp:
     [Router] 意图判定: TOOL
     [LLM call] 返回 tool_calls 指令: {"name":"mcp_queryProductInfo","arguments":"{\"productId\":\"NB003\"}"}
     [System] 执行 mcp-product-server 中的 MySQL 查询...
-    [System] 回传结果: NB003 价格 8999 元，库存 58 件
-    [LLM response] 整合结果生成：拯救者 Y9000P 当前售价 8999 元，库存 58 件...
+    [System] 回传结果: NB003 价格 8999 元，库存 12 件
+    [LLM response] 整合结果生成：拯救者 Y9000P 当前售价 8999 元，库存 12 件...
     ```
 
 **讲解要点：**
@@ -135,20 +143,20 @@ mcp:
 ### 演示 4：记忆自动沉淀（系统行为）（3 分钟）
 
 **操作：**
-1. 连续对话多轮（超过10条消息），触发自动沉淀
+1. 连续对话多轮（满 20 条消息），触发自动沉淀
 2. 观察控制台日志
 
 **预期结果：**
-*   对话达到10条消息时，系统自动触发记忆沉淀
+*   对话满 20 条消息时，系统自动触发记忆沉淀（提取前 10 条、保留后 10 条在 Redis）
 
 **日志观察（agent-runtime）：**
 *   控制台日志：
     ```text
-    [Memory] 消息数 10 达到阈值 10，触发自动沉淀
+    [Memory] 消息数 20 达到阈值 20，触发自动沉淀
     [MCP-Knowledge] 保存记忆: userId=zhangsan, type=conversation
     [MCP-Knowledge] 记忆保存成功
-    [Memory] ✅ 自动沉淀完成
-    [Memory] Redis 已清空
+    [Memory] ✅ 自动沉淀完成，提取了 10 条消息
+    [Memory] Redis 已裁剪，保留最近 10 条消息
     ```
 *   **PostgreSQL 验证（命令行运行）**：
     ```bash

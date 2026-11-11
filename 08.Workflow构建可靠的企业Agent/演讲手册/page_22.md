@@ -1,36 +1,48 @@
 ## Slide Objective
-总结核心概念，预告下节课内容。一句话带走，让学员记住 Workflow 的价值。
+展示项目架构、代码阅读路线图和 v5.0 新增/修改文件，帮助学员快速上手代码。
 
 ## Suggested Presentation
-今天三个核心能力。
+左边是代码阅读路线图。按这个顺序读，10 分钟就能理解整个 Demo 的架构。
 
-Agent Runtime——ReAct 循环引擎，TaskPlanner 任务规划，六大组件协作。这是 Agent 的"操作系统"。没有它，LLM 只是一个"想到哪算哪"的推理引擎；有了它，Agent 才是一个"可靠执行"的系统。理解了 Runtime，就理解了 LangChain、LangGraph、Spring AI 的底层设计。
+① WorkflowController.java — API 入口。看它有哪些端点：POST /workflow 执行工作流，POST /workflow/stream SSE 流式，POST /workflow/confirm 确认/取消。响应里有 mode 字段：simple 或 workflow——简单任务不走完整工作流。
 
-容错——重试、熔断、降级。这是生产环境的底线。MCP Server 挂了，Agent 不能跟着一起崩。三级容错让 Agent 在工具不可靠时仍然能提供服务。这不是"锦上添花"，而是"必须有"。
+② AgentRuntime.java — ReAct 循环引擎（核心）。这是最重要的文件，670 行。先看 execute() 方法的整体流程——构建 context → TaskPlanner → ReAct 循环 → 输出结果。再看 execute() 里 while 循环的 THINK→ACT→OBSERVE 逻辑。最后看确认暂停/恢复：execute() 里返回 WorkflowResult.confirmationRequired 的分支 + resumeAfterConfirm() 的恢复执行。
 
-人在回路——高风险操作必须人工确认。这是企业安全的底线。AI 不应该对所有操作都有执行权。ConfirmationService 把"暂停→确认→恢复"的复杂性封装了，让安全控制变得简单。
+③ TaskPlanner.java — 任务规划。看 plan() 方法的 Prompt 设计——怎么让 LLM 输出 JSON 格式的步骤（注意解析要多兕底：LLM 常丢外层数组）。看 needsPlanning() 的判断逻辑——关键词 + 商品名数量；生产做法是规则快路径 + 快模型兜底分类。
 
-今天的一句话：Workflow 不是流程，而是让 AI 在企业中可控运行的机制。很多人以为 Workflow 就是画流程图——不是。Workflow 是状态机 + Runtime + 容错 + 确认 + 追踪的完整体系。它的价值不是"让 Agent 按流程走"，而是"让 Agent 在企业中可控地运行"。
+④ WorkflowState.java + WorkflowStep.java — 状态机。看枚举定义和转换规则。WorkflowStep 是一个步骤的完整描述——序号、描述、工具、参数、状态、重试次数。
 
-第九课预告——Spring AI Alibaba 重构。先升级 Spring AI 2.0，再用框架重构。两套代码并排对比，差距一目了然。手搓理解原理，框架提升效率。今天手搓的 AgentRuntime 651 行，Spring AI Alibaba 可能只需要 50 行——但你能看懂那 50 行在做什么，因为你手搓过 651 行。
+⑤ ErrorRecovery.java — 容错。看 shouldRetry()、getRetryDelayMs()、isCircuitBroken() 三个方法——对应三级容错。
+
+⑥ ConfirmationService.java — 人在回路。看 requiresConfirmation() 的风险判断逻辑（HIGH_RISK_KEYWORDS 关键词匹配），以及 requestConfirmation() / confirm() / cancel() 的暂停/恢复流程。
+
+⑦ TraceService.java — 执行追踪。看 recordStepCreated() / recordStepStart() / recordStepEnd() 和 completeTrace() 怎么记录执行链路。
+
+右边列出 v5.0 新增/修改的文件。新增 7 类共 8 个文件，合计 1961 行新代码（按当前代码统计）。AgentRuntime.java 670 行是核心——ReAct 循环 + 状态机 + Tool 执行。WorkflowController.java 412 行——API 入口 + SSE。TaskPlanner.java 197 行——LLM 任务规划。TraceService.java 233 行——执行追踪。ConfirmationService.java 159 行——人在回路。ErrorRecovery.java 151 行——三级容错。WorkflowState.java + WorkflowStep.java——状态机（55 + 84 行）。
+
+修改了 McpProductClient.java——加了 callToolDirectly() 方法。这是为了解决一个技术问题：Spring AI 的 Function Calling 是框架自动处理的，AgentRuntime 需要自己控制工具调用，所以加了一个直接调用 MCP Server 的方法。
+
+MCP Server 层完全没有变——mcp-knowledge-server 和 mcp-product-server 的代码零修改。/chat 已删除（被 /api/agent/workflow 替代）。
 
 ## Key Emphasis
-"Workflow 不是流程，而是让 AI 在企业中可控运行的机制"——这是本课的核心句，要强调。
+代码阅读路线图是本页的核心价值——学员课后上手代码的"地图"。按顺序读，从入口到核心到组件。
 
-三个核心能力不是独立的——Runtime 是骨架，容错是肌肉，人在回路是安全带。三者协作，Agent 才能在企业中可靠运行。
+1961 行新代码听起来很多，但拆成 7 类组件每个都不大。最大的 AgentRuntime 670 行，是因为它包含了完整的 ReAct 循环 + 状态机 + Tool 执行逻辑。
 
 ## Optional Extension
-**学员问：Spring AI Alibaba 真的能替代手搓的 651 行吗？**
-答：能替代 80%——ReAct 循环、Tool 执行、流式输出。但状态机、容错、人在回路可能需要自己扩展。框架帮你省的是"重复劳动"，不帮你省的是"业务逻辑"。
+**学员问：为什么 MCP Server 层没变？**
+答：因为第七课的 MCP 架构设计是正确的——统一数据访问层。第八课只改 Agent 层，MCP Server 层保持稳定。这就是分层架构的好处——下层稳定，上层迭代。
 
-**学员问：手搓过一遍再用框架，有什么好处？**
-答：三个好处。第一，你能看懂框架的源码——因为它就是你写的那套逻辑的封装。第二，你能判断框架的局限——知道什么能做什么不能做。第三，你能做定制——框架不支持的功能，你知道怎么自己实现。这就是"手搓理解原理，框架提升效率"。
+**学员问：callToolDirectly() 和 Spring AI 的 Function Calling 有什么区别？**
+答：Function Calling 是"LLM 说要调什么，框架自动执行"——你控制不了执行过程。callToolDirectly() 是"AgentRuntime 决定调什么，自己执行"——你能控制重试、熔断、确认。手搓 ReAct 需要后者。
+**Demo 做法**：callToolDirectly() 按工具名路由到 MCP Client（AgentRuntime.java 里的私有方法），重试/熔断/确认都由自己管。
+**生产做法**：执行权同样自己拿着，但工具协议换原生 Function Calling 的结构化 tool_call（不用文本正则提取）；第九课用 AgentScope Java 2.0 重构时，会并排对比框架到底接管到哪一层。
 
 ## Take Away
-Workflow 不是流程，而是让 AI 在企业中可控运行的机制。手搓理解原理，框架提升效率。
+控制流只在 WorkflowController 和 AgentRuntime 两个文件里，其余五个都是被它们调用的组件——读代码从这两个进，改功能先找到对应组件再动手。
 
 ## Why This Slide Matters
-如果跳过这页，学员没有"带走"的概念——学了很多知识，但不知道核心是什么。一句话是课程的"锚点"。
+跳过这页，学员拿到代码会从随便一个类开始读、误把 MCP Client 当核心，改容错/确认时找不到入口，在非核心文件里空转半天。
 
 ## Transition
-演示环节——多步对比查询、容错降级、人在回路。演示在课程结束后集中进行。
+接下来讲 Demo vs 生产的具体差距。

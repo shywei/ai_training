@@ -3,120 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>大模型进化之路</title>
+<title>三大要素汇聚与 Scaling Laws 扩展律</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
-<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/echarts@5.4.3.min.js"></script>
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
-.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-step { display:flex; align-items:stretch; position:relative; }
-.slide-step-marker { width:60px; display:flex; flex-direction:column; align-items:center; position:relative; }
-.slide-step-dot { width:20px; height:20px; border-radius:50%; border:3px solid #00E5FF; background:#0B1120; z-index:1; }
-.slide-step-line { flex:1; width:2px; background:linear-gradient(to bottom, #00E5FF, rgba(0,229,255,0.2)); }
-.slide-step-content { flex:1; padding:0 0 24px 20px; }
-.slide-step-year { font-size:26px; font-weight:700; color:#00E5FF; }
-.slide-step-name { font-size:17px; font-weight:600; color:#E0E7FF; margin-bottom:4px; }
-.slide-step-desc { font-size:13px; color:rgba(224,231,255,0.55); line-height:1.5; }
-.slide-step-params { display:inline-block; font-size:12px; color:#FF6B35; font-weight:600; background:rgba(255,107,53,0.1); padding:2px 10px; margin-top:4px; }
-.slide-essence { padding:14px 20px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.15); }
-.slide-essence-text { font-size:15px; color:#E0E7FF; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:38px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 03</div>
-  <h1 class="mb-2">大模型进化之路（2018-2022）</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:30px;"></div>
+<div class="slide-container">
+  <div style="font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:6px;">CHAPTER 02 · 大模型的诞生与本质祛魅</div>
+  <h1 class="mb-2">三大要素汇聚与 Scaling Laws 扩展律：从量变到质变的工程临界点</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
 
-  <div class="flex" style="gap:40px;">
-    <!-- Left: Timeline -->
-    <div style="flex:1;">
-      <div class="slide-step">
-        <div class="slide-step-marker"><div class="slide-step-dot"></div><div class="slide-step-line"></div></div>
-        <div class="slide-step-content">
-          <div class="slide-step-year">2018</div>
-          <div class="slide-step-name">GPT-1 — 预训练的起点</div>
-          <div class="slide-step-desc">OpenAI证明"大量文本预训练 + 具体任务微调"的范式有效。同年谷歌发布BERT（3.4亿参数），在11项NLP任务上刷新纪录，开创编码器路线</div>
-          <div class="slide-step-params">1.17亿参数</div>
-        </div>
-      </div>
-      <div class="slide-step">
-        <div class="slide-step-marker"><div class="slide-step-dot"></div><div class="slide-step-line"></div></div>
-        <div class="slide-step-content">
-          <div class="slide-step-year">2019</div>
-          <div class="slide-step-name">GPT-2 — 零样本学习</div>
-          <div class="slide-step-desc">模型能直接完成未经训练的任务，展现"举一反三"能力。参数量首次突破10亿级别</div>
-          <div class="slide-step-params">15亿参数（增长12倍）</div>
-        </div>
-      </div>
-      <div class="slide-step">
-        <div class="slide-step-marker"><div class="slide-step-dot"></div><div class="slide-step-line"></div></div>
-        <div class="slide-step-content">
-          <div class="slide-step-year">2020</div>
-          <div class="slide-step-name">GPT-3 — 涌现能力</div>
-          <div class="slide-step-desc">规模突破临界点，出现未被专门训练过的能力：写代码、翻译、推理。这就是"涌现"——量变引发质变</div>
-          <div class="slide-step-params">1750亿参数（增长116倍）</div>
-        </div>
-      </div>
-      <div class="slide-step">
-        <div class="slide-step-marker"><div class="slide-step-dot" style="border-color:#FF6B35; background:#FF6B35;"></div></div>
-        <div class="slide-step-content">
-          <div class="slide-step-year" style="color:#FF6B35;">2022.11</div>
-          <div class="slide-step-name">ChatGPT — 改变世界</div>
-          <div class="slide-step-desc">基于GPT-3.5 + RLHF人类反馈强化学习，上线<strong style="color:#FF6B35;">5天注册超100万</strong>，AI从实验室走向大众</div>
-        </div>
+  <div style="font-size:14px; color:rgba(224,231,255,0.6); margin-bottom:16px;">
+    2020 年 OpenAI 发表《Scaling Laws for Neural Language Models》，证明了大模型性能与工程规模之间存在精确的数学幂律关系。
+  </div>
+
+  <!-- Three Engine Pillars -->
+  <div class="flex gap-4 mb-4">
+    <div style="flex:1; padding:14px 16px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.18);">
+      <div style="font-size:14px; font-weight:700; color:#00E5FF; margin-bottom:4px;"><i class="fas fa-server" style="margin-right:6px;"></i>巨量算力集群（Compute）</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.65); line-height:1.5;">
+        从早期单卡训练，跃升为万卡/十万卡 GPU 集群；搭配 800Gbps InfiniBand 无损网络与 3D 并行（数据/张量/流水线并行）。
       </div>
     </div>
-
-    <!-- Right: Chart + essence -->
-    <div style="width:480px;">
-      <div id="paramChart" style="width:480px; height:300px;"></div>
-      <div class="slide-essence mt-4">
-        <div style="font-size:13px; color:#00E5FF; margin-bottom:8px; letter-spacing:2px;">核心洞察</div>
-        <div class="slide-essence-text">
-          大模型的本质：把<strong style="color:#00E5FF;">"针对每个任务单独建模"</strong>变成<strong style="color:#00E5FF;">"一个通用模型解决所有问题"</strong>
-        </div>
-        <div style="font-size:13px; color:rgba(224,231,255,0.4); margin-top:10px;">
-          就像从"每个任务写一套专用代码"到"用一个通用引擎处理所有任务"的思路转变
-        </div>
+    <div style="flex:1; padding:14px 16px; background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.18);">
+      <div style="font-size:14px; font-weight:700; color:#FF6B35; margin-bottom:4px;"><i class="fas fa-book-open" style="margin-right:6px;"></i>万亿级高质量语料（Data）</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.65); line-height:1.5;">
+        互联网全网爬取清洗（Common Crawl）、Wikipedia、GitHub 数十亿行代码、ArXiv 论文与合成推理数据，总量达 10T~30T Tokens。
+      </div>
+    </div>
+    <div style="flex:1; padding:14px 16px; background:rgba(34,197,94,0.04); border:1px solid rgba(34,197,94,0.18);">
+      <div style="font-size:14px; font-weight:700; color:#22C55E; margin-bottom:4px;"><i class="fas fa-network-wired" style="margin-right:6px;"></i>极简统一架构（Architecture）</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.65); line-height:1.5;">
+        Decoder-only Transformer 自回归架构保持极高稳定性，彻底摆脱针对特定下游业务的手工调参和结构改动。
       </div>
     </div>
   </div>
+
+  <!-- Dual Cards: Scaling Laws Formula & Emergent Abilities -->
+  <div class="flex gap-5 mb-4">
+    <!-- Left: Scaling Laws Formula -->
+    <div style="flex:1; padding:14px 18px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.18);">
+      <div style="font-size:15px; font-weight:700; color:#00E5FF; margin-bottom:6px;"><i class="fas fa-chart-line" style="margin-right:6px;"></i>Scaling Laws：确定的幂律因果</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.6; margin-bottom:8px;">
+        模型的跨熵损失（Loss）只与三大物理量呈严格幂律（Power-law）反比，与网络具体宽度或深度微观结构几乎无关：
+      </div>
+      <div style="padding:8px 12px; background:rgba(0,0,0,0.35); font-family:Consolas,monospace; font-size:12px; color:#00E5FF; border-left:3px solid #00E5FF;">
+        L(N) ∝ (N_c / N)^{α_N},&nbsp;&nbsp;L(D) ∝ (D_c / D)^{α_D},&nbsp;&nbsp;L(C) ∝ (C_c / C)^{α_C}
+      </div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.5); margin-top:8px;">
+        这意味着：在一定范围内，只要砸算力、堆高质量数据、扩参数规模，模型智能的提升具备<strong style="color:#00E5FF;">数学级的确定性预见性</strong>。
+      </div>
+    </div>
+
+    <!-- Right: Emergent Abilities -->
+    <div style="flex:1; padding:14px 18px; background:rgba(255,107,53,0.05); border:1px solid rgba(255,107,53,0.2);">
+      <div style="font-size:15px; font-weight:700; color:#FF6B35; margin-bottom:6px;"><i class="fas fa-magic" style="margin-right:6px;"></i>跨过临界点后的“能力涌现”（Emergence）</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.6; margin-bottom:8px;">
+        在小模型（几亿~几十亿参数）时，复杂推理任务准确率接近于 0（与随机乱猜无异）；但当参数跨过千亿（~100B）临界规模后，多项高阶能力突然以非线性爆发式涌现：
+      </div>
+      <div style="display:flex; flex-direction:column; gap:4px; font-size:12px; color:rgba(224,231,255,0.75);">
+        <div><i class="fas fa-check" style="color:#22C55E; margin-right:6px;"></i><strong style="color:#E0E7FF;">少样本/零样本学习（In-Context Learning）：</strong>看两三个例子直接学会新规则；</div>
+        <div><i class="fas fa-check" style="color:#22C55E; margin-right:6px;"></i><strong style="color:#E0E7FF;">思维链逻辑推理（Chain-of-Thought）：</strong>能够自行拆解分步逻辑并自我回溯。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Engineer Insight -->
+  <div style="padding:12px 18px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.2); display:flex; align-items:center;">
+    <div style="font-size:12px; color:#E0E7FF; line-height:1.6;">
+      <i class="fas fa-industry" style="color:#00E5FF; margin-right:8px;"></i><strong style="color:#00E5FF;">量变引发质变的工程学范例：</strong>大模型的突破不是因为发现了某种神秘的意识，而是工业级工程能力将算力、数据与架构推过了“相变临界点”。就像水分子在 99 度依然是水，但突破 100 度便化为蒸汽腾飞。
+    </div>
+  </div>
 </div>
-<script>
-var chart = echarts.init(document.getElementById('paramChart'));
-chart.setOption({
-  backgroundColor: 'transparent',
-  grid: { left:60, right:20, top:40, bottom:40 },
-  xAxis: {
-    type: 'category',
-    data: ['GPT-1\n2018', 'GPT-2\n2019', 'GPT-3\n2020', 'ChatGPT\n2022'],
-    axisLabel: { color:'rgba(224,231,255,0.6)', fontSize:12 },
-    axisLine: { lineStyle:{ color:'rgba(0,229,255,0.2)' } }
-  },
-  yAxis: {
-    type: 'log',
-    name: '参数量',
-    nameTextStyle: { color:'rgba(224,231,255,0.4)', fontSize:11 },
-    axisLabel: { color:'rgba(224,231,255,0.5)', fontSize:11, formatter: function(v) { if(v>=1e9) return (v/1e9)+'B'; if(v>=1e8) return (v/1e8)+'亿'; return v; } },
-    splitLine: { lineStyle:{ color:'rgba(0,229,255,0.08)' } },
-    axisLine: { show:false }
-  },
-  series: [{
-    type: 'bar',
-    data: [
-      { value:1.17e8, itemStyle:{ color:'rgba(0,229,255,0.5)' } },
-      { value:1.5e9, itemStyle:{ color:'rgba(0,229,255,0.65)' } },
-      { value:1.75e11, itemStyle:{ color:'rgba(0,229,255,0.8)' } },
-      { value:1.75e11, itemStyle:{ color:'#FF6B35' } }
-    ],
-    barWidth: 40,
-    label: { show: true, position: 'top', color: '#E0E7FF', fontSize: 12, formatter: function(p) { var v=p.value; if(v>=1e9) return (v/1e9)+'B'; if(v>=1e8) return (v/1e8)+'亿'; return v; } }
-  }]
-});
-</script>
 </body>
 </html>

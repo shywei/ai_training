@@ -3,101 +3,97 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>主流Coding Agent产品概览</title>
+<title>支柱 ⑥ · Subagents（子智能体）的核心价值：上下文隔离</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
 .slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-product-table { width:100%; border-collapse:collapse; }
-.slide-product-table th { font-size:12px; font-weight:700; padding:10px 12px; text-align:left; border-bottom:2px solid rgba(0,229,255,0.2); color:#00E5FF; }
-.slide-product-table td { font-size:12px; padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.04); color:rgba(224,231,255,0.6); line-height:1.4; }
-.slide-product-table tr:hover td { background:rgba(0,229,255,0.03); }
-.slide-product-name { font-weight:700; color:#E0E7FF; font-size:13px; }
-.slide-product-quote { font-size:11px; color:#00E5FF; font-style:italic; }
-.slide-region { font-size:11px; letter-spacing:2px; }
+.slide-container h1 { font-size:29px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; }
+.arch-card { padding:14px 16px; border-radius:4px; height:100%; display:flex; flex-direction:column; justify-content:space-between; }
+.ctx-meter { height:22px; border-radius:3px; overflow:hidden; display:flex; font-size:11px; font-family:monospace; font-weight:700; margin:6px 0; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:30px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 05</div>
-  <h1 class="mb-2">主流 Coding Agent 产品概览（2026）</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:6px;"></div>
-  <div style="font-size:13px; color:rgba(224,231,255,0.4); margin-bottom:16px;">不同产品定位各异，但都在向 Agent 化软件开发演进。</div>
+<div class="slide-container" style="padding:26px 65px;">
+  <div class="mb-1 slide-section-num">CHAPTER 04 · HARNESS 驾驭层“六件套”详解</div>
+  <h1 class="mb-2">支柱 ⑥ · `Subagents`（子智能体）核心价值：上下文隔离（Context Isolation）</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:12px;"></div>
 
-  <table class="slide-product-table">
-    <thead>
-      <tr>
-        <th style="width:110px;">产品</th>
-        <th style="width:90px;">厂商</th>
-        <th>主要场景</th>
-        <th style="width:130px;">支持模型</th>
-        <th style="width:120px;">价格</th>
-        <th style="width:80px;">中国可用</th>
-        <th>一句话定位</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><div class="slide-product-name">GitHub Copilot</div></td>
-        <td style="color:rgba(224,231,255,0.5);">GitHub / Microsoft</td>
-        <td>IDE辅助编程、CLI工具、PR审查、企业协作</td>
-        <td>GPT、Claude、Gemini 等</td>
-        <td>Free / Pro $10 / Pro+ $39 / 企业 $19-39</td>
-        <td class="slide-region" style="color:#00E5FF;">★★★★☆</td>
-        <td><span class="slide-product-quote">最普及的 AI 编程助手</span></td>
-      </tr>
-      <tr>
-        <td><div class="slide-product-name">Cursor</div></td>
-        <td style="color:rgba(224,231,255,0.5);">Anysphere</td>
-        <td>AI原生IDE、多文件编辑、后台远程Agent</td>
-        <td>Claude、GPT、Gemini 等</td>
-        <td>免费版 + Pro $20/月</td>
-        <td class="slide-region" style="color:#00E5FF;">★★★★☆</td>
-        <td><span class="slide-product-quote">当前最成熟的 AI 原生 IDE</span></td>
-      </tr>
-      <tr>
-        <td><div class="slide-product-name">Claude Code</div></td>
-        <td style="color:rgba(224,231,255,0.5);">Anthropic</td>
-        <td>终端开发、复杂重构、多Agent协作、CI集成</td>
-        <td>Claude（可代理接入第三方）</td>
-        <td>Pro $20 / Max $100-200 / Team $100/人</td>
-        <td class="slide-region" style="color:#FF6B35;">★★☆☆☆</td>
-        <td><span class="slide-product-quote">工程能力最强的 Terminal Agent</span></td>
-      </tr>
-      <tr>
-        <td><div class="slide-product-name">Codex</div></td>
-        <td style="color:rgba(224,231,255,0.5);">OpenAI</td>
-        <td>Agent协作、并行任务、CLI/桌面/移动端</td>
-        <td style="color:#FFC832;">GPT-5.5 + 开源模型</td>
-        <td>Go $8 / Plus $20 / Pro $100-200</td>
-        <td class="slide-region" style="color:#FF6B35;">★★☆☆☆</td>
-        <td><span class="slide-product-quote">2026年增长最快的 Coding Agent</span></td>
-      </tr>
-      <tr>
-        <td><div class="slide-product-name">OpenCode</div></td>
-        <td style="color:rgba(224,231,255,0.5);">开源社区</td>
-        <td>开源Agent、私有化部署、多模型自由切换</td>
-        <td>75+ 提供商（含本地模型）</td>
-        <td style="color:#00E5FF;">免费开源（模型费用另计）</td>
-        <td class="slide-region" style="color:#00E5FF;">★★★★★</td>
-        <td><span class="slide-product-quote">开源、灵活、模型自由</span></td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="flex" style="gap:24px; height:430px;">
+    <!-- Left Column: Monolithic Agent Context Pollution -->
+    <div style="flex:1;">
+      <div class="arch-card" style="background:rgba(255,60,60,0.04); border:1px solid rgba(255,60,60,0.22);">
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <span style="font-size:15px; font-weight:700; color:#FF6B35;"><i class="fas fa-burst" style="margin-right:6px;"></i>传统单 Agent 模式：找路过程瞬间污染主窗口</span>
+            <span style="font-size:11px; padding:2px 6px; background:rgba(255,60,60,0.2); color:#FF6B35;">Context 爆炸</span>
+          </div>
+          <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.5; margin-bottom:10px;">
+            当你让主 Agent “排查为什么优惠券扣减偶发超卖并修复”时，它为了摸清跨模块调用链，不得不顺藤摸瓜读取 **25~30 个 Java 类、Mapper XML 和配置文件**：
+          </div>
 
-  <!-- Bottom insight -->
-  <div style="margin-top:16px; padding:14px 18px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.12);">
-    <div style="display:flex; align-items:center; gap:16px;">
-      <div style="font-size:16px; color:#FF6B35;"><i class="fas fa-lightbulb"></i></div>
-      <div style="font-size:13px; color:rgba(224,231,255,0.55); line-height:1.6;">
-        这些产品代表了 AI Coding 生态的不同方向：有的强调 IDE 体验，有的强调终端工作流，有的强调企业部署，有的强调开放生态。
-        <strong style="color:#E0E7FF;">真正需要学习的不是某一个产品，而是 AI Agent 的工作方式。</strong>
-        理解了 Context、Agent 和 MCP，无论以后出现什么新的 Coding Agent，都能快速上手。
+          <div style="padding:10px 12px; background:rgba(0,0,0,0.45); border-left:3px solid #FF6B35; font-family:monospace; font-size:11px; color:rgba(224,231,255,0.75); line-height:1.55; margin-bottom:10px;">
+            [Main Context Window - 200K]<br>
+            ├── System + AGENTS.md (8K)<br>
+            ├── <span style="color:#FF6B35;">Grep &amp; Read 25 个无关/半相关源码文件 (110K 垃圾噪音!)</span><br>
+            ├── <span style="color:#FF6B35;">3 次编译失败的冗长 Maven 报错堆栈 (30K 噪音!)</span><br>
+            └── 真正开始写修复代码时，主窗口已塞满 148K 历史包袱！
+          </div>
+
+          <div style="font-size:11.5px; color:rgba(224,231,255,0.65);">主会话窗口占用率（写代码前已达 75%+）：</div>
+          <div class="ctx-meter">
+            <div style="width:10%; background:#00E5FF; color:#0B1120; display:flex; align-items:center; justify-content:center;">规则</div>
+            <div style="width:68%; background:#FF6B35; color:#fff; display:flex; align-items:center; justify-content:center;">排查期翻阅的 25 个文件源码噪音 (110K+)</div>
+            <div style="width:22%; background:rgba(255,255,255,0.1); color:#E0E7FF; display:flex; align-items:center; justify-content:center;">剩余可用</div>
+          </div>
+        </div>
+
+        <div style="padding:8px 12px; background:rgba(255,60,60,0.1); font-size:11.5px; color:#FF6B35; line-height:1.45;">
+          <strong>致命后果：</strong>那 25 个文件里有 22 个根本不需要改，但它们的源码永远留在了主会话历史中，导致主 Agent 写代码时注意力严重涣散，且每轮对话都要为这 110K 噪音买单！
+        </div>
       </div>
     </div>
+
+    <!-- Right Column: Subagent Context Isolation -->
+    <div style="flex:1;">
+      <div class="arch-card" style="background:rgba(168,85,247,0.05); border:1.5px solid #A855F7;">
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <span style="font-size:15px; font-weight:700; color:#A855F7;"><i class="fas fa-user-astronaut" style="margin-right:6px;"></i>2026 Subagent 模式：独立沙箱探路，只回传精华结论</span>
+            <span style="font-size:11px; padding:2px 6px; background:#A855F7; color:#fff; font-weight:700;">上下文物理隔离</span>
+          </div>
+          <div style="font-size:12px; color:rgba(224,231,255,0.75); line-height:1.5; margin-bottom:10px;">
+            主 Agent（Orchestrator）遇到复杂探查或专项任务时，自动派生一个拥有**全新独立上下文窗口**的 `Subagent`（如只读 `Explore` 侦察兵或 `Code Reviewer`）：
+          </div>
+
+          <div style="padding:10px 12px; background:rgba(0,0,0,0.5); border-left:3px solid #22C55E; font-family:monospace; font-size:11px; color:#E0E7FF; line-height:1.52; margin-bottom:10px;">
+            <span style="color:#00E5FF;">[主 Agent]</span> ──派发任务──&gt; <span style="color:#A855F7;">[Explore Subagent (独立窗口, Fast 模型)]</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── 翻阅 30 个文件排查调用链 (消耗在子窗口)<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── 子会话销毁，110K 过程垃圾直接丢弃！<br>
+            <span style="color:#00E5FF;">[主 Agent]</span> &lt;──仅回传 <span style="color:#22C55E;">300 字《根因定位与目标文件行号摘要》</span>！
+          </div>
+
+          <div style="font-size:11.5px; color:rgba(224,231,255,0.65);">主会话窗口占用率（始终保持低于 15% 的高智商纯净区！）：</div>
+          <div class="ctx-meter">
+            <div style="width:10%; background:#00E5FF; color:#0B1120; display:flex; align-items:center; justify-content:center;">规则</div>
+            <div style="width:8%; background:#22C55E; color:#0B1120; display:flex; align-items:center; justify-content:center;">摘要</div>
+            <div style="width:82%; background:rgba(34,197,94,0.15); color:#22C55E; display:flex; align-items:center; justify-content:center;">82% 纯净窗口留给核心架构推理与精准编码！</div>
+          </div>
+        </div>
+
+        <div style="padding:8px 12px; background:rgba(34,197,94,0.1); font-size:11.5px; color:#22C55E; line-height:1.45;">
+          <strong>三大典型 Subagent 分工：</strong>① `Explore`（只读快速搜库定位行号）；② `Test-Runner`（跑全量测试并只回传失败用例摘要）；③ `Security-Reviewer`（独立视角交叉审查 Diff）。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Summary -->
+  <div style="margin-top:14px; padding:9px 16px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.22); display:flex; align-items:center; justify-content:space-between; font-size:12.5px;">
+    <span style="color:#E0E7FF;"><strong style="color:#A855F7;"><i class="fas fa-lightbulb" style="margin-right:6px;"></i>记住这句话：</strong>Subagent 的第一价值不是“多线程并发”，而是<strong style="color:#00E5FF;">“替主 Agent 挡掉翻箱倒柜的脏活，保护主上下文窗口的纯洁性”</strong>！</span>
+    <span style="color:#22C55E; font-family:monospace; font-size:11.5px;">Context Hygiene = High IQ</span>
   </div>
 </div>
 </body>

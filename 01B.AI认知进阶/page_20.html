@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>为什么理解底层机理是设计高阶 Agent 与 RAG 架构的硬门槛？</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.s { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.s h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
+.card { background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.15); border-radius:4px; padding:14px 18px; }
+.badge { font-size:11px; font-weight:700; padding:2px 8px; border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="s flex flex-col justify-between">
+  <!-- Header -->
+  <div>
+    <div style="font-size:13px; color:#A855F7; letter-spacing:4px; margin-bottom:4px;">CHAPTER 05 · 物理边界、架构反哺与全栈选型</div>
+    <h1 class="mb-2">为什么理解底层机理是设计高阶 Agent 与 RAG 架构的硬门槛？</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:12px;"></div>
+    <div style="font-size:13px; color:rgba(224,231,255,0.7); line-height:1.5;">
+      底层机理从来不是死板理论，而是上层软件系统架构设计的“决策指南针”——深知物理限制，方能构筑高韧性工程。
+    </div>
+  </div>
+
+  <!-- 3 Pillars Grid -->
+  <div class="grid grid-cols-3 gap-4 my-1">
+    <!-- Pillar 1: RAG -->
+    <div class="card" style="border-top:3px solid #00E5FF;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(0,229,255,0.15); color:#00E5FF;">架构反哺 01 · 知识系统</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">RAG Engineering</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">Token 边界对齐与注意力衰减攻坚</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.55; margin-bottom:8px;">
+        • <strong>严禁字符硬切分：</strong>盲目按 500 字符切片会切断 UTF-8 字节和代码缩进，引发乱码；必须使用<strong>原生 Tokenizer 动态切块</strong>。<br>
+        • <strong>破局 Lost in the Middle：</strong>在构建 Prompt 时，将核心检索事实放在 Prompt <strong>最首部与最尾部</strong>，中间留给对话历史；采用<strong>父子块索引（Parent-Child）</strong>保持大块上下文完整性。
+      </div>
+      <div style="background:rgba(0,229,255,0.06); padding:6px 8px; border-radius:3px; font-size:11px; color:#00E5FF;">
+        <i class="fas fa-check-circle" style="margin-right:4px;"></i>底层机制反哺：BPE 编码原理 + U 型注意力分布
+      </div>
+    </div>
+
+    <!-- Pillar 2: Agent -->
+    <div class="card" style="border-top:3px solid #FF6B35;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(255,107,53,0.15); color:#FF6B35;">架构反哺 02 · 智能体</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Agent Orchestration</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">抑制 KV Cache 膨胀与防循环崩溃</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.55; margin-bottom:8px;">
+        • <strong>选型强制对齐 GQA：</strong>多步 ReAct 工具调用循环中，KV Cache 呈指数级膨胀，必须选型支持 GQA 架构的模型降低显存压力。<br>
+        • <strong>Context 剪枝与状态机熔断：</strong>外部工具吐出大量无用日志会迅速填满窗口，必须在 Harness 层进行<strong>结构化修剪（Pruning）</strong>，并用有限状态机（FSM）设定最大跳数防止无限循环死锁。
+      </div>
+      <div style="background:rgba(255,107,53,0.06); padding:6px 8px; border-radius:3px; font-size:11px; color:#FF6B35;">
+        <i class="fas fa-check-circle" style="margin-right:4px;"></i>底层机制反哺：GQA 注意力演进 + KV 显存膨胀公式
+      </div>
+    </div>
+
+    <!-- Pillar 3: Routing -->
+    <div class="card" style="border-top:3px solid #22C55E;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(34,197,94,0.15); color:#22C55E;">架构反哺 03 · 算力路由</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Cost &amp; Model Routing</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">快慢思考动态分流与成本削减 80%</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.55; margin-bottom:8px;">
+        • <strong>分级路由器（Classifier Router）：</strong>根据请求复杂度自动分流：80% 的简单信息提取走轻量快模型（7B/14B），仅 20% 复杂逻辑推导调用满血慢思考模型（o1/R1）。<br>
+        • <strong>最大化 Prefix Caching 命中率：</strong>固定静态 Prompt 前缀顺序，规避动态时间戳破坏，使推理引擎缓存命中率达到 <strong>90%+</strong>，推理成本立降数倍。
+      </div>
+      <div style="background:rgba(34,197,94,0.06); padding:6px 8px; border-radius:3px; font-size:11px; color:#22C55E;">
+        <i class="fas fa-check-circle" style="margin-right:4px;"></i>底层机制反哺：双引擎 Scaling + PagedAttention 缓存
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Core Insight -->
+  <div style="background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.2); border-radius:4px; padding:12px 18px;">
+    <div class="flex items-center gap-2 mb-1">
+      <i class="fas fa-graduation-cap" style="color:#F59E0B; font-size:13px;"></i>
+      <span style="font-size:13px; font-weight:700; color:#F59E0B;">“调包侠”与“AI 原生架构师”的本质分水岭</span>
+    </div>
+    <div style="font-size:12px; color:rgba(224,231,255,0.75); line-height:1.55;">
+      平庸的工程师把大模型当作无所不能的魔法黑盒，出问题只会把 Prompt 改来改去；<br>
+      <strong>真正的架构师深刻洞察分词边界、显存带宽墙、KV Cache 膨胀曲线与注意力衰减规律，用严谨的分布式软件工程为大模型构筑安全坚固的运行底座！</strong>
+    </div>
+  </div>
+</div>
+</body>
+</html>

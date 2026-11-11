@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>Demo vs 生产 — LLM 交互七项差距</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.mb-2{margin-bottom:8px}
+.gap{padding:8px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px}
+.gap .t{font-size:13px;color:#FF6B35;font-weight:700;margin-bottom:3px}
+.gap .b{font-size:11px;color:rgba(224,231,255,0.68);line-height:1.55}
+</style></head>
+<body>
+<div class="s" style="padding:26px 56px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 08</div>
+  <h1 class="mb-2">Demo vs 生产 — LLM 交互层的七项差距</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px;"></div>
+  <div style="flex:1;display:flex;gap:16px;">
+
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:8px;">
+      <div class="gap"><div class="t">1 · API Key 管理与轮换</div><div class="b">
+        <strong style="color:#E0E7FF">问题：</strong>Key 走本地配置文件（application-local.yml），一把 Key 全环境共用，无轮换。<br>
+        <strong style="color:#FF6B35">不解决：</strong>进 Git/镜像就泄露，泄露后无法快速作废，离职带走 Key。<br>
+        <strong style="color:#22C55E">怎么解决：</strong>密钥管理服务（Vault/KMS/K8s Secret）运行时注入；按环境/用途拆 Key；双 Key 灰度轮换。<strong>取舍：</strong>多一个组件的运维成本，换来可作废、可归因。</div></div>
+      <div class="gap"><div class="t">2 · Token 成本核算与配额</div><div class="b">
+        <strong style="color:#E0E7FF">问题：</strong>Demo 仅打印控制台输出，不解析响应 usage（含 cached_tokens），不知道一次调用花多少钱。<br>
+        <strong style="color:#FF6B35">不解决：</strong>Prompt 改动或前缀缓存失效让成本翻倍无人察觉，月底账单爆炸，无法按业务归因。<br>
+        <strong style="color:#22C55E">怎么解决：</strong>解析 usage 折算金额落成本表（模型/业务/用户维度）；日/月配额与预算告警。取舍：计量有存储开销，但没有计量就没有成本治理。</div></div>
+      <div class="gap"><div class="t">3 · 限流与退避</div><div class="b">
+        <strong style="color:#E0E7FF">问题：</strong>无入口限流，请求直连 LLM API；被限流（429）也无退避处理。<br>
+        <strong style="color:#FF6B35">不解决：</strong>并发一高全是 429；重试风暴打死下游；token 预算被刷光。<br>
+        <strong style="color:#22C55E">怎么解决：</strong>令牌桶/滑动窗口按用户+接口限流（Resilience4j / Redis+Lua）；429/5xx 指数退避+抖动、尊重 Retry-After。<strong>取舍：</strong>阈值紧浪费吞吐、松失去保护；退避拉长尾延迟，要设重试上限。</div></div>
+      <div class="gap"><div class="t">4 · 输出 PII 脱敏位置</div><div class="b">
+        <strong style="color:#E0E7FF">问题：</strong>只有敏感关键词替换（GuardrailsService.sanitize），姓名/手机号/身份证类 PII 无系统性识别与脱敏。<br>
+        <strong style="color:#FF6B35">不解决：</strong>输出/日志带出用户 PII，违反个保法/GDPR，审计过不了。<br>
+        <strong style="color:#22C55E">怎么解决：</strong>入口（进 Prompt 前掩码+映射表）/ 出口（返回前识别掩码）/ 日志（落盘前）三处布防；正则+NER 识别。<strong>取舍：</strong>入口脱敏损失语义，用掩码-还原平衡；NER 有误报，关键接口叠人工审核。</div></div>
+    </div>
+
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:8px;">
+      <div class="gap"><div class="t">5 · 超时与重试</div><div class="b">
+        <strong style="color:#E0E7FF">问题：</strong>LLM 调用无超时分级、无网络异常重试，调用失败直接抛异常。<br>
+        <strong style="color:#FF6B35">不解决：</strong>上游挂起拖垮线程池，用户无限等待，一次抖动一批用户流失。<br>
+        <strong style="color:#22C55E">怎么解决：</strong>分级超时（路由 2-3s / 对话 30s / 推理 60s+ / 端到端总预算）；仅对超时/429/5xx 重试，指数退避、最多 2-3 次。<strong>取舍：</strong>太短误杀长推理、太长占资源；重试放大流量，必须配限流。</div></div>
+      <div class="gap"><div class="t">6 · 模型降级</div><div class="b">
+        <strong style="color:#E0E7FF">问题：</strong>ModelRouter.selectModel() 只负责静态选模型，真正调用主模型失败时没有备用模型降级。<br>
+        <strong style="color:#FF6B35">不解决：</strong>主模型超时/限流/下架（免费模型常变动）= 整条链路不可用。<br>
+        <strong style="color:#22C55E">怎么解决：</strong>降级链 reasoning→fast→备用供应商模型，按错误类型触发（OpenAI 兼容协议切 base-url+Key 即可）；降级打标+告警。<strong>取舍：</strong>降级后质量下降，业务要接受"能答＞答得最好"。</div></div>
+      <div class="gap"><div class="t">7 · 结构化日志脱敏与留存</div><div class="b">
+        <strong style="color:#E0E7FF">问题：</strong>v1.1.1 直接 System.out.println 明文打控制台（下节课升级为文件日志），无脱敏、无留存策略、无访问控制。<br>
+        <strong style="color:#FF6B35">不解决：</strong>日志成了 PII/密钥最大泄露口；磁盘写爆；合规要求"可追溯又不能存原文"两头不达标。<br>
+        <strong style="color:#22C55E">怎么解决：</strong>落盘前接出口脱敏管道；分级留存（用量元数据长留、对话原文 7/30 天滚动删）；敏感字段哈希关联；日志访问收权限。<strong>取舍：</strong>脱敏后排查变难，留哈希+受控还原流程。</div></div>
+      <div class="gap" style="background:rgba(168,85,247,0.08);border-left:3px solid #A855F7;"><div class="t" style="color:#A855F7;">平台化去向</div><div class="b">
+        这七项多数是横切工程件：自写只做教学（Demo 手写 GuardrailsService/ModelRouter 看清机制），生产用成熟件（Resilience4j / Vault / LLM Gateway）。<strong style="color:#E0E7FF">第十一课「AI 网关与成本治理」「安全与合规防线」两大支柱</strong>就是把七项平台化——本课先知道缺什么，第十一课知道怎么管。</div></div>
+    </div>
+  </div>
+</div>
+</body></html>

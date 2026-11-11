@@ -6,76 +6,92 @@
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
 .s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
-.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)} .fn{color:#E0E7FF}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:10.5px;line-height:1.45;color:rgba(224,231,255,0.75)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.35)} .fn{color:#E0E7FF}
 </style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="s" style="padding:26px 56px;display:flex;flex-direction:column;">
 <div class="mb-2 sn">CHAPTER 02</div>
-<h1 class="mb-2">Data Pipeline 与 Chunking — 知识怎么变成可检索的</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+<h1 class="mb-2">Data Pipeline 与 Chunking — 从基础切分到 2026 高阶分块</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px;"></div>
 
-<div style="flex:1;display:flex;gap:20px;">
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="padding:14px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.1);border-radius:6px;margin-bottom:14px;">
-      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:10px;">Data Pipeline：原始文档 → 可检索的知识</div>
-      <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
-        <div style="padding:8px 10px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:5px;font-size:11px;color:#00E5FF;font-weight:600;text-align:center;">文档解析<br><span style="font-size:9px;color:rgba(224,231,255,0.4);">JSON/PDF/Word</span></div>
-        <div style="color:rgba(0,229,255,0.3);">→</div>
-        <div style="padding:8px 10px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:5px;font-size:11px;color:#00E5FF;font-weight:600;text-align:center;">Chunking<br><span style="font-size:9px;color:rgba(224,231,255,0.4);">文本分块</span></div>
-        <div style="color:rgba(0,229,255,0.3);">→</div>
-        <div style="padding:8px 10px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:5px;font-size:11px;color:#00E5FF;font-weight:600;text-align:center;">Metadata<br><span style="font-size:9px;color:rgba(224,231,255,0.4);">打标签</span></div>
-        <div style="color:rgba(0,229,255,0.3);">→</div>
-        <div style="padding:8px 10px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:5px;font-size:11px;color:#00E5FF;font-weight:600;text-align:center;">Embedding<br><span style="font-size:9px;color:rgba(224,231,255,0.4);">向量化</span></div>
-        <div style="color:rgba(0,229,255,0.3);">→</div>
-        <div style="padding:8px 10px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:5px;font-size:11px;color:#00E5FF;font-weight:600;text-align:center;">Vector DB<br><span style="font-size:9px;color:rgba(224,231,255,0.4);">存储</span></div>
+<div style="flex:1;display:flex;gap:18px;">
+  <div style="flex:1.08;display:flex;flex-direction:column;justify-content:center;">
+    <div style="padding:10px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;margin-bottom:10px;">
+      <div style="font-size:12.5px;color:#00E5FF;font-weight:700;margin-bottom:6px;">Data Pipeline：原始数据 → 版面感知 ETL → 分块与打标 → 向量入库</div>
+      <div style="display:flex;align-items:center;justify-content:between;gap:6px;">
+        <div style="flex:1;padding:6px 6px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:4px;font-size:10.5px;color:#00E5FF;font-weight:600;text-align:center;">解析 ETL<br><span style="font-size:9px;color:rgba(224,231,255,0.5);">JSON / Docling / MinerU</span></div>
+        <div style="color:rgba(0,229,255,0.4);">→</div>
+        <div style="flex:1;padding:6px 6px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:4px;font-size:10.5px;color:#00E5FF;font-weight:600;text-align:center;">Chunking<br><span style="font-size:9px;color:rgba(224,231,255,0.5);">实体/父子/上下文分块</span></div>
+        <div style="color:rgba(0,229,255,0.4);">→</div>
+        <div style="flex:1;padding:6px 6px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:4px;font-size:10.5px;color:#00E5FF;font-weight:600;text-align:center;">Metadata<br><span style="font-size:9px;color:rgba(224,231,255,0.5);">brand/category/章节</span></div>
+        <div style="color:rgba(0,229,255,0.4);">→</div>
+        <div style="flex:1;padding:6px 6px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:4px;font-size:10.5px;color:#00E5FF;font-weight:600;text-align:center;">Embedding &amp; DB<br><span style="font-size:9px;color:rgba(224,231,255,0.5);">PgVectorStore</span></div>
       </div>
     </div>
 
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">Chunking 策略对比</div>
-    <div style="display:flex;gap:10px;margin-bottom:14px;">
-      <div style="flex:1;padding:12px;background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.25);border-radius:6px;">
-        <div style="font-size:13px;color:#22C55E;font-weight:700;">固定大小 <span style="font-size:9px;background:rgba(34,197,94,0.15);padding:1px 6px;border-radius:3px;">Demo</span></div>
-        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;margin-top:4px;">按固定字数切分<br>简单直接<br>可能切断语义<br>适合：结构均匀数据</div>
+    <div style="font-size:13px;color:#E0E7FF;font-weight:700;margin-bottom:6px;">基础分块 vs 2026 企业级高阶分块（解决“检索粒度 vs 上下文完整性”悖论）</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;">
+      <div style="flex:1;padding:9px;background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.25);border-radius:6px;">
+        <div style="font-size:12px;color:#22C55E;font-weight:700;">实体/条目分块 <span style="font-size:9px;background:rgba(34,197,94,0.18);padding:1px 5px;border-radius:3px;">Demo</span></div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.6);line-height:1.5;margin-top:3px;">一商品/FAQ 一 Chunk<br>天然语义完整无需切<br>适合：商品库、FAQ 表</div>
       </div>
-      <div style="flex:1;padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;">
-        <div style="font-size:13px;color:#E0E7FF;font-weight:600;">语义分块</div>
-        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;margin-top:4px;">按段落/标题边界<br>保留语义完整<br>大小不均匀<br>适合：文章、报告</div>
-      </div>
-      <div style="flex:1;padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;">
-        <div style="font-size:13px;color:#E0E7FF;font-weight:600;">递归分块</div>
-        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;margin-top:4px;">先大结构再小粒度<br>兼顾结构和语义<br>参数调优复杂<br>适合：复杂文档</div>
+      <div style="flex:1;padding:9px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.12);border-radius:6px;">
+        <div style="font-size:12px;color:#E0E7FF;font-weight:600;">Markdown 标题 + 递归</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.6);line-height:1.5;margin-top:3px;">先按 <code style="color:#00E5FF;"># / ##</code> 章节切<br>超长再按段落递归切<br>适合：结构化手册/制度</div>
       </div>
     </div>
 
-    <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:5px;">
-      <div style="font-size:12px;color:rgba(224,231,255,0.5);"><strong style="color:#FF6B35;">核心权衡：</strong>Chunk 太大 → 检索不精确（混入无关信息）。Chunk 太小 → 丢失上下文（信息不完整）。需要根据实际数据调优。</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="padding:10px 12px;background:rgba(168,85,247,0.07);border-left:4px solid #A855F7;border-radius:4px;">
+        <div style="font-size:12px;color:#A855F7;font-weight:700;margin-bottom:2px;">★ 高阶必选 1：Parent-Child Retrieval（父子文档索引 / Small-to-Big）</div>
+        <div style="font-size:10.5px;color:rgba(224,231,255,0.68);line-height:1.55;">
+          <strong style="color:#E0E7FF;">机制：</strong>将长文档切为<strong style="color:#00E5FF;">父块（Parent，1000~2000字完整章节）</strong>与<strong style="color:#22C55E;">子块（Child，200字细粒度句群）</strong>；仅对<strong>子块做 Embedding 建索引</strong>（高精度命中），命中后通过 <code style="color:#00E5FF;">parent_id</code> <strong>把完整父块回传给 LLM</strong>，兼顾检索精度与上下文完整度。
+        </div>
+      </div>
+      <div style="padding:10px 12px;background:rgba(255,107,53,0.07);border-left:4px solid #FF6B35;border-radius:4px;">
+        <div style="font-size:12px;color:#FF6B35;font-weight:700;margin-bottom:2px;">★ 高阶必选 2：Anthropic Contextual Retrieval（上下文背景前缀注入）</div>
+        <div style="font-size:10.5px;color:rgba(224,231,255,0.68);line-height:1.55;">
+          <strong style="color:#E0E7FF;">痛点：</strong>长文档切片后变成“该型号支持 7 天无理由”，主语指代丢失导致无法召回。<br>
+          <strong style="color:#E0E7FF;">做法：</strong>入库前用轻量模型（结合 Prompt Caching）为每个切片生成 <strong>50 字文档背景前缀</strong>（如<span style="color:#00E5FF;">“[背景：本文出自联想 ThinkPad 2026 退换货政策第3章]”</span>）拼在切片头部再做 Embedding + BM25，检索失败率直降 <strong>67%</strong>。
+        </div>
+      </div>
     </div>
   </div>
 
-  <div style="flex:1;display:flex;flex-direction:column;">
-    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">💻 Demo：数据库 → ETL → 向量存储</div>
-    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;margin-bottom:10px;">
-      <pre><span class="cm">// KnowledgeController.loadProductDocuments()</span>
-<span class="cm">// 每个商品的所有信息拼成一个文本</span>
-
+  <div style="flex:0.92;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:13px;color:#22C55E;font-weight:700;margin-bottom:6px;">💻 形态 ① Demo 代码：KnowledgeController / KnowledgeService（v1.3）</div>
+    <div style="padding:10px 12px;background:rgba(0,0,0,0.4);border:1px solid rgba(34,197,94,0.25);border-radius:6px;margin-bottom:8px;">
+      <pre><span class="cm">// KnowledgeService.java — 条目型 RAG：一商品一 Document</span>
 StringBuilder content = <span class="kw">new</span> StringBuilder();
 content.append(name).append(<span class="str">"（"</span>).append(brand).append(<span class="str">"）\n"</span>);
 content.append(<span class="str">"类别："</span>).append(category).append(<span class="str">"\n"</span>);
 content.append(<span class="str">"配置："</span>).append(specs).append(<span class="str">"\n"</span>);
 content.append(<span class="str">"亮点："</span>).append(highlights).append(<span class="str">"\n"</span>);
-content.append(<span class="str">"适合："</span>).append(suitable_for).append(<span class="str">"\n"</span>);
+content.append(<span class="str">"适合："</span>).append(suitableFor).append(<span class="str">"\n"</span>);
 content.append(<span class="str">"总结："</span>).append(summary);
 
-<span class="cm">// 注意：不含价格和库存！</span>
-<span class="cm">// 实时数据放 MySQL，第七课 Tool 查询</span></pre>
+Map&lt;String, Object&gt; meta = Map.of(
+  <span class="str">"doc_id"</span>, id, <span class="str">"name"</span>, name,
+  <span class="str">"brand"</span>, brand, <span class="str">"category"</span>, category);
+Document doc = <span class="kw">new</span> Document(content.toString(), meta);
+vectorStore.add(List.of(doc)); <span class="cm">// PgVectorStore 入库</span></pre>
     </div>
-    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
-      <div style="font-size:12px;color:#FF6B35;font-weight:600;margin-bottom:6px;">Metadata 标注</div>
-      <pre>metadata.put(<span class="str">"doc_id"</span>, id);      <span class="cm">// 商品ID</span>
-metadata.put(<span class="str">"name"</span>, name);      <span class="cm">// 商品名</span>
-metadata.put(<span class="str">"brand"</span>, brand);    <span class="cm">// 品牌</span>
-metadata.put(<span class="str">"category"</span>, category); <span class="cm">// 品类</span>
-<span class="cm">// 后续可以按 brand/category 过滤</span></pre>
+
+    <div style="font-size:13px;color:#3B82F6;font-weight:700;margin-bottom:6px;">💻 形态 ② 生产长文档范式：章节切分 + Contextual 前缀 + 父子索引</div>
+    <div style="padding:10px 12px;background:rgba(0,0,0,0.4);border:1px solid rgba(59,130,246,0.25);border-radius:6px;">
+      <pre><span class="cm">// 1. Docling/MinerU 解析 PDF 为结构化 Markdown 后按标题切父块</span>
+List&lt;Section&gt; parents = markdownHeaderSplitter.split(pdfMd);
+<span class="kw">for</span> (Section parent : parents) {
+  parentRepo.save(parent.getId(), parent.getText()); <span class="cm">// 存1000字父块</span>
+  <span class="kw">for</span> (String child : tokenSplitter.split(parent.getText(), <span class="str">200</span>)) {
+    <span class="cm">// 2. Contextual Retrieval：注入 50 字文档与章节背景前缀</span>
+    String ctxPrefix = <span class="str">"[文档:"</span> + docTitle + <span class="str">" | 章节:"</span>
+        + parent.getHeaderPath() + <span class="str">"] "</span>;
+    Map&lt;String, Object&gt; meta = Map.of(
+        <span class="str">"type"</span>, <span class="str">"policy"</span>, <span class="str">"parent_id"</span>, parent.getId());
+    vectorStore.add(List.of(<span class="kw">new</span> Document(ctxPrefix + child, meta)));
+  }
+}</pre>
     </div>
   </div>
 </div>

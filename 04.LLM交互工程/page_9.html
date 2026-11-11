@@ -1,56 +1,89 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>Prompt 工程</title>
+<title>结构化输出</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
 .s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+.key{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)} .bad{color:#ff6b6b} .good{color:#67C23A}
 </style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 06</div>
-<h1 class="mb-2">Prompt 工程 — 结构、调试与安全</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+<div class="s" style="padding:26px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 05</div>
+<h1 class="mb-2">结构化输出 — 为什么 LLM 必须返回 JSON？</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:14px;"></div>
 
-<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-  <!-- 三种角色 -->
-  <div style="display:flex;gap:14px;margin-bottom:14px;">
-    <div style="flex:1;padding:14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;">
-      <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:4px;">System Prompt</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">定义角色、能力、约束。用户看不到，但决定 Agent 全部行为。类比：入职培训手册。</div>
+<div style="flex:1;display:flex;gap:18px;">
+  <!-- 左：问题 -->
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="padding:12px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;">
+      <div style="font-size:14px;color:#FF6B35;font-weight:700;">核心问题：LLM 的输出是给人看的，还是给代码用的？</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.5);margin-top:4px;">聊天场景 → 人能读就行<br>API 场景 → Java 代码需要结构化数据</div>
     </div>
-    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
-      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:4px;">User Prompt</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">用户问题 + 上下文（RAG结果、用户画像等）。类比：客户需求。</div>
+
+    <div style="padding:12px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);border-radius:6px;margin-bottom:12px;">
+      <div style="font-size:12px;color:#ff6b6b;font-weight:700;margin-bottom:4px;">❌ 自然语言 → Java 无法可靠解析</div>
+      <pre style="font-size:10px;color:rgba(224,231,255,0.5);">"推荐联想小新Pro，大概6000到8000，适合写代码"</pre>
+      <div style="font-size:10px;color:rgba(224,231,255,0.35);margin-top:4px;">→ Java 怎么提取商品名？价格？用正则？格式一变就崩。</div>
     </div>
-    <div style="flex:1;padding:14px;background:rgba(224,231,255,0.04);border:1px solid rgba(224,231,255,0.1);border-radius:6px;">
-      <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:4px;">Few-shot</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">给模型 1-3 个示例，它会模仿格式和风格。最有效的技巧之一。</div>
+
+    <div style="padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;margin-bottom:12px;">
+      <div style="font-size:12px;color:#67C23A;font-weight:700;margin-bottom:4px;">✅ JSON → Jackson 直接映射为 Java 对象</div>
+      <pre style="font-size:10px;color:rgba(224,231,255,0.5);">{"products":[{"name":"联想小新Pro","price":"6000-8000"}]}</pre>
+      <div style="font-size:10px;color:rgba(224,231,255,0.35);margin-top:4px;">→ objectMapper.readValue(json, RecommendResult.class)</div>
+    </div>
+
+    <div style="padding:10px 14px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:5px;">
+      <div style="font-size:12px;color:#E0E7FF;font-weight:700;">结构化输出的真正价值</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.5);margin-top:4px;">不是"展示给用户看"，而是<strong style="color:#00E5FF;">让 Java 代码能程序化处理 LLM 的输出</strong>：存数据库、传给订单系统、渲染成商品卡片。</div>
     </div>
   </div>
 
-  <!-- 调试与安全 -->
-  <div style="display:flex;gap:14px;margin-bottom:14px;">
-    <div style="flex:1;padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;">
-      <div style="font-size:13px;color:#E0E7FF;font-weight:700;margin-bottom:4px;">🧪 调试四件套 <span style="font-size:10px;color:#FFC832;">（仅 PPT 讲解）</span></div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">Playground（快速迭代）<br>Logging（记录输入输出）<br>AB Test（对比效果）<br>Evaluation（量化准确率）</div>
+  <!-- 右：两种方案 + 代码兜底 -->
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">结构化输出三方案 — 互补，非竞争（按场景分层选型）</div>
+    <div style="display:flex;gap:10px;margin-bottom:12px;">
+      <div style="flex:1;padding:10px 11px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+        <div style="font-size:12px;color:#00E5FF;font-weight:700;margin-bottom:4px;">① Native Structured Output</div>
+        <div style="font-size:10.5px;color:rgba(224,231,255,0.55);line-height:1.55;">response_format + json_schema<br>token 级约束，合规率≈100%<br>⚠️ 部分模型支持；Schema 复杂时生成慢<br><strong style="color:#00E5FF;">→ 要"100% 可解析"的数据</strong></div>
+      </div>
+      <div style="flex:1;padding:10px 11px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);border-radius:6px;">
+        <div style="font-size:12px;color:#FF6B35;font-weight:700;margin-bottom:4px;">② Function Calling</div>
+        <div style="font-size:10.5px;color:rgba(224,231,255,0.55);line-height:1.55;">tool schema 约束参数<br>模型返回 tool_calls（函数名+参数 JSON）<br>✅ 结构化 + 动作一次拿到<br><strong style="color:#FF6B35;">→ 输出语义是"调工具"（第七课）</strong></div>
+      </div>
+      <div style="flex:1;padding:10px 11px;background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.15);border-radius:6px;">
+        <div style="font-size:12px;color:#22C55E;font-weight:700;margin-bottom:4px;">③ JSON mode + Parser</div>
+        <div style="font-size:10.5px;color:rgba(224,231,255,0.55);line-height:1.55;">JSON mode 只保证合法 JSON、不保证字段<br>extractJson + validate + repair 兜底<br>✅ 所有模型可跑<br><strong style="color:#22C55E;">→ 兜底层，永远保留</strong></div>
+      </div>
     </div>
-    <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:2px solid rgba(0,229,255,0.25);border-radius:6px;">
-      <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">🛡️ 两道防线 <span style="font-size:10px;color:#00E5FF;">（Demo 已覆盖）</span></div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;"><strong>入口：</strong>Prompt Injection 防御（正则检测、关键词拦截）<br><strong>出口：</strong>敏感信息脱敏、违规内容拦截<br>两道防线各自独立，不合并。</div>
-    </div>
-    <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:2px solid rgba(0,229,255,0.25);border-radius:6px;">
-      <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">🔄 Self-Correction <span style="font-size:10px;color:#00E5FF;">（Demo 已覆盖）</span></div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">LLM 输出非法 → Java catch 捕获 → 异常信息发回 LLM → 重新生成。<br><strong style="color:#FF6B35;">服务端重试</strong>，不是 LLM 自纠错。</div>
-    </div>
-    <div style="flex:1;padding:12px;background:rgba(255,200,50,0.04);border:1px solid rgba(255,200,50,0.15);border-radius:6px;">
-      <div style="font-size:13px;color:#FFC832;font-weight:700;margin-bottom:4px;">⚡ Streaming 冲突 <span style="font-size:10px;color:#FFC832;">（仅 PPT 讲解）</span></div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">流式输出时不能逐 chunk 检查。<br>方案：首个 chunk 检查 Injection，或关键接口不走 Streaming。</div>
-    </div>
-  </div>
 
-  <div style="padding:10px 16px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:5px;text-align:center;">
-    <div style="font-size:14px;color:#FF6B35;font-weight:700;">Prompt 是代码，不是文案。需要版本控制、测试、监控、迭代。</div>
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">代码层兜底（必须有）</div>
+    <div style="padding:12px;background:rgba(0,0,0,0.3);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
+      <pre style="font-size:11px;"><span class="cm">// LLM 可能返回: "好的，推荐如下：{...} 希望有帮助"</span>
+
+<span class="cm">// 1. 提取 JSON（从废话中提取）</span>
+String json = extractJson(llmOutput);
+<span class="cm">// → {"products":[{"name":"联想小新Pro",...}]}</span>
+
+<span class="cm">// 2. Bean Mapping: JSON → Java 对象</span>
+RecommendResult result = objectMapper
+    .readValue(json, RecommendResult.class);
+
+<span class="cm">// 3. Java 代码用对象做具体的事</span>
+result.getProducts().get(0).getName();
+<span class="cm">// → "联想小新Pro"（可靠、类型安全）</span>
+
+<span class="cm">// 实际用途：</span>
+<span class="cm">// · 存数据库: repository.save(result)</span>
+<span class="cm">// · 传订单系统: orderService.create(result)</span>
+<span class="cm">// · 渲染卡片: productCardView(result)</span></pre>
+    </div>
   </div>
+</div>
+
+<div style="margin-top:8px;padding:8px 14px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:5px;text-align:center;">
+  <div style="font-size:12px;color:rgba(224,231,255,0.5);"><strong style="color:#FF6B35;">Demo 可验证：</strong>后端日志会打印 LLM 原始输出 → 提取出的 JSON → 映射后的 Java 对象字段。三个步骤一目了然。</div>
+  <div style="font-size:11px;color:rgba(224,231,255,0.5);margin-top:3px;"><strong style="color:#00E5FF;">分层选型：</strong>要稳数据 → ① Native；要调工具 → ② Function Calling；模型不支持 / 格式不可控 → ③ JSON mode + Parser + repair。三者互补叠加，不是三选一。</div>
 </div>
 </div></body></html>

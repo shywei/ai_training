@@ -1,0 +1,133 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>现代 LLM 推理全流程：端到端计算拓扑与阶段划分</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.s { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.s h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
+.step-node { flex:1; background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.18); border-radius:4px; padding:12px 14px; position:relative; }
+.badge { font-size:11px; font-weight:700; padding:2px 6px; border-radius:3px; }
+.arrow-right { display:flex; align-items:center; justify-content:center; color:#00E5FF; font-size:14px; padding:0 4px; }
+</style>
+</head>
+<body>
+<div class="s flex flex-col justify-between">
+  <!-- Header -->
+  <div>
+    <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; margin-bottom:4px;">CHAPTER 01 · 扩展律前沿与推理全景</div>
+    <h1 class="mb-2">现代 LLM 推理全流程：端到端计算拓扑与阶段划分</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:12px;"></div>
+    <div style="font-size:13px; color:rgba(224,231,255,0.7); line-height:1.5;">
+      从用户输入一段 Prompt 文本，到模型完成前向传播吐出下一个 Token，底层数据流经历了高度严密的张量变换拓扑：
+    </div>
+  </div>
+
+  <!-- 5-Stage Tensor Flow Pipeline -->
+  <div class="flex items-stretch my-2 gap-1">
+    <!-- Step 1 -->
+    <div class="step-node" style="border-top:3px solid #00E5FF;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(0,229,255,0.15); color:#00E5FF;">STEP 1</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">分词与编码</span>
+      </div>
+      <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">Tokenizer 离散映射</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.65); line-height:1.5;">
+        输入原始字符串 ➔ BPE 分词器切分 ➔ 映射为离散整型整数向量：<br>
+        <span style="color:#00E5FF; font-family:Consolas,monospace;">IDs: [B, T]</span>（词表大小 $V \approx 128\text{K}\sim 150\text{K}$）
+      </div>
+    </div>
+
+    <div class="arrow-right"><i class="fas fa-chevron-right"></i></div>
+
+    <!-- Step 2 -->
+    <div class="step-node" style="border-top:3px solid #38BDF8;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(56,189,248,0.15); color:#38BDF8;">STEP 2</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">流形与位置</span>
+      </div>
+      <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">Embedding & RoPE</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.65); line-height:1.5;">
+        查表查出稠密向量：<br>
+        <span style="color:#38BDF8; font-family:Consolas,monospace;">X₀ ∈ ℝ^[B × T × d_model]</span><br>
+        叠加 RoPE 旋转位置编码，将 Token 相对位移编码进复数旋转角。
+      </div>
+    </div>
+
+    <div class="arrow-right"><i class="fas fa-chevron-right"></i></div>
+
+    <!-- Step 3 -->
+    <div class="step-node" style="border-top:3px solid #FF6B35; flex:1.2;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(255,107,53,0.15); color:#FF6B35;">STEP 3 · 核心</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">堆叠 L 层 Block</span>
+      </div>
+      <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">Transformer Layers</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.65); line-height:1.5;">
+        每层包含两个残差子模块：<br>
+        1. <strong>RMSNorm + GQA 注意力</strong>（结合 KV Cache 快速提取全上下文关联）<br>
+        2. <strong>RMSNorm + SwiGLU / MoE FFN</strong>（知识检索与非线性特征升维变换）
+      </div>
+    </div>
+
+    <div class="arrow-right"><i class="fas fa-chevron-right"></i></div>
+
+    <!-- Step 4 -->
+    <div class="step-node" style="border-top:3px solid #A855F7;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(168,85,247,0.15); color:#A855F7;">STEP 4</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">投影到词表</span>
+      </div>
+      <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">LM Head 输出 Logits</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.65); line-height:1.5;">
+        最终隐藏层状态通过矩阵反向投影（Unembedding）：<br>
+        <span style="color:#A855F7; font-family:Consolas,monospace;">Logits ∈ ℝ^[B × T × V]</span><br>
+        表示词表中数十万个候选词未归一化的得分。
+      </div>
+    </div>
+
+    <div class="arrow-right"><i class="fas fa-chevron-right"></i></div>
+
+    <!-- Step 5 -->
+    <div class="step-node" style="border-top:3px solid #22C55E;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(34,197,94,0.15); color:#22C55E;">STEP 5</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">自回归闭环</span>
+      </div>
+      <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">采样与 Next-Token</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.65); line-height:1.5;">
+        应用 Temperature / Top-P / Top-K，经 Softmax 采样出唯一 Next Token ID。<br>
+        <span style="color:#22C55E; font-weight:700;">➔ 将新词拼回序列尾部，开启下一步自回归循环。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom: 2 Critical Stages Division -->
+  <div class="grid grid-cols-2 gap-4 mt-2">
+    <div style="background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.2); border-radius:4px; padding:10px 14px;">
+      <div class="flex items-center gap-2 mb-1">
+        <i class="fas fa-microchip" style="color:#00E5FF; font-size:13px;"></i>
+        <span style="font-size:12.5px; font-weight:700; color:#00E5FF;">阶段一：Prefill 阶段（Prompt 处理 · 典型计算密集）</span>
+      </div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.45;">
+        <strong>典型特征：</strong>$T$ 个输入 Token 并行送入 GPU 进行大 GEMM 矩阵乘法，算力单元高负荷运作，决定<strong>首字延迟（TTFT）</strong>。<em>（极小 Batch/短 Prompt 下受显存带宽影响）</em>
+      </div>
+    </div>
+
+    <div style="background:rgba(255,107,53,0.05); border:1px solid rgba(255,107,53,0.2); border-radius:4px; padding:10px 14px;">
+      <div class="flex items-center gap-2 mb-1">
+        <i class="fas fa-memory" style="color:#FF6B35; font-size:13px;"></i>
+        <span style="font-size:12.5px; font-weight:700; color:#FF6B35;">阶段二：Decode 阶段（自回归吐字 · 典型访存密集）</span>
+      </div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.45;">
+        <strong>典型特征：</strong>每次仅输入 1 个 Token，频繁将数百亿权重及 KV Cache 搬入计算核心，决定<strong>单流吞吐（TPS）</strong>。<em>（超大 Batch 并发下计算强度提升，可转化为计算密集）</em>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

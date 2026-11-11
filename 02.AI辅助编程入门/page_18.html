@@ -3,92 +3,113 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>OpenCode实战(1)</title>
+<title>Terminal Coding Agent 快速上手与三种工作模式</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
 .slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-demo-step { display:flex; align-items:flex-start; gap:14px; margin-bottom:12px; }
-.slide-demo-num { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; flex-shrink:0; }
-.slide-demo-content { flex:1; }
-.slide-demo-title { font-size:15px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
-.slide-demo-desc { font-size:12px; color:rgba(224,231,255,0.55); line-height:1.5; }
-.slide-demo-cmd { margin-top:4px; padding:6px 10px; background:rgba(0,0,0,0.3); font-family:monospace; font-size:11px; color:#00E5FF; border-left:2px solid #00E5FF; }
+.slide-container h1 { font-size:29px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; }
+.cmd-row { display:flex; align-items:center; padding:6px 10px; background:rgba(0,0,0,0.4); border-bottom:1px solid rgba(255,255,255,0.06); font-size:11.5px; }
+.cmd-name { width:125px; font-family:monospace; font-weight:700; color:#00E5FF; flex-shrink:0; }
+.cmd-desc { color:rgba(224,231,255,0.75); }
+.mode-box { padding:10px 14px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.16); margin-bottom:8px; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:32px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 07 · 演示场景</div>
-  <h1 class="mb-2">OpenCode实战：安装与配置</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:22px;"></div>
+<div class="slide-container" style="padding:26px 65px;">
+  <div class="mb-1 slide-section-num">CHAPTER 05 · 2026 主流 CODING AGENT 四大阵营与选型</div>
+  <h1 class="mb-2">Terminal Coding Agent 快速上手与三种工作模式</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:12px;"></div>
 
-  <div class="flex" style="gap:30px;">
+  <div class="flex" style="gap:24px;">
+    <!-- Left Column: Install + 6 Core Slash Commands -->
     <div style="flex:1;">
-      <div style="font-size:15px; font-weight:700; color:#00E5FF; margin-bottom:14px;"><i class="fas fa-download" style="margin-right:6px;"></i>安装步骤</div>
-
-      <div class="slide-demo-step">
-        <div class="slide-demo-num" style="background:rgba(0,229,255,0.15); color:#00E5FF;">1</div>
-        <div class="slide-demo-content">
-          <div class="slide-demo-title">安装OpenCode</div>
-          <div class="slide-demo-desc">开源免费的终端AI编程Agent，Go语言编写，单二进制无依赖</div>
-          <div class="slide-demo-cmd">curl -fsSL https://opencode.ai/install | bash<br># 或 go install github.com/anomalyco/opencode@latest</div>
-        </div>
+      <div style="font-size:14px; font-weight:700; color:#00E5FF; margin-bottom:6px;">
+        <i class="fas fa-download" style="margin-right:6px;"></i>1. 30 秒极速安装（以 Claude Code 与开源 OpenCode 为例）
+      </div>
+      <div style="padding:9px 12px; background:rgba(0,0,0,0.5); border:1px solid rgba(0,229,255,0.22); font-family:monospace; font-size:11px; color:#E0E7FF; line-height:1.5; margin-bottom:12px;">
+        <span style="color:rgba(224,231,255,0.45);"># 1. 安装 Claude Code（官方原生二进制安装）或 OpenCode（开源多模型）</span><br>
+        $ curl -fsSL https://claude.ai/install.sh | bash &nbsp;<span style="color:rgba(224,231,255,0.4);"># 或 npm i -g opencode-ai</span><br>
+        <span style="color:rgba(224,231,255,0.45);"># 2. 进入你的项目根目录直接启动！</span><br>
+        $ cd /workspace/order-service &amp;&amp; <strong style="color:#22C55E;">claude</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:rgba(224,231,255,0.4);"># 或运行 opencode</span>
       </div>
 
-      <div class="slide-demo-step">
-        <div class="slide-demo-num" style="background:rgba(0,229,255,0.15); color:#00E5FF;">2</div>
-        <div class="slide-demo-content">
-          <div class="slide-demo-title">配置模型API Key</div>
-          <div class="slide-demo-desc">支持75+模型，配置任意一个即可。推荐DeepSeek V4（便宜好用）或Claude（最强编程）</div>
-          <div class="slide-demo-cmd">export ANTHROPIC_API_KEY=sk-xxx<br># 或 export DEEPSEEK_API_KEY=sk-xxx</div>
-        </div>
+      <div style="font-size:14px; font-weight:700; color:#FF6B35; margin-bottom:6px;">
+        <i class="fas fa-slash" style="margin-right:6px;"></i>2. 高频必背的 6 大斜杠命令（Slash Commands）
       </div>
-
-      <div class="slide-demo-step">
-        <div class="slide-demo-num" style="background:rgba(0,229,255,0.15); color:#00E5FF;">3</div>
-        <div class="slide-demo-content">
-          <div class="slide-demo-title">进入项目目录，启动OpenCode</div>
-          <div class="slide-demo-desc">在你的项目根目录下启动，Agent会自动读取项目结构</div>
-          <div class="slide-demo-cmd">cd my-spring-project<br>opencode</div>
+      <div style="border:1px solid rgba(255,107,53,0.25); border-radius:4px; overflow:hidden;">
+        <div class="cmd-row">
+          <div class="cmd-name" style="color:#22C55E;">/init</div>
+          <div class="cmd-desc"><strong>新项目第一条命令！</strong>自动扫描仓库构建工具、目录架构与代码风格，生成初始 `AGENTS.md` / `CLAUDE.md`。</div>
         </div>
-      </div>
-
-      <div style="padding:12px 14px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.15); margin-top:6px;">
-        <div style="font-size:13px; color:#FF6B35; font-weight:700; margin-bottom:6px;"><i class="fab fa-windows" style="margin-right:6px;"></i>Windows用户：推荐WSL</div>
-        <div style="font-size:11px; color:rgba(224,231,255,0.55); line-height:1.6;">OpenCode官方推荐在WSL中运行，文件性能更好、终端兼容性更佳：<br>① 管理员PowerShell：<code style="color:#FF6B35;">wsl --install</code> → 重启<br>② WSL终端中安装：按上方步骤安装OpenCode<br>③ 访问Windows文件：<code style="color:#00E5FF;">cd /mnt/c/Users/你的用户名/project</code><br>④ 配合VS Code的WSL扩展，打造一体化开发体验</div>
+        <div class="cmd-row">
+          <div class="cmd-name" style="color:#FF6B35;">/plan <span style="font-size:11px; color:rgba(224,231,255,0.45);">(Shift+Tab)</span></div>
+          <div class="cmd-desc">切换至<strong>只读规划模式（Plan Mode）</strong>：先分析代码输出修改计划，未经人类批准绝不修改任何文件。</div>
+        </div>
+        <div class="cmd-row">
+          <div class="cmd-name" style="color:#00E5FF;">/compact</div>
+          <div class="cmd-desc"><strong>上下文瘦身神器！</strong>将前序冗长的排查对话压缩为精炼摘要，释放 80% 窗口空间并保留核心记忆。</div>
+        </div>
+        <div class="cmd-row">
+          <div class="cmd-name" style="color:#00E5FF;">/clear</div>
+          <div class="cmd-desc">彻底清空当前会话历史。<strong>做完一个独立需求切换到下一个任务时必敲</strong>，防止旧任务干扰。</div>
+        </div>
+        <div class="cmd-row">
+          <div class="cmd-name" style="color:#A855F7;">/review</div>
+          <div class="cmd-desc">对当前未提交的 `git diff` 或指定 PR 启动深度代码审查（并发安全、空指针、越权漏洞）。</div>
+        </div>
+        <div class="cmd-row" style="border-bottom:none;">
+          <div class="cmd-name" style="color:#FFC832;">/cost · /context</div>
+          <div class="cmd-desc">实时透视当前会话消耗了多少 Token、Prefix Cache 命中率多少、哪些 MCP/文件占用了窗口。</div>
+        </div>
       </div>
     </div>
 
+    <!-- Right Column: 3 Operating Modes -->
     <div style="flex:1;">
-      <div style="font-size:15px; font-weight:700; color:#FF6B35; margin-bottom:14px;"><i class="fas fa-desktop" style="margin-right:6px;"></i>三种使用方式</div>
-
-      <div style="padding:12px 14px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.12); margin-bottom:10px;">
-        <div style="font-size:13px; font-weight:700; color:#00E5FF; margin-bottom:6px;"><i class="fas fa-terminal" style="margin-right:6px;"></i>方式一：TUI（终端交互界面）</div>
-        <div style="font-size:11px; color:rgba(224,231,255,0.55); margin-bottom:6px;">默认模式，进入交互式终端界面，支持对话、审批、快捷键操作。</div>
-        <div class="slide-demo-cmd" style="font-size:11px;">cd my-project && opencode<br><span style="color:rgba(224,231,255,0.4);"># 继续上次会话：opencode --continue</span></div>
-        <div style="font-size:11px; color:rgba(224,231,255,0.5); margin-top:4px;">适合日常开发，实时交互，逐个审批Agent操作。</div>
+      <div style="font-size:14px; font-weight:700; color:#22C55E; margin-bottom:8px;">
+        <i class="fas fa-layer-group" style="margin-right:6px;"></i>3. Terminal Agent 的三大实战运行形态
       </div>
 
-      <div style="padding:12px 14px; background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.12); margin-bottom:10px;">
-        <div style="font-size:13px; font-weight:700; color:#FF6B35; margin-bottom:6px;"><i class="fas fa-code" style="margin-right:6px;"></i>方式二：CLI（命令行模式）</div>
-        <div style="font-size:11px; color:rgba(224,231,255,0.55); margin-bottom:6px;">非交互式，执行完直接退出。适合<strong style="color:#E0E7FF;">脚本、CI/CD流水线、自动化任务</strong>。</div>
-        <div class="slide-demo-cmd" style="font-size:11px;">opencode run "给UserService添加密码重置功能"<br><span style="color:rgba(224,231,255,0.4);"># 指定模型：opencode run -m deepseek/chat "解释闭包"</span></div>
-        <div style="font-size:11px; color:rgba(224,231,255,0.5); margin-top:4px;">一次性任务、批量处理、集成到构建流程中。</div>
+      <!-- Mode 1 -->
+      <div class="mode-box" style="border-left:4px solid #00E5FF;">
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:13.5px; font-weight:700; color:#00E5FF;">形态 ① · 沉浸式终端交互模式（Interactive TUI）</span>
+          <span style="font-size:11px; font-family:monospace; color:#00E5FF;">架构设计 &amp; 大手术</span>
+        </div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.72); line-height:1.48;">
+          在独立终端全屏启动 `claude` 或 `opencode`：支持 `@` 模糊搜索文件、`!mvn test` 直接内联跑命令、粘贴报错截图，适合处理跨 10+ 个文件的深度需求与疑难杂症排障。
+        </div>
       </div>
 
-      <div style="padding:12px 14px; background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.1); margin-bottom:10px;">
-        <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:6px;"><i class="fas fa-globe" style="margin-right:6px;"></i>方式三：Web（浏览器界面）</div>
-        <div style="font-size:11px; color:rgba(224,231,255,0.55); margin-bottom:6px;">启动本地Web服务器，在浏览器中使用。适合<strong style="color:#E0E7FF;">不习惯终端的用户、远程访问、团队共享</strong>。</div>
-        <div class="slide-demo-cmd" style="font-size:11px;">opencode web<br><span style="color:rgba(224,231,255,0.4);"># 指定端口：opencode web --port 4096</span><br><span style="color:rgba(224,231,255,0.4);"># 网络访问：opencode web --hostname 0.0.0.0</span></div>
-        <div style="font-size:11px; color:rgba(224,231,255,0.5); margin-top:4px;">自动打开浏览器，WSL下运行效果最佳。</div>
+      <!-- Mode 2 -->
+      <div class="mode-box" style="border-left:4px solid #22C55E;">
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:13.5px; font-weight:700; color:#22C55E;">形态 ② · IDE 伴生联动模式（IDE Companion）</span>
+          <span style="font-size:11px; font-family:monospace; color:#22C55E;">IDEA / VS Code 黄金搭档</span>
+        </div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.72); line-height:1.48;">
+          在 IntelliJ IDEA 或 VS Code 内置终端里启动 Terminal Agent：**你在编辑器里用鼠标高亮选中的代码行、当前打开的 Tab、以及 IDE 语法红线（LSP Diagnostics）会自动实时同步给终端里的 Agent**，改完代码直接在 IDE 高亮视图里可视化审查 Diff！
+        </div>
       </div>
 
-      <div style="padding:10px 14px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.12); margin-top:6px;">
-        <div style="font-size:12px; color:#00E5FF; font-weight:700;"><i class="fas fa-lightbulb" style="margin-right:4px;"></i>选型建议</div>
-        <div style="font-size:11px; color:rgba(224,231,255,0.55); line-height:1.5;"><strong style="color:#E0E7FF;">日常开发</strong>用TUI · <strong style="color:#E0E7FF;">自动化/CI</strong>用CLI · <strong style="color:#E0E7FF;">演示/团队</strong>用Web</div>
+      <!-- Mode 3 -->
+      <div class="mode-box" style="border-left:4px solid #FF6B35; margin-bottom:0;">
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:13.5px; font-weight:700; color:#FF6B35;">形态 ③ · 无头管道与批处理模式（Headless &amp; Unix Pipe）</span>
+          <span style="font-size:11px; font-family:monospace; color:#FF6B35;">脚本化 &amp; CI/CD 神器</span>
+        </div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.72); line-height:1.45; margin-bottom:6px;">
+          把大模型当成标准 Unix 命令行过滤器，直接与管道 `|` 和 Shell 脚本结合：
+        </div>
+        <div style="padding:7px 10px; background:rgba(0,0,0,0.5); font-family:monospace; font-size:11px; color:#E0E7FF; line-height:1.5;">
+          <span style="color:rgba(224,231,255,0.45);"># 管道直接分析线上错误日志并输出根因报告</span><br>
+          $ tail -n 200 error.log | <strong style="color:#FF6B35;">claude -p</strong> "定位 NPE 根因并给出修复补丁"<br>
+          <span style="color:rgba(224,231,255,0.45);"># 开源 OpenCode 非交互执行单测补齐任务</span><br>
+          $ <strong style="color:#22C55E;">opencode run</strong> "为 PaymentService 补齐边界单测并跑通 mvn test"
+        </div>
       </div>
     </div>
   </div>

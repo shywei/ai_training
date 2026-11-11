@@ -1,21 +1,93 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280"><script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script><title>人在回路</title><style>*{margin:0;padding:0;box-sizing:border-box}.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}.code{font-size:10px;color:rgba(224,231,255,0.55);line-height:1.5;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace}</style></head><body><div class="s" style="padding:24px 50px;display:flex;flex-direction:column"><div class="mb-1 sn">CHAPTER 06</div><h1 class="mb-1">Human-in-the-loop — AI 的安全边界</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px"></div><div style="flex:1;display:flex;gap:14px"><div style="flex:1;display:flex;flex-direction:column;justify-content:center">
-<div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:10px">为什么需要人工确认</div>
-<div style="font-size:13px;color:rgba(224,231,255,0.65);line-height:1.8;margin-bottom:14px">LLM 可能<strong style="color:#FF6B35">误判意图</strong>——用户说"帮我看看"，LLM 理解成"下单"。<br>LLM 可能<strong style="color:#FF6B35">过度自信</strong>——用户还没确认，就直接调了下单接口。<br>LLM 可能<strong style="color:#FF6B35">被注入</strong>——恶意用户通过提示词诱导 Agent 执行危险操作。<br><br><strong style="color:#E0E7FF">AI 不应该对所有操作都有执行权。</strong></div>
-<div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:10px">哪些操作需要确认</div>
-<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">
-<span style="padding:5px 12px;background:rgba(255,107,53,0.08);border-radius:4px;font-size:12px;color:#FF6B35">下单</span>
-<span style="padding:5px 12px;background:rgba(255,107,53,0.08);border-radius:4px;font-size:12px;color:#FF6B35">退款</span>
-<span style="padding:5px 12px;background:rgba(255,107,53,0.08);border-radius:4px;font-size:12px;color:#FF6B35">删除</span>
-<span style="padding:5px 12px;background:rgba(255,107,53,0.08);border-radius:4px;font-size:12px;color:#FF6B35">修改价格</span>
-<span style="padding:5px 12px;background:rgba(255,107,53,0.08);border-radius:4px;font-size:12px;color:#FF6B35">支付</span></div>
-<div style="padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px"><div style="font-size:12px;color:rgba(224,231,255,0.45);line-height:1.7"><strong style="color:#E0E7FF">Demo 已覆盖</strong>：ConfirmationService.java 完整确认/取消流程。<br><strong style="color:#FF6B35">仅 PPT 讲解</strong>：确认超时、CSRF 防护、多级审批。</div></div></div>
-<div style="flex:1;display:flex;flex-direction:column;justify-content:center">
-<div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:10px">工作流程</div>
-<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
-<div style="padding:10px 12px;background:rgba(0,229,255,0.06);border-radius:4px;font-size:13px;color:rgba(224,231,255,0.7)"><span style="color:#00E5FF;font-weight:700">①</span> Agent 准备调用高风险 Tool（如 place_order）</div>
-<div style="padding:10px 12px;background:rgba(255,107,53,0.06);border-radius:4px;font-size:13px;color:rgba(224,231,255,0.7)"><span style="color:#FF6B35;font-weight:700">②</span> ConfirmationService 拦截 → 工作流暂停</div>
-<div style="padding:10px 12px;background:rgba(255,107,53,0.06);border-radius:4px;font-size:13px;color:rgba(224,231,255,0.7)"><span style="color:#FF6B35;font-weight:700">③</span> 返回确认请求给前端</div>
-<div style="padding:10px 12px;background:rgba(34,197,94,0.06);border-radius:4px;font-size:13px;color:rgba(224,231,255,0.7)"><span style="color:#22C55E;font-weight:700">④a</span> 用户确认 → 工作流恢复 → 执行工具</div>
-<div style="padding:10px 12px;background:rgba(239,68,68,0.06);border-radius:4px;font-size:13px;color:rgba(224,231,255,0.7)"><span style="color:#EF4444;font-weight:700">④b</span> 用户取消 → 状态变为 CANCELLED</div></div>
-<div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:8px">API 端点</div>
-<div style="padding:10px 12px;background:rgba(0,0,0,0.3);border-radius:4px;font-family:monospace;font-size:11px;color:rgba(224,231,255,0.6);line-height:1.6">POST /api/agent/workflow/confirm<br>&nbsp;&nbsp;?traceId=trace-xxx<br>&nbsp;&nbsp;&confirmed=true &nbsp;// 或 false<br>&nbsp;&nbsp;&sessionId=default</div></div></div></div></body></html>
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>三级容错① 重试 — 触发条件 · 参数取值 · 失败模式</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.mb-2{margin-bottom:8px}
+.grid3{display:flex;flex-direction:column;gap:10px}
+.g3{padding:10px 12px;border-radius:6px}
+.g3 .t{font-size:13px;font-weight:700;margin-bottom:5px}
+.g3 .b{font-size:11px;color:rgba(224,231,255,0.78);line-height:1.75}
+.code{font-family:Consolas,Monaco,monospace;font-size:10.5px;color:rgba(224,231,255,0.85);line-height:1.65;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px}
+.miss{padding:10px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:6px}
+.miss .t{font-size:12px;color:#FF6B35;font-weight:700;margin-bottom:5px}
+.miss .b{font-size:11px;color:rgba(224,231,255,0.78);line-height:1.75}
+.tag{font-family:Consolas,Monaco,monospace;color:rgba(224,231,255,0.9)}
+</style></head>
+<body>
+<div class="s" style="padding:28px 56px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 05 · 三级容错 1/3</div>
+  <h1 class="mb-2">① 重试（Retry）— 触发条件 · 参数取值 · 失败模式</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px;"></div>
+
+  <div style="flex:1;display:flex;gap:16px;">
+    <div style="flex:1.05;display:flex;flex-direction:column;">
+      <div class="grid3">
+        <div class="g3" style="background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);">
+          <div class="t" style="color:#00E5FF;">■ 触发条件（什么时候重试）</div>
+          <div class="b">
+            · 位置：<span class="tag">AgentRuntime.executeToolCall()</span> 的 <span class="tag">while(true)</span> 循环内<br>
+            · <span class="tag">callToolDirectly()</span> 抛异常、或返回 null（视为失败）→ 进 catch<br>
+            · <span class="tag">ErrorRecovery.shouldRetry(step)</span>：<span class="tag">retryCount &lt; MAX_RETRY</span> 才继续<br>
+            · 只对瞬时故障划算（超时 / 连接失败）；参数错误重 3 次还是错
+          </div>
+        </div>
+        <div class="g3" style="background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);">
+          <div class="t" style="color:#FF6B35;">■ 参数取值（为什么是这些数）</div>
+          <div class="b">
+            · <span class="tag">MAX_RETRY = 3</span>，计数在 <span class="tag">WorkflowStep.retryCount</span>（每步独立）<br>
+            · 退避 <span class="tag">getRetryDelayMs() = 2^retryCount × 1000</span> → <strong style="color:#E0E7FF;">1s / 2s / 4s</strong>（指数退避，给下游喘息）<br>
+            · 成功即 <span class="tag">recordSuccess()</span> 清零；失败先 <span class="tag">recordFailure()</span> 记进熔断计数<br>
+            · 等待是 <span class="tag">Thread.sleep</span> 同步阻塞——请求线程被占住
+          </div>
+        </div>
+        <div class="g3" style="background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);">
+          <div class="t" style="color:#A855F7;">■ 失败模式（重试会怎么坏）</div>
+          <div class="b">
+            · 重试耗尽 → <span class="tag">step.fail("重试耗尽")</span>、返回 null → 上层降级为直接回答（见第 3 页）<br>
+            · 重试放大：非幂等操作（<span class="tag">place_order</span>）重复执行 = 重复副作用；Demo 下单无幂等键，两次下单两个 <span class="tag">ORD-</span> 时间戳<br>
+            · 退避无抖动：并发请求同时睡、同时醒 → 惊群，下游刚恢复又被打
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+      <div style="font-size:12px;color:#E0E7FF;font-weight:700;">代码锚点 — ErrorRecovery.java + AgentRuntime.executeToolCall()</div>
+      <div class="code">
+        // ErrorRecovery.java<br>
+        static final int <strong style="color:#FF6B35;">MAX_RETRY</strong> = 3;<br>
+        public boolean shouldRetry(WorkflowStep step) {<br>
+        &nbsp;&nbsp;return step.getRetryCount() &lt; MAX_RETRY;<br>
+        }<br>
+        public long getRetryDelayMs(WorkflowStep step) {<br>
+        &nbsp;&nbsp;return (long) Math.pow(2, step.getRetryCount()) * 1000; <span style="color:rgba(224,231,255,0.5)">// 1s / 2s / 4s</span><br>
+        }<br><br>
+        // AgentRuntime.executeToolCall() — 带重试的工具调用<br>
+        catch (Exception e) {<br>
+        &nbsp;&nbsp;step.incrementRetry();<br>
+        &nbsp;&nbsp;errorRecovery.recordFailure(toolName, e.getMessage());<br>
+        &nbsp;&nbsp;if (errorRecovery.shouldRetry(step)) {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;errorRecovery.waitBeforeRetry(step); <span style="color:rgba(224,231,255,0.5)">// sleep 后回到 while 重试</span><br>
+        &nbsp;&nbsp;} else {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;step.fail("重试耗尽: ..."); return null; <span style="color:rgba(224,231,255,0.5)">// → 降级</span><br>
+        &nbsp;&nbsp;}<br>
+        }
+      </div>
+      <div class="miss">
+        <div class="t">✗ Demo vs 生产 · 三格</div>
+        <div class="b">
+          <strong style="color:#E0E7FF;">✗ 重试不配幂等与预算</strong><br>
+          <strong style="color:#FF6B35;">问题：</strong>对写操作重试 = 重复下单 / 重复扣款；每层各自重试，总耗时按层数指数相乘。<br>
+          <strong style="color:#FF6B35;">不解决：</strong>一次"容错优化"直接造成资损，或整条链路超时雪崩。<br>
+          <strong style="color:#22C55E;">怎么解决：</strong>读写分开——只读自动重试；写操作先有幂等键（第七课幂等页）再重试。链路 deadline 向下传递，剩余预算不足就不重试；退避加 ±随机抖动；熔断打开时重试直接短路。<br>
+          <strong style="color:#E0E7FF;">取舍：</strong>幂等键要全链路传参、要存去重表；抖动牺牲一点可复现性。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

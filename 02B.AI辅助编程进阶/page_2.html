@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>六大章节目录</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:44px !important; color:#E0E7FF; font-weight:700; }
+.slide-toc-item { display:flex; align-items:flex-start; padding:14px 16px; margin-bottom:10px; background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.12); border-left:3px solid #00E5FF; }
+.slide-toc-num { font-size:26px; font-weight:700; color:#00E5FF; min-width:52px; line-height:1.1; }
+.slide-toc-text { flex:1; }
+.slide-toc-title { font-size:17px; color:#E0E7FF; font-weight:700; margin-bottom:4px; }
+.slide-toc-desc { font-size:12.5px; color:rgba(224,231,255,0.58); line-height:1.45; }
+.slide-toc-time { font-size:12px; color:#FF6B35; font-weight:700; min-width:75px; text-align:right; padding-top:2px; font-family:monospace; }
+.slide-accent-line { width:50px; height:3px; background:#FF6B35; }
+</style>
+</head>
+<body>
+<div class="slide-container flex">
+  <div class="flex flex-col justify-center" style="width:350px; padding-left:70px; padding-right:20px;">
+    <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; margin-bottom:8px;">AGENDA · 02B（可选深潜）</div>
+    <h1 class="mb-5">课程目录</h1>
+    <div class="slide-accent-line mb-6"></div>
+    <p style="font-size:14px; color:rgba(224,231,255,0.55); line-height:1.8; margin-bottom:16px;">
+      衔接第 02 课《AI辅助编程入门》，本篇聚焦<strong style="color:#00E5FF;">企业存量工程（Brownfield）</strong>中的规格驱动开发、回归防线、防作弊护栏与工程免疫飞轮。
+    </p>
+    <div style="padding:11px 13px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.2); margin-bottom:12px;">
+      <div style="font-size:12px; font-weight:700; color:#FF6B35; margin-bottom:4px;"><i class="fas fa-compass" style="margin-right:6px;"></i>选修定位与受众说明</div>
+      <div style="font-size:11.5px; color:rgba(224,231,255,0.65); line-height:1.5;">
+        · <strong style="color:#FF6B35;">适用受众</strong>：项目 Leader / 高级开发深入选修（攻坚 SDD、存量老代码重构与 Git Worktree 并行）<br>
+        · <strong style="color:#00E5FF;">普通学员路线</strong>：完成第 02 课后可跳过本课，直接进入《第 03 课：AI Agent架构认知入门》
+      </div>
+    </div>
+    <div style="padding:10px 13px; background:rgba(34,197,94,0.05); border:1px solid rgba(34,197,94,0.2);">
+      <div style="font-size:11.5px; font-weight:700; color:#22C55E; margin-bottom:2px;"><i class="fas fa-bullseye" style="margin-right:6px;"></i>本课工程目标</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.6); line-height:1.45;">
+        告别抽卡盲改，建立<strong style="color:#22C55E;">可评审、可回归、可并行、可复利</strong>的高可靠交付体系。
+      </div>
+    </div>
+  </div>
+
+  <div class="flex flex-col justify-center flex-1" style="padding:32px 70px 32px 30px;">
+    <div class="slide-toc-item">
+      <div class="slide-toc-num">01</div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title">Spec-Driven Development (SDD) 企业级闭环</div>
+        <div class="slide-toc-desc">Vibe Coding 在存量项目必死 · SDD 三阶段工件（requirements / design / tasks）· 四步实操 SOP 与正反对比</div>
+      </div>
+      <div class="slide-toc-time">P03 - P06</div>
+    </div>
+
+    <div class="slide-toc-item" style="border-left-color:#FF6B35; background:rgba(255,107,53,0.04);">
+      <div class="slide-toc-num" style="color:#FF6B35;">02</div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title">存量复杂工程（Brownfield）破局与安全重构</div>
+        <div class="slide-toc-desc">90% 改老代码真实战场 · Repo Wiki 架构地图逆向测绘 · Characterization Testing 黄金回归锁死 · 跨模块 RCA</div>
+      </div>
+      <div class="slide-toc-time">P07 - P10</div>
+    </div>
+
+    <div class="slide-toc-item" style="border-left-color:#22C55E;">
+      <div class="slide-toc-num" style="color:#22C55E;">03</div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title">Agentic TDD 验证闭环与防作弊纪律</div>
+        <div class="slide-toc-desc">秒级定向单测验证闭环 · 严防 AI 三大专属恶习（Reward Hacking 篡改断言 / 静默吞异常 / 虚构包）· 深度 Code Review</div>
+      </div>
+      <div class="slide-toc-time">P11 - P13</div>
+    </div>
+
+    <div class="slide-toc-item" style="border-left-color:#A855F7;">
+      <div class="slide-toc-num" style="color:#A855F7;">04</div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title">团队级 Context 治理与工程免疫飞轮</div>
+        <div class="slide-toc-desc">为什么 3000 行巨型 AGENTS.md 会失灵 · 根目录全局宪法 + 子模块 + Glob Rules 分层架构 · Compound 复利飞轮</div>
+      </div>
+      <div class="slide-toc-time">P14 - P16</div>
+    </div>
+
+    <div class="slide-toc-item" style="border-left-color:#00E5FF;">
+      <div class="slide-toc-num" style="color:#00E5FF;">05</div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title">高阶提效：git worktree 并行与 CI/CD 无头 Agent</div>
+        <div class="slide-toc-desc">本地多 Worktree 物理隔离并行研发 · Headless Agent 融入 CI/CD 打造 7×24 小时流水线数字员工</div>
+      </div>
+      <div class="slide-toc-time">P17 - P18</div>
+    </div>
+
+    <div class="slide-toc-item" style="border-left-color:#22C55E; margin-bottom:0;">
+      <div class="slide-toc-num" style="color:#22C55E;">06</div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title">基于 OpenCode 的企业靶场实战演练与总结</div>
+        <div class="slide-toc-desc">分层 AGENTS.md 与防作弊 Hook 配置 · PII 脱敏 SDD 演练与老代码安全重构 · 工程师能力成熟度阶梯与黄金军规</div>
+      </div>
+      <div class="slide-toc-time">P19 - P21</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,66 +1,104 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>MCP 架构</title>
+<title>MCP 架构与协议演进</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.s h1{font-size:30px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.matrix-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:6px}
+.matrix-table th{background:rgba(0,229,255,0.12);color:#00E5FF;padding:7px 8px;text-align:left;border:1px solid rgba(0,229,255,0.25);font-size:11.5px}
+.matrix-table td{padding:6px 8px;border:1px solid rgba(224,231,255,0.1);color:rgba(224,231,255,0.78);line-height:1.45}
+.matrix-table tr:nth-child(even){background:rgba(224,231,255,0.02)}
 </style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 03</div>
-<h1 class="mb-2">MCP 架构 — Client / Server / Transport</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
-<div style="flex:1;display:flex;gap:20px;">
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:14px;">三层架构</div>
-    <div style="display:flex;flex-direction:column;gap:10px;">
-      <div style="padding:14px;background:rgba(0,229,255,0.06);border:2px solid rgba(0,229,255,0.2);border-radius:8px;">
-        <div style="font-size:15px;color:#00E5FF;font-weight:700;">Client Layer</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px;">McpClient / McpSyncClient<br>连接 Server、发现 Tool、调用 Tool</div>
+<div class="s" style="padding:20px 44px;display:flex;flex-direction:column;">
+<div class="mb-1 sn">CHAPTER 03 · P0 升级</div>
+<h1 class="mb-1">MCP 架构与协议演进 — 协议时间线与 Demo/2026 双轨制对照</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+
+<div style="flex:1;display:flex;gap:12px;">
+  <!-- 左侧：基础三层架构与协议演进时间线 -->
+  <div style="flex:0.95;display:flex;flex-direction:column;gap:6px;">
+    <div style="font-size:12.5px;color:#E0E7FF;font-weight:700;">协议演进四阶段时间线</div>
+    <div style="display:flex;flex-direction:column;gap:5px;">
+      <div style="padding:6px 10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:4px;">
+        <div style="font-size:11.5px;color:rgba(224,231,255,0.6);font-weight:700;">① 2024-11-05 · 初始协议</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.5);margin-top:1px;">本地 stdio 与远程 HTTP+SSE 双端点（Demo 所采用教学基线）</div>
       </div>
-      <div style="text-align:center;font-size:12px;color:rgba(224,231,255,0.3);">↕ JSON-RPC 2.0</div>
-      <div style="padding:14px;background:rgba(168,85,247,0.06);border:2px solid rgba(168,85,247,0.2);border-radius:8px;">
-        <div style="font-size:15px;color:#A855F7;font-weight:700;">Transport Layer</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px;">SSE（HTTP Server-Sent Events）<br>stdio（标准输入输出）· 自定义</div>
+      <div style="padding:6px 10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.15);border-radius:4px;">
+        <div style="font-size:11.5px;color:#00E5FF;font-weight:700;">② 2025-03-26 · 引入 Streamable HTTP</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.65);margin-top:1px;">引入单端点 Streamable HTTP，旧 HTTP+SSE 传输步入弃用路线</div>
       </div>
-      <div style="text-align:center;font-size:12px;color:rgba(224,231,255,0.3);">↕</div>
-      <div style="padding:14px;background:rgba(255,107,53,0.06);border:2px solid rgba(255,107,53,0.2);border-radius:8px;">
-        <div style="font-size:15px;color:#FF6B35;font-weight:700;">Server Layer</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px;">McpServer / McpSyncServer<br>暴露 Tool、Resource、Prompt</div>
+      <div style="padding:6px 10px;background:rgba(255,107,53,0.05);border:1px solid rgba(255,107,53,0.18);border-radius:4px;">
+        <div style="font-size:11.5px;color:#FF6B35;font-weight:700;">③ 2025-11-25 · 会话式 Streamable HTTP</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.7);margin-top:1px;">Streamable HTTP 采用 <code>Mcp-Session-Id</code> 与 <code>initialize</code> 显式两阶段握手</div>
+      </div>
+      <div style="padding:7px 10px;background:rgba(34,197,94,0.06);border:1.5px solid rgba(34,197,94,0.3);border-radius:5px;">
+        <div style="font-size:11.5px;color:#22C55E;font-weight:700;">④ 2026-07-28 · 无状态核心演进（最新）</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.78);margin-top:1px;line-height:1.4;">
+          • 取消 <code>initialize</code> 握手与协议级 Session ID，请求自包含认证<br>
+          • <code>server/discover</code> RPC 方法动态协商元数据与能力清单<br>
+          • <code>Mcp-Method</code> / <code>Mcp-Name</code> 请求头路由与 <code>ttlMs</code>/<code>cacheScope</code> 缓存<br>
+          • Tasks 解耦为独立扩展；OAuth 强化与 CIMD 客户端元数据文档<br>
+          • <strong>MRTR 交互</strong>：服务端返回 <code>input_required</code>，客户端通过 <code>inputResponses</code> 提供答案后重试原请求
+        </div>
       </div>
     </div>
   </div>
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:14px;">传输方式选型</div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
-      <div style="display:flex;padding:10px 12px;background:rgba(224,231,255,0.02);border-radius:4px;font-size:12px;">
-        <span style="flex:1;color:rgba(224,231,255,0.4);">方式</span>
-        <span style="flex:1;color:rgba(224,231,255,0.4);">场景</span>
-        <span style="flex:1;color:rgba(224,231,255,0.4);">Demo</span>
-      </div>
-      <div style="display:flex;padding:10px 12px;background:rgba(224,231,255,0.02);border-radius:4px;font-size:12px;">
-        <span style="flex:1;color:#00E5FF;">SSE</span>
-        <span style="flex:1;color:rgba(224,231,255,0.55);">远程服务</span>
-        <span style="flex:1;color:#22C55E;">✓ 已覆盖</span>
-      </div>
-      <div style="display:flex;padding:10px 12px;background:rgba(224,231,255,0.02);border-radius:4px;font-size:12px;">
-        <span style="flex:1;color:#A855F7;">stdio</span>
-        <span style="flex:1;color:rgba(224,231,255,0.55);">本地进程</span>
-        <span style="flex:1;color:rgba(224,231,255,0.4);">仅讲解</span>
-      </div>
-      <div style="display:flex;padding:10px 12px;background:rgba(224,231,255,0.02);border-radius:4px;font-size:12px;">
-        <span style="flex:1;color:rgba(224,231,255,0.4);">自定义</span>
-        <span style="flex:1;color:rgba(224,231,255,0.55);">特殊需求</span>
-        <span style="flex:1;color:rgba(224,231,255,0.4);">仅讲解</span>
+
+  <!-- 右侧：双轨制对比映射矩阵 -->
+  <div style="flex:1.25;display:flex;flex-direction:column;gap:5px;">
+    <div style="font-size:12.5px;color:#E0E7FF;font-weight:700;">双轨制对比：Demo 实践基线 vs 2026 无状态演进</div>
+    <table class="matrix-table" style="font-size:11px;">
+      <thead>
+        <tr>
+          <th style="width:18%;padding:5px 6px;">对比维度</th>
+          <th style="width:40%;padding:5px 6px;">Demo 实践基线（2024-11 HTTP+SSE）</th>
+          <th style="width:42%;padding:5px 6px;">MCP 2026 最新无状态前瞻标准</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="color:#E0E7FF;">传输模型</strong></td>
+          <td>HTTP+SSE 双端点（<code>/sse</code> 长连接 + <code>/mcp/message</code> POST）</td>
+          <td><strong style="color:#22C55E;">无状态 HTTP POST</strong>（<code>Mcp-Method</code>/<code>Mcp-Name</code> 头路由，按需切流）</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#E0E7FF;">握手与会话</strong></td>
+          <td>强制 <code>initialize</code> 两阶段握手，依赖 <code>Mcp-Session-Id</code></td>
+          <td><strong style="color:#22C55E;">取消初始化握手</strong>与协议级 Session ID，<code>ttlMs</code>/<code>cacheScope</code> 列表缓存</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#E0E7FF;">服务与能力发现</strong></td>
+          <td>连接建立后分立调用 <code>tools/list</code>、<code>resources/list</code></td>
+          <td>现代化 <strong style="color:#00E5FF;"><code>server/discover</code> RPC 方法</strong>，一次性协商全量能力与扩展</td>
+        </tr>
+        <tr>
+          <td><strong style="color:#E0E7FF;">长任务与多轮补充</strong></td>
+          <td>Tasks 混在核心协议中，参数缺失需 Agent 自行循环处理</td>
+          <td>Tasks 移入<strong style="color:#A855F7;">独立 Extension</strong>；<strong>MRTR</strong> 原生支持 <code>input_required</code>/<code>inputResponses</code></td>
+        </tr>
+        <tr>
+          <td><strong style="color:#E0E7FF;">生产治理架构</strong></td>
+          <td>单机开发友好，但粘性连接阻碍 API 网关与负载均衡</td>
+          <td><strong style="color:#22C55E;">完美适配 K8s 微服务网关、无状态扩容与 Serverless 冷启动</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:4px;padding:5px 8px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.25);border-radius:4px;">
+      <div style="font-size:11px;color:rgba(224,231,255,0.8);line-height:1.35;">
+        <strong style="color:#FF6B35;">⚠️ Java 生态落地实现边界：</strong>
+        ① <strong>协议层：</strong>2026-07-28 发布无状态核心；
+        ② <strong>Java SDK 层：</strong>SDK 2.2.0 中 Modern Server 仍为 <span style="color:#FFD166;">Preview</span>，暂无 Modern Client，Tasks 待实现；
+        ③ <strong>Spring AI 层：</strong>2.0.2 支持 Stateless Streamable 传输，但<strong>不等同于</strong>完整实现 2026-07 规范全部核心；
+        ④ <strong>Demo 层：</strong>采用稳定 2024-11 HTTP+SSE 教学基线。
       </div>
     </div>
-    <div style="padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
-      <div style="font-size:13px;color:#00E5FF;font-weight:600;">Demo 用 SSE</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px;">
-        Server 端：HttpServletSseServerTransportProvider<br>
-        Client 端：HttpClientSseClientTransport<br>
-        基于 HTTP，适合远程微服务部署
+  </div>
+</div>
+</div>
+        理论视野完全同步 <strong>MCP 2026 无状态演进</strong>，确保架构设计不落后于企业微服务生产前沿！
       </div>
     </div>
   </div>

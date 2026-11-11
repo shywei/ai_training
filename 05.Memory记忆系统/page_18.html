@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>业界记忆系统一览</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.mb-2{margin-bottom:8px}
+.card{padding:10px 13px;border-radius:6px}
+.card .t{font-size:12.5px;font-weight:700;margin-bottom:4px}
+.card .b{font-size:10.5px;color:rgba(224,231,255,0.66);line-height:1.58}
+.why{padding:8px 11px;background:rgba(224,231,255,0.04);border-left:3px solid #E0E7FF;border-radius:4px}
+.why .t{font-size:11.5px;color:#E0E7FF;font-weight:700;margin-bottom:2px}
+.why .b{font-size:10.5px;color:rgba(224,231,255,0.6);line-height:1.52}
+</style></head>
+<body>
+<div class="s" style="padding:26px 56px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 09 · 业界视野</div>
+  <h1 class="mb-2">业界记忆系统一览 — 本课三层记忆的坐标系</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:11px;"></div>
+  <div style="flex:1;display:flex;gap:16px;">
+
+    <!-- 左：业界记忆系统 -->
+    <div style="flex:1.15;display:flex;flex-direction:column;justify-content:center;gap:7px;">
+      <div class="card" style="background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.18);">
+        <div class="t" style="color:#00E5FF;">MemGPT / Letta — LLM 当操作系统，上下文当内存</div>
+        <div class="b">
+          <strong style="color:#E0E7FF">思路：</strong>把 LLM 看作 OS、上下文窗口看作内存，记忆按<strong style="color:#E0E7FF">分页</strong>在"核心内存 / 外部存储"间换入换出（2023 论文 MemGPT → Letta 平台，有状态 Agent 服务）。<br>
+          <strong style="color:#00E5FF;">对照本课：</strong>"核心内存"≈ 本课 v2.0 全量注入的 MySQL user_profile；"外部存储+检索换入"≈ 下节课 v3.0 的 pgvector user_memory 按需检索。
+        </div>
+      </div>
+      <div class="card" style="background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.2);">
+        <div class="t" style="color:#FF6B35;">Mem0 — 生产级长期记忆抽取与冲突消解四态机</div>
+        <div class="b">
+          <strong style="color:#E0E7FF">思路：</strong>抽取-更新流水线 + <strong>记忆冲突消解四态机（ADD / UPDATE / DELETE / NOOP）</strong>：当用户偏好反转（如预算从 5000 变 15000）时自动判定 UPDATE/DELETE，防止新旧记忆自相矛盾。<br>
+          <strong style="color:#FF6B35;">对照本课：</strong>≈ 本课 v2.0 UserProfileExtractor 的"旧画像+新对话 → LLM 合并更新"，将合并消解推广至全部长期记忆。
+        </div>
+      </div>
+      <div class="card" style="background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.25);">
+        <div class="t" style="color:#A855F7;">Zep（Graphiti 引擎）— 时序知识图谱</div>
+        <div class="b">
+          <strong style="color:#E0E7FF">思路：</strong>记忆不是平面列表而是<strong style="color:#E0E7FF">时序知识图</strong>——事实带生效/过期时间边，专治"偏好会变、旧事实会过期"的一致性问题。<br>
+          <strong style="color:#A855F7;">对照本课：</strong>≈ user_profile（新覆盖旧 + updated_at）与下节课 user_memory（只增不改 + 时序检索）的工程简化版。
+        </div>
+      </div>
+      <div class="card" style="background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.22);">
+        <div class="t" style="color:#22C55E;">A-MEM — Agentic 记忆演化（学界前沿）</div>
+        <div class="b">
+          <strong style="color:#E0E7FF">思路：</strong>记忆不是死档案：新记忆与旧记忆互链、自我组织与更新（Zettelkasten 式链接），让记忆随使用<strong style="color:#E0E7FF">演化</strong>。<br>
+          <strong style="color:#22C55E;">对照本课：</strong>我们的课程先保证记忆可信、可解释，再谈记忆自进化。
+        </div>
+      </div>
+    </div>
+
+    <!-- 右：对照 + 2026 核心工程机制 -->
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:7px;">
+      <div style="font-size:13px;color:#E0E7FF;font-weight:700;">学界视角：forms / functions / dynamics 三分法</div>
+      <div class="why">
+        <div class="t">评价任何记忆系统，就问三个问题</div>
+        <div class="b">
+          <strong style="color:#00E5FF;">forms（形态）</strong>记忆存在哪——模型参数里 / 上下文里 / 外部存储？<br>
+          <strong style="color:#FF6B35;">functions（功能）</strong>记忆承担什么——感觉缓冲 / 短期工作 / 长期沉淀？<br>
+          <strong style="color:#A855F7;">dynamics（动态）</strong>记忆怎么动——写入、检索、更新、遗忘、演化？
+        </div>
+      </div>
+      <div class="why">
+        <div class="t">用三问给课程三层记忆定位</div>
+        <div class="b">
+          <strong style="color:#00E5FF">Redis (短期缓冲)</strong> = 上下文内 / 短期工作（暂存、压缩、TTL 淘汰）；<br>
+          <strong style="color:#FF6B35">MySQL user_profile (本课 v2.0 结论层)</strong> = 外部长期（合并更新、可更正）；<br>
+          <strong style="color:#A855F7">pgvector user_memory (下节课 v3.0 过程层)</strong> = 外部长期（语义检索）。
+        </div>
+      </div>
+
+      <div class="card" style="background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+        <div class="t" style="color:#FF6B35;font-size:12px;">2026 记忆工程两大核心算子（冲突消解 + 三维检索打分）</div>
+        <div class="b" style="font-size:10px;line-height:1.5;">
+          ① <strong style="color:#E0E7FF;">记忆冲突消解四态机（Mem0 范式）：</strong>新记忆入库前对比已有记忆，路由至 <code style="color:#00E5FF;">ADD / UPDATE / DELETE / NOOP</code> 四态，防止偏好反转（预算 5000→15000）引发自相矛盾。<br>
+          ② <strong style="color:#E0E7FF;">三维记忆检索打分公式：</strong><code style="color:#22C55E;">Score = α·Relevance(语义相关度) + β·Recency(时间衰减) + γ·Importance(重要度)</code>，兼顾语义匹配、近期优先与核心事实权重。
+        </div>
+      </div>
+      <div class="card" style="background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.22);">
+        <div class="t" style="color:#22C55E;">本课的选择：自建三层最小可控实现</div>
+        <div class="b" style="font-size:10px;line-height:1.5;">
+          把 Mem0 的"抽取-合并"与 Zep 的"时序覆盖"落在可控存储上（①托管 vs 自建 ②强时序 vs 简化版 ③静态 vs 自演化）。<strong style="color:#E0E7FF">先用三层建立工程判断力，再决定是否引入托管底座。</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

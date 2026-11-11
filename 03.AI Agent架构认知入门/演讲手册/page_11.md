@@ -1,43 +1,19 @@
 ## Slide Objective
-介绍Multi-Agent的概念和行业主流方案，让学员理解多智能体协作的架构模式。
+精讲认知层组件 ③：企业知识库与生产级 RAG，掌握半结构化与长文档双形态 RAG 的架构本质。
 
 ## Suggested Presentation
-在真实世界里，造一辆汽车不是一个人能干完的，需要不同工种的配合。AI也一样。
+请看第 11 页：认知层组件 ③ · Knowledge 企业知识库与生产级 RAG。
+很多初学者以为 RAG 就是“把文档切一切丢进向量库查一下”。在生产环境中，这种粗暴做法会导致高达 40% 的检索失败率！
+在企业级落地中，架构师必须清晰辨析**【企业级 RAG 的两大典型形态】**：
+- **形态一：半结构化条目型 RAG（Catalog / Entity RAG，如电商商品库/工单库）**：
+  面对几十万条商品详情、FAQ 条目。每一个商品天然就是一个完整的语义单元（几百字，带分类、价格、品牌）。**天然“一物一 Chunk”，无需切分**！工程重点在于“语义向量检索 + 元数据精确过滤（Metadata Filtering）”；
+- **形态二：非结构化长文档 RAG（Document RAG）**：
+  面对几十页的 PDF 售后政策、技术手册。重点必须放在**版面感知解析（Docling / MinerU 保留表格与标题层级）+ 高阶切块（Parent-Child 父子索引 / 上下文前缀增强）**！
+在检索链路上，我们将打通 **Query 改写 → pgvector 稠密向量 + BM25 全文检索的混合召回（Hybrid Search）→ Cross-Encoder 精准重排（Rerank）** 的完整生产闭环！
 
-当任务复杂到一定程度，把所有Prompt、所有Tool都塞给一个Agent，它会"精神分裂"——上下文太长、决策太复杂、出错率飙升。
-
-解决方案是Multi-Agent：创建多个专精Agent，由一个调度员（Orchestrator）统一协调。
-比如一个"代码审查"任务：Orchestrator把它拆成三个子任务，分配给"代码分析Agent"、"安全检查Agent"、"规范审查Agent"各自执行，最后汇总结果。
-
-Multi-Agent和Workflow有什么区别？
-Workflow编排的是"步骤"——第一步做什么、第二步做什么，是确定性的流程。
-Multi-Agent编排的是"角色"——每个Agent有独立的大脑（LLM）、独立的Prompt、独立的工具，是带智能的协作。
-简单任务用单Agent加Workflow就够了，复杂任务才需要Multi-Agent。
-
-目前行业里有哪些主流的Multi-Agent方案？
-CrewAI是目前最流行的Multi-Agent框架，它的核心概念是"角色（Role）+ 任务（Task）+ 流程（Process）"。你定义几个角色，每个角色有自己的目标和工具，CrewAI负责调度和协作。
-AutoGen是微软开源的多Agent框架，更侧重于Agent之间的对话式协作——多个Agent像开会一样讨论问题，逐步收敛到解决方案。
-LangGraph也能做Multi-Agent，因为它本身就是一张图，可以把每个Agent当作图中的一个节点，用边定义它们之间的通信关系。
-在实际产品中，Claude Code的Sub-Agent机制就是Multi-Agent的实践——主Agent派生子Agent处理子任务，完成后汇报结果。
-
-选型建议：如果需要角色分工明确的协作，选CrewAI。如果需要Agent之间对话式讨论，选AutoGen。如果已经在用LangGraph做Workflow，直接在图里加Agent节点就行。
-
-## Key Emphasis
-区分Multi-Agent和Workflow：编排步骤 vs 编排角色。
-展开三个主流方案（CrewAI/AutoGen/LangGraph）的定位和差异。
-给出选型建议，帮学员建立实际的技术判断力。
-
-## Optional Extension
-如果学员问"Agent之间怎么通信"，回答：主要有两种方式。一种是消息传递——Agent之间通过共享的消息队列交换信息。另一种是共享内存——所有Agent读写同一个上下文空间。CrewAI用的是前者，LangGraph用的是后者。
-
-## Classroom Interaction
-无。
-
-## Take Away
-Multi-Agent通过专业分工和团队协作解决超复杂任务。CrewAI做角色协作，AutoGen做对话协作，LangGraph做图编排。
-
-## Why This Slide Matters
-Multi-Agent代表了Agent架构的最前沿方向。让学员知道这不只是概念，已经有成熟的框架可以落地。
+## Key Q&A / Clarifications
+**Q：有了 100 万长上下文模型，为什么我们依然必须做 RAG？**
+A：长上下文模型可以用来读单次长文档，但无法取代全公司数十万份动态变动的知识检索！把全量知识塞进 Prompt 会让每次调用成本高达数美元且延迟几秒以上；而 RAG 每次只精准提取前 3 个最相关的段落（只需 500 Token），是企业私域知识落地的唯一低成本确定性解法。
 
 ## Transition
-到这里，认知层和执行层的六个核心组件全部讲完了。但我们还没有把这些零件组装起来。接下来，我们看一个完整的实战案例：导购Agent，看看这些组件在真实系统里是怎么协作的。
+认知层齐备之后，大模型必须拥有行动能力：第 12 页，执行层组件 ① · Tool Calling 与 2026 互操作协议。

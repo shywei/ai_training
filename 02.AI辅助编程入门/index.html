@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>02.AI辅助编程入门 - 幻灯片演示系统</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body, html {
+    width:100%; height:100%; overflow:hidden;
+    background:#0B1120; font-family:"Microsoft YaHei", -apple-system, sans-serif;
+    color:#E2E8F0; user-select:none;
+  }
+  
+  /* 幻灯片全屏居中自适应容器 */
+  #viewport-wrapper {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    background: #0B1120;
+    overflow: hidden;
+  }
+  
+  /* 固定 16:9 画布容器 */
+  #slide-stage {
+    position: relative;
+    width: 1280px;
+    height: 720px;
+    background: #0B1120;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
+    transform-origin: center center;
+    transition: transform 0.08s ease-out;
+  }
+
+  /* 幻灯片 iframe */
+  #slide-frame {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    border: none;
+    background: #0B1120;
+  }
+
+  /* 焦点与交互屏蔽层（彻底解决 iframe 劫持键盘事件问题） */
+  #click-shield {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 10;
+    cursor: default;
+  }
+
+  /* 顶部进度条 */
+  #progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #38BDF8, #818CF8);
+    z-index: 1000;
+    transition: width 0.2s ease-out;
+  }
+
+  /* 悬浮控制工具栏 */
+  #control-bar {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 40px;
+    padding: 6px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 100;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+    opacity: 0.35;
+    transition: opacity 0.25s, transform 0.25s;
+  }
+  #control-bar:hover, #control-bar.active {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-2px);
+  }
+
+  .ctrl-btn {
+    background: none;
+    border: none;
+    color: #94A3B8;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    outline: none;
+    white-space: nowrap;
+  }
+  .ctrl-btn:hover {
+    color: #38BDF8;
+    background: rgba(56, 189, 248, 0.12);
+  }
+  .ctrl-btn:active {
+    transform: scale(0.96);
+  }
+  .ctrl-btn:disabled {
+    color: #475569;
+    cursor: not-allowed;
+    background: none;
+  }
+
+  #page-indicator {
+    font-size: 13px;
+    font-weight: 700;
+    color: #F1F5F9;
+    min-width: 65px;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+
+  /* 快捷键提示条 */
+  #kbd-hint {
+    font-size: 11px;
+    color: #64748B;
+    border-left: 1px solid rgba(255,255,255,0.12);
+    padding-left: 12px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    white-space: nowrap;
+  }
+  kbd {
+    background: rgba(255,255,255,0.12);
+    border-radius: 4px;
+    padding: 2px 6px;
+    color: #CBD5E1;
+    font-size: 11px;
+    font-family: inherit;
+  }
+
+  /* 通用侧边抽屉样式 (演讲备注 N / 扩展学习 E) */
+  .side-drawer {
+    position: fixed;
+    top: 0;
+    right: -540px;
+    width: 540px;
+    height: 100%;
+    background: rgba(11, 17, 32, 0.97);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(255,255,255,0.14);
+    z-index: 2000;
+    transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: -20px 0 40px rgba(0,0,0,0.75);
+    user-select: text;
+  }
+  .side-drawer.open {
+    right: 0;
+  }
+  .drawer-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.7);
+  }
+  .drawer-header h3 {
+    font-size: 15px;
+    color: #38BDF8;
+    font-weight: 600;
+  }
+  .drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    font-size: 13.5px;
+    line-height: 1.75;
+    color: #E2E8F0;
+    word-break: break-word;
+  }
+  .drawer-body.raw-text {
+    white-space: pre-wrap;
+  }
+  .drawer-body a {
+    color: #38BDF8;
+    text-decoration: underline;
+    word-break: break-all;
+  }
+  .drawer-body a:hover {
+    color: #7DD3FC;
+  }
+  .drawer-body h1, .drawer-body h2, .drawer-body h3, .drawer-body h4 {
+    color: #F8FAFC;
+    margin: 16px 0 8px 0;
+    line-height: 1.4;
+  }
+  .drawer-body h1 { font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
+  .drawer-body h2 { font-size: 16px; color: #38BDF8; }
+  .drawer-body h3 { font-size: 14.5px; color: #A5B4FC; }
+  .drawer-body p, .drawer-body li { margin-bottom: 8px; }
+  .drawer-body ul, .drawer-body ol { padding-left: 20px; margin-bottom: 12px; }
+  .drawer-body code {
+    background: rgba(255,255,255,0.1);
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-family: Consolas, monospace;
+    font-size: 12.5px;
+    color: #FCD34D;
+  }
+  .drawer-body blockquote {
+    border-left: 3px solid #38BDF8;
+    padding: 8px 14px;
+    background: rgba(56, 189, 248, 0.08);
+    margin: 10px 0;
+    border-radius: 0 6px 6px 0;
+  }
+</style>
+</head>
+<body tabindex="0">
+
+<div id="progress-bar"></div>
+
+<div id="viewport-wrapper">
+  <div id="slide-stage">
+    <iframe id="slide-frame" src="page_1.html" allowfullscreen></iframe>
+    <div id="click-shield" title="单击右侧下一页，单击左侧上一页，双击全屏"></div>
+  </div>
+</div>
+
+<!-- 底部悬浮控制栏 -->
+<div id="control-bar">
+  <button id="btn-prev" class="ctrl-btn" title="上一页 (← / PageUp / Backspace)">◀ 上一页</button>
+  <span id="page-indicator">1 / 22</span>
+  <button id="btn-next" class="ctrl-btn" title="下一页 (→ / Space / PageDown / Enter)">下一页 ▶</button>
+  <button id="btn-notes" class="ctrl-btn" title="演讲者备注 (N)">📝 演讲备注</button>
+  <button id="btn-ext" class="ctrl-btn" title="课后扩展学习指南 (E)">📚 扩展学习</button>
+  <button id="btn-fs" class="ctrl-btn" title="全屏演示 (F / F11)">⛶ 全屏</button>
+  <div id="kbd-hint">
+    <span><kbd>→</kbd>/<kbd>Space</kbd> 翻页</span>
+    <span><kbd>N</kbd> 备注</span>
+    <span><kbd>E</kbd> 扩展</span>
+    <span><kbd>F</kbd> 全屏</span>
+  </div>
+</div>
+
+<!-- 演讲者备注抽屉 -->
+<div id="notes-drawer" class="side-drawer">
+  <div class="drawer-header">
+    <h3 id="notes-title">演讲手册备注 (第 1 页)</h3>
+    <button id="btn-close-notes" class="ctrl-btn" style="padding:4px 8px; font-size:16px;">✕</button>
+  </div>
+  <div id="notes-body" class="drawer-body raw-text">正在载入备注...</div>
+</div>
+
+<!-- 课后扩展学习指南抽屉 -->
+<div id="ext-drawer" class="side-drawer">
+  <div class="drawer-header">
+    <h3>📚 课后扩展学习指南 (02.AI辅助编程入门)</h3>
+    <button id="btn-close-ext" class="ctrl-btn" style="padding:4px 8px; font-size:16px;">✕</button>
+  </div>
+  <div id="ext-body" class="drawer-body"></div>
+</div>
+
+<script>
+  const pages = ["page_1.html","page_2.html","page_3.html","page_4.html","page_5.html","page_6.html","page_7.html","page_8.html","page_9.html","page_10.html","page_11.html","page_12.html","page_13.html","page_14.html","page_15.html","page_16.html","page_17.html","page_18.html","page_19.html","page_20.html","page_21.html","page_22.html"];
+  const notesMap = {"page_1.html":"## Slide Objective\n作为《02. AI辅助编程入门：2026工具全景与Harness底座》课程封面，确立以 Coding Agent 与 Harness 驾驭体系为核心的实战基调，明确全员必修单兵提效定位与后续进阶分工。\n\n## Suggested Presentation\n各位开发团队的架构师与工程师，大家好！欢迎来到第 02 课：《AI 辅助编程入门：2026 工具全景与 Harness 底座》。\n在第 01 课中，我们已经系统重塑了 AI 认知，拆解了大模型的自回归原理与预训练依赖库本质。大家已经知道，模型本身是个纯概率的文字预测机，它不能直接连终端、跑单测。\n那么在今天这节课，我们要解决的核心问题就是：作为一名一线开发者，如何把大模型变成我们手边最强大的“全自主编程智能体（Coding Agent）”？\n我们将彻底告别 2023 年把代码复制粘贴到网页聊天框的“人肉中继”原始阶段；掌握 2026 最前沿的 AI-Native IDE、终端 CLI 与四大产品阵营；吃透 Token 缓存与 Prefix Caching 极度省钱的心法；并重点剖析驾驭大模型的“Harness 六件套（AGENTS.md、Hooks、Skills、MCP、Subagents）”。\n让我们正式开始！\n\n## Key Q&A / Clarifications\n**Q：第 02 课和 02B 课的分工定位是什么？**\nA：第 02 课是面向全体普通学员的必修课，聚焦“单兵上手与核心工程底座”——工具怎么选、Prompt 怎么写、Harness 六件套如何配置、上下文退化如何防坑，全面实现单兵提效，为后续课程打好坚实基础；而 02B 是一门可以跳过的选修/进阶课程，专为项目 Leader 和高级开发深入学习企业级规格驱动（SDD）、EARS 规范、存量老代码重构与 Git Worktree 多 Agent 并行流。普通学员学完第 02 课后，标准路线是直接进入《第 03 课：AI Agent架构认知入门》！\n\n## Transition\n我们先通过目录，纵览第 02 课的六大核心章节安排。\n","page_2.html":"## Slide Objective\n展示第 02 课六大章节目录与进度规划，明确各章节核心学习成果与时间分配。\n\n## Suggested Presentation\n请看第 02 课的课程目录。本课共由六大章节构成：\n第一章【从网页对话到 Agent 编程】：直面人肉总线的效率天花板，看懂 2021~2026 AI 编程四代演进路线；\n第二章【Token、缓存与编程模型选型】：讲清 BPE 词元、Prefix Caching（前缀缓存能省 75%~90% 成本）以及“Plan 慢思考 + Act 快执行”的双模组合拳；\n第三章【面向 Coding Agent 的提示词工程】：彻底淘汰套话，掌握锚点、契约、负面红线与验证命令四大确定性要素；\n第四章【Harness 驾驭层六件套详解】：全课最核心的重头戏！系统拆解 AGENTS.md、Hooks 确定性护栏、Skills 渐进披露、MCP 与 Subagents 上下文隔离；\n第五章【2026 主流 Coding Agent 四大阵营与选型】：全面横评 Cursor、Antigravity、阿里 Qoder、腾讯 CodeBuddy、Claude Code 与开源插件，给出团队选型决策树与 CLI 实操；\n第六章【上下文退化原理与单兵防坑铁律】：剖析 Lost in the Middle 底层机理，传授单兵交互五条保命铁律，并指引后续双轨学习路线。\n\n## Key Q&A / Clarifications\n**Q：学习本课需要提前装好所有工具吗？**\nA：不需要。掌握底层原理和标准（如 AGENTS.md、Hooks）后，你在任何工具上都能一通百通。课后可根据推荐选型安装一款自己最顺手的即可。\n\n## Transition\n首先，让我们看一看：为什么 2026 年的今天，必须立刻停止在网页端粘贴代码聊天的行为？\n","page_3.html":"## Slide Objective\n讲透网页端对话编程与 Coding Agent 的本质区别，用痛点对比促成学员心智的彻底跃迁。\n\n## Suggested Presentation\n请看第 3 页：网页对话编程的天花板 vs Coding Agent 的环境闭环。\n直到今天，很多程序员还在这样写代码：在网页版 ChatGPT 或网页版 Claude 聊天框里，复制 200 行报错，打一段话：“请帮我看看这个 NPE 怎么修”，AI 回复一段代码；程序员再小心翼翼地把代码拷贝回 IDEA，点运行；结果又报了新错，再截图贴给 AI……\n这在工程上叫做【人肉总线（Human Message Bus）】！你不仅充当了文本搬运工，而且 AI 根本看不见你的整个工程目录结构、看不见 pom.xml 依赖版本、也无法运行测试验证自己的修改。\n而【Coding Agent】是具备环境交互闭环的全新物种：\n它直接运行在你的工作区内。它能主动读取文件、调用 ripgrep 全局搜索符号、在终端执行 `mvn test` 或 `npm run build`。\n当编译报错时，Agent 自己抓取终端输出，分析根因，修改源码，再次重新跑测试，**直到所有单测绿灯通过才向你交付！**\n从“动嘴皮子的聊天顾问”到“拥有执行手脚与验证闭环的数字员工”，这就是两者的云泥之别。\n\n## Key Q&A / Clarifications\n**Q：Coding Agent 在本地运行命令安全吗？会不会误删数据库或执行危险脚本？**\nA：这正是我们第四章要重点讲解的“Harness 驾驭层”和 Hooks 护栏机制。通过确定性白名单与审批机制，牢牢锁住危险操作。\n\n## Transition\n从网页聊天到自主 Agent，AI 辅助编程在过去五年经历了怎样的代际演化？请看第 4 页。\n","page_4.html":"## Slide Objective\n梳理 2021–2026 AI 编程四代演进路线，建立从 Tab 补全到 Agentic Engineering 的历史全景。\n\n## Suggested Presentation\n请看第 4 页：AI 辅助编程四代演进路线（2021–2026）。\n第一代是 2021–2022 年的【Tab 单行代码补全】（GitHub Copilot 早期）。模型只根据光标前几十行代码预测下一行，属于单向盲猜，思维极其局部。\n第二代是 2023 年的【IDE 侧边栏对话编程】。侧边栏开个聊天窗，支持选中代码右键“解释代码/生成单元测试”。但它仍然依赖人工复制代码，无法跨多个文件协同。\n第三代是 2024–2025 年风靡一时的【Vibe Coding（盲目感觉流编程）】。AI 开始能一键生成整个全栈 Demo，开发者不需要太懂代码细节，靠感觉就能搓出一个原型玩具。但在企业几十万行代码的存量项目里，Vibe Coding 会迅速导致架构腐化崩塌。\n第四代就是我们当下 2026 年成熟的【Agentic Engineering & Spec-Driven（智能体工程与规格驱动）】。\n它不再依靠玄学感觉，而是通过严谨的 Spec 契约（需求/设计/任务清单）、分层 AGENTS.md 护栏、自动化测试闭环与多智能体并行，将 AI 编程纳入工业化软件工程交付体系！\n\n## Key Q&A / Clarifications\n**Q：为什么 Vibe Coding 在企业真实项目中走不通？**\nA：企业项目不仅要求功能跑通，更要求并发安全、事务一致性、向后兼容和防御性断言。没有 Spec 和单测约束的“感觉流”，会在存量系统里埋下无数暗坑。\n\n## Transition\n进入 Agent 编程实战，我们必须先摸清它的经济账：第二章，Token、缓存与模型选型。\n","page_5.html":"## Slide Objective\n剖析 Token 经济学与 Prefix Caching（前缀缓存）对 Coding Agent 循环成本与延迟的决定性影响。深度纠偏“缓存命中率高就等于一切都好”的片面认知，严密辨析缓存命中率与上下文质量之间的辩证关系，阐明长上下文引发的注意力退化与错误污染，引导学员树立“主动上下文剪枝与压缩优于盲目贪图缓存”的高级工程心智。\n\n## Suggested Presentation\n我们来到第二章：Token、缓存与模型选型。请看第 5 页。\n在这一页，我们要解决每一个带团队推行 AI 编程的 Leader 都会面临的灵魂拷问：\n“Agent 改一个复杂需求，动辄在后台自动调用 20 轮工具（读文件、Grep、改代码、跑单测）。大模型 API 每次都是无状态的，每轮都要把前序几万字的历史重新灌一遍，这一个月下来 API 账单会不会把公司直接搞破产？”\n\n答案是：绝对不会！因为拯救我们的是屏幕左边的**【Prefix Caching（前缀缓存机制）】**。\n现代主流大模型 API（如 Claude、DeepSeek-V3/R1、OpenAI）在服务端均实现了 KV Cache 前缀缓存。\n只要你的上下文是从左往右严格匹配的，那些保持不变的 System Prompt、`AGENTS.md` 规则和历史对话，模型服务商根本不需要重新算一遍 Prefill 矩阵，直接在显存里复用算好的 KV Cache！\n**命中缓存后，输入 Token 的费用直接打 1 到 2 折（仅收 10%~25%），而且首字延迟 TTFT 暴跌 3 到 5 倍！** 这就是为什么 Agent 连续循环 20 轮，账单依然极其便宜的物理秘密。\n\n**但是，请各位架构师务必高度警惕右半部分的重大认知陷阱：**\n**“缓存命中率高，绝不等于你的上下文质量好！”**\n很多工程师懂了前缀缓存之后，陷入了另一个极端：为了追求 90% 的缓存命中率，恨不得一次会话聊三天，把上下文一路膨胀到 100K 甚至 150K Token。他们以为“反正命中缓存了，只要一毛钱，多便宜啊”！\n如果你这么干，代码质量马上就会遭遇**断崖式雪崩（Context Degradation）**：\n1. **第一，大海捞针退化（Lost-in-the-Middle）**：\n   学术界多次证实，当上下文超过 50K 之后，大模型的注意力呈现 U 型分布——它只能看清最开头和最末尾，中间几万字的内容注意力衰减高达 50% 以上！你写在 `AGENTS.md` 里的核心业务规则，在超长上下文中直接被模型“选择性失明”；\n2. **第二，脏历史与错误假设严重污染**：\n   Agent 在前 10 轮排查中，往往尝试了 3 种错误的假设，改废了两段代码，打印了长篇大论的报错堆栈。这些内容全部驻留在上下文里！大模型看到自己曾经写过的错误逻辑，会在错误的道路上越走越远，陷入死循环打补丁的“死亡螺旋”；\n3. **第三，每一步自回归 Attention 的计算量依然在膨胀**。\n\n所以，高级工程师的上下文治理军规是：\n**不要为了贪图几分钱的缓存折扣，放任被污染的上下文拉垮代码准确率！**\n当一个任务阶段性完成，或者排障陷入死胡同、上下文超过 40K 时，果断使用 `/compact` 命令提炼摘要，或者开启新会话重置干净窗口；同时，把翻阅海量文件的探索任务交给 **只读 Subagent（子智能体）** 独立运行，只将 200 字结论带回主会话，实现主上下文窗口的永久纯净！\n\n## Key Q&A / Clarifications\n**Q：在长任务中，什么时候应该果断执行 `/compact` 或清理上下文，哪怕这会暂时降低前缀缓存命中率？**\nA：两大典型信号必须立刻清理：第一，**排障遇到死胡同、开始反复在同一处报错打补丁时**，此时历史上下文里充满了被证伪的错误假说和垃圾堆栈，必须 `/compact` 清空历史并重新总结事实；第二，**单次功能开发已通过验收，准备进入下一个无关功能模块时**，上一个功能的几万字实现细节对新功能毫无帮助，必须开启新会话或截断，避免注意力干扰。\n\n## Transition\n理解了缓存与上下文质量的辩证关系后，我们接着要解构让模型在本地代码库安全、可靠运转的最高机密：Harness 驾驭层体系。请看第 9 页。\n","page_6.html":"## Slide Objective\n盘点 2026 主流编程模型梯队，确立“Plan 慢思考推理模型 + Act 快速执行模型”的黄金组合拳。\n\n## Suggested Presentation\n请看第 6 页：2026 编程大模型选型与“Plan + Act 双模组合拳”。\n在 2026 年，编程领域的模型格局呈现清晰的两极分化：\n一极是【深度慢思考推理模型（Deep Reasoning Models）】，如 Claude 3.7 Sonnet (Thinking)、OpenAI o1/o3/GPT-5.5、DeepSeek-R1、Qwen3-Max。它们擅长复杂的数学证明、全局系统架构解耦、跨多模块时序梳理与疑难 Bug 根因分析；\n另一极是【高吞吐快速执行模型（Fast Act Models）】，如 Claude 3.5 Sonnet、DeepSeek-V4、Qwen3-Coder-32B。它们响应极快、遵循指令严格、单 Token 价格极度亲民，极其擅长根据明确设计写出语法标准的函数、单测和配置文件。\n因此，顶级开发者的标准打法是【Plan + Act 双模组合拳】：\n在 **Plan 规划阶段**：调用推理模型进行只读扫描，推演边界条件，产出无歧义的 `tasks.md` 任务单；\n在 **Act 执行阶段**：切换为快速轻量模型，按照任务单逐个小步编码和跑单测！兼具了巅峰智商与极致低成本。\n\n## Key Q&A / Clarifications\n**Q：国内私有化部署场景，推荐哪款开源编程模型？**\nA：首选 Qwen3-Coder-32B 或 DeepSeek 垂直代码系列。它们在真实企业 Java、Spring Boot 和 SQL 生成基准测试中表现卓越，且 32B 规模在双卡 RTX 4090 或单张 A100/H800 上即可高效跑起来。\n\n## Transition\n选好模型后，我们如何向 Coding Agent 下达指令？第三章，面向 Coding Agent 的提示词工程。\n","page_7.html":"## Slide Objective\n淘汰 2023 年无效套话，确立面向 Coding Agent 的结构化提示词四要素（锚点、契约、负面红线、验证命令）。\n\n## Suggested Presentation\n我们来到第三章：面向 Coding Agent 的提示词工程。请看第 7 页。\n很多人还在用 2023 年的老套路：“你是一个 Java 专家，请一步步思考，帮我写个用户注册功能……”\n这些鸡汤套话在面对全自主 Coding Agent 时完全是浪费 Token，且毫无约束力！\n现代面向 Coding Agent 的提示词，本质是**“可执行的工程任务单”**，必须包含【确定性四要素】：\n1. **精确上下文锚点（Context Anchors）**：使用 `@` 语法显式指定关联文件（如 `@OrderService.java`、`@schema.sql`），不让 Agent 在全仓几十万行代码里盲猜；\n2. **输入输出与边界契约（Contract & Signature）**：明确接口入参 DTO、返回值格式、异常抛出类型与数据库幂等要求；\n3. **负面禁改边界（Negative Constraints / Guardrails）**：明确红线，比如“严禁修改公共表结构”、“禁止引入新第三方依赖”、“不可改动现有单测已有断言”；\n4. **确定性验证命令（Verification Command）**：指定任务验收标准，如“修改完毕后必须执行 `mvn test -Dtest=OrderServiceTest`，确保全部单测通过后停止”。\n\n## Key Q&A / Clarifications\n**Q：为什么必须明确指定“验证命令”？**\nA：因为没有验证命令，Agent 在自以为改好后就会停下来邀功；而明确要求跑测试，Agent 就会在遇到编译错误时自动闭环修复，直到跑通为止。\n\n## Transition\n我们通过一个真实企业 Java 业务场景的正反面对比，直观感受四要素的威力。\n","page_8.html":"## Slide Objective\n通过 Spring Boot 退款功能真实用例的正反面对比，生动展示结构化提示词如何直接消灭 Bug 和反复拉扯。\n\n## Suggested Presentation\n请大家看第 8 页：编程提示词实战正反面对比。\n这是一个电商退款接口的真实开发任务。\n左边是【反面示例：模糊对话流】：\n指令只有一句话：“帮我给 OrderController 加一个退款接口，退款成功后发邮件通知用户。”\n结果 Agent 自由发挥：把数据库事务注在 Controller 层、手写了原生 JDBC 查库、随便引入了一个未审批的第三方邮件库，最可怕的是把退款状态从 `REFUNDED` 误写成了 `REFUND_SUCCESS`，直接把下游支付履约系统搞崩了！\n右边是【正面示例：四要素结构化指令】：\n- **锚点**：明确关联 `@OrderController.java`、`@RefundService.java`、`@OrderStatusEnum.java`；\n- **契约**：要求入参使用 `RefundRequestDTO`，增加 `@Valid` 校验；状态流转严格遵循现有枚举；\n- **负面红线**：严禁在 Controller 编写业务逻辑，禁止修改已有的 `payOrder` 逻辑；\n- **验证**：执行 `mvn test -Dtest=RefundServiceTest` 并校验响应状态码。\n结构化指令一次成型，零歧义，零返工！\n\n## Key Q&A / Clarifications\n**Q：每次提问都要手写这么多字吗？会不会太麻烦？**\nA：完全不用！像“禁止改公共依赖”、“Controller 不写业务”这些通用红线，我们只需写在一次性的项目级 `AGENTS.md` 或 `Rules` 文件里，模型每次都会自动加载！这就是接下来第四章要讲的 Harness 体系。\n\n## Transition\n现在，我们进入本课最硬核、含金量最高的第四章：Harness 驾驭层“六件套”详解！\n","page_9.html":"## Slide Objective\n全景展示 Harness 驾驭层架构体系，建立“用确定性工程体系与安全底座死死约束大模型”的系统性世界观。重点突出 Coding Agent 的三大安全执行基石：Tool Permission（工具授权策略）、Approval Policy（人工审批机制）与 Sandbox（多维沙箱隔离），并阐明从任务规划、上下文装配到安全执行与测试反馈的完整闭环。\n\n## Suggested Presentation\n请大家打起十二分精神，看第 9 页：Harness 驾驭层全景架构。\n这是 2026 年高水平 AI 架构师最核心的知识护城河。\n\n很多非专业开发者以为 Coding Agent 就是“大模型帮我写代码”。\n但如果你作为技术 Leader，在企业团队里放任模型在没有防护的情况下跑，不出三天就会发生删库删代码的重大生产事故！\n大模型就像一匹烈马，智商极高但天生具有概率性和不可控性。这套给大模型套上的“缰绳、马鞍、围栏与操作系统”，就叫做 **Harness（驾驭层）**！\n\n今天我们必须首先确立顶部的**三大安全执行基石（Three Security Foundations）**：\n任何没有安全基石的 Coding Agent，本质上等同于一个拥有 `rm -rf` 和 `curl` 权限的高危脚本！\n1. **第一基石：Tool Permission（授权策略）**。\n   工具必须实行细粒度分级：读取文件（Read/Grep）是只读安全操作，可以自动放行；但写文件、执行 Shell、调用外部系统必须遵循白名单授权，默认禁止任何未受控的提权行为；\n2. **第二基石：Approval Policy（人工审批机制 / HITL）**。\n   凡是高危不可逆的操作（比如 `git push`、修改生产环境变量 `.env`、执行数据库清空操作），系统必须物理阻断并向人类工程师弹出审批确认框（Human-in-the-Loop），只有人点了允许，Agent 才能落地执行；\n3. **第三基石：Sandbox（多维沙箱隔离）**。\n   Agent 的文件系统访问必须被死死限制在当前项目的工作区（Workspace）内，严禁翻阅宿主机的 `~/.ssh/id_rsa` 或其他系统路径；Shell 必须在非特权沙箱中运行；网络出口（Egress）必须设防火墙，杜绝任何将企业私有代码向公网外联泄密的风险！\n\n在三大安全基石的托底下，Harness 展开了**六大确定性支柱**：\n- **System Prompt**：基座行为协议与工具格式（类似 OS 内核）；\n- **AGENTS.md / Rules**：项目常驻工程宪法与代码红线；\n- **Hooks（2026 核心升级）**：在工具调用前后毫秒级执行的确定性脚本门禁；\n- **Skills**：按需渐进加载的专业领域工作流；\n- **MCP & CLI**：连接外部系统与数据库的标准化客户端总线；\n- **Subagents & Context**：主智能体与只读子智能体分工，实现上下文物理隔离。\n\n大家看底部的**闭环执行流**：\n用户下发需求 $\\rightarrow$ 结合上下文装配 Prompt $\\rightarrow$ 大模型输出调用工具的意图 $\\rightarrow$ **三大基石与 Hooks 强力拦截校验** $\\rightarrow$ 在沙箱中执行落地 $\\rightarrow$ 提取单测和编译器报错反哺给模型自愈迭代！\n这就是工业级 Coding Agent 可靠运行的真正秘密。\n\n## Key Q&A / Clarifications\n**Q：如果我已经配置了 AGENTS.md 告诉模型“不要删除文件”，还需要 Tool Permission 和 Sandbox 吗？**\nA：绝对需要！`AGENTS.md` 只是写在 Prompt 里的“道德劝说（Soft Constraint）”。在长对话、上下文膨胀或遇到复杂异常时，大模型有一定概率产生注意力漂移从而违背规则。凡是关乎系统安全、不可逆破坏的操作，必须通过 Tool Permission、Approval Policy 和 Sandbox 进行底层“物理级阻断（Hard Constraint）”，绝不能寄希望于模型的自觉！\n\n## Transition\n在 Harness 体系中，到底如何用代码写出 100% 强制生效的确定性门禁？为什么说 Hooks 是对抗模型遗忘的终极武器？下一页，我们深入剖析支柱三：Hooks 确定性工程护栏。\n","page_10.html":"## Slide Objective\n讲透 AGENTS.md 开放标准与 Scoped Rules（分目录作用域规则），掌握多工具兼容的规范治理方案。\n\n## Suggested Presentation\n请看第 10 页：支柱 ① & ② · AGENTS.md（跨工具开放标准）与 Scoped Rules。\n过去，每个工具都有自己的私有规则文件：Cursor 叫 `.cursorrules`，Claude Code 叫 `CLAUDE.md`，Windsurf 叫 `.windsurfrules`。一个团队如果有人用 Cursor 有人用终端，规范就会严重割裂。\n2025–2026 年，行业迎来了大一统开放标准：【`AGENTS.md`（agents.md）】！\n现在主流工具（Cursor、Claude Code、阿里 Qoder、腾讯 CodeBuddy 等）均原生支持直接读取项目根目录下的 `AGENTS.md`。为了向下兼容，团队只需用软链接将 `CLAUDE.md` 指向 `AGENTS.md` 即可。\n更高级的工程实践是【Scoped Rules（分层作用域规则）】：\n不要把全公司的巨型规范都堆在根目录一个文件里！那样会撑爆 Token 且引发冲突。\n应该采用“全局基础规则 + 目录级精准激活”：\n- 根目录 `AGENTS.md`：保持在 150 行以内，只写构建命令、目录拓扑和绝对红线；\n- 模块级 `src/api/AGENTS.md`：只约束 RESTful API 规范；\n- 文件后缀规则（如改动 `*.sql` 时才激活数据库索引与字段命名规范）。\n按需生效，干净高效！\n\n## Key Q&A / Clarifications\n**Q：为什么软链接可以在 Windows 上工作吗？**\nA：在 Windows 上可以通过管理员终端执行 `mklink CLAUDE.md AGENTS.md` 创建，或者通过 Git 提交软链接。主流 Coding Agent 在 Windows 上均能无缝解析。\n\n## Transition\n但写在 AGENTS.md 里的规则再完美，终究只是文字建议。AI 不听怎么办？请看支柱三：Hooks。\n","page_11.html":"## Slide Objective\n深入剖析 2026 最具确定性的护栏武器：Hooks（生命周期钩子）与三大安全执行基石（Tool Permission 授权策略、Approval Policy 人工审批、Sandbox 多维沙箱隔离）的联动机制。深刻理解“确定性代码拦截与沙箱兜底 vs Rules 文字道德劝说”的本质飞跃，掌握在本地和企业开发环境中构建不可逾越安全防线的方法论。\n\n## Suggested Presentation\n请大家看第 11 页，这是区别初级开发者与高级架构师的关键一页：Hooks 确定性护栏与三大安全执行基石的联动！\n\n在日常指导团队推行 AI 编程时，很多 Team Leader 非常头疼：\n“我明明在 `AGENTS.md` 里写了五遍‘改完代码必须自动跑单测格式化，禁止删除测试断言，禁止执行 `rm -rf`’，为什么 Agent 偶尔还是会偷偷删掉断言骗取绿灯，甚至在终端里误删核心文件？”\n原因非常简单：\n**写在 `AGENTS.md` 里的文字，在数学上只是给大模型概率采样的‘Soft Constraint（软性道德劝说）’！**\n只要对话超过 15 轮、或者上下文膨胀到数万 Token，注意力一分散，大模型完全可能把你的条条框框抛到九霄云外！\n\n凡是关乎系统安全、数据破坏和工程红线的事情，**绝不能寄希望于模型的自觉！必须靠确定性的 Hooks 联动三大安全基石（Hard Constraint）：**\n1. **第一切面：`PreToolUse Hook` 联动【Tool Permission】与【Approval Policy】**。\n   当 Agent 在脑子里产生了“我要在终端执行命令”的意图时，命令并没有真正跑到操作系统里！\n   在落地的毫秒之前，`PreToolUse` 拦截器被唤醒：\n   - 检查 **Tool Permission**：这个命令在白名单里吗？如果是 `rm -rf`、`git push --force` 或清空数据库，脚本直接返回 `Exit Code 2`，硬件级阻断执行！\n   - 检查 **Approval Policy**：如果是修改生产配置或者调用外部接口，Hook 脚本自动挂起 Agent，在屏幕上向人类工程师弹出审批确认框：“Agent 申请执行该高危操作，是否批准？” 人类点了拒绝，操作当场流产！\n   - 检查 **Sandbox 边界**：Agent 试图读取或者写到工作区以外的私密目录（如 `~/.ssh/id_rsa`）？沙箱层直接拦截报错！\n2. **第二切面：`PostToolUse Hook` 自动化质量流水线**。\n   每当 Agent 通过 `Edit/Write` 修改完代码，**根本不需要大模型操心**，宿主机自动静默执行 `mvn spotless:apply` 代码格式化和增量语法编译。如果编译报错，Hook 直接把报错堆栈塞回上下文，让模型立刻针对性自愈；\n3. **第三切面：`Stop / TaskComplete Hook` 验收守门员**。\n   当 Agent 试图说“我搞定了，任务已完成”时，触发验收 Hook：自动在后台运行受保护的单元测试套件。**只要单测有一个红灯，立刻强行驳回任务停止请求**，并提示：“单元测试未通过，禁止下班，请继续定位修复 Bug！”\n\n大家看右下角的对比表：\n`AGENTS.md` 规则是“软建议”，每轮都在消耗宝贵的上下文 Token；\n而 **Hooks + 权限审批 + 沙箱** 是“硬法则”，在本地 Shell 和沙箱中 100% 确定性执行，**消耗 0 个模型 Token！**\n\n作为架构师，我们要确立这样的心智：\n**把编码指引和风格规范写进 `AGENTS.md`；但把所有关于破坏性操作、代码防篡改与质量门禁的红线，坚决下沉到 Hooks 与安全基石中！**\n\n## Key Q&A / Clarifications\n**Q：在 VS Code / 终端中运行本地 Agent 时，如何快速落地这套安全拦截体系？**\nA：主流工具如 Claude Code 官方内置了强大的 Hook 机制（在 `.claude/settings.json` 中配置 `PreToolUse` / `PostToolUse` / `Stop`）；OpenCode 与 Roo Code 支持通过本地脚本和沙箱扩展进行拦截；此外，在企业级工程中，可以在团队根目录放置统一的 `./scripts/guard.sh`，强制要求所有本地 Agent 挂载该脚本执行权限审查。\n\n## Transition\n掌握了硬护栏与安全执行基石后，当 Agent 需要执行特定的高阶领域任务（比如 TDD 规范落地、接口文档自动生成、慢 SQL 诊断）时，我们该如何按需给它赋予专业能力而又不撑爆上下文？请看支柱四：Skills。\n","page_12.html":"## Slide Objective\n讲清 Skills（渐进式披露技能包）的运行原理与 skills.sh 开源生态，掌握避免 Token 爆炸的渐进式加载心法。\n\n## Suggested Presentation\n请看第 12 页：支柱 ④ · Skills（渐进式按需技能包）原理与生态。\n如果把所有领域知识（Spring Cloud 配置、Kubernetes 运维、Docker 部署、MySQL 调优）全塞进 System Prompt，上下文不仅会迅速突破限制，更会造成严重的注意力稀释。\n【Skills（技能系统）】采用了经典的【Progressive Disclosure（渐进式披露）】设计模式：\n每个 Skill 是一个独立的文件夹，里面包含一个核心的 `SKILL.md`。\n在会话启动时，Agent 只在上下文中加载这个 Skill 的**元数据与简要描述（仅占 30 个 Token）**：“当用户需要排查 JVM 内存溢出或使用 JStack 时，激活此技能”。\n只有当用户真正发出相关指令时，Agent 才会自主发起内部工具调用，把该 Skill 详细的操作手册、排查步骤脚本动态加载进上下文！\n在 2026 年，开源社区已经形成了庞大的 `skills.sh` 技能市场。你可以像用 `npm install` 一样，一键安装来自全球顶尖工程师沉淀的微服务排障、安全审计与数据库优化技能包！\n\n## Key Q&A / Clarifications\n**Q：Skill 和传统脚本有什么本质不同？**\nA：传统脚本只能机械执行固定流程；而 Skill 是把“人类专家的 SOP 思维逻辑、边界经验、典型故障排查树”与“自动化辅助脚本”打包在一起，指导 Agent 在运行时自主决策和动态应对。\n\n## Transition\n我们通过一个真实的企业级 Java SKILL.md 文件，手把手看懂它的内部解剖结构。\n","page_13.html":"## Slide Objective\n手把手解剖一个生产级 Java SKILL.md 文件，掌握 YAML 元数据、触发条件、执行 SOP 与避坑清单的标准结构。\n\n## Suggested Presentation\n请看第 13 页：支柱 ④ 实战 · 手把手剖析一个企业级 Java SKILL.md。\n大家看屏幕上这段标准 YAML + Markdown 代码，一个标准的技能文件必须具备三大解剖学结构：\n1. **头部 YAML Frontmatter**：\n   - `name: java-concurrency-audit`：技能唯一命名；\n   - `description`：极其关键！这是 Agent 判断“何时该加载我”的唯一索引。必须写明适用场景（如并发编程、ThreadLocal 泄漏排查、锁升级）；\n2. **Standard Operating Procedure（标准化执行 SOP）**：\n   - 规定 Agent 必须按步推进：第一步，扫描代码中的 `synchronized`、`ReentrantLock` 与线程池配置；第二步，检查是否在异步任务中使用了 `RequestContextHolder`；第三步，运行并发压测单测；\n3. **Common Pitfalls（避坑红线指南）**：\n   - 明文列出高频暗坑，比如“严禁使用 `Executors.newFixedThreadPool`，必须手写 `ThreadPoolExecutor` 并指定有界阻塞队列”。\n有了这样一份 Skill，即使是一个普通的实习生或新加入团队的 AI Agent，也能瞬间拥有十年资深架构师的并发审查功底！\n\n## Key Q&A / Clarifications\n**Q：如何让团队共享这套 Skills 资产？**\nA：将通用 Skills 提交到团队的代码规范仓库，或者放在项目根目录的 `.skills/` 目录下，随 Git 仓库全团队统一分发生效。\n\n## Transition\n当 Agent 需要访问外部的企业内部系统（如 Jira、数据库、内部 Wiki）时，我们该如何连接？看支柱五：MCP 与 CLI。\n","page_14.html":"## Slide Objective\n深入权衡 MCP 与本地 CLI 的边界，讲清 MCP 的 Token 放大陷阱，建立务实的工具集成架构观。\n\n## Suggested Presentation\n请看第 14 页：支柱 ⑤ · MCP 与本地 CLI 的边界权衡。\n2025–2026 年，Anthropic 开源的【MCP（Model Context Protocol，模型上下文协议）】成为了智能体连接外部世界的通用标准协议。通过 MCP，Agent 能像插拔 USB 一样连接 GitHub、飞书、PostgreSQL、Jira 和内部内部系统。\n但在享受 MCP 便利的同时，高级架构师必须警惕它的【Token 经济学陷阱】！\n每个接入的 MCP Server，都会把自身包含的所有工具名称、参数 JSON Schema、字段描述一次性全部塞进 System Prompt。如果你一口气接了 10 个 MCP Server，光是工具定义就能吞噬 15,000 个 Token，不仅每轮调用都要反复付费，更容易引发严重的工具调用幻觉！\n**因此，请牢记 2026 的边界权衡法则：**\n- **优先使用本地 CLI**：对于本机的 `git`、`mvn`、`gh`、`curl`、`jq`，直接通过 Bash / Terminal 执行，零额外 Token 开销，速度极快；\n- **必要接入企业 MCP**：只在需要连接带鉴权的企业私域系统（如查询内部生产数据库脱敏视图、读取飞书知识库、同步 Jira 任务）时，才按需挂载专用的企业 MCP Server。\n\n## Key Q&A / Clarifications\n**Q：在第 07 课中我们还会深入学习 MCP 吗？**\nA：是的！第 07 课《ToolCalling连接企业系统》将全面带大家手写原生的 MCP Client 与 Server，并实现 Tool RAG（按需检索工具，彻底解决工具定义 Token 膨胀问题）。\n\n## Transition\n六件套的最后一根支柱，是解决单 Agent 上下文被翻页日志撑爆的王牌武器：Subagents。\n","page_15.html":"## Slide Objective\n讲透 Subagents（子智能体）的核心架构价值：通过只读沙箱实现上下文物理隔离，防范主窗口被巨量中间数据撑爆。\n\n## Suggested Presentation\n请看第 15 页：支柱 ⑥ · Subagents（子智能体）的核心价值：上下文隔离。\n在解决复杂问题时，我们经常需要 Agent 去全仓翻阅几十个文件，或者去搜寻海量的错误日志。\n如果只用一个主 Agent，当它在终端执行了 20 次搜索、阅读了 30 个无关的 Java 类后，主会话的上下文窗口就会被瞬间撑满，产生严重的上下文退化，再也记不住核心需求。\n【Subagents（子智能体架构）】的精髓在于**【物理级上下文隔离】**：\n主 Agent 充当“项目主管（Orchestrator）”，它自己绝不轻易去逐行翻阅几十个文件。\n遇到庞大的调研任务时，主 Agent 唤起一个临时的只读子智能体（如 Explore Subagent 或 Review Subagent），把任务派发给它。\n子智能体在一个全新的、完全独立的上下文沙箱里疯狂搜索、翻阅了 5 万字的日志；任务完成后，子智能体只向主 Agent 返回一份 **200 字的精炼结论报告**，随即立刻销毁！\n主 Agent 的上下文窗口从始至终保持在最精炼、干净的黄金状态！这是企业构建复杂 Agent 系统的标配拓扑。\n\n## Key Q&A / Clarifications\n**Q：Subagents 会消耗更多的 API 调用次数吗？**\nA：总调用次数可能微增，但由于子智能体避免了主上下文的指数级滚雪球膨胀，总 Token 消耗和费用反而大幅降低，且任务成功率大幅提升。\n\n## Transition\n吃透了 Harness 六件套，我们接下来看第五章：2026 年市面上主流的 Coding Agent 到底该怎么选？\n","page_16.html":"## Slide Objective\n全面展现 2026 主流 Coding Agent 四大阵营全景矩阵，破除单一产品崇拜，建立客观的横向选型视野。\n\n## Suggested Presentation\n我们来到第五章：2026 主流 Coding Agent 四大阵营与选型。请看第 16 页。\n市面上产品眼花缭乱，但本质上可以划分为四大清晰形态阵营：\n1. **AI-Native 独立 IDE 阵营**：标杆是 **Cursor**（首创 Composer 跨文件多行编辑）、**Google Antigravity**（多智能体与计划评审流）、**AWS Kiro**（原生支持 Spec 驱动与 Hooks 机制）、**Windsurf**。特点是体验丝滑，针对 AI 工作流彻底重构了 IDE 交互；\n2. **国内大厂主力自研平台**：**阿里 Qoder（通义灵码 Agent）**（依托 Qwen3-Coder，独步于 10 万文件全仓索引与 Repo Wiki 自动生成）、**字节 Trae**（SOLO 模式）、**腾讯 CodeBuddy**（主打企业合规与 Spec 闭环）。国内网络友好，中文理解极强，企业合规首选；\n3. **Terminal 终端 CLI Agent 阵营**：标杆是 **Claude Code**（官方原生终端神作，极客与全栈工程师的最爱）、**Gemini CLI**、**OpenCode**（开源多模型 BYOK）、**Codex CLI**。在无界面服务器、CI/CD 自动化和多任务并行中具备无与伦比的高效；\n4. **IDE 模块化开源插件阵营**：坚守 IntelliJ IDEA 或 VS Code 传统环境团队的首选 —— **Cline / Roo Code**。开源透明，支持自定义切换任何本地模型与 API Key，细粒度权限审批极其严谨。\n\n## Key Q&A / Clarifications\n**Q：为什么国内团队很多选用阿里 Qoder 或通义灵码 Agent？**\nA：一方面国内直接访问网络合规且低延迟，另一方面阿里 Qoder 在超大型单体仓库的代码符号图谱检索（Code Graph）和私域模型微调上有强大沉淀，更适合中国企业的内网开发环境。\n\n## Transition\n面对这四大阵营，我们企业技术团队该如何制定理性、合规的工具组合策略？看第 17 页决策树。\n","page_17.html":"## Slide Objective\n讲透企业研发团队工具组合选型决策树，针对不同网络条件、IDE 习惯与预算给出落地实操方案。\n\n## Suggested Presentation\n请看第 17 页：企业研发团队工具组合选型决策树。\n很多团队负责人问我：“我们到底该采购哪一款？”答案是：**没有唯一的全能神器，必须按维度分流组合！**\n请沿着这棵决策树按顺序问自己三个核心问题：\n第一问【网络与合规】：公网访问受限吗？代码能出境吗？\n- 如果必须纯内网、数据零出境：选择 **自建开源模型集群（Qwen3-Coder）+ 部署 Roo Code / Cline 插件** 或采购企业私有化版通义灵码；\n- 如果允许国内商业模型：直接上 **阿里 Qoder / 腾讯 CodeBuddy 企业版**。\n第二问【主开发环境是 IDEA 还是 VS Code？】：\n- 坚守 IntelliJ IDEA 的 Java 资深重度团队：推荐 **IDEA 原生插件模式（Qoder 插件 / Roo Code）+ 搭配 Claude Code 终端 Agent** 并行作业；\n- 拥抱 VS Code 生态或全栈前端：直接全面拥抱 **Cursor / Antigravity**。\n第三问【是否涉及批量自动化与流水线？】：\n- 只要涉及批处理、无头运维、GitLab CI/CD：必须为高级工程师配备 **Claude Code / OpenCode CLI 工具**！\n\n## Key Q&A / Clarifications\n**Q：推荐个人开发者最高效的“双剑合璧”日常组合是什么？**\nA：日常看代码、写单文件用熟悉的 IDE（IDEA 或 Cursor）；遇到跨模块大型重构、写迁移脚本或跑单测，直接在终端里开一个 Claude Code，效率最高！\n\n## Transition\n接下来，我们通过第 18 页，快速掌握 Terminal CLI Agent 的极速安装与三种经典运行模式。\n","page_18.html":"## Slide Objective\n演示 Terminal Coding Agent 的快速上手路径，掌握 TUI 交互、Headless 自动化与管道批处理三种工作模式。\n\n## Suggested Presentation\n请看第 18 页：Terminal Coding Agent 快速上手与三种工作模式。\n终端 Agent 看起来像黑客终端，但上手其实只要一分钟。\n比如 Claude Code（`npm i -g @anthropic-ai/claude-code`）或开源的 OpenCode（`pip install opencode`），配置好 API Key 后，在任何代码仓库根目录敲 `claude` 就能立刻进入工作状态。\n它有三种无可替代的运行模式：\n1. **TUI 全交互模式**：像聊天一样与终端对话，实时查看它调用的 Git、Bash 和文件编辑 Diff，敲回车即可授权执行；\n2. **Headless 非交互自动化模式**：通过参数 `-p` 或 `run`，直接把任务当成命令行脚本执行！例如在 CI 脚本中一行命令：`opencode run \"为 PaymentService 补齐边界单测并跑通 mvn test\"`，执行成功返回 0，失败返回 1；\n3. **Unix 管道模式**：把其他系统输出直接喂给它，例如：`tail -n 200 error.log | claude -p \"定位 NPE 根因并给出修复补丁\"`！\n这种极客级灵活性，是任何图形化 IDE 插件都无法比拟的生产力杀手锏。\n\n## Key Q&A / Clarifications\n**Q：在 Windows PowerShell 下使用 Terminal CLI 会有路径或编码问题吗？**\nA：现代 CLI（如 Claude Code 2026 版）对 Windows 路径均有良好原生兼容；推荐在 Windows 终端中确保编码为 UTF-8（`chcp 65001`），或在 WSL2 环境中运行，体验更佳。\n\n## Transition\n到这里，我们已经掌握了工具和 Harness。现在我们要直面最关键的日常痛点：第六章，为什么 AI 越聊越笨？\n","page_19.html":"## Slide Objective\n深刻剖析 AI 为什么越聊越笨的底层机理（注意力稀释、错误自回归偏见、工具输出膨胀），建立防范上下文退化的工程警觉。\n\n## Suggested Presentation\n我们来到第六章：上下文退化原理与单兵防坑铁律。请看第 19 页。\n很多工程师最痛苦的体验莫过于：“会话前 5 轮 AI 像神童，到了第 15 轮突然变弱智，不仅推翻之前的方案，还开始把其他正常文件改坏，越修 Bug 越多！”\n请大家记住：这绝不是模型随机发疯，而是自回归神经网络的物理规律！\n最核心的三大杀手是：\n1. **Lost in the Middle（中间注意力迷失）**：当上下文达到几万 Token 时，模型只能精准记忆开头和结尾，位于会话中间的代码契约和禁止性规定被自注意力机制彻底稀释；\n2. **错误自回归累积（Autoregressive Pollution）**：你把前几轮改错的代码、长达 50 行的报错堆栈全留在 Context 里，模型在计算条件概率时，把这些错误当成了强烈的“上下文先验”，在错误的道路上越走越偏；\n3. **工具输出体积爆炸（Context Flooding）**：Agent 不小心执行了全量 `find` 或读了庞大的构建临时文件，几万行垃圾 Token 瞬间灌满窗口，把关键约束全部冲刷殆尽！\n**请把 Context 当成你的黄金 L1 缓存，坚决抵制任何垃圾污染！**\n\n## Key Q&A / Clarifications\n**Q：上下文退化可以通过换用 200 万 Token 的超大长窗口模型彻底解决吗？**\nA：不能！长上下文“能装得下”和“能精准注意力召回”是两码事。学术界测试证明，在超过 64k 长度后，几乎所有主流大模型的细粒度逻辑推理准确率都会出现对数级下滑。保持精简才是王道。\n\n## Transition\n为了在日常开发中彻底免疫上下文退化，我们必须恪守这五条保命铁律。\n","page_20.html":"## Slide Objective\n传授单兵日常高效交互五条铁律（Plan Mode、精准喂料、Git 快照、十五轮法则、脚本开路），提供可落地的实操口诀。\n\n## Suggested Presentation\n请看第 20 页，这是无数工程师用成千上万 Token 账单和通宵排障换来的血泪经验：单兵日常高效交互五条铁律！\n1. **Plan Mode 先行**：面对超过 2 个文件的改动，强制开启 Plan 只读规划模式！让 Agent 先出思路和 Task List，人类花 1 分钟确认架构无误后再授权写代码。想透再动刀，拒绝盲目乱改；\n2. **@ 精准喂料**：用 `@File`、`@Symbol` 精确锚定上下文。严禁大包大揽让模型全盘盲搜；\n3. **频繁快照，小步提交**：每跑通一个单测或函数，立刻 `git commit`。一旦发现 Agent 改飞了，**一秒钟不要犹豫，立刻 `git reset --hard HEAD`**！彻底止损，绝不纠缠！\n4. **十五轮法则**：聊到第 15 轮任务仍未完成，果断执行 `/compact`，或者让它总结当前结论，直接开一个全新的干净 Session 继续！清空历史错误累积；\n5. **临时脚本开路**：面对批量重构或复杂数据检查，命令它在 `scratch/` 目录先写个独立 Python/Shell 脚本本地验证，跑通后再合并入代码库。\n**牢记口诀：先想后动刀，精准喂材料；小步常提交，十五轮就跑，脚本先验好！**\n\n## Key Q&A / Clarifications\n**Q：如果在执行 git reset --hard 之前有自己手写的修改怎么办？**\nA：养成习惯：进入 AI Agent 自动化流程前，保证工作区 clean 或使用 `git stash`；更好的做法是在下节课（02B）将要学习的 `git worktree` 独立隔离分支中运行 Agent。\n\n## Transition\n站在巨人的肩膀上才能看得更远，我们来看 2026 年最优质的前沿学习资源与开源生态。\n","page_21.html":"## Slide Objective\n精选 2026 前沿学习资源、Spec 标准与开源生态，引导学员走向开放标准，摆脱单一工具绑架。\n\n## Suggested Presentation\n请看第 21 页：优质学习资源、Spec 标准与开源生态推荐。\nAI 编程工具迭代极快，但只要我们抓住标准规范，就能以不变应万变：\n- **规范标准**：必须关注 `AGENTS.md` 开放标准（agents.md）与 Anthropic 的 `MCP` 规范（modelcontextprotocol.io）。它们是目前全行业最具生命力的中立协议；\n- **规则市场**：遇到新技术栈（如写 Flutter、K8s 或 React），直接去 **cursor.directory** 和 **skills.sh** 搜索最成熟的生产级 Rules 与 Skills 技能包，拿来即用；\n- **权威必读**：强烈建议精读 Anthropic 的《Building effective agents》与国内阿里 Qoder 架构演进报告，看懂顶级大厂是如何设计智能体系统的；\n- **进阶路线**：完成本课单兵基础后，普通学员标准主线是直接进入《第 03 课：AI Agent架构认知入门》，打通智能体顶层架构；若为项目 Leader 或高级开发，希望攻坚团队级规格驱动（SDD）与多 Agent 并行研发流，可选修《02B. AI辅助编程进阶》（普通学员可跳过）。\n\n## Key Q&A / Clarifications\n**Q： cursor.directory 上的规则可以直接用在 Claude Code 或 Qoder 里吗？**\nA：完全可以！它的本质是通用的 Markdown 规范要求，只要内容不涉及私有占位符，复制到 `AGENTS.md` 中即可跨平台通用。\n\n## Transition\n最后，让我们对第 02 课全课做全面总结收束，并开启后续双轨学习路线！\n","page_22.html":"## Slide Objective\n盘点第 02 课六大核心底座收获，清晰给出通向第 03 课与 02B 进阶选修的双轨学习路径，帮助不同诉求学员明确下一步目标。\n\n## Suggested Presentation\n各位学员，恭喜大家顺利通关《第 02 课：AI辅助编程入门》的全部内容！\n让我们快速复盘本课沉淀的【六大核心底座心智】：\n1. **范式跃迁**：从被动的网页复制粘贴“人肉总线”，跨越到拥有终端执行与单测验证闭环的自主 Coding Agent；\n2. **Token 经济学**：掌握 Prefix Caching 前缀缓存，理解长会话降本 75%~90% 的底层机理；\n3. **结构化 Prompt**：熟练运用锚点、契约、负面红线与验证命令四要素，从源头消灭歧义；\n4. **Harness 六件套**：掌握 System Prompt、AGENTS.md、Hooks 护栏、Skills、MCP 与 Subagents；\n5. **四大阵营全景**：掌握 AI-Native IDE、大厂平台、Terminal CLI 与开源插件的选型决策树；\n6. **防退化五条铁律**：守住 Plan Mode 先行、精准喂料、Git 秒级止损与十五轮断舍离！\n\n接下来，请大家根据自身角色与发展目标，选择适合你的【双轨学习路径】：\n- **【普通学员主线 · 推荐全员】直接进入《第 03 课：AI Agent架构认知入门》**：\n  学完第 02 课，大家已经完全掌握了单兵 AI 辅助编程的核心工程能力，单兵提效已经全面达标！大家接下来的标准主线路线，是直接跨入《第 03 课：AI Agent架构认知入门》，从代码生成助手跃升至智能体顶层应用架构、认知拓扑与业务落地全景，为后续企业级 Agent 研发筑牢体系化认知！\n- **【进阶深潜支线 · 可跳过选修】选修《02B. AI辅助编程进阶》**：\n  如果你是团队的技术负责人、架构师或负责十万行存量老代码的高级开发，希望深入掌握企业级规格驱动开发（Spec-Driven Development, SDD / EARS 规范）、黄金回归测试（Characterization Testing）、多 Agent 并发重构与 Git Worktree 物理隔离研发流，我们为你准备了可选深潜课《02B. AI辅助编程进阶》。普通学员完全可以跳过本课，直接进入第 03 课。\n\n## Key Q&A / Clarifications\n**Q：普通学员学完第 02 课，必须学 02B 才能学第 03 课吗？**\nA：完全不需要！第 02 课已经为全员建立了最完整的单兵 AI 辅助编程工程心智，为第 03 课打下了坚实基础。02B 是专为项目 Leader 和高级开发准备的可选进阶课程，普通学员的标准推荐路径是直接进入《第 03 课：AI Agent架构认知入门》。\n\n**Q：后续企业级实战代码演练会在哪节课开展？**\nA：我们将在第 04 课至第 08 课开展深度的企业级实战项目演练，基于完整的微服务业务工程，手把手实现长期记忆、企业知识库 RAG、Tool Calling 与可靠工作流！\n\n## Transition\n第 02 课圆满结束！感谢大家，请稍作休息，下一站我们将正式迈入《第 03 课：AI Agent架构认知入门》！\n\n---\n\n## 课后扩展学习引导（讲师导读提示）\n> **讲师收官特别提示**：  \n> 在宣布第 02 课圆满结课时，请各位讲师务必向学员隆重推荐课程根目录下的**《扩展学习指南.md》**，作为单兵提效向工业级落地进阶的权威参考。  \n> \n> **建议引导话术**：  \n> “恭喜各位同学顺利完成了第 02 课的学习！大家现在已经具备了自主 Coding Agent 的基础实操能力。但在真正的企业级生产环境中，如何避免多轮交互导致的成本失控、如何为大型多模块工程制定严密的规范分级，是大家迈向高级工程师的关键分水岭。  \n> 为此，我们在课程根目录下为大家打造了这份高质量的《扩展学习指南.md》。指南严格遵循 **3W 精选导读法则（Why - Where - What）**，精选了 4 个进阶实战主题：  \n> 1. **终端与代理式编程最佳实践**：研读 Anthropic 官方 Agentic Coding 规范与 OpenCode 架构，掌握紧凑反馈循环、Plan 模式先行与 Git 秒级止损的自动化闭环；  \n> 2. **跨工具工程规范标准与分级 Rules 体系**：学习如何通过根目录与子模块分级编写 `AGENTS.md`，用机器可验证的确定性断言约束大型 Spring Boot 工程，消除模型幻觉；  \n> 3. **Prompt Prefix Caching 前缀缓存与底层复用机制**：吃透 API 计费底层的基数树匹配规则，严守‘静态在前、动态在后’的上下文编排铁律，让多轮长会话降本 80%~90% 并消除首字等待延迟；  \n> 4. **Agent Skills 渐进式披露架构与编写指南**：对比全量注入提示词与按需加载 `SKILL.md` 的 Token 经济学，掌握三层漏斗架构与工业级技能 SOP 编写标准。  \n> \n> 文档末尾配备了 3 道紧贴工程实战的架构自测思考题。大家课后一定要结合指南进行深入思考与实践，把工程规矩化为肌肉记忆！”\n\n"};
+  const extGuideMarkdown = "# 第 02 课《AI 辅助编程入门》课后深度扩展学习指南\n\n> **致一线软件工程师与研发效能负责人**：  \n> 第 02 课带你完成了从“聊天框复制粘贴的人肉中继器”到“具备终端与单测反馈闭环的 Coding Agent 驾驭者”的范式跃迁。  \n> 然而，单兵提效的尽头是工程化规范与系统化度量。如果缺乏对终端代理交互模式、跨工具分层规范、前缀缓存（Prefix Caching）底层计费以及 Agent Skills 架构的透彻掌握，开发者往往会陷入“Token 飞速消耗、上下文混乱退化、大模型改崩老代码”的新困境。本指南遵循 **3W 精选导读法则（Why - Where - What）**，精选 **4 个极具生产实战价值的进阶主题**，助你打造工业级 AI 原生编程武器库。\n\n---\n\n## 目录\n1. [主题一：终端与代理式编程最佳实践（Claude Code 与 OpenCode）](#主题一终端与代理式编程最佳实践claude-code-与-opencode)\n2. [主题二：跨工具工程规范标准：AGENTS.md 与分级 Rules 体系设计](#主题二跨工具工程规范标准agentsmd-与分级-rules-体系设计)\n3. [主题三：Prompt Prefix Caching 计费与底层 KV Cache 复用机制](#主题三prompt-prefix-caching-计费与底层-kv-cache-复用机制)\n4. [主题四：Agent Skills 渐进式披露架构与编写指南](#主题四agent-skills-渐进式披露架构与编写指南)\n5. [课后架构自测思考题（附参考思路）](#课后架构自测思考题附参考思路)\n\n---\n\n## 主题一：终端与代理式编程最佳实践（Claude Code 与 OpenCode）\n\n### 1. 为什么值得深潜（Why - 生产触发场景）\n很多开发者习惯在 IDE 右侧的 Chat 插件中向 AI 提问，然后人肉把代码拷贝到项目编辑器中，遇到报错再把报错信息拷贝回聊天框。这种“人肉消息总线”在处理跨 5 个以上文件的微服务重构、大型依赖升级（如 Spring Boot 2.x 升级至 3.x）或单测补全时，效率极其低下。  \n掌握以 Anthropic Claude Code、OpenCode (`opencode-ai`) 和 Aider 为代表的**终端自主代理（Terminal Agentic Coding）**，让 Agent 直接运行在代码仓库本地，利用 Shell 命令自发编译、运行测试并查看 Git 差异，是实现 10 倍研发提效的质变分水岭。\n\n### 2. 权威一手资料（Where - 核心信源与链接）\n- **Anthropic 官方权威实践**：Anthropic, *\"Claude Code: Best practices for agentic coding in the terminal\"*  \n  [Anthropic Documentation: Agentic Coding Best Practices](https://docs.anthropic.com/en/docs/agents-and-tools/agentic-coding)\n- **开源终端 Coding Agent**：`opencode-ai` 官方架构规范与仓库  \n  [https://github.com/opencode-ai](https://github.com/opencode-ai)\n- **顶级开源基准评测**：Aider 架构与 LLM 编程能力榜单  \n  [https://aider.chat/docs/](https://aider.chat/docs/) 与 [https://aider.chat/docs/leaderboards/](https://aider.chat/docs/leaderboards/)\n\n### 3. 高效阅读指引（What - 核心看点与避坑）\n- **核心必看点**：\n  1. **Anthropic 紧凑反馈循环（Tight Feedback Loop）原则**：\n     - 不要让 Agent 一口气生成数百行未经验证的代码；\n     - 必须将“验证命令（Verification Command）”作为任务执行的标准环节（例如每次修改后强制自动触发 `mvn test-compile` 或运行指定单测）；\n     - 赋予 Agent `git diff` 检查权限，让它像资深工程师一样审查自己的修改改动量。\n  2. **Plan Mode 先行与原子化提交（Atomic Execution）**：\n     - 在 OpenCode 或 Claude Code 中，复杂任务必须坚持“两阶段范式”：第一阶段进入 Plan 模式，仅生成只读的改造方案与影响面清单，等待人类 Review；第二阶段才允许进入 Act 模式，逐步落地代码。\n  3. **Git 秒级回滚（Safety Net）**：\n     - 每次执行 Agent 任务前，确保工作区处于 Clean 状态；\n     - 熟练使用 `git stash` 或轻量分支隔离 Agent 实验性代码，一旦上下文退化，3 秒内通过 Git Reset 止损，严禁在污染的上下文上与模型反复扯皮。\n- **工程师避坑**：\n  - **避坑**：切忌给 Agent 授予无限制的全局 `rm -rf` 或危险写库权限，必须配置可控的工具黑白名单。\n  - **重点吸收**：掌握“小步快跑、单测驱动、验证先行”的 Agent 协作心智。\n\n---\n\n## 主题二：跨工具工程规范标准：`AGENTS.md` 与分级 Rules 体系设计\n\n### 1. 为什么值得深潜（Why - 生产触发场景）\n在现代化研发团队中，团队成员可能使用不同的 AI 辅助工具（有的用 OpenCode，有的用 Cursor，有的用 Windsurf 或 Claude Code）。如果每个工具都要独立配置一份规则，必然导致规范碎片化与严重漂移。  \n更严重的是，在大型 Spring Boot 多模块或单体巨石工程中，若将上万字的企业级编码规范、异常处理规范、数据库规范全部堆砌在项目根目录，会导致两个致命工程问题：**一是消耗海量 Token 导致前缀缓存被挤爆；二是模型在注意力稀释下频频忽视业务核心指令**。掌握跨工具标准与分级约束体系是架构师的必修课。\n\n### 2. 权威一手资料（Where - 核心信源与链接）\n- **跨平台 Agent 约束协议**：`AGENTS.md` 社区开放标准倡议  \n  [https://agents.md/](https://agents.md/)\n- **Cursor 官方规则规范与分层机制**：Cursor Documentation, *\"Project-specific and directory-specific Rules (.cursor/rules)\"*  \n  [https://docs.cursor.com/context/rules-for-ai](https://docs.cursor.com/context/rules-for-ai)\n- **企业级多模块标准模式**：Spring Boot 官方工程结构与规范实践指南\n\n### 3. 高效阅读指引（What - 核心看点与避坑）\n- **核心必看点**：\n  1. **三层金字塔规则分级体系（Tiered Architecture）**：\n     - **L1 根目录通用准则（Root `AGENTS.md`）**：定义跨工程硬性铁律（如：强制 Java 17、严禁吞噬受检异常、严禁在代码中硬编码任何 Secret、必须使用 Lombok `@Slf4j` 记录结构化日志）。篇幅严格控制在 300 词以内。\n     - **L2 模块级局部准则（Submodule `module/AGENTS.md`）**：仅在进入特定子模块目录时生效。例如在 `order-domain/AGENTS.md` 中约束 DDD 充血模型与聚合根原则；在 `payment-gateway/AGENTS.md` 中约束外部 HTTP 调用的幂等重试与熔断降级。\n     - **L3 任务级动态准则（Dynamic `.cursor/rules/*.mdc`）**：基于 Glob 通配符（如 `**/*Test.java`）触发专属于单元测试编写的 Mockito 与 AssertJ 规范。\n  2. **契约编写的“反形容词法则”**：\n     - **错误写法（无效模糊指令）**：“请编写健壮、可维护、性能优异的优雅代码”；\n     - **正确写法（机器可验证确定性断言）**：“新写的方法圈复杂度（Cyclomatic Complexity）不得超过 10，每个公开 API 必须包含 `@Valid` 参数校验注解，且必须配备覆盖正向与异常路径的 JUnit 5 单元测试”。\n- **工程师避坑**：\n  - **避坑**：严禁把《阿里巴巴 Java 开发手册》全本 50 页直接复制进 `AGENTS.md`。\n  - **原则**：只写模型默认行为容易偏离、且能够被编译器或静态分析工具（Sonar / Checkstyle）验证的元规则（Meta-Rules）。\n\n---\n\n## 主题三：Prompt Prefix Caching 计费与底层 KV Cache 复用机制\n\n### 1. 为什么值得深潜（Why - 生产触发场景）\n在使用商业化 LLM API（如 OpenAI GPT-4o、Anthropic Claude 3.5 Sonnet、DeepSeek-V3）进行多轮编程会话时，上下文往往累积了大量项目代码与规范文件。很多团队发现：**“为什么只跟 Agent 聊了 10 轮对话，API 账单就消耗了数十美元？为什么第 10 轮的等待响应时间从第 1 轮的 500ms 恶化到了 8 秒以上？”**  \n其核心根源是破坏了底层服务商的 **Prompt Prefix Caching（前缀缓存）**！一旦掌握前缀缓存的判定机理并规范上下文排布顺序，多轮会话成本将直接下降 **75%~90%**，同时首字延迟（TTFT）降低一个数量级！\n\n### 2. 权威一手资料（Where - 核心信源与链接）\n- **Anthropic 官方前缀缓存架构**：Anthropic Docs, *\"Prompt Caching (Beta) - How it works & Pricing\"*  \n  [https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching)\n- **OpenAI 官方自动提示词缓存机制**：OpenAI Platform Docs, *\"Prompt Caching in the Chat Completions API\"*  \n  [https://platform.openai.com/docs/guides/prompt-caching](https://platform.openai.com/docs/guides/prompt-caching)\n- **DeepSeek 上下文缓存计费与性能白皮书**：DeepSeek 开放平台技术文档  \n  [https://api-docs.deepseek.com/guides/kv_cache](https://api-docs.deepseek.com/guides/kv_cache)\n\n### 3. 高效阅读指引（What - 核心看点与避坑）\n- **核心必看点**：\n  1. **前缀缓存的底层物理机制（Radix Tree / Prefix Tree）**：\n     - 服务端推理引擎（如 vLLM / SGLang）使用基数树缓存已计算好的 KV Cache。\n     - **缓存命中铁律**：请求的 Prompt 必须从第 1 个 Token 开始，与历史缓存保持**完全逐字节（Byte-by-Byte）一致**！一旦中间某个字符（哪怕只是多了一个空格或时间戳变化），从该字符起之后的所有 Token 全部缓存击穿失效，必须重新全量执行昂贵的 Prefill 计算并全额收费！\n  2. **上下文装配顺序的“静态在前、动态在后”黄金法则**：\n     ```text\n     ┌────────────────────────────────────────────────────────┐\n     │ 1. System Prompt（系统预设角色与能力定义）              │ ◀── 100% 静态不变（永恒缓存命中）\n     ├────────────────────────────────────────────────────────┤\n     │ 2. Project AGENTS.md / Rules（项目全局工程规范）        │ ◀── 静态文件（长效缓存）\n     ├────────────────────────────────────────────────────────┤\n     │ 3. Core Domain Models / Schemas（核心实体契约代码）     │ ◀── 会话期静态（长效缓存）\n     ├────────────────────────────────────────────────────────┤\n     │ 4. Multi-turn Historical Dialogues（多轮历史对话消息）   │ ◀── 仅尾部追加（历史前缀复用命中）\n     ├────────────────────────────────────────────────────────┤\n     │ 5. Current User Input & Dynamic Timestamps（当前动态输入）│ ◀── 动态变化（仅计算增量 Token）\n     └────────────────────────────────────────────────────────┘\n     ```\n- **工程师避坑**：\n  - **致命反模式（Anti-Pattern）**：在 System Prompt 头部注入动态变量，例如：`You are a coding assistant. Current Time: 2026-11-11 15:30:25`。这样每次请求时间戳都不同，**前缀缓存 100% 击穿**，每次会话均被按最昂贵的完整输入费率计费！\n  - **正确做法**：动态时间、当前打开的文件路径等动态上下文，必须严格放置在当前用户轮次的最后面。\n\n---\n\n## 主题四：Agent Skills 渐进式披露架构与编写指南\n\n### 1. 为什么值得深潜（Why - 生产触发场景）\n随着团队希望 Agent 承担更多复杂任务（例如自动查 MySQL 慢查询、执行 Redis 键分析、调用 Swagger 导出 API、执行 Kubernetes Pod 诊断），很多团队直觉地把所有这些能力的工具定义（Tool Schemas）和详细 SOP 教程全部一次性写进全局 System Prompt 中。  \n这种做法会导致严重的工程副作用：**一是开局就白白浪费 20K+ 的上下文 Token；二是引入严重的“上下文污染（Context Pollution）”**，大模型在面对简单写代码需求时，往往误触发数据库查询或无关工具。**渐进式披露（Progressive Disclosure）**是构建工业级高可扩展 Agent 系统的必备设计模式。\n\n### 2. 权威一手资料（Where - 核心信源与链接）\n- **Anthropic 官方智能体架构设计**：Anthropic Research, *\"Building Effective Agents - Augmented LLMs and Workflows\"*  \n  [https://www.anthropic.com/research/building-effective-agents](https://www.anthropic.com/research/building-effective-agents)\n- **Agent Skills 协议与 OpenCode 实现规范**：`opencode-ai` 技能系统设计规范  \n  [https://github.com/opencode-ai](https://github.com/opencode-ai)\n- **Model Context Protocol (MCP) 核心规范**：Anthropic & 开源社区标准  \n  [https://modelcontextprotocol.io/](https://modelcontextprotocol.io/)\n\n### 3. 高效阅读指引（What - 核心看点与避坑）\n- **核心必看点**：\n  1. **渐进式披露的三层漏斗模型（Three-tier Funnel Architecture）**：\n     - **第一层：元数据索引层（Index Tier - 极低开销）**  \n       全局系统提示词中只保留每个 Skill 的一句话摘要与触发关键词（例如：`database-profiling: 用于查询慢 SQL 与执行 EXPLAIN 计划，当用户涉及数据库性能调优时调用`）。开销仅 30~50 Token/Skill。\n     - **第二层：按需挂载层（On-demand Loading Tier - 动态读取）**  \n       当 Agent 判断当前任务需要该能力时，自主调用内部工具（如 `read_file`）读取 `skills/database-profiling/SKILL.md`，此时才把该技能的详细约束、操作步骤和环境要求加载进上下文。\n     - **第三层：执行与精简反馈层（Execution & Compact Feedback Tier）**  \n       运行技能目录下的独立脚本（如 Python/Bash），只将处理完成的精炼结论返回给主会话，避免中间海量日志污染主窗口。\n  2. **高规格 `SKILL.md` 的工业级结构标准**：\n     - `YAML Frontmatter`：声明技能名称（name）、触发场景（description）；\n     - `Preflight Checks`：前置依赖检查（如依赖的 CLI 工具、环境变量权限）；\n     - `Step-by-Step SOP`：确定性执行步骤指南；\n     - `Self-Correction`：常见异常与自愈补偿策略。\n- **工程师避坑**：\n  - **避坑**：不要把 Skill 写成一个庞大而死板的自动化脚本；Skill 的价值是向智能体传授“具有容错能力的思考逻辑与操作步骤规范”。\n\n---\n\n## 课后架构自测思考题（附参考思路）\n\n> [!TIP]\n> 建议在独立思考并写下自己的架构方案后，再比对下方的参考思路。\n\n### 思考题 1：前缀缓存击穿的财务排查与优化\n**问题**：某团队使用 Claude 3.5 Sonnet 开发了一款企业级智能编程助手。项目平均代码上下文为 40,000 Token。团队在测试中发现，每次连续对话 10 轮，账单消耗高达近 2 美元，响应延迟明显变慢。经排查，其客户端代码在构建每一轮请求时，采用了如下结构：\n```json\n{\n  \"system\": \"你是一个 Java 专家助手。当前时间：2026-11-11 16:05:12。\\n项目全局规则：...\\n40,000 Token 代码上下文\",\n  \"messages\": [\n    {\"role\": \"user\", \"content\": \"帮我看看这个类怎么写\"},\n    {\"role\": \"assistant\", \"content\": \"...\"}\n  ]\n}\n```\n请结合底层 Prefix Caching（KV Cache）的 Radix Tree 匹配机理，指出其致命设计缺陷，并给出降本 80% 以上的重构方案。\n\n<details>\n<summary>👉 查看架构参考思路</summary>\n\n- **缺陷诊断**：\n  - 该团队在 `system` 提示词的最前部插入了秒级动态时间戳：`当前时间：2026-11-11 16:05:12`。\n  - 大模型服务商（Anthropic / OpenAI / DeepSeek）的前缀缓存判定是**从字符串第 1 个字符开始进行严格的前缀哈希匹配（Radix Tree 索引）**。\n  - 由于时间戳每秒都在变动，导致每一轮新对话发起时，Prompt 在第 25 个字符处就发生了差异，后续高达 40,000 Token 的代码上下文和规则**永远无法命中前缀缓存**！每一轮对话都被迫支付全额的写入（Input Write）计算费率和漫长的 Prefill 排队时间。\n- **重构优化方案（三部曲）**：\n  1. **将静态内容绝对置顶**：将 `system` 改为纯静态内容（去除动态时间），包含不变的角色设定、项目全局规则及核心类定义。在 Anthropic API 中显式为系统静态内容打上 `cache_control: {\"type\": \"ephemeral\"}` 标记。\n  2. **动态时间后置化**：如果确实需要让模型感知当前时间，将其作为当前最新一条 `user` 提问末尾的元数据注入（例如放在用户提问的附加信息中），确保其永远处于整个 Prompt 序列的最末端。\n  3. **效果收益**：重构后，前 40,000 Token 的静态前缀在多轮会话中持续命中 Cache Read（计费仅为原输入单价的 10%~25%），每轮对话仅对最新产生的几十个 Token 进行全量计费，整体财务成本直降 80%~90%，首字延迟（TTFT）从数秒骤降至数百毫秒。\n</details>\n\n---\n\n### 思考题 2：大型 Spring Boot 多模块工程的 `AGENTS.md` 分级设计\n**问题**：你负责一个包含 4 个 Maven 子模块的企业核心中台工程：\n- `mall-common`：基础公共包（工具类、通用枚举、统一 Result 封装）；\n- `mall-order-service`：高并发订单微服务（Spring Boot, MyBatis-Plus, Redis 分布式锁, RocketMQ）；\n- `mall-finance-service`：财务结算核心（严格事务、防重幂等、BigDecimal 精确计算）；\n- `mall-admin-api`：后台管理端控制器。\n\n请为该工程设计一套规范合理的 `AGENTS.md` 分层架构，说明根目录和各子模块应该分别承载什么规则，避免“规则冲突”与“注意力稀释”。\n\n<details>\n<summary>👉 查看架构参考思路</summary>\n\n- **分层落地架构设计**：\n  1. **根目录 `AGENTS.md`（项目级硬性红线 - 控制在 200 行内）**：\n     - **环境基线**：强制 Java 17，Spring Boot 3.4.x，Maven 3.8+；\n     - **跨模块硬性约束**：严禁在 Controller 之外使用 `null` 传递数据，统一使用 `Optional`；禁用 `System.out.println`，强制使用 `@Slf4j` 结构化日志；严禁在代码中硬编码任何 IP/密码/Token；\n     - **工程规范**：所有公共返回值必须包装为 `Result<T>`；单测必须使用 JUnit 5 + Mockito，禁止启动全量 SpringBootTest 容器以加速执行。\n  2. **`mall-order-service/AGENTS.md`（高并发与分布式专属规则）**：\n     - **并发控制**：涉及库存扣减与订单状态流转，必须显式指明分布式锁方案（如 Redisson 租赁时间规范）；\n     - **MQ 规则**：发送 RocketMQ 消息必须提供确定性事务监听器与幂等 Message Key，严禁无事务直接投递。\n  3. **`mall-finance-service/AGENTS.md`（高安全资金计算规则）**：\n     - **数值精度**：资金计算严禁使用 `float` / `double`，强制全部采用 `BigDecimal`，且必须使用 `String` 构造函数并显式指定舍入模式（如 `RoundingMode.HALF_UP`）；\n     - **事务与审计**：涉及账户变动的 Service 方法必须标注 `@Transactional(rollbackFor = Exception.class)`，并强制要求记录前后状态的审计变更记录（Audit Log）。\n  4. **设计收益**：\n     - 当 Agent 在 `mall-finance-service` 下进行代码重构时，仅激活“根目录全局红线 + 财务专属规则”，避免了被分布式锁或后台 API 等无关规则干扰，上下文聚焦，命中率与合规率大幅提升。\n</details>\n\n---\n\n### 思考题 3：渐进式披露（Progressive Disclosure）与全量注入的 Token 经济学对比\n**问题**：一个研发平台计划为 Coding Agent 扩展 30 个特定业务技能（如：数据库 DDL 校验、K8s 容器排障、Swagger 生成、Sonar 漏洞修复等），每个技能的完整操作 SOP 和提示词约为 1,500 Token。  \n如果采用“全量注入 System Prompt”与“采用 `SKILL.md` 渐进式披露”两种方案，在典型的 15 轮日常开发会话中（假设该会话实际只触发了其中 1 个 K8s 排障技能），请对比两者的 Token 消耗与模型推理质量。\n\n<details>\n<summary>👉 查看架构参考思路</summary>\n\n- **定量与定性深度对比**：\n  1. **方案 A：全量注入（Brute-force Injection）**：\n     - 初始静态开销：$30 \\times 1,500 = 45,000 \\text{ Token}$！\n     - 每一轮对话无论用户提问多么简单（哪怕只是“帮我写一个快速排序”），系统底座均背负着 45,000 Token 的沉重包袱。\n     - 15 轮会话累积产生的输入 Token 将迅速超过数十万，极易触碰上下文窗口上限，导致早期历史被强行截断淘汰。\n     - **注意力稀释（Context Pollution）**：模型在处理普通任务时，注意力被 29 个无关工具的规范所分散，极其容易出现逻辑幻觉或误调用工具。\n  2. **方案 B：渐进式披露（Progressive Disclosure）**：\n     - 初始静态开销：仅在 System Prompt 中放置 30 个技能的轻量索引目录（每个技能约 40 Token），总开销仅 $30 \\times 40 = 1,200 \\text{ Token}$，节约了 **97.3%** 的初始空间！\n     - 动态按需加载：前 10 轮写代码过程中，完全不加载任何多余技能文档；直到第 11 轮用户明确提出“帮我查一下线上 Pod 为什么崩了”时，Agent 才通过内部工具读取 `k8s-diagnose/SKILL.md`（仅加载 1,500 Token），完成特定步骤并输出精炼结论。\n     - **总结**：渐进式披露不仅在 Token 账单上降低了数倍成本，更在根本上保护了核心上下文的纯净度，是企业扩展大规模技能库的唯一可行路径。\n</details>\n";
+  let currentIndex = 0;
+
+  const stage = document.getElementById('slide-stage');
+  const frame = document.getElementById('slide-frame');
+  const shield = document.getElementById('click-shield');
+  const progressBar = document.getElementById('progress-bar');
+  const indicator = document.getElementById('page-indicator');
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+  const btnNotes = document.getElementById('btn-notes');
+  const btnCloseNotes = document.getElementById('btn-close-notes');
+  const btnExt = document.getElementById('btn-ext');
+  const btnCloseExt = document.getElementById('btn-close-ext');
+  const btnFs = document.getElementById('btn-fs');
+  const controlBar = document.getElementById('control-bar');
+  const notesDrawer = document.getElementById('notes-drawer');
+  const notesTitle = document.getElementById('notes-title');
+  const notesBody = document.getElementById('notes-body');
+  const extDrawer = document.getElementById('ext-drawer');
+  const extBody = document.getElementById('ext-body');
+
+  // 轻量级 Markdown 渲染器（支持标题、粗体、行内代码、可点击超链接与列表）
+  function renderSimpleMarkdown(md) {
+    if (!md) return '<p>（本课暂无扩展学习指南文件）</p>';
+    const escaped = md
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    const lines = escaped.split(/\r?\n/);
+    let html = '';
+    for (let line of lines) {
+      // 处理超链接与行内格式
+      line = line
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+      if (/^####\s+(.*)/.test(line)) {
+        html += '<h4>' + RegExp.$1 + '</h4>';
+      } else if (/^###\s+(.*)/.test(line)) {
+        html += '<h3>' + RegExp.$1 + '</h3>';
+      } else if (/^##\s+(.*)/.test(line)) {
+        html += '<h2>' + RegExp.$1 + '</h2>';
+      } else if (/^#\s+(.*)/.test(line)) {
+        html += '<h1>' + RegExp.$1 + '</h1>';
+      } else if (/^&gt;\s*(.*)/.test(line)) {
+        html += '<blockquote>' + RegExp.$1 + '</blockquote>';
+      } else if (/^[-*]\s+(.*)/.test(line)) {
+        html += '<ul><li>' + RegExp.$1 + '</li></ul>';
+      } else if (line.trim() === '---') {
+        html += '<hr style="border:none; border-top:1px solid rgba(255,255,255,0.1); margin:14px 0;">';
+      } else if (line.trim() !== '') {
+        html += '<p>' + line + '</p>';
+      }
+    }
+    return html;
+  }
+
+  extBody.innerHTML = renderSimpleMarkdown(extGuideMarkdown);
+
+  // 1. 16:9 动态缩放居中计算
+  function updateScale() {
+    const sw = 1280;
+    const sh = 720;
+    const scale = Math.min(window.innerWidth / sw, window.innerHeight / sh);
+    stage.style.transform = 'scale(' + scale + ')';
+  }
+  window.addEventListener('resize', updateScale);
+  updateScale();
+
+  // 2. 页面切换核心函数
+  function updateSlide(index) {
+    if (index < 0 || index >= pages.length) return;
+    currentIndex = index;
+    frame.setAttribute('src', pages[currentIndex]);
+    indicator.textContent = (currentIndex + 1) + ' / ' + pages.length;
+    btnPrev.disabled = (currentIndex === 0);
+    btnNext.disabled = (currentIndex === pages.length - 1);
+    progressBar.style.width = (((currentIndex + 1) / pages.length) * 100) + '%';
+
+    // 更新演讲手册备注
+    const pageFile = pages[currentIndex];
+    notesTitle.textContent = '演讲手册备注 (第 ' + (currentIndex + 1) + ' 页 - ' + pageFile + ')';
+    notesBody.textContent = notesMap[pageFile] || '（本页暂无专属演讲手册内容）';
+
+    // 唤醒底部控制条 1 秒后淡出
+    controlBar.classList.add('active');
+    clearTimeout(controlBar._timer);
+    controlBar._timer = setTimeout(() => controlBar.classList.remove('active'), 1200);
+
+    // 强行保持主窗口焦点
+    window.focus();
+    document.body.focus();
+  }
+
+  // 3. 统一键盘事件处理器（无论焦点在何处均生效）
+  function handleKeyDown(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+      case 'PageDown':
+      case ' ':
+      case 'Enter':
+        e.preventDefault();
+        e.stopPropagation();
+        updateSlide(currentIndex + 1);
+        break;
+      case 'ArrowLeft':
+      case 'ArrowUp':
+      case 'PageUp':
+      case 'Backspace':
+        e.preventDefault();
+        e.stopPropagation();
+        updateSlide(currentIndex - 1);
+        break;
+      case 'Home':
+        e.preventDefault();
+        e.stopPropagation();
+        updateSlide(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        e.stopPropagation();
+        updateSlide(pages.length - 1);
+        break;
+      case 'f':
+      case 'F':
+        e.preventDefault();
+        e.stopPropagation();
+        btnFs.click();
+        break;
+      case 'n':
+      case 'N':
+        e.preventDefault();
+        e.stopPropagation();
+        btnNotes.click();
+        break;
+      case 'e':
+      case 'E':
+        e.preventDefault();
+        e.stopPropagation();
+        btnExt.click();
+        break;
+      case 'Escape':
+        if (notesDrawer.classList.contains('open') || extDrawer.classList.contains('open')) {
+          e.preventDefault();
+          notesDrawer.classList.remove('open');
+          extDrawer.classList.remove('open');
+        }
+        break;
+    }
+  }
+
+  // 双重监听：捕获阶段挂载到 window 与 document
+  window.addEventListener('keydown', handleKeyDown, true);
+  document.addEventListener('keydown', handleKeyDown, true);
+
+  // 当 iframe 内部加载完毕时，注入键盘穿透监听（作为跨级兜底保护）
+  frame.addEventListener('load', () => {
+    try {
+      const doc = frame.contentDocument || frame.contentWindow.document;
+      if (doc) {
+        doc.addEventListener('keydown', handleKeyDown, true);
+        doc.addEventListener('click', () => {
+          window.focus();
+          document.body.focus();
+        });
+      }
+    } catch (err) {}
+    window.focus();
+    document.body.focus();
+  });
+
+  // 4. 点击屏蔽层 (click-shield) 交互：
+  // 单击右半侧下一页，单击左半侧上一页，双击全屏
+  let clickTimer = null;
+  shield.addEventListener('click', (e) => {
+    window.focus();
+    document.body.focus();
+
+    if (clickTimer) {
+      clearTimeout(clickTimer);
+      clickTimer = null;
+      btnFs.click(); // 双击切换全屏
+      return;
+    }
+
+    clickTimer = setTimeout(() => {
+      clickTimer = null;
+      const rect = shield.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      if (clickX > rect.width * 0.4) {
+        updateSlide(currentIndex + 1);
+      } else {
+        updateSlide(currentIndex - 1);
+      }
+    }, 220);
+  });
+
+  // 5. 鼠标滚轮翻页 (节流防抖 250ms)
+  let wheelLock = false;
+  window.addEventListener('wheel', (e) => {
+    if ((notesDrawer.classList.contains('open') || extDrawer.classList.contains('open')) && e.clientX > window.innerWidth - 540) {
+      return; // 抽屉内部滚动时不拦截
+    }
+    if (wheelLock) return;
+    if (Math.abs(e.deltaY) > 20) {
+      wheelLock = true;
+      if (e.deltaY > 0) updateSlide(currentIndex + 1);
+      else updateSlide(currentIndex - 1);
+      setTimeout(() => { wheelLock = false; }, 260);
+    }
+  }, { passive: true });
+
+  // 6. 控制栏按钮交互（点击后自动释放焦点，防止空格键重触发按钮）
+  btnPrev.addEventListener('click', (e) => {
+    e.target.blur();
+    updateSlide(currentIndex - 1);
+  });
+  btnNext.addEventListener('click', (e) => {
+    e.target.blur();
+    updateSlide(currentIndex + 1);
+  });
+  btnNotes.addEventListener('click', (e) => {
+    e.target.blur();
+    extDrawer.classList.remove('open');
+    notesDrawer.classList.toggle('open');
+    window.focus();
+    document.body.focus();
+  });
+  btnCloseNotes.addEventListener('click', () => {
+    notesDrawer.classList.remove('open');
+    window.focus();
+    document.body.focus();
+  });
+  btnExt.addEventListener('click', (e) => {
+    e.target.blur();
+    notesDrawer.classList.remove('open');
+    extDrawer.classList.toggle('open');
+    window.focus();
+    document.body.focus();
+  });
+  btnCloseExt.addEventListener('click', () => {
+    extDrawer.classList.remove('open');
+    window.focus();
+    document.body.focus();
+  });
+  btnFs.addEventListener('click', (e) => {
+    e.target.blur();
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+    window.focus();
+    document.body.focus();
+  });
+
+  // 初始化首屏
+  updateSlide(0);
+</script>
+</body>
+</html>

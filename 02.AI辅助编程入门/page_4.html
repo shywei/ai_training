@@ -3,101 +3,104 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>AI辅助编程的七个阶段</title>
+<title>AI 辅助编程四代演进路线（2021–2026）</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
 .slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-stage { display:flex; align-items:flex-start; gap:12px; margin-bottom:4px; padding:8px 12px; }
-.slide-stage-num { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0; }
-.slide-stage-content { flex:1; }
-.slide-stage-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:2px; }
-.slide-stage-desc { font-size:11px; color:rgba(224,231,255,0.45); line-height:1.4; }
-.slide-stage-tag { font-size:11px; padding:2px 6px; border-radius:3px; margin-left:6px; }
-.slide-era-bar { padding:6px 12px; margin-bottom:2px; font-size:11px; font-weight:700; letter-spacing:1px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; }
+.gen-card { flex:1; padding:16px; display:flex; flex-direction:column; justify-content:space-between; position:relative; }
+.gen-badge { display:inline-block; padding:3px 9px; font-size:11px; font-weight:700; border-radius:3px; margin-bottom:8px; font-family:monospace; }
+.gen-title { font-size:16px; font-weight:700; color:#E0E7FF; margin-bottom:6px; line-height:1.35; }
+.gen-sub { font-size:12px; font-weight:600; margin-bottom:10px; }
+.gen-item { font-size:12px; color:rgba(224,231,255,0.62); line-height:1.5; margin-bottom:7px; display:flex; align-items:flex-start; gap:6px; }
+.gen-footer { padding-top:10px; border-top:1px solid rgba(255,255,255,0.08); font-size:11.5px; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:28px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 01</div>
-  <h1 class="mb-2">AI辅助编程的七个阶段</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
+<div class="slide-container" style="padding:28px 65px;">
+  <div class="mb-1 slide-section-num">CHAPTER 01 · 从网页对话到 AGENT 编程</div>
+  <h1 class="mb-2">AI 辅助编程四代演进路线（2021–2026）</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:8px;"></div>
+  <div style="font-size:13px; color:rgba(224,231,255,0.5); margin-bottom:16px;">短短五年，AI 在软件工程中的角色从“智能输入法”演进为“受控工程智能体团队”。</div>
 
-  <div class="flex" style="gap:24px;">
-    <div style="flex:1;">
-      <div class="slide-era-bar" style="background:rgba(255,107,53,0.08); color:#FF6B35;"><i class="fas fa-comment" style="margin-right:6px;"></i>对话时代 · 你问我答</div>
-
-      <div class="slide-stage" style="background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.1);">
-        <div class="slide-stage-num" style="background:rgba(255,107,53,0.2); color:#FF6B35;">1</div>
-        <div class="slide-stage-content">
-          <div class="slide-stage-title">Prompt Engineering <span class="slide-stage-tag" style="background:rgba(255,107,53,0.15); color:#FF6B35;">语言指令</span></div>
-          <div class="slide-stage-desc">用结构化提示词引导模型输出。角色设定、Few-shot示例、Chain of Thought。<strong style="color:#E0E7FF;">基础中的基础</strong>——所有阶段都依赖它。</div>
-        </div>
+  <!-- 4 Generation Columns -->
+  <div class="flex" style="gap:16px; height:435px;">
+    <!-- Gen 1: 2021 -->
+    <div class="gen-card" style="background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.12);">
+      <div>
+        <span class="gen-badge" style="background:rgba(224,231,255,0.1); color:#E0E7FF;">GEN 1 · 2021–2022</span>
+        <div class="gen-title">单行/函数补全<br><span style="font-size:13px; color:rgba(224,231,255,0.5);">Tab Autocomplete</span></div>
+        <div class="gen-sub" style="color:rgba(224,231,255,0.7);">代表：GitHub Copilot 早期</div>
+        <div class="gen-item"><i class="fas fa-angle-right" style="color:#00E5FF; margin-top:4px;"></i><span><strong>交互方式：</strong>写注释或函数签名，按 `Tab` 键采纳灰字补全。</span></div>
+        <div class="gen-item"><i class="fas fa-angle-right" style="color:#00E5FF; margin-top:4px;"></i><span><strong>感知范围：</strong>当前打开文件的光标前后几十行（FIM 填充模式）。</span></div>
+        <div class="gen-item"><i class="fas fa-angle-right" style="color:#00E5FF; margin-top:4px;"></i><span><strong>核心局限：</strong>只管局部语法顺滑，不懂业务架构，无法跨文件修改。</span></div>
       </div>
-
-      <div class="slide-era-bar" style="background:rgba(0,229,255,0.08); color:#00E5FF; margin-top:6px;"><i class="fas fa-plug" style="margin-right:6px;"></i>工具时代 · 赋予手脚</div>
-
-      <div class="slide-stage" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.1);">
-        <div class="slide-stage-num" style="background:rgba(0,229,255,0.2); color:#00E5FF;">2</div>
-        <div class="slide-stage-content">
-          <div class="slide-stage-title">Tool Use <span class="slide-stage-tag" style="background:rgba(0,229,255,0.15); color:#00E5FF;">环境交互</span></div>
-          <div class="slide-stage-desc">Function Calling赋予模型读写文件、执行命令、调用API的能力。<strong style="color:#E0E7FF;">从"只会说"到"能做事"的关键跨越。</strong></div>
-        </div>
-      </div>
-
-      <div class="slide-stage" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.1);">
-        <div class="slide-stage-num" style="background:rgba(0,229,255,0.2); color:#00E5FF;">3</div>
-        <div class="slide-stage-content">
-          <div class="slide-stage-title">Context Engineering <span class="slide-stage-tag" style="background:rgba(0,229,255,0.15); color:#00E5FF;">上下文管理</span></div>
-          <div class="slide-stage-desc">系统化管理模型可见的信息：项目指令文件（CLAUDE.md）、Rules、Memory、知识库。<strong style="color:#E0E7FF;">Agent"看到什么"决定它"做得怎样"。</strong></div>
-        </div>
-      </div>
-
-      <div class="slide-stage" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.1);">
-        <div class="slide-stage-num" style="background:rgba(0,229,255,0.2); color:#00E5FF;">4</div>
-        <div class="slide-stage-content">
-          <div class="slide-stage-title">Workflow / Scaffold <span class="slide-stage-tag" style="background:rgba(0,229,255,0.15); color:#00E5FF;">静态编排</span></div>
-          <div class="slide-stage-desc">人工预定义确定性流程，模型按步骤执行。CI/CD流水线、固定审批链。<strong style="color:#E0E7FF;">可靠但不灵活——流程是人设计的。</strong></div>
-        </div>
+      <div class="gen-footer">
+        <div style="color:rgba(224,231,255,0.45);">人类角色：<strong style="color:#E0E7FF;">逐行手写代码的码农</strong></div>
+        <div style="color:#00E5FF; margin-top:2px;">提效幅度：局部编码 +15%~20%</div>
       </div>
     </div>
 
-    <div style="flex:1;">
-      <div class="slide-era-bar" style="background:rgba(224,231,255,0.08); color:#E0E7FF;"><i class="fas fa-brain" style="margin-right:6px;"></i>自主时代 · 自主思考</div>
+    <!-- Gen 2: 2023 -->
+    <div class="gen-card" style="background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.18);">
+      <div>
+        <span class="gen-badge" style="background:rgba(0,229,255,0.15); color:#00E5FF;">GEN 2 · 2023–2024</span>
+        <div class="gen-title">IDE 内联对话与局部编辑<br><span style="font-size:13px; color:#00E5FF;">Chat & Inline Apply</span></div>
+        <div class="gen-sub" style="color:#00E5FF;">代表：Cursor Chat / Copilot Chat</div>
+        <div class="gen-item"><i class="fas fa-angle-right" style="color:#00E5FF; margin-top:4px;"></i><span><strong>交互方式：</strong>侧边栏 `@file` 提问，或选中代码块 `Ctrl+K` 局部重写，点击 Apply 合并。</span></div>
+        <div class="gen-item"><i class="fas fa-angle-right" style="color:#00E5FF; margin-top:4px;"></i><span><strong>感知范围：</strong>显式 `@` 引用的数个文件 + 向量检索（RAG）片段。</span></div>
+        <div class="gen-item"><i class="fas fa-angle-right" style="color:#00E5FF; margin-top:4px;"></i><span><strong>核心局限：</strong>不会自己跑编译和单测，每次修改仍需人肉点击验证。</span></div>
+      </div>
+      <div class="gen-footer">
+        <div style="color:rgba(224,231,255,0.45);">人类角色：<strong style="color:#E0E7FF;">副驾驶指挥员 (Copilot)</strong></div>
+        <div style="color:#00E5FF; margin-top:2px;">提效幅度：模块开发 +30%~40%</div>
+      </div>
+    </div>
 
-      <div class="slide-stage" style="background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.1);">
-        <div class="slide-stage-num" style="background:rgba(224,231,255,0.15); color:#E0E7FF;">5</div>
-        <div class="slide-stage-content">
-          <div class="slide-stage-title">Single Agent <span class="slide-stage-tag" style="background:rgba(224,231,255,0.1); color:#E0E7FF;">自主规划</span></div>
-          <div class="slide-stage-desc">模型自主规划任务、动态调度工具。ReAct循环：思考→行动→观察→再思考。<strong style="color:#E0E7FF;">从"按剧本演"到"即兴发挥"。</strong></div>
+    <!-- Gen 3: 2025 -->
+    <div class="gen-card" style="background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.22);">
+      <div>
+        <span class="gen-badge" style="background:rgba(255,107,53,0.18); color:#FF6B35;">GEN 3 · 2025</span>
+        <div class="gen-title">自主长任务 Agent 与<br><span style="font-size:13px; color:#FF6B35;">Vibe Coding（氛围编程）</span></div>
+        <div class="gen-sub" style="color:#FF6B35;">代表：Claude Code 1.0 / Cursor Agent</div>
+        <div class="gen-item"><i class="fas fa-angle-right" style="color:#FF6B35; margin-top:4px;"></i><span><strong>交互方式：</strong>自然语言一句话描述需求，Agent 自主跨十几个文件改代码并跑终端命令。</span></div>
+        <div class="gen-item"><i class="fas fa-angle-right" style="color:#FF6B35; margin-top:4px;"></i><span><strong>高光与阴影：</strong>Karpathy 提出 Vibe Coding（不看代码全点 Accept），做 Demo 极爽。</span></div>
+        <div class="gen-item"><i class="fas fa-triangle-exclamation" style="color:#FFC832; margin-top:4px;"></i><span><strong>惨痛教训：</strong>在企业存量工程中无规矩乱改，产出大量无法维护的“AI 意大利面条代码”。</span></div>
+      </div>
+      <div class="gen-footer">
+        <div style="color:rgba(224,231,255,0.45);">人类角色：<strong style="color:#FF6B35;">甩手掌柜（极易翻车）</strong></div>
+        <div style="color:#FF6B35; margin-top:2px;">适合原型验证，严禁直上生产</div>
+      </div>
+    </div>
+
+    <!-- Gen 4: 2026 -->
+    <div class="gen-card" style="background:rgba(34,197,94,0.07); border:2px solid #22C55E;">
+      <div>
+        <div class="flex justify-between items-center mb-2">
+          <span class="gen-badge" style="background:#22C55E; color:#0B1120; margin-bottom:0;">GEN 4 · 2026 主流范式</span>
+          <span style="font-size:11px; color:#22C55E; font-weight:700;"><i class="fas fa-star"></i> 本课核心</span>
         </div>
+        <div class="gen-title">Agentic Engineering<br><span style="font-size:13px; color:#22C55E;">Spec 驱动 + Harness 确定性护栏</span></div>
+        <div class="gen-sub" style="color:#22C55E;">代表：Claude Code / Qoder / Kiro / Antigravity</div>
+        <div class="gen-item"><i class="fas fa-check-circle" style="color:#22C55E; margin-top:4px;"></i><span><strong>规格驱动（SDD）：</strong>先对齐 `SPEC.md` 接口契约与拆解 `PLAN.md`，再授权编码。</span></div>
+        <div class="gen-item"><i class="fas fa-check-circle" style="color:#22C55E; margin-top:4px;"></i><span><strong>Harness 六件套护航：</strong>用 `AGENTS.md` 立规矩、用 `Hooks` 强制执行格式化与测试门禁。</span></div>
+        <div class="gen-item"><i class="fas fa-check-circle" style="color:#22C55E; margin-top:4px;"></i><span><strong>多 Agent 协同：</strong>主 Agent 调度只读 Subagent 探路，保持上下文纯净。</span></div>
       </div>
-
-      <div class="slide-stage" style="background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.1);">
-        <div class="slide-stage-num" style="background:rgba(224,231,255,0.15); color:#E0E7FF;">6</div>
-        <div class="slide-stage-content">
-          <div class="slide-stage-title">Agentic Loop <span class="slide-stage-tag" style="background:rgba(224,231,255,0.1); color:#E0E7FF;">自迭代闭环</span></div>
-          <div class="slide-stage-desc">在Single Agent基础上增加<strong style="color:#FF6B35;">自评估→自动测试→失败修正→迭代收敛</strong>。代码写完自己跑测试，不过就自己改，直到通过。</div>
-        </div>
+      <div class="gen-footer" style="border-top-color:rgba(34,197,94,0.3);">
+        <div style="color:#E0E7FF;">人类角色：<strong style="color:#22C55E;">架构师 + 规格制定者 + 审查官</strong></div>
+        <div style="color:#22C55E; font-weight:700; margin-top:2px;">生产级高质量交付 3x~5x 提效</div>
       </div>
+    </div>
+  </div>
 
-      <div class="slide-era-bar" style="background:rgba(255,200,50,0.08); color:#FFC832; margin-top:6px;"><i class="fas fa-users" style="margin-right:6px;"></i>协作时代 · 多智能体</div>
-
-      <div class="slide-stage" style="background:rgba(255,200,50,0.04); border:1px solid rgba(255,200,50,0.15);">
-        <div class="slide-stage-num" style="background:rgba(255,200,50,0.2); color:#FFC832;">7</div>
-        <div class="slide-stage-content">
-          <div class="slide-stage-title">Multi-Agent <span class="slide-stage-tag" style="background:rgba(255,200,50,0.15); color:#FFC832;">多智能体协作</span></div>
-          <div class="slide-stage-desc">多个专用Agent分工协同。<strong style="color:#FFC832;">OpenCode的SubAgent、Claude Code的Sub-Agent都属于这个阶段</strong>——主Agent派生子Agent并行处理子任务，完成后汇报汇总。</div>
-        </div>
-      </div>
-
-      <div style="padding:12px 14px; background:rgba(0,229,255,0.06); border:2px solid rgba(0,229,255,0.2); margin-top:10px;">
-        <div style="font-size:12px; color:#00E5FF; font-weight:700; margin-bottom:4px;"><i class="fas fa-map-signs" style="margin-right:4px;"></i>我们在哪？</div>
-        <div style="font-size:11px; color:rgba(224,231,255,0.55); line-height:1.5;">今天的培训覆盖<strong style="color:#E0E7FF;">阶段1-7</strong>。Prompt工程（阶段1）是基础，工具使用和上下文管理（阶段2-3）是Harness体系，OpenCode/Claude Code/Codex是阶段5-6的落地产品，它们的SubAgent机制就是阶段7的实践。</div>
-      </div>
+  <!-- Bottom Insight -->
+  <div style="margin-top:14px; padding:10px 18px; background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.2); display:flex; align-items:center; gap:14px;">
+    <i class="fas fa-compass" style="font-size:20px; color:#00E5FF;"></i>
+    <div style="font-size:12.5px; color:rgba(224,231,255,0.75); line-height:1.5;">
+      <strong style="color:#00E5FF;">2026 工程师分水岭：</strong>2025 年大家比谁能让 AI 吐出更多代码（Vibe Coding）；2026 年企业比拼的是 <strong style="color:#22C55E;">Agentic Engineering（智能体工程化）</strong>——谁能用更严密的 <strong style="color:#E0E7FF;">Harness 底座 + Spec 契约 + 自动化测试闭环</strong> 驯服 Agent 稳定产出生产级代码。
     </div>
   </div>
 </div>

@@ -3,110 +3,114 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>从网页对话到AI编程</title>
+<title>网页对话编程的天花板 vs Coding Agent 的环境闭环</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
 .slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-limit-card { padding:14px 16px; margin-bottom:10px; display:flex; align-items:flex-start; gap:12px; }
-.slide-limit-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
-.slide-limit-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:4px; }
-.slide-limit-desc { font-size:12px; color:rgba(224,231,255,0.55); line-height:1.5; }
-.slide-gap-arrow { text-align:center; padding:12px 0; }
-.slide-gap-text { font-size:13px; color:#FF6B35; font-weight:700; }
-.slide-agent-feature { padding:10px 14px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.1); margin-bottom:6px; display:flex; align-items:center; gap:10px; }
-.slide-agent-icon { font-size:14px; color:#00E5FF; min-width:20px; text-align:center; }
-.slide-agent-text { font-size:12px; color:rgba(224,231,255,0.6); line-height:1.4; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; }
+.slide-card { padding:12px 15px; margin-bottom:9px; display:flex; align-items:flex-start; gap:12px; }
+.slide-icon { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.slide-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
+.slide-desc { font-size:12px; color:rgba(224,231,255,0.6); line-height:1.45; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:32px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 01</div>
-  <h1 class="mb-2">从网页对话到AI编程：为什么要升级？</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:18px;"></div>
+<div class="slide-container" style="padding:28px 65px;">
+  <div class="mb-1 slide-section-num">CHAPTER 01 · 从网页对话到 AGENT 编程</div>
+  <h1 class="mb-2">网页对话编程的天花板 vs Coding Agent 的环境闭环</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
 
-  <div class="flex" style="gap:28px;">
-    <!-- Left: Web chat limitations -->
+  <div class="flex" style="gap:26px;">
+    <!-- Left: Web Chat Human Bus -->
     <div style="flex:1;">
-      <div style="font-size:15px; font-weight:700; color:#FF6B35; margin-bottom:12px;"><i class="fas fa-comment-dots" style="margin-right:6px;"></i>网页对话AI的天花板</div>
+      <div style="padding:8px 14px; background:rgba(255,60,60,0.1); border-left:3px solid #FF6B35; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:15px; font-weight:700; color:#FF6B35;"><i class="fas fa-user-Secret" style="margin-right:6px;"></i>网页端 Chat 编程：程序员沦为“人肉 I/O 总线”</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">脱离工程环境</span>
+      </div>
 
-      <div class="slide-limit-card" style="background:rgba(255,60,60,0.04); border:1px solid rgba(255,60,60,0.12);">
-        <div class="slide-limit-icon" style="background:rgba(255,60,60,0.15); color:rgba(255,60,60,0.7);">✂️</div>
+      <div class="slide-card" style="background:rgba(255,60,60,0.04); border:1px solid rgba(255,60,60,0.15);">
+        <div class="slide-icon" style="background:rgba(255,60,60,0.15); color:#FF6B35;"><i class="fas fa-paste"></i></div>
         <div>
-          <div class="slide-limit-title">看不到你的代码</div>
-          <div class="slide-limit-desc">你得手动复制粘贴代码到对话框。一个类500行还行，整个项目100个类？不可能全贴进去。</div>
+          <div class="slide-title">1. 视野盲区：手动摘抄代码，丢失跨文件调用链</div>
+          <div class="slide-desc">网页 AI 看不到你的 `pom.xml`、Entity 定义和公共工具类。只能靠你手工复制片段，一旦涉及 5 个以上文件联动，立刻幻觉百出（编造不存在的方法）。</div>
         </div>
       </div>
 
-      <div class="slide-limit-card" style="background:rgba(255,60,60,0.04); border:1px solid rgba(255,60,60,0.12);">
-        <div class="slide-limit-icon" style="background:rgba(255,60,60,0.15); color:rgba(255,60,60,0.7);">🚫</div>
+      <div class="slide-card" style="background:rgba(255,60,60,0.04); border:1px solid rgba(255,60,60,0.15);">
+        <div class="slide-icon" style="background:rgba(255,60,60,0.15); color:#FF6B35;"><i class="fas fa-recycle"></i></div>
         <div>
-          <div class="slide-limit-title">不能执行代码</div>
-          <div class="slide-limit-desc">它能写代码，但不能运行。你得自己跑、自己看报错、再把错误信息贴回去。来回倒腾。</div>
+          <div class="slide-title">2. 反馈断裂：人肉充当“代码搬运工 + 报错传声筒”</div>
+          <div class="slide-desc">AI 吐出代码 → 你复制到 IDE → 编译红线报错 → 你截图或复制堆栈贴回网页 → AI 道歉再给一版。单次需求来回倒腾 10 趟，心流彻底破碎。</div>
         </div>
       </div>
 
-
-      <div class="slide-limit-card" style="background:rgba(255,60,60,0.04); border:1px solid rgba(255,60,60,0.12);">
-        <div class="slide-limit-icon" style="background:rgba(255,60,60,0.15); color:rgba(255,60,60,0.7);">📋</div>
+      <div class="slide-card" style="background:rgba(255,60,60,0.04); border:1px solid rgba(255,60,60,0.15);">
+        <div class="slide-icon" style="background:rgba(255,60,60,0.15); color:#FF6B35;"><i class="fas fa-hand-paper"></i></div>
         <div>
-          <div class="slide-limit-title">不能操作文件系统</div>
-          <div class="slide-limit-desc">不能读pom.xml、不能改代码文件、不能执行mvn test、不能git commit。它只能"说"，不能"做"。</div>
+          <div class="slide-title">3. 手脚被缚：没有文件系统与 Shell 终端执行权</div>
+          <div class="slide-desc">不能用 `ripgrep` 搜索引用、不能跑 `mvn test` 验证断言、不能读 Git 历史对比变更。它只是一个“隔岸观火的参谋”，无法对最终工程交付负责。</div>
         </div>
       </div>
 
-
-      <div class="slide-limit-card" style="background:rgba(255,60,60,0.04); border:1px solid rgba(255,60,60,0.12);">
-        <div class="slide-limit-icon" style="background:rgba(255,60,60,0.15); color:rgba(255,60,60,0.7);">📏</div>
+      <div class="slide-card" style="background:rgba(255,60,60,0.04); border:1px solid rgba(255,60,60,0.15); margin-bottom:0;">
+        <div class="slide-icon" style="background:rgba(255,60,60,0.15); color:#FF6B35;"><i class="fas fa-eraser"></i></div>
         <div>
-          <div class="slide-limit-title">输出长度和上下文双重截断</div>
-          <div class="slide-limit-desc">单次回复有字数限制（通常2000-4000字），超长代码被截断。历史会话虽有上下文，但窗口很短（通常4K-8K token），聊几轮就开始"遗忘"前面的内容。</div>
-        </div>
-      </div>
-
-      <div class="slide-limit-card" style="background:rgba(255,60,60,0.04); border:1px solid rgba(255,60,60,0.12);">
-        <div class="slide-limit-icon" style="background:rgba(255,60,60,0.15); color:rgba(255,60,60,0.7);">⚠️</div>
-        <div>
-          <div class="slide-limit-title">模型版本和质量不透明</div>
-          <div class="slide-limit-desc">部分厂商网页对话实际使用的是<strong style="color:#FF6B35;">老版本模型或量化版本</strong>（降低推理精度换取速度），与API版本能力有差距。你以为用的是最新版，实际可能是缩水版。</div>
+          <div class="slide-title">4. 记忆清零：每次新建会话都要重新交代项目背景</div>
+          <div class="slide-desc">没有项目级 `AGENTS.md` 与 `Rules` 自动挂载，每次都要重复强调“本项目用 Spring Boot 3.2 + JDK 21 + MyBatis-Plus”，极易漏掉团队红线。</div>
         </div>
       </div>
     </div>
 
-    <!-- Right: What Agent brings -->
+    <!-- Right: Coding Agent Closed Loop -->
     <div style="flex:1;">
-      <div class="slide-gap-arrow">
-        <div style="font-size:28px; color:#FF6B35;"><i class="fas fa-arrow-down"></i></div>
-        <div class="slide-gap-text">你需要的不是"更好的聊天"<br>而是一个能干活的Agent</div>
+      <div style="padding:8px 14px; background:rgba(0,229,255,0.1); border-left:3px solid #00E5FF; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:15px; font-weight:700; color:#00E5FF;"><i class="fas fa-robot" style="margin-right:6px;"></i>Coding Agent：驻场入驻工程环境的“特种兵”</span>
+        <span style="font-size:11px; color:#22C55E; font-weight:700;">感知 → 行动 → 验证闭环</span>
       </div>
 
-      <div style="font-size:15px; font-weight:700; color:#00E5FF; margin-bottom:12px;"><i class="fas fa-robot" style="margin-right:6px;"></i>Agent的核心能力</div>
-
-      <div class="slide-agent-feature" style="background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.15);">
-        <div class="slide-agent-icon" style="color:#00E5FF; font-size:16px;"><i class="fas fa-eye"></i></div>
-        <div class="slide-agent-text"><strong style="color:#00E5FF;">项目级感知</strong> — 自动扫描整个项目结构、依赖、代码关系。不是看一个文件，而是<strong style="color:#E0E7FF;">理解整个项目</strong>。</div>
-      </div>
-      <div class="slide-agent-feature" style="background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.15);">
-        <div class="slide-agent-icon" style="color:#00E5FF; font-size:16px;"><i class="fas fa-hands-helping"></i></div>
-        <div class="slide-agent-text"><strong style="color:#00E5FF;">自主执行闭环</strong> — 读代码→改代码→跑测试→看结果→修bug→再跑。<strong style="color:#E0E7FF;">整个循环Agent自己跑</strong>，不用你来回复制粘贴。</div>
-      </div>
-      <div class="slide-agent-feature" style="background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.15);">
-        <div class="slide-agent-icon" style="color:#00E5FF; font-size:16px;"><i class="fas fa-brain"></i></div>
-        <div class="slide-agent-text"><strong style="color:#00E5FF;">持久上下文</strong> — 项目指令文件（CLAUDE.md）+ Rules + Memory，跨会话记住你的技术栈、规范、偏好。<strong style="color:#E0E7FF;">不用每次重新交代。</strong></div>
-      </div>
-      <div class="slide-agent-feature" style="background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.15);">
-        <div class="slide-agent-icon" style="color:#00E5FF; font-size:16px;"><i class="fas fa-code-branch"></i></div>
-        <div class="slide-agent-text"><strong style="color:#00E5FF;">工程化集成</strong> — Git分支管理、自动提交、创建PR、运行CI。Agent不只是写代码，而是<strong style="color:#E0E7FF;">参与完整的工程流程</strong>。</div>
+      <div class="slide-card" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.18);">
+        <div class="slide-icon" style="background:rgba(0,229,255,0.15); color:#00E5FF;"><i class="fas fa-magnifying-glass-chart"></i></div>
+        <div>
+          <div class="slide-title">1. 原生仓库感知（Read / Grep / LSP / AST）</div>
+          <div class="slide-desc">Agent 直接驻留在工作区目录，按需调用 `Grep` 搜索全库引用、读取上下游接口定义与 `git diff`，自己动手找齐上下文，拒绝盲目猜代码。</div>
+        </div>
       </div>
 
-      <div style="padding:12px 14px; background:rgba(0,229,255,0.06); border:2px solid rgba(0,229,255,0.2); margin-top:12px;">
-        <div style="font-size:13px; color:#00E5FF; font-weight:700;"><i class="fas fa-lightbulb" style="margin-right:4px;"></i>核心区别</div>
-        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.5;">网页对话：<strong style="color:#E0E7FF;">你驱动一切</strong>——你贴代码、你跑命令、你看报错、你再贴回去。<br>Agent编程：<strong style="color:#FF6B35;">你定方向，Agent执行</strong>——它自己看、自己改、自己跑、自己修。</div>
+      <div class="slide-card" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.18);">
+        <div class="slide-icon" style="background:rgba(0,229,255,0.15); color:#00E5FF;"><i class="fas fa-file-pen"></i></div>
+        <div>
+          <div class="slide-title">2. 多文件精准外科手术（Edit / Patch / Write）</div>
+          <div class="slide-desc">一次性跨越 Controller、Service、Mapper、DTO 和单元测试文件施加原子化 Diff 修改，无需人类手动查找行号与复制粘贴。</div>
+        </div>
+      </div>
+
+      <div class="slide-card" style="background:rgba(34,197,94,0.05); border:1px solid rgba(34,197,94,0.22);">
+        <div class="slide-icon" style="background:rgba(34,197,94,0.18); color:#22C55E;"><i class="fas fa-terminal"></i></div>
+        <div>
+          <div class="slide-title" style="color:#22C55E;">3. 终端执行与自愈闭环（Bash / Compile / Test）</div>
+          <div class="slide-desc">改完代码自动在终端执行 `mvn test` 或 `npm run build` → <strong style="color:#E0E7FF;">捕获编译器/单测报错 → 自主定位根因并修正代码 → 重跑直至绿灯通过！</strong></div>
+        </div>
+      </div>
+
+      <!-- Loop Diagram Box -->
+      <div style="padding:12px 16px; background:rgba(0,0,0,0.35); border:1px solid rgba(0,229,255,0.25); margin-top:8px;">
+        <div style="font-size:12px; font-weight:700; color:#00E5FF; margin-bottom:6px;"><i class="fas fa-arrows-spin" style="margin-right:6px;"></i>Agentic Loop 工程自愈闭环公式</div>
+        <div style="font-family:monospace; font-size:11.5px; color:#E0E7FF; line-height:1.5; background:rgba(0,229,255,0.06); padding:6px 10px; border-radius:4px;">
+          [人类下达目标 & 验收标准] ➔ <span style="color:#00E5FF;">Grep/Read 探查</span> ➔ <span style="color:#FF6B35;">Edit 修改代码</span> ➔ <span style="color:#22C55E;">Bash 跑单测/编译</span> ↺ <span style="color:rgba(224,231,255,0.6);">(若红灯则读日志自动重试)</span> ➔ [全绿交付 Diff]
+        </div>
       </div>
     </div>
+  </div>
+
+  <!-- Bottom Summary Bar -->
+  <div style="margin-top:12px; padding:8px 16px; background:rgba(255,107,53,0.07); border:1px solid rgba(255,107,53,0.22); display:flex; align-items:center; justify-content:space-between;">
+    <div style="font-size:12.5px; color:#E0E7FF;">
+      <strong style="color:#FF6B35;">本质跃迁：</strong>网页对话是<strong style="color:#E0E7FF;">“人服务 AI”</strong>（你喂料、你跑腿、你验证）；Coding Agent 是<strong style="color:#00E5FF;">“AI 闭环交付，人做架构与验收”</strong>。
+    </div>
+    <div style="font-size:11.5px; color:#00E5FF; font-family:monospace;">Human-in-the-Loop ➔ Human-on-the-Loop</div>
   </div>
 </div>
 </body>

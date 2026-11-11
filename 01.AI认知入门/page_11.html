@@ -3,72 +3,68 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>三大要素汇聚</title>
+<title>为什么这次大模型浪潮不一样？</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
-.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-factor { flex:1; padding:30px 24px; display:flex; flex-direction:column; align-items:center; text-align:center; }
-.slide-factor-icon { width:70px; height:70px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:16px; }
-.slide-factor-title { font-size:22px; font-weight:700; color:#E0E7FF; margin-bottom:10px; }
-.slide-factor-point { font-size:14px; color:rgba(224,231,255,0.6); line-height:1.7; margin-bottom:6px; }
-.slide-converge { position:absolute; bottom:80px; left:50%; transform:translateX(-50%); text-align:center; }
-.slide-converge-text { font-size:20px; font-weight:700; color:#FF6B35; }
-.slide-converge-year { font-size:36px; font-weight:700; color:#00E5FF; }
-.slide-analogy-bar { position:absolute; bottom:20px; left:70px; right:70px; padding:12px 24px; background:rgba(255,107,53,0.08); border-left:3px solid #FF6B35; }
-.slide-analogy-text { font-size:13px; color:rgba(224,231,255,0.5); line-height:1.6; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:45px 70px 0 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 03 · 深层原因</div>
-  <h1 class="mb-2">三大要素汇聚：为什么突然成功？</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:20px;"></div>
+<div class="slide-container">
+  <div style="font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:6px;">CHAPTER 02 · 大模型的诞生与本质祛魅</div>
+  <h1 class="mb-2">为什么这次大模型浪潮不一样？破除“又是泡沫”的疑虑</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
 
-  <div style="text-align:center; margin-bottom:10px; font-size:15px; color:rgba(224,231,255,0.4);">
-    从1943年到2017年，AI走了70年。大模型的成功不是偶然，而是三大要素同时成熟的必然。
+  <div style="font-size:14px; color:rgba(224,231,255,0.6); margin-bottom:16px;">
+    经历过 1970 和 1980 年代寒冬的工程师常会习惯性防备：这会不会又是一轮被资本包装出来的概念泡沫？三大根本性差异给出了答案。
   </div>
 
-  <div class="flex" style="gap:20px;">
-    <div class="slide-factor" style="border:1px solid rgba(0,229,255,0.15); background:rgba(0,229,255,0.03);">
-      <div class="slide-factor-icon" style="background:rgba(0,229,255,0.15);"><i class="fas fa-database" style="font-size:28px; color:#00E5FF;"></i></div>
-      <div class="slide-factor-title">数据</div>
-      <div class="slide-factor-point">互联网积累了<strong style="color:#00E5FF;">海量文本</strong></div>
-      <div class="slide-factor-point">维基百科、书籍、代码、论坛</div>
-      <div class="slide-factor-point">数十亿网页 = 人类知识的数字镜像</div>
-      <div style="font-size:12px; color:rgba(0,229,255,0.6); margin-top:10px;"><i class="fas fa-check-circle"></i> 2017年数据已清洗整理完毕</div>
+  <!-- Three Dimensional Paradigm Shift Table / Grid -->
+  <div class="flex gap-4 mb-4">
+    <!-- Dimension 1 -->
+    <div style="flex:1; padding:16px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.18);">
+      <div style="font-size:15px; font-weight:700; color:#00E5FF; margin-bottom:8px;"><i class="fas fa-shapes" style="margin-right:6px;"></i>1. 通用泛化 vs 烟囱孤岛</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.6; margin-bottom:10px;">
+        <span style="color:#FF6B35; font-weight:600;">过去：</span>每一个任务都是一个孤立的模型。做人脸识别的模型连猫都认不出；做机器翻译的模型写不出一句 SQL，业务烟囱林立。<br>
+        <span style="color:#00E5FF; font-weight:600;">现在：</span>单一基础基座模型天然贯通多语言、代码、数学与复杂推理，具备前所未有的<strong style="color:#E0E7FF;">跨任务零样本（Zero-Shot）迁移能力</strong>。
+      </div>
+      <div style="font-size:11px; padding:6px 10px; background:rgba(0,0,0,0.3); color:#00E5FF; border-left:2px solid #00E5FF;">
+        边际交付边际成本几乎归零
+      </div>
     </div>
-    <div class="slide-factor" style="border:1px solid rgba(0,229,255,0.15); background:rgba(0,229,255,0.03);">
-      <div class="slide-factor-icon" style="background:rgba(255,107,53,0.15);"><i class="fas fa-microchip" style="font-size:28px; color:#FF6B35;"></i></div>
-      <div class="slide-factor-title">算力</div>
-      <div class="slide-factor-point">GPU/TPU让训练<strong style="color:#FF6B35;">成为可能</strong></div>
-      <div class="slide-factor-point">NVIDIA CUDA → A100 → H100</div>
-      <div class="slide-factor-point">专用芯片让训练从数百年缩短到数周</div>
-      <div style="font-size:12px; color:rgba(255,107,53,0.7); margin-top:10px;"><i class="fas fa-check-circle"></i> 2017年TPU v2解决了训练瓶颈</div>
+
+    <!-- Dimension 2 -->
+    <div style="flex:1; padding:16px; background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.18);">
+      <div style="font-size:15px; font-weight:700; color:#FF6B35; margin-bottom:8px;"><i class="fas fa-comments" style="margin-right:6px;"></i>2. 自然语言成为统一协议</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.6; margin-bottom:10px;">
+        <span style="color:#FF6B35; font-weight:600;">过去：</span>软件系统交互必须严格遵循结构化契约（RPC、REST、Protobuf），任何稍微的字段偏差就会引发反序列化解析报错。<br>
+        <span style="color:#00E5FF; font-weight:600;">现在：</span>自然语言成为机器理解与控制的总线接口。不仅人与机器用自然语言对话，模型之间也用自然语言协作传递上下文。
+      </div>
+      <div style="font-size:11px; padding:6px 10px; background:rgba(0,0,0,0.3); color:#FF6B35; border-left:2px solid #FF6B35;">
+        人机交互界面的终极归一
+      </div>
     </div>
-    <div class="slide-factor" style="border:1px solid rgba(0,229,255,0.15); background:rgba(0,229,255,0.03);">
-      <div class="slide-factor-icon" style="background:rgba(224,231,255,0.1);"><i class="fas fa-project-diagram" style="font-size:28px; color:#E0E7FF;"></i></div>
-      <div class="slide-factor-title">算法</div>
-      <div class="slide-factor-point">Transformer<strong style="color:#E0E7FF;">解决核心瓶颈</strong></div>
-      <div class="slide-factor-point">并行计算 + 长距离依赖</div>
-      <div class="slide-factor-point">注意力机制让模型规模可扩展</div>
-      <div style="font-size:12px; color:rgba(224,231,255,0.5); margin-top:10px;"><i class="fas fa-check-circle"></i> 2017年Transformer论文发表</div>
+
+    <!-- Dimension 3 -->
+    <div style="flex:1; padding:16px; background:rgba(34,197,94,0.04); border:1px solid rgba(34,197,94,0.18);">
+      <div style="font-size:15px; font-weight:700; color:#22C55E; margin-bottom:8px;"><i class="fas fa-seedling" style="margin-right:6px;"></i>3. 从静态死逻辑到自主演进</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.6; margin-bottom:10px;">
+        <span style="color:#FF6B35; font-weight:600;">过去：</span>软件逻辑上线即固化。要适应新业务，必须由程序员手写代码并走完整的发版测试流水线。<br>
+        <span style="color:#00E5FF; font-weight:600;">现在：</span>大模型具备强大的上下文理解与工具编排潜力。在后训练强化学习驱动下，模型能够根据外部环境反馈自我修正和反思。
+      </div>
+      <div style="font-size:11px; padding:6px 10px; background:rgba(0,0,0,0.3); color:#22C55E; border-left:2px solid #22C55E;">
+        软件具备了动态认知与适应力
+      </div>
     </div>
   </div>
 
-  <div class="slide-converge">
-    <div style="font-size:14px; color:rgba(224,231,255,0.4); margin-bottom:6px;">三者在</div>
-    <div class="slide-converge-year">2017</div>
-    <div class="slide-converge-text">同时成熟 → 大模型爆发</div>
-  </div>
-
-  <div class="slide-analogy-bar">
-    <div class="slide-analogy-text">
-      <i class="fas fa-exchange-alt" style="color:#FF6B35; margin-right:8px;"></i>
-      <strong style="color:#E0E7FF;">类比：</strong>技术生态的爆发从来不是单一因素，而是多个条件同时成熟的结果——就像云计算的崛起需要虚拟化、容器化、微服务架构三者同时就绪。
+  <!-- Historical Contrast Summary -->
+  <div style="padding:14px 20px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.2); display:flex; align-items:center; justify-content:space-between;">
+    <div style="font-size:12px; color:#E0E7FF; line-height:1.6;">
+      <i class="fas fa-balance-scale" style="color:#00E5FF; margin-right:8px;"></i><strong style="color:#00E5FF;">本质裁决：</strong>以前的 AI 寒冬，是因为技术撞上了“无法通用的天花板”（规则写不完、特征拼不完）；而今天的大模型，是用一个统一架构打通了人类所有数字化符号（语言、代码、逻辑）的底层流形。这不是局部的算法改良，而是整个计算范式的代际重构！
     </div>
   </div>
 </div>

@@ -1,42 +1,80 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>生产环境注意事项</title>
-<style>*{margin:0;padding:0;box-sizing:border-box}
+<title>记忆分层演进 — 从结论层(MySQL)到过程层(pgvector)</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
-.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)}</style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;position:relative;">
-<div class="sn">CHAPTER 08</div>
-<h1 class="mb-2">生产环境注意事项</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+.s h1{font-size:30px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px}
+.mb-2{margin-bottom:6px}
+.card{padding:10px 12px;border-radius:5px}
+.card .t{font-size:12.5px;font-weight:700;margin-bottom:3px}
+.card .b{font-size:11px;color:rgba(224,231,255,0.66);line-height:1.55}
+.why{padding:7px 11px;background:rgba(224,231,255,0.04);border-left:3px solid #E0E7FF;border-radius:4px}
+.why .t{font-size:11.5px;color:#E0E7FF;font-weight:700;margin-bottom:2px}
+.why .b{font-size:11px;color:rgba(224,231,255,0.6);line-height:1.45}
+</style></head>
+<body>
+<div class="s" style="padding:22px 50px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 08 · 架构演进预告（v2.0 → v3.0）</div>
+  <h1 class="mb-2">记忆分层演进 — 从结论层(MySQL)到过程层(pgvector)</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:10px;"></div>
+  <div style="flex:1;display:flex;gap:16px;">
 
-<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-  <div style="display:flex;gap:16px;margin-bottom:14px;">
-    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">多用户隔离</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">每个用户的数据必须隔离。<br>Redis Key 带 userId 前缀。<br>MySQL 查询必须带 userId 条件。<br><strong style="color:#FF6B35;">绝不能让 A 看到 B 的画像。</strong></div>
+    <div style="flex:1.05;display:flex;flex-direction:column;justify-content:space-between;">
+      <div class="card" style="background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.18);">
+        <div class="t" style="color:#00E5FF;">结论层（本课 v2.0 已落地）· MySQL user_profile — 画像存"结论"</div>
+        <div class="b">
+          <strong style="color:#E0E7FF">存什么：</strong>LLM 合并后的结构化结论（facts / preferences / tasks / constraints）。<br>
+          <strong style="color:#E0E7FF">怎么写：</strong>UserProfileExtractor.extract() — 旧画像 + 新对话 → 推理模型合并，写 MySQL。<br>
+          <strong style="color:#E0E7FF">怎么读：</strong>MemoryManager.buildContext() 直查 MySQL，<strong>全量注入</strong> context 的「## 用户画像」。<br>
+          <strong style="color:#E0E7FF">特点：</strong>每用户一行、有界、长期保留；可展示给用户、支持人工更正。
+        </div>
+      </div>
+
+      <div class="card" style="background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.2);">
+        <div class="t" style="color:#FF6B35;">过程层（下节课 v3.0 演进目标）· pgvector user_memory — 对话存"过程"</div>
+        <div class="b">
+          <strong style="color:#E0E7FF">演进定位：</strong>第六课（v3.0 引入 pgvector）与第七课（v4.0 MCP 化）落地！解决 Redis 累积摘要长期越压越厚问题。<br>
+          <strong style="color:#E0E7FF">存什么：</strong>自然语言记忆（对话切片提要、业务事件），存入 pgvector 的 user_memory 表（含 vector 列）。<br>
+          <strong style="color:#E0E7FF">怎么读写：</strong>满阈值自动将旧对话提要并向量化入库；对话时<strong>按需语义检索</strong> top3 注入「## 相关记忆」。<br>
+          <strong style="color:#E0E7FF">特点：</strong>持续增长、只增不改（客观事实记录）；靠 top-k + 相似度阈值截流。
+        </div>
+      </div>
+
+      <div class="card" style="background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.22);">
+        <div class="t" style="color:#22C55E;">工作缓冲区（本课 v2.0 已落地）· Redis session:{sid}:messages & summary</div>
+        <div class="b">
+          <strong style="color:#E0E7FF">本课 v2.0 形态：</strong>SessionMemory（滑动窗口 MAX 20 / 24h TTL）+ SummaryPipeline 滚动压缩。<br>
+          <strong style="color:#22C55E">v2.0 → v3.0 演进原因：</strong>累积摘要常驻 Redis 易失且不可按语义检索；下节课引入 pgvector 过程层后，旧对话沉淀进向量库，Redis 回归纯粹的近期工作缓冲区。
+        </div>
+      </div>
     </div>
-    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">Memory Debug</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">生产环境需要能看到每个用户的：<br>· 当前 Session 消息列表<br>· 用户画像内容<br>· context 注入了什么<br>· 压缩历史和摘要</div>
-    </div>
-    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">性能与成本</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">压缩和抽取都调用 LLM，有成本。<br>需要监控：每次压缩消耗多少 token？<br>画像抽取失败率多少？<br><strong style="color:#E0E7FF;">建议做成本看板。</strong></div>
+
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;">
+      <div style="font-size:13px;color:#E0E7FF;font-weight:700;">为什么必须分两个库？</div>
+      <div class="why"><div class="t">1 · 读取模式不同</div><div class="b">
+        结论是<strong style="color:#00E5FF">全量注入</strong>（几行字直接拼进 Prompt），过程是<strong style="color:#FF6B35">按需语义检索</strong>（按当前问题查 top3）。全量注入塞不下持续增长的过程数据。
+      </div></div>
+      <div class="why"><div class="t">2 · 更新语义不同</div><div class="b">
+        结论<strong style="color:#00E5FF">会被修正</strong>（预算 8000 → 10000，新覆盖旧），过程<strong style="color:#FF6B35">只增不改</strong>（客观历史记录不能伪造）。两种更新语义无法在单表统一。
+      </div></div>
+      <div class="why"><div class="t">3 · 生命周期与合规不同</div><div class="b">
+        画像有界（每用户一行），过程无界（持续增长需向量索引截流）。画像支持用户直接查看与更正；过程数据包含历史 PII 原文，需支持级联删除以履行合规被遗忘权。
+      </div></div>
+      <div class="card" style="background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.25);padding:8px 10px;">
+        <div class="t" style="color:#A855F7;font-size:12px;">认知复用：第六课 Knowledge 数据分层</div>
+        <div class="b" style="font-size:11px;">
+          “结论进关系库、语义化原文进向量库”在 Knowledge 侧一模一样：商品<strong style="color:#E0E7FF;">静态描述</strong>进 pgvector，<strong style="color:#E0E7FF;">动态价格库存</strong>进 MySQL product 表。
+        </div>
+      </div>
     </div>
   </div>
-  <div style="display:flex;gap:16px;">
-    <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-      <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">Memory 与 RAG 配合</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">用户问"我上次看的那个笔记本还有货吗"<br>Memory 记住了"上次看了联想小新Pro"<br>RAG 去查库存文档。两者配合才能回答。</div>
-    </div>
-    <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-      <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">Memory 与 Tool 配合</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">用户说"按我之前的偏好下单"<br>Memory 提供偏好 → Tool 调用下单 API。<br>这就是 v4.0 的完整形态。</div>
+
+  <div style="margin-top:8px;padding:6px 14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.2);border-radius:5px;text-align:center;">
+    <div style="font-size:11px;color:rgba(224,231,255,0.78);">
+      <strong style="color:#FF6B35;">⚠️ 教学演示简化标注：</strong>Demo 中的“满 8 条压缩”或“5 轮对话后从 Redis 刷入 pgvector”属于<strong>教学演示简化（Educational Simplification）</strong>；生产实践多采用 Token 预算阈值触发（达窗口 65%）、语义完整性任务边界触发或异步周期性合并沉淀。
     </div>
   </div>
 </div>
-<div style="position:absolute;bottom:14px;right:60px;padding:4px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.2);border-radius:12px;font-size:10px;color:#FF6B35;">知识体系</div>
-</div></body></html>
+</body></html>

@@ -3,65 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>提示词工程：进阶与编程场景</title>
+<title>编程提示词实战正反面对比（Java/Spring Boot 真实场景）</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
 .slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-scenario { padding:14px 18px; margin-bottom:10px; }
-.slide-scenario-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:6px; }
-.slide-scenario-prompt { font-size:12px; color:rgba(224,231,255,0.45); line-height:1.5; padding:8px 12px; background:rgba(0,0,0,0.3); font-family:monospace; border-left:2px solid #00E5FF; }
-.slide-advanced-tip { padding:12px 16px; background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.12); margin-bottom:10px; }
-.slide-advanced-title { font-size:14px; font-weight:700; color:#FF6B35; margin-bottom:4px; }
-.slide-advanced-desc { font-size:12px; color:rgba(224,231,255,0.55); line-height:1.5; }
+.slide-container h1 { font-size:29px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; }
+.prompt-box { padding:12px 14px; font-family:monospace; font-size:11.5px; line-height:1.55; border-radius:4px; margin-bottom:10px; }
+.disaster-item { padding:8px 12px; background:rgba(255,60,60,0.05); border-left:3px solid #FF6B35; margin-bottom:7px; font-size:12px; color:rgba(224,231,255,0.75); line-height:1.45; }
+.win-item { padding:8px 12px; background:rgba(34,197,94,0.06); border-left:3px solid #22C55E; margin-bottom:7px; font-size:12px; color:rgba(224,231,255,0.8); line-height:1.45; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:32px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 03 · 深入</div>
-  <h1 class="mb-2">提示词工程：进阶与编程场景</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:18px;"></div>
+<div class="slide-container" style="padding:26px 65px;">
+  <div class="mb-1 slide-section-num">CHAPTER 03 · 面向 CODING AGENT 的提示词工程</div>
+  <h1 class="mb-2">编程提示词实战正反面对比（Java / Spring Boot 真实场景）</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
 
-  <div class="flex" style="gap:30px;">
-    <div style="flex:1;">
-      <div style="font-size:15px; font-weight:700; color:#00E5FF; margin-bottom:12px;"><i class="fas fa-code" style="margin-right:6px;"></i>编程场景提示词模板</div>
-      <div class="slide-scenario" style="background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.08);">
-        <div class="slide-scenario-title">代码审查</div>
-        <div class="slide-scenario-prompt">审查以下Java代码，重点关注：<br>1. 线程安全问题<br>2. 空指针风险<br>3. SQL注入漏洞<br>4. 异常处理是否合理<br>5. 是否符合阿里巴巴Java开发手册规范<br><br>逐条列出问题并给出修复建议。</div>
+  <div class="flex" style="gap:24px;">
+    <!-- Left Column: Bad Vague Prompt -->
+    <div style="flex:1; padding:14px 16px; background:rgba(255,60,60,0.03); border:1px solid rgba(255,60,60,0.2);">
+      <div class="flex justify-between items-center mb-3">
+        <span style="font-size:15px; font-weight:700; color:#FF6B35;"><i class="fas fa-skull-crossbones" style="margin-right:6px;"></i>反面教材：一句模糊指令引发的工程灾难</span>
+        <span style="font-size:11px; padding:2px 8px; background:rgba(255,60,60,0.2); color:#FF6B35; font-weight:700;">Vibe Coding 翻车现场</span>
       </div>
-      <div class="slide-scenario" style="background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.08);">
-        <div class="slide-scenario-title">重构</div>
-        <div class="slide-scenario-prompt">将以下Service层代码重构为策略模式。<br>当前代码用if-else处理不同类型的订单，<br>需要拆分为独立的策略类。<br>要求：保持接口签名不变，用Spring注入策略。</div>
+
+      <div class="prompt-box" style="background:rgba(0,0,0,0.45); border:1px solid rgba(255,60,60,0.35); color:#E0E7FF;">
+        <span style="color:rgba(224,231,255,0.4);">User &gt;</span> “给订单导出接口加个分页和 Redis 缓存，再优化一下查询性能。”
       </div>
-      <div class="slide-scenario" style="background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.08);">
-        <div class="slide-scenario-title">写单元测试</div>
-        <div class="slide-scenario-prompt">为以下OrderService写单元测试。<br>框架：JUnit 5 + Mockito<br>覆盖：正常流程、参数校验异常、外部服务调用失败<br>要求：每个测试方法用中文注释说明测试意图</div>
+
+      <div style="font-size:13px; font-weight:700; color:#FF6B35; margin-bottom:8px;">Agent 自由发挥导致的 5 大灾难后果：</div>
+
+      <div class="disaster-item">
+        <strong style="color:#FF6B35;">1. 全库盲搜烧光 Token：</strong>没给 `@` 文件锚点，Agent 先调 8 次 Grep 翻遍 40 个类寻找“订单导出接口”，白白消耗 35K Tokens。
+      </div>
+      <div class="disaster-item">
+        <strong style="color:#FF6B35;">2. 破坏前端接口契约：</strong>擅自把原本返回 `List&lt;OrderVO&gt;` 的接口改成了 `PageResult&lt;OrderDTO&gt;`，导致线上前端页面直接白屏报错！
+      </div>
+      <div class="disaster-item">
+        <strong style="color:#FF6B35;">3. 重复造轮子与风格割裂：</strong>不知道项目已有 `RedisCacheHelper`，自己生造了一套 `StringRedisTemplate` 序列化代码，且未设置过期时间导致内存泄漏。
+      </div>
+      <div class="disaster-item">
+        <strong style="color:#FF6B35;">4. 顺手乱改无关代码：</strong>借着“优化性能”的名义，把隔壁核心下单方法的 SQL Join 给改坏了（典型改 A 坏 B）。
+      </div>
+      <div class="disaster-item" style="margin-bottom:0;">
+        <strong style="color:#FF6B35;">5. 未经验证直接交差：</strong>改完直接说“已完成优化”，实则连编译都没跑，Mapper XML 里少写了一个闭合标签。
       </div>
     </div>
-    <div style="flex:1;">
-      <div style="font-size:15px; font-weight:700; color:#FF6B35; margin-bottom:12px;"><i class="fas fa-graduation-cap" style="margin-right:6px;"></i>进阶技巧</div>
-      <div class="slide-advanced-tip">
-        <div class="slide-advanced-title">System Prompt（系统提示词）</div>
-        <div class="slide-advanced-desc">在对话开始前设定模型的角色、规则和约束。所有后续对话都会遵循这些设定。IDE工具和Agent框架大量使用这个机制。</div>
+
+    <!-- Right Column: 2026 Professional Agent Prompt -->
+    <div style="flex:1; padding:14px 16px; background:rgba(34,197,94,0.03); border:1px solid rgba(34,197,94,0.25);">
+      <div class="flex justify-between items-center mb-3">
+        <span style="font-size:15px; font-weight:700; color:#22C55E;"><i class="fas fa-award" style="margin-right:6px;"></i>正面标杆：四要素齐备的 Agent 工程指令</span>
+        <span style="font-size:11px; padding:2px 8px; background:rgba(34,197,94,0.2); color:#22C55E; font-weight:700;">一次绿灯交付</span>
       </div>
-      <div class="slide-advanced-tip">
-        <div class="slide-advanced-title">思维链（Chain of Thought）</div>
-        <div class="slide-advanced-desc">要求模型"一步步分析"再给结论。对复杂推理任务（如算法设计、架构决策）效果显著。推理模型已内置这个能力。</div>
+
+      <div class="prompt-box" style="background:rgba(0,0,0,0.5); border:1px solid rgba(34,197,94,0.4); color:#E0E7FF;">
+        <div><span style="color:#00E5FF;">[上下文锚点]</span> 修改 <span style="color:#00E5FF;">@OrderReportServiceImpl.java</span> 中的 `#queryExportOrders` 方法，缓存工具请复用 <span style="color:#00E5FF;">@RedisCacheHelper.java</span>。</div>
+        <div style="margin-top:4px;"><span style="color:#FF6B35;">[I/O 契约]</span><br>
+        1. 使用 MyBatis-Plus `Page&lt;OrderPO&gt;` 分页查询，单页上限 `pageSize &lt;= 500`（超限抛 `IllegalArgumentException`）；<br>
+        2. 以 `"order:export:" + tenantId + ":" + md5(queryParam)` 为 Key 写入缓存，TTL 设为 10 分钟。</div>
+        <div style="margin-top:4px;"><span style="color:#A855F7;">[禁改边界]</span> <strong style="color:#A855F7;">DO NOT</strong> 修改 `@OrderController.java` 对外暴露的 URL 与返回类型签名；<strong style="color:#A855F7;">DO NOT</strong> 修改其他方法。</div>
+        <div style="margin-top:4px;"><span style="color:#22C55E;">[验证闭环]</span> 在 <span style="color:#22C55E;">@OrderReportServiceTest.java</span> 新增缓存命中与分页超限单测，并执行 <span style="color:#22C55E;">`mvn test -Dtest=OrderReportServiceTest`</span> 直至通过。</div>
       </div>
-      <div class="slide-advanced-tip">
-        <div class="slide-advanced-title">自洽性（Self-Consistency）</div>
-        <div class="slide-advanced-desc">让模型生成多个答案，取共识。适用于关键决策场景——比如让模型从3个方案中选最优解。</div>
+
+      <div style="font-size:13px; font-weight:700; color:#22C55E; margin-bottom:8px;">为什么这段指令能实现 100% 确定性交付？</div>
+
+      <div class="win-item">
+        <strong style="color:#00E5FF;">· 零盲搜直达病灶：</strong>直接锁定目标类与工具类，Agent 第一步直接 `Read` 两个文件，省时省钱且完全遵循项目既有规范。
       </div>
-      <div class="slide-advanced-tip">
-        <div class="slide-advanced-title">ReAct模式（推理+行动）</div>
-        <div class="slide-advanced-desc">让模型交替进行"思考"和"行动"。这是Agent工具的核心工作模式——模型先分析要做什么，再调用工具执行，根据结果继续思考。</div>
+      <div class="win-item">
+        <strong style="color:#FF6B35;">· 契约量化无歧义：</strong>连 Key 命名规则、TTL 时长、分页阈值与异常类型都做了定量约束，杜绝 AI 拍脑袋瞎猜。
       </div>
-      <div style="padding:12px 16px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.12); margin-top:10px;">
-        <div style="font-size:13px; color:#00E5FF; font-weight:700; margin-bottom:4px;"><i class="fas fa-key" style="margin-right:6px;"></i>关键认知</div>
-        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.5;">提示词工程不是"玄学"，而是<strong style="color:#E0E7FF;">用结构化的方式描述你的需求</strong>。写得越清晰、约束越明确，输出越好。这和写需求文档的逻辑是一样的。</div>
+      <div class="win-item" style="margin-bottom:0;">
+        <strong style="color:#22C55E;">· 护栏 + 终端自愈：</strong>明确锁死 Controller 签名不准动，且强制要求跑过 `OrderReportServiceTest` 单测才算完工。
       </div>
     </div>
   </div>

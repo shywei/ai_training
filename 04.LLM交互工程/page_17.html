@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>总结</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">SUMMARY</div>
+<h1 class="mb-2">第四课总结</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+  <div style="padding:14px 24px;background:rgba(255,107,53,0.08);border:2px solid #FF6B35;border-radius:8px;text-align:center;margin-bottom:18px;">
+    <div style="font-size:20px;color:#FF6B35;font-weight:700;">Prompt 决定 AI 怎么思考，API 决定 AI 怎么接入系统。</div>
+  </div>
+
+  <div style="display:flex;gap:16px;margin-bottom:16px;">
+    <!-- 进度图 -->
+    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:10px;">Agent 构建进度</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;align-items:center;gap:8px;"><div style="width:22px;height:22px;background:#00E5FF;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#0B1120;">✓</div><div style="font-size:13px;color:#E0E7FF;">Prompt（LLM 交互）</div></div>
+        <div style="display:flex;align-items:center;gap:8px;"><div style="width:22px;height:22px;border:2px solid rgba(224,231,255,0.2);border-radius:4px;"></div><div style="font-size:13px;color:rgba(224,231,255,0.3);">Memory（用户记忆）</div></div>
+        <div style="display:flex;align-items:center;gap:8px;"><div style="width:22px;height:22px;border:2px solid rgba(224,231,255,0.2);border-radius:4px;"></div><div style="font-size:13px;color:rgba(224,231,255,0.3);">Knowledge（企业知识）</div></div>
+        <div style="display:flex;align-items:center;gap:8px;"><div style="width:22px;height:22px;border:2px solid rgba(224,231,255,0.2);border-radius:4px;"></div><div style="font-size:13px;color:rgba(224,231,255,0.3);">Tool（系统集成）</div></div>
+        <div style="display:flex;align-items:center;gap:8px;"><div style="width:22px;height:22px;border:2px solid rgba(224,231,255,0.2);border-radius:4px;"></div><div style="font-size:13px;color:rgba(224,231,255,0.3);">Workflow（流程控制）</div></div>
+      </div>
+    </div>
+
+    <!-- 能力地图 -->
+    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:10px;">第四课能力地图</div>
+      <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;color:rgba(224,231,255,0.55);">
+        <div style="padding:5px 10px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">OpenAI 接口协议（HTTP + JSON + SSE）</div>
+        <div style="text-align:center;color:rgba(0,229,255,0.3);">↓</div>
+        <div style="padding:5px 10px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">Token / Context Window / 模型选型</div>
+        <div style="text-align:center;color:rgba(0,229,255,0.3);">↓</div>
+        <div style="padding:5px 10px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">模型路由（Fast vs Reasoning）</div>
+        <div style="text-align:center;color:rgba(0,229,255,0.3);">↓</div>
+        <div style="padding:5px 10px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">结构化输出（JSON Schema + Bean Mapping）</div>
+        <div style="text-align:center;color:rgba(0,229,255,0.3);">↓</div>
+        <div style="padding:5px 10px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">Prompt 工程（结构 + 调试 + 容错 + 安全）</div>
+        <div style="text-align:center;color:rgba(0,229,255,0.3);">↓</div>
+        <div style="padding:5px 10px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">前端集成（Vue + SSE + Markdown）</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:10px 16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;text-align:center;">
+    <div style="font-size:14px;color:#E0E7FF;">导购 Agent 完成第一版 — 能理解用户意图、能输出结构化推荐。但它不记得用户，每次对话都是陌生人。</div>
+    <div style="font-size:12px;color:rgba(224,231,255,0.4);margin-top:4px;">下一课：Memory — 让 Agent 记住用户。</div>
+  </div>
+</div>
+</div></body></html>

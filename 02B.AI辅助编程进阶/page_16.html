@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>团队工程免疫飞轮（Compound Engineering 复利工程）</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:4px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; line-height:1.25; margin-bottom:8px; }
+.slide-accent-line { width:50px; height:3px; background:#FF6B35; margin-bottom:14px; }
+.slide-card { padding:12px 15px; margin-bottom:9px; display:flex; align-items:flex-start; gap:12px; border-radius:6px; }
+.slide-icon { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.slide-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
+.slide-desc { font-size:12px; color:rgba(224,231,255,0.65); line-height:1.45; }
+.code-box { background:#060A12; border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:10px 12px; font-family:Consolas,monospace; font-size:11.5px; line-height:1.5; color:#E0E7FF; }
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <div class="slide-section-num">CHAPTER 04 · 团队级 CONTEXT 治理与工程免疫飞轮</div>
+  <h1>团队工程免疫飞轮（Compound Engineering 复利工程）</h1>
+  <div class="slide-accent-line"></div>
+<div style="padding:9px 15px; background:rgba(168,85,247,0.07); border-left:4px solid #A855F7; font-size:12.5px; color:#E0E7FF; margin-bottom:14px;">
+    <i class="fas fa-arrows-spin mr-2" style="color:#A855F7;"></i><strong>什么是复利工程（Compound Engineering）？</strong>
+    平庸团队每次踩坑都是个体口头抱怨；优秀团队把每次 AI 翻车沉淀为全员共享的<strong>规则疫苗（Rule / Hook / Skill）</strong>，让全团队永久免疫，越用越聪明！
+  </div>
+
+  <div class="grid grid-cols-4 gap-3.5 mb-4" style="height:345px;">
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(239,68,68,0.25); border-top:4px solid #EF4444; border-radius:6px; padding:14px; display:flex; flex-direction:column;">
+      <div style="font-size:13px; font-weight:700; color:#EF4444; margin-bottom:4px;">1. 故障发生 (Incident)</div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">捕获 AI 典型恶习</div>
+      <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.45; margin-bottom:8px;">
+        例如：AI 在重构时把手机号脱敏漏掉了末位校验，导致线上报文泄露。
+      </div>
+      <div class="code-box mt-auto" style="font-size:11px;">
+        <span style="color:#EF4444;">// 事故记录:</span><br>
+        Bug #1042: 手机号掩码脱敏误伤 18 位身份证。
+      </div>
+    </div>
+
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,107,53,0.25); border-top:4px solid #FF6B35; border-radius:6px; padding:14px; display:flex; flex-direction:column;">
+      <div style="font-size:13px; font-weight:700; color:#FF6B35; margin-bottom:4px;">2. 根因复盘 (Post-Mortem)</div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">提炼反模式特征</div>
+      <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.45; margin-bottom:8px;">
+        发现根本原因：正则未加前后非数字边界断言，导致长数字串被部分截断。
+      </div>
+      <div class="code-box mt-auto" style="font-size:11px;">
+        <span style="color:#FF6B35;">// 根因特征:</span><br>
+        缺失 (?&lt;!\\d) 与 (?!\\d) 边界约束。
+      </div>
+    </div>
+
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(0,229,255,0.25); border-top:4px solid #00E5FF; border-radius:6px; padding:14px; display:flex; flex-direction:column;">
+      <div style="font-size:13px; font-weight:700; color:#00E5FF; margin-bottom:4px;">3. 规则沉淀 (Vaccine)</div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">提交 3 行疫苗规则</div>
+      <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.45; margin-bottom:8px;">
+        随 PR 补充 3 行规则到 `.rules/pii.mdc`，并添加 1 个回归单测断言。
+      </div>
+      <div class="code-box mt-auto" style="font-size:11px;">
+        <span style="color:#00E5FF;"># .rules/pii.md:</span><br>
+        手机号正则必须使用前后非数字断言，防止误伤快递单号。
+      </div>
+    </div>
+
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(34,197,94,0.25); border-top:4px solid #22C55E; border-radius:6px; padding:14px; display:flex; flex-direction:column;">
+      <div style="font-size:13px; font-weight:700; color:#22C55E; margin-bottom:4px;">4. 全员免疫 (Immunity)</div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">团队资产永久生效</div>
+      <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.45; margin-bottom:8px;">
+        全团队后续任何人在开发脱敏逻辑时，Agent 自动带出该规约，永久杜绝重复踩坑！
+      </div>
+      <div class="code-box mt-auto" style="font-size:11px;">
+        <span style="color:#86EFAC;">[Immunity Achieved]</span><br>
+        同一个坑全团队绝不踩第二次。
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:10px 16px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.2); border-radius:4px; font-size:12.5px; color:#E0E7FF;">
+    <i class="fas fa-trophy mr-1" style="color:#00E5FF;"></i><strong>团队文化导向：</strong>将“为团队写一条高质量 Rule / Skill”纳入工程卓越奖励，形成工程资产复利滚雪球！
+  </div>
+</div>
+</body>
+</html>

@@ -1,64 +1,94 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>Workflow：原理与实现</title>
+<title>认知层组件 ② · Memory 三层记忆体系</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
-.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
-.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
-.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
-.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden;padding:32px 56px;display:flex;flex-direction:column}
+.s h1{font-size:28px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px;font-weight:700}
+.mem-col{flex:1;padding:15px 16px;border-radius:8px;display:flex;flex-direction:column;justify-content:space-between}
 </style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 04</div><h1 class="mb-2">Workflow：原理与实现</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+<div class="s">
+  <div class="mb-1 sn">CHAPTER 03 · 认知层与执行层组件拆解 · 记忆系统 (Memory)</div>
+  <h1 class="mb-2">认知层组件 ② · Memory 三层记忆体系（Redis + MySQL + pgvector）</h1>
+  <div style="width:56px;height:3px;background:#FF6B35;margin-bottom:12px;"></div>
 
-<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-<div style="display:flex;gap:16px;margin-bottom:12px;">
-  <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
-    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">是什么？</div>
-    <div style="font-size:13px;color:rgba(224,231,255,0.6);line-height:1.8;">把多个步骤编排成一个完整流程。<br>不是一次LLM调用，而是一个<b style="color:#E0E7FF;">执行流水线</b>。<br>包含：节点、状态、条件、循环、人工审批。</div>
+  <div style="font-size:12.5px;color:rgba(224,231,255,0.68);margin-bottom:12px;">
+    为什么不能把用户所有历史聊天记录一股脑塞给 LLM？因为 <b style="color:#FF6B35;">Token 成本爆炸 + 注意力稀释</b>。企业级 Agent 必须像人类大脑一样实施<b style="color:#00E5FF;">三层分层存储与按需召回</b>：
   </div>
-  <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
-    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">解决什么问题？</div>
-    <div style="font-size:13px;color:rgba(224,231,255,0.6);line-height:1.8;">复杂任务一步完成不了。<br>查库存→分析→查政策→人工审批→生成报告→下单。<br>需要状态控制、条件分支、重试、人工审批。<br>从"回答问题"变成"完成任务"。</div>
-  </div>
-</div>
-<div style="display:flex;gap:16px;margin-bottom:12px;">
-  <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
-    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">和其他能力的边界</div>
-    <div style="font-size:13px;color:rgba(224,231,255,0.6);line-height:1.8;">单次LLM调用 = <b style="color:#E0E7FF;">回答问题</b>。<br>Workflow = <b style="color:#E0E7FF;">编排多个步骤</b>。<br>Prompt定义单步做什么，Workflow定义多步怎么串。<br>Tool是单个动作，Workflow是动作的组合。</div>
-  </div>
-  <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
-    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">系统组成</div>
-    <div style="font-size:13px;color:rgba(224,231,255,0.6);line-height:1.8;">
-      Workflow = <b style="color:#E0E7FF;">Nodes</b>（节点）+ <b style="color:#E0E7FF;">State</b>（状态）+ <b style="color:#E0E7FF;">Edges</b>（条件路由）+ <b style="color:#E0E7FF;">Loop</b>（循环重试）+ <b style="color:#E0E7FF;">Human Checkpoint</b>（人工审批）
+
+  <!-- 三层记忆核心架构卡片 -->
+  <div class="flex gap-4 flex-1" style="min-height:0;">
+    <!-- L1: 短期工作记忆 -->
+    <div class="mem-col" style="background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.22);">
+      <div>
+        <div class="flex justify-between items-center mb-2">
+          <span style="font-size:15px;font-weight:700;color:#00E5FF;">① 短期工作缓冲层</span>
+          <span style="font-size:11px;padding:2px 8px;background:rgba(0,229,255,0.15);color:#00E5FF;border-radius:4px;">Redis (:6379)</span>
+        </div>
+        <div style="font-size:12px;color:#E0E7FF;font-weight:600;margin-bottom:8px;">Working Memory · 当前会话连贯性</div>
+
+        <div style="padding:9px 11px;background:#070B14;border:1px solid rgba(0,229,255,0.18);border-radius:5px;font-size:11.5px;color:rgba(224,231,255,0.75);line-height:1.6;margin-bottom:8px;">
+          • <b style="color:#00E5FF;">存储内容</b>：当前 <code style="color:#00E5FF;">sessionId</code> 最近 N 轮（如 10 轮）原始对话消息 + 早期轮次滚动摘要（Summary）。<br>
+          • <b style="color:#00E5FF;">解决痛点</b>：听懂指代词（如“那<b>第二双</b>有42码吗？”、“<b>再便宜点</b>的呢？”）。<br>
+          • <b style="color:#00E5FF;">生命周期</b>：TTL 自动过期（如 30 分钟~24 小时），读写延迟 &lt; 2ms。
+        </div>
+      </div>
+      <div style="padding:8px 10px;background:rgba(0,229,255,0.07);border-radius:4px;font-size:11px;color:#00E5FF;">
+        <b>写入时机：</b>每一轮问答结束同步追加至 Redis List，超长触发异步摘要。
+      </div>
     </div>
-    <div style="margin-top:4px;font-size:11px;color:rgba(224,231,255,0.4);">代码: LangGraph / Spring AI &nbsp;|&nbsp; 可视化: Dify / Flowise / n8n</div>
+
+    <!-- L2: 长期结论层 -->
+    <div class="mem-col" style="background:rgba(255,107,53,0.03);border:1px solid rgba(255,107,53,0.25);">
+      <div>
+        <div class="flex justify-between items-center mb-2">
+          <span style="font-size:15px;font-weight:700;color:#FF6B35;">② 长期结构化结论层</span>
+          <span style="font-size:11px;padding:2px 8px;background:rgba(255,107,53,0.15);color:#FF6B35;border-radius:4px;">MySQL (user_profile)</span>
+        </div>
+        <div style="font-size:12px;color:#E0E7FF;font-weight:600;margin-bottom:8px;">Semantic Profile · 确定性用户画像</div>
+
+        <div style="padding:9px 11px;background:#070B14;border:1px solid rgba(255,107,53,0.2);border-radius:5px;font-size:11.5px;color:rgba(224,231,255,0.75);line-height:1.6;margin-bottom:8px;">
+          • <b style="color:#FF6B35;">存储内容</b>：从对话中提炼出的高价值结构化事实字段（<code style="color:#FF6B35;">shoe_size=42</code>, <code style="color:#FF6B35;">budget_level=中高端</code>, <code style="color:#FF6B35;">prefer_brand=Nike</code>, <code style="color:#FF6B35;">vip_tier=Gold</code>）。<br>
+          • <b style="color:#FF6B35;">解决痛点</b>：精准属性无需每次靠向量模糊检索，直接按 <code style="color:#FF6B35;">user_id</code> 主键秒级读取注入上下文。<br>
+          • <b style="color:#FF6B35;">生命周期</b>：持久化保存，支持冲突覆写（如用户体重/尺码更新）。
+        </div>
+      </div>
+      <div style="padding:8px 10px;background:rgba(255,107,53,0.08);border-radius:4px;font-size:11px;color:#FF6B35;">
+        <b>更新机制：</b>对话后由后台轻量模型提取标签，Upsert 更新至 MySQL。
+      </div>
+    </div>
+
+    <!-- L3: 长期过程层 -->
+    <div class="mem-col" style="background:rgba(168,85,247,0.03);border:1px solid rgba(168,85,247,0.25);">
+      <div>
+        <div class="flex justify-between items-center mb-2">
+          <span style="font-size:15px;font-weight:700;color:#A855F7;">③ 长期非结构化过程层</span>
+          <span style="font-size:11px;padding:2px 8px;background:rgba(168,85,247,0.15);color:#A855F7;border-radius:4px;">pgvector (user_memory)</span>
+        </div>
+        <div style="font-size:12px;color:#E0E7FF;font-weight:600;margin-bottom:8px;">Episodic Memory · 历史情景按需召回</div>
+
+        <div style="padding:9px 11px;background:#070B14;border:1px solid rgba(168,85,247,0.2);border-radius:5px;font-size:11.5px;color:rgba(224,231,255,0.75);line-height:1.6;margin-bottom:8px;">
+          • <b style="color:#A855F7;">存储内容</b>：无法塞进固定表字段的历史经历片段（如“用户3月提过脚背高穿硬壳鞋磨脚”、“下周去川西徒步需要防泼水”）。<br>
+          • <b style="color:#A855F7;">解决痛点</b>：跨月重逢时，根据当前话题通过 <b style="color:#E0E7FF;">Embedding 余弦相似度 + user_id 过滤</b> 召回最相关的 Top-3 往事。<br>
+          • <b style="color:#A855F7;">生命周期</b>：长期沉淀，结合时间衰减权重排序。
+        </div>
+      </div>
+      <div style="padding:8px 10px;background:rgba(168,85,247,0.08);border-radius:4px;font-size:11px;color:#A855F7;">
+        <b>检索机制：</b><code style="color:#E0E7FF;">WHERE user_id = ? ORDER BY embedding &lt;=&gt; query_vec LIMIT 3</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部读写闭环流 -->
+  <div style="margin-top:12px;padding:10px 16px;background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.25);border-radius:6px;display:flex;align-items:center;justify-content:space-between;font-size:12px;">
+    <div style="color:#E0E7FF;">
+      <b style="color:#22C55E;"><i class="fas fa-sync-alt mr-1"></i> MemoryManager 读写双通路：</b>
+      <b>【读通路·调LLM前】</b>合并 MySQL 画像 + pgvector 语义相关记忆 + Redis 近期对话 → 注入 Context；
+      <b>【写通路·调LLM后】</b>同步写 Redis + 异步提炼写 MySQL & pgvector。
+    </div>
   </div>
 </div>
-
-<!-- Workflow流程图 -->
-<div style="display:flex;align-items:center;justify-content:center;gap:4px;margin:16px 0;padding:12px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
-  <div style="padding:6px 10px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.25);border-radius:4px;font-size:10px;color:#00E5FF;font-weight:600;">① Start</div>
-  <div style="font-size:14px;color:rgba(0,229,255,0.3);">→</div>
-  <div style="padding:6px 10px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:4px;font-size:10px;color:rgba(224,231,255,0.6);">Node A</div>
-  <div style="font-size:14px;color:rgba(0,229,255,0.3);">→</div>
-  <div style="padding:6px 10px;background:rgba(255,200,50,0.1);border:1px solid rgba(255,200,50,0.3);border-radius:4px;font-size:10px;color:#FFC832;">🔀 Condition</div>
-  <div style="font-size:14px;color:rgba(0,229,255,0.3);">→</div>
-  <div style="padding:6px 10px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:4px;font-size:10px;color:rgba(224,231,255,0.6);">Node B</div>
-  <div style="font-size:14px;color:rgba(0,229,255,0.3);">→</div>
-  <div style="padding:6px 10px;background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.25);border-radius:4px;font-size:10px;color:#FF6B35;">👤 Human Check</div>
-  <div style="font-size:14px;color:rgba(0,229,255,0.3);">→</div>
-  <div style="padding:6px 10px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.25);border-radius:4px;font-size:10px;color:#00E5FF;font-weight:600;">✓ Done</div>
-</div>
-
-<div style="margin-top:auto;padding:8px 12px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:5px;">
-  <div style="font-size:12px;color:#FF6B35;font-weight:700;margin-bottom:3px;">什么时候必须用Workflow？</div>
-  <div style="font-size:11px;color:rgba(224,231,255,0.55);">多步骤有依赖 · 人工审批 · 条件分支 · 重试机制</div>
-</div>
-</div>
-</div></body></html>
+</body></html>

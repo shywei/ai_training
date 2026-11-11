@@ -3,62 +3,76 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>OpenCode实战(2)</title>
+<title>AI 为什么越聊越笨？—— 上下文退化（Context Degradation）底层剖析</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
-.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-scenario-block { padding:16px 18px; margin-bottom:12px; }
-.slide-scenario-title { font-size:15px; font-weight:700; color:#E0E7FF; margin-bottom:8px; }
-.slide-scenario-prompt { font-size:12px; font-family:monospace; color:rgba(224,231,255,0.45); padding:8px 12px; background:rgba(0,0,0,0.3); border-left:2px solid; line-height:1.5; margin-bottom:6px; }
-.slide-scenario-what { font-size:12px; color:rgba(224,231,255,0.5); line-height:1.5; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:38px 65px; }
+.slide-container h1 { font-size:29px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:13px; color:#A855F7; letter-spacing:4px; font-weight:700; }
+.cause-card { padding:14px 18px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.08); border-left:4px solid #A855F7; border-radius:3px; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:38px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 07 · 演示场景</div>
-  <h1 class="mb-2">OpenCode实战：演示场景</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:20px;"></div>
+<div class="slide-container">
+  <div class="slide-section-num mb-1">CHAPTER 06 · 上下文退化原理与单兵防坑铁律</div>
+  <h1 class="mb-2">AI 为什么越聊越笨？—— 上下文退化（Context Degradation）底层剖析</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
 
-  <div class="flex" style="gap:24px;">
-    <div style="flex:1;">
-      <div class="slide-scenario-block" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.1);">
-        <div class="slide-scenario-title"><i class="fas fa-plus-circle" style="color:#00E5FF; margin-right:6px;"></i>场景1：新功能开发</div>
-        <div class="slide-scenario-prompt" style="border-color:#00E5FF;">> 给项目添加一个文件上传功能。<br>> 要求：支持多文件、限制10MB、存储到MinIO，<br>> 返回文件访问URL。写好接口和单元测试。</div>
-        <div class="slide-scenario-what"><strong style="color:#E0E7FF;">观察：</strong>Agent如何分析现有项目结构，选择合适的技术方案，生成完整代码</div>
+  <div style="font-size:13.5px; color:rgba(224,231,255,0.7); margin-bottom:16px; line-height:1.5;">
+    很多开发者抱怨：“刚开会话时 AI 极其聪明，聊到第 15 轮不仅不听指挥，还开始改坏无关代码、反复推翻自己的结论”。这是大模型自回归注意力的物理必然，绝非玄学：
+  </div>
+
+  <!-- 3 Main Causes Grid -->
+  <div class="grid grid-cols-3 gap-4 mb-4">
+    <!-- Cause 1 -->
+    <div class="cause-card" style="border-left-color:#EF4444; background:rgba(239,68,68,0.04);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div style="font-size:15px; font-weight:700; color:#EF4444;"><i class="fas fa-eye-slash" style="margin-right:6px;"></i>1. 注意力稀释与迷失</div>
+        <span style="font-size:11px; padding:2px 6px; background:rgba(239,68,68,0.15); color:#FCA5A5; border-radius:3px;">Lost in the Middle</span>
       </div>
-
-      <div class="slide-scenario-block" style="background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.1);">
-        <div class="slide-scenario-title"><i class="fas fa-bug" style="color:#FF6B35; margin-right:6px;"></i>场景2：Bug排查</div>
-        <div class="slide-scenario-prompt" style="border-color:#FF6B35;">> 用户反馈登录接口偶发500错误，<br>> 日志显示NullPointerException。<br>> 帮我定位原因并修复。</div>
-        <div class="slide-scenario-what"><strong style="color:#E0E7FF;">观察：</strong>Agent如何阅读日志、追踪代码调用链、定位根因、给出修复方案</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.78); line-height:1.6; margin-bottom:8px;">
+        自注意力计算遵循<strong>U 型注意力曲线（Primacy & Recency Effect）</strong>：模型对最前面的 System Prompt 和最后面的最新指令关注度最高，而在 30k 长度以上的会话中间，关键代码约束会被严重稀释并直接“视而不见”。
       </div>
-
-      <div class="slide-scenario-block" style="background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.1);">
-        <div class="slide-scenario-title"><i class="fas fa-recycle" style="color:#E0E7FF; margin-right:6px;"></i>场景3：代码重构</div>
-        <div class="slide-scenario-prompt" style="border-color:#E0E7FF;">> 把OrderService里的if-else订单类型判断<br>> 重构为策略模式。保持对外接口不变，<br>> 用Spring注入策略实例。</div>
-        <div class="slide-scenario-what"><strong style="color:#E0E7FF;">观察：</strong>Agent如何理解设计模式需求，拆分代码，保持行为不变</div>
+      <div style="font-size:11px; color:#FCA5A5; background:rgba(0,0,0,0.3); padding:6px; border-radius:2px;">
+        <strong>表现：</strong>之前约定的“禁止改动 pom.xml”、“必须用 JDK 17 语法”，突然被 AI 彻底抛在脑后。
       </div>
     </div>
 
-    <div style="flex:1;">
-      <div class="slide-scenario-block" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.1);">
-        <div class="slide-scenario-title"><i class="fas fa-vial" style="color:#00E5FF; margin-right:6px;"></i>场景4：补单元测试</div>
-        <div class="slide-scenario-prompt" style="border-color:#00E5FF;">> 分析当前项目的测试覆盖率，<br>> 给没有测试的Service层补上单元测试。<br>> 用JUnit5 + Mockito。</div>
-        <div class="slide-scenario-what"><strong style="color:#E0E7FF;">观察：</strong>Agent如何分析哪些代码缺测试，自动生成有意义的测试用例</div>
+    <!-- Cause 2 -->
+    <div class="cause-card" style="border-left-color:#F59E0B; background:rgba(245,158,11,0.04);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div style="font-size:15px; font-weight:700; color:#F59E0B;"><i class="fas fa-biohazard" style="margin-right:6px;"></i>2. 错误自回归累积污染</div>
+        <span style="font-size:11px; padding:2px 6px; background:rgba(245,158,11,0.15); color:#FCD34D; border-radius:3px;">Autoregressive Bias</span>
       </div>
-
-      <div class="slide-scenario-block" style="background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.1);">
-        <div class="slide-scenario-title"><i class="fas fa-book" style="color:#FF6B35; margin-right:6px;"></i>场景5：代码理解</div>
-        <div class="slide-scenario-prompt" style="border-color:#FF6B35;">> 这个项目是我不熟悉的模块，<br>> 帮我梳理核心业务流程，<br>> 画出主要类之间的调用关系。</div>
-        <div class="slide-scenario-what"><strong style="color:#E0E7FF;">观察：</strong>Agent如何阅读陌生代码并输出结构化文档</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.78); line-height:1.6; margin-bottom:8px;">
+        大模型是条件概率预测机。当你把前几轮<strong>写错的代码、50 行编译报错堆栈、失败的补丁</strong>全部留在历史对话中时，这些错误信息就变成了模型生成下一步的“强参考语境”，它会执拗地在错误的分支上越陷越深。
       </div>
-
-
+      <div style="font-size:11px; color:#FCD34D; background:rgba(0,0,0,0.3); padding:6px; border-radius:2px;">
+        <strong>表现：</strong>修了一个空指针，引出类型转换错误；修了类型错误，又引入循环依赖。
+      </div>
     </div>
+
+    <!-- Cause 3 -->
+    <div class="cause-card" style="border-left-color:#00E5FF; background:rgba(0,229,255,0.04);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div style="font-size:15px; font-weight:700; color:#00E5FF;"><i class="fas fa-bomb" style="margin-right:6px;"></i>3. Tool 工具输出体积爆炸</div>
+        <span style="font-size:11px; padding:2px 6px; background:rgba(0,229,255,0.15); color:#67E8F9; border-radius:3px;">Context Flooding</span>
+      </div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.78); line-height:1.6; margin-bottom:8px;">
+        Agent 在自主执行时，经常无意间执行了类似 <code>find .</code>、全量 <code>git diff</code> 或读取了打包目录 <code>target/</code> 中的巨型 minified 文件，<strong>单次输出涌入数万行垃圾 Token</strong>，瞬间吞爆上下文并冲刷掉关键业务心智。
+      </div>
+      <div style="font-size:11px; color:#67E8F9; background:rgba(0,0,0,0.3); padding:6px; border-radius:2px;">
+        <strong>表现：</strong>Token 账单骤增，模型回复开始截断或出现胡言乱语。
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Takeaway -->
+  <div style="padding:12px 18px; background:rgba(168,85,247,0.08); border:1px solid rgba(168,85,247,0.28); font-size:12.5px; color:#E0E7FF; line-height:1.6;">
+    <i class="fas fa-lightbulb" style="color:#A855F7; margin-right:8px;"></i><strong>核心工程心智：</strong>
+    上下文窗口（Context Window）不是无限包容的垃圾桶，而是<strong>极其敏感、高价值的 L1 高速缓存</strong>！保持 Context 的纯净、精炼与低噪声，是高水平工程师与普通使用者之间拉开差距的最核心分水岭。
   </div>
 </div>
 </body>

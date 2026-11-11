@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>扩展律前沿：2024–2026 双引擎 Scaling Laws 深度解剖</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.s { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.s h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
+.card { background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.15); border-radius:4px; padding:16px 20px; }
+.badge { font-size:11px; font-weight:700; padding:2px 8px; border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="s flex flex-col justify-between">
+  <!-- Header -->
+  <div>
+    <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; margin-bottom:4px;">CHAPTER 01 · 扩展律前沿与推理全景</div>
+    <h1 class="mb-2">扩展律前沿：2024–2026 双引擎 Scaling Laws 深度解剖</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:12px;"></div>
+    <div style="font-size:13px; color:rgba(224,231,255,0.7); line-height:1.5;">
+      从单向依赖“海量语料预训练”到“预训练 + 推理时慢思考”双轮驱动，大模型的算力消耗范式正在经历根本性重构。
+    </div>
+  </div>
+
+  <!-- Dual Engines Grid -->
+  <div class="grid grid-cols-2 gap-5 my-2">
+    <!-- Engine 1 -->
+    <div class="card" style="border-top:3px solid #00E5FF;">
+      <div class="flex justify-between items-center mb-3">
+        <span class="badge" style="background:rgba(0,229,255,0.15); color:#00E5FF;">第一引擎 · 经典底座</span>
+        <span style="font-size:12px; color:rgba(224,231,255,0.5);">Pre-training Compute Scaling</span>
+      </div>
+      <div style="font-size:16px; font-weight:700; color:#E0E7FF; margin-bottom:8px;">预训练计算扩展与“数据墙”瓶颈</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.65); line-height:1.6; margin-bottom:10px;">
+        <strong style="color:#00E5FF;">Chinchilla 核心定律：</strong>模型参数量（$N$）与预训练 Token 数量（$D$）应同比例扩展，计算预算 $C \approx 6ND$。
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:10px 12px; border-radius:4px; font-size:12px; color:rgba(224,231,255,0.75); line-height:1.5; margin-bottom:8px; border-left:3px solid #00E5FF;">
+        <i class="fas fa-exclamation-triangle" style="color:#F59E0B; margin-right:6px;"></i><strong>边际效应递减与数据墙：</strong>全球高质量公共文本已在 2024 年被各家大模型基本爬取殆尽，仅靠增大预训练规模，单位 FLOPs 带来的智力增益已显著放缓。
+      </div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.55);">
+        定位：决定模型的世界常识与直觉基座（快思考 System 1，类似人脑的瞬间直觉反应）。
+      </div>
+    </div>
+
+    <!-- Engine 2 -->
+    <div class="card" style="border-top:3px solid #FF6B35;">
+      <div class="flex justify-between items-center mb-3">
+        <span class="badge" style="background:rgba(255,107,53,0.15); color:#FF6B35;">第二引擎 · 前沿突破</span>
+        <span style="font-size:12px; color:rgba(224,231,255,0.5);">Test-Time Compute Scaling</span>
+      </div>
+      <div style="font-size:16px; font-weight:700; color:#E0E7FF; margin-bottom:8px;">推理时思考扩展与强化学习自我进化</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.65); line-height:1.6; margin-bottom:10px;">
+        <strong style="color:#FF6B35;">Inference Scaling 定律：</strong>给定基础模型，在推理阶段消耗更多的思考 Token 算力，复杂任务的准确率呈对数线性飙升。
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:10px 12px; border-radius:4px; font-size:12px; color:rgba(224,231,255,0.75); line-height:1.5; margin-bottom:8px; border-left:3px solid #FF6B35;">
+        <i class="fas fa-bolt" style="color:#FF6B35; margin-right:6px;"></i><strong>自主反思与试探回溯：</strong>DeepSeek-R1 / OpenAI o1 通过大规模 RL 训练，模型在输出最终答案前，自主生成成千上万个 <code>&lt;think&gt;</code> 标记进行假设验证与自我纠错。
+      </div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.55);">
+        定位：开启慢思考深思熟虑范式（慢思考 System 2，类似数学家草稿纸上的长链推导）。
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Deep Dive Card -->
+  <div style="background:rgba(34,197,94,0.05); border:1px solid rgba(34,197,94,0.25); border-radius:4px; padding:14px 18px;">
+    <div class="flex items-center gap-3 mb-2">
+      <span style="font-size:14px; font-weight:700; color:#22C55E;"><i class="fas fa-coins" style="margin-right:8px;"></i>算力分配经济学与架构决策革新</span>
+      <span style="font-size:11px; padding:2px 6px; background:rgba(34,197,94,0.15); color:#22C55E; border-radius:3px;">2026 生产新范式</span>
+    </div>
+    <div class="grid grid-cols-3 gap-4" style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.55;">
+      <div>
+        <strong style="color:#E0E7FF;">1. 动态算力按需计费：</strong>简单问题（日常问答）仅需几百毫秒完成快思考；高难度挑战（复杂算法设计、数理证明）允许其思考几分钟，消耗万级 Token。
+      </div>
+      <div>
+        <strong style="color:#E0E7FF;">2. 突破数据墙封锁：</strong>不再受限于人类已经写出的书本，模型在规则清晰的数理空间内通过自我博弈（Self-Play）不断产生合成高质量推理轨迹。
+      </div>
+      <div>
+        <strong style="color:#E0E7FF;">3. 架构师权衡转移：</strong>从过去“一味追求更大参数量”，转向“中小尺寸优秀 Base 模型 + 充沛的推理时思考算力（Test-Time Compute）”。
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

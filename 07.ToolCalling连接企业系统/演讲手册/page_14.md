@@ -26,5 +26,17 @@ Demo 中的选型理由：
 ## Key Emphasis
 选 Tool 还是 Resource，看两个维度：谁发起（LLM 还是 Client）、数据特征（需要搜索还是全量加载）。
 
+## Optional Extension
+**学员问：用户画像也不会每分钟变，为什么记忆不也做成 Resource 一次性读回来？**
+答：看取数方式是"按 URI 取回"还是"按条件搜出"。画像是一个用户一份、按 ID 取；记忆是几百条里按当前问题语义找相关的几条。
+Demo 做法：`user://{userId}` Resource 会话开始读一次（`UserProfileService` 查 MySQL 返回结构化 JSON）；记忆走 `search_memory` Tool（`MemoryService` 在 pgvector 里做相似度搜索）——因为要按当前问题语义检索。
+生产做法：画像这类稳定结构化数据可 Resource 预取 + 缓存（TTL 到期再读）；记忆/知识走 Tool + 检索服务，数据量大时加 metadata 前置过滤。取舍：判断错了两个方向都疼——把该搜的做成 Resource，26 个商品全量进 context 浪费 token 且 LLM 筛不准；把该取的做成 Tool，LLM 多一次决策还可能传错 ID。
+
+## Take Away
+Tool/Resource 选型就看一个判据：这个数据是"按条件搜出来的"还是"按 URI 取回来的"——搜出来是 Tool，取回来是 Resource，判错的代价是 token 爆炸或检索不准。
+
+## Why This Slide Matters
+跳过这页，学员会把需要语义搜索的数据做成 Resource 全量塞 context（token 爆、LLM 筛不准），或把一次读取的配置做成 Tool 让 LLM 白白多一次决策和出错机会。
+
 ## Transition
 知道了 Tool 和 Resource 的区别。现在看 Function Calling 的完整链路——从 MCP Client 到 LLM 调用。

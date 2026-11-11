@@ -1,35 +1,61 @@
 ## Slide Objective
-拆解 Spring AI 的封装链路,让学员理解"不是魔法,是封装"。
+展示 `PromptManager.java` 和 `GuardrailsService.java` 的具体工程源码，让学员理解“原理如何落地为干净的 Java 代码”。讲清 `context` 预留参数的跨课程演进主线，以及 Demo 基础防线与上一页四层纵深防御体系的对照关系。
 
 ## Suggested Presentation
-看上面的调用链路。你写3行 Java 代码,Spring AI 在内部做了什么?
 
-第一,Prompt 组装。你的 `.system(systemPrompt).user(userPrompt)` 变成了 messages 数组里的两条消息。Spring AI 在内部用 `ChatMessage` 对象封装,每个 message 有 role 和 content。
+### 一、PromptManager.java — 结构化隔离与渐进式扩展
+看左侧代码，`PromptManager` 是一个标准的 Spring `@Component`：
+1. **System Prompt 模版化与常量隔离：**
+   - 采用 Java 15+ Text Block 特性构建。
+   - 角色定义、严格约束、输出规范结构分明，核心参数（名称、身份、约束）通过配置项注入，杜绝硬编码。
+2. **User Prompt 与 `context` 核心扩展点：**
+   - 重点看 `buildUserPrompt(String msg, String context)`。
+   - **学员注意：** 在当前的第四课 Demo 中，我们在 Controller 里调用时传入的 `context` 参数是 `null`。
+   - **设计哲学：“接口稳定，内容演化”**：
+     - **v1.0（本课）：** 仅基础系统词 + 当前用户问题；
+     - **v2.0（第五课 Memory）：** 传入用户画像 JSON + 滑动窗口历史对话；
+     - **v3.0（第六课 Knowledge）：** 传入 `<retrieved_context>` 知识库检索片段；
+     - **v4.0（第七课 Tool）：** 传入外部工具执行结果。
+     通过提前设计好这个上下文扩展点，后续三课业务 Controller 的 Prompt 构建接口一行都不需要修改！
 
-第二,HTTP 请求。Spring AI 读取 application.yml 的 `base-url` 和 `api-key`,自动构建 POST 请求,加上 `Authorization: Bearer ***` Header。你不需要写任何 HTTP 代码。
+---
 
-第三,SSE 解析。调用 `.stream().content()` 时,Spring AI 内部用 SSE 客户端逐行读取响应,解析 `data:` 前缀,处理 `[DONE]` 标记,拼接 `delta.content`。你拿到的是 `Flux<String>`,逐 token 的文本流。
+### 二、GuardrailsService.java — 入口与出口双防线落地
+看右侧代码，`GuardrailsService` 落地了上一页防御体系中的 L1 和基础 L4：
+1. **第一道防线：checkInjection（入口 L1 静态粗筛）：**
+   - 使用预编译的 `Pattern` 列表匹配典型的 Prompt Injection 攻击特征（如 `ignore previous instructions`、`忽略之前的指令`、`输出系统提示词` 等）。
+   - 在 Controller 刚收到用户请求的最前面调用。一旦命中，立即阻断，不再向 LLM 发送请求，保护上游 Token 不被恶意消耗。
+2. **第二道防线：sanitize（出口基础敏感词清洗）：**
+   - 对 LLM 返回的文本进行关键词脱敏（如敏感词、测试数据关键字等替换为 `***`）。
+   - 在 Controller 即将向客户端返回结果或推送流式事件前调用。
+3. **两道防线严格解耦、前后呼应：**
+   - 入口防注入，出口防失言。两者互不包含，Controller 严格执行“入口先查、出口必净”。
 
-第四,动态模型切换。`OpenAiChatOptions.builder().withModel(model)` 在运行时修改请求里的 model 字段。这就是 ModelRouter 能工作的底层机制。
+---
 
-看右边的代码对比。上面是你写的3行。下面是 Spring AI 内部的伪代码--做的事情和你手写 HTTP 请求完全一样,只是封装了。
-
-有个真实的坑:我们一开始以为 `withModel()` 只是设置默认值,不影响已经配置的其他参数。实际上,`OpenAiChatOptions` 的 builder 会覆盖所有选项--如果你只设了 model,temperature 会用 builder 的默认值(1.0),而不是 application.yml 里的 0.7。所以 recommend 接口显式设置了 `withTemperature(0.2)`,确保不会被覆盖。
+### 三、Demo 教学定位与生产差距对照
+必须明确向学员指明 Demo 代码在生产体系中的位置：
+- **Demo 覆盖：** 实现了 L1 正则粗筛与基础 L4 出口脱敏，代码轻量，零第三方外部依赖，教学目标是让学员掌握**“切面拦截、入口出口双控”**的代码落地方式。
+- **生产差距：** 正如第 10 页所讲，生产环境不能止步于正则。在独立的企业级 LLM 网关中，应在 L1 之后串联 L2 向量相似度筛查和 L3 Llama Guard 语义审查模型，形成纵深防御闭环。特别注意：L2 向量相似度仅作为已知攻击样本库的辅助初筛，绝对不能单独承担全部安全审查责任，必须配合 L3 分类模型与规则引擎。
 
 ## Key Emphasis
-重点是“封装了什么”——学员需要理解这个链路，遇到问题时知道去哪里排查。不要把 Spring AI 讲成黑盒。
+1. 理解 `context` 的渐进式演进：这是贯穿 04、05、06、07 课的主线骨架。
+2. 牢记入口出口双防线：入口做防护避免被攻击，出口做兜底避免泄露或违规。
+3. 正确认知正则的作用：L1 粗筛成本极低，是必不可少的第一关，但绝不能作为唯一防线。
 
-## Demo 与生产的差距
+## Optional Extension
+**学员问：如果用户故意在敏感词中间加空格或特殊符号（比如“忽 略 指 令”），当前的正则是不是就失效了？**
+答：是的，这就是纯正则粗筛的天花板。
+Demo 做法：Demo 内置了常用空格容忍的正则，但不可能穷举全部字符变形。
+生产做法：
+1. **输入文本标准化（Normalization）：** 进入正则前，先做文本清洗（去除不可见字符、全角转半角、繁简转换、拼音转换、拼写纠正）；
+2. **交由 L2/L3 语义模型接管：** 文本向量化和语义大模型天生具备抗字符形变能力，能直接理解“忽 略 指 令”的底层攻击意图并予以精准拦截。
 
-Demo 里 Spring AI 的用法是最基础的。实际项目中还需要考虑：
+## Classroom Interaction
+让学员点击 Demo 前端界面的快捷按钮「测试注入防御」，观察后端控制台打印的拦截 Warning 日志，以及前端收到的安全拦截提示，亲眼见证入口防线的工作流程。
 
-**错误处理**：Demo 里 LLM 调用失败会直接抛异常。实际项目中需要重试机制——网络超时重试、模型过载重试、限流重试。Spring AI 支持配置重试策略，但 Demo 没有实现。
-
-**Token 用量统计**：Demo 里没有记录每次调用消耗了多少 token。实际项目中必须记录——用于成本监控和用量分析。Spring AI 的响应里包含 usage 字段，但 Demo 没有解析。
-
-**模型降级**：Demo 里模型路由只做了“选一个模型”。实际项目中需要降级策略——主模型调用失败时自动切换到备用模型。比如 GPT-4o 超时了，自动降级到 GPT-4o-mini。
-
-**并发控制**：Demo 里没有限制并发请求数。实际项目中需要限流——防止用户大量并发请求把 LLM API 打爆，或者把 token 预算用完。
+## Take Away
+PromptManager 预留演进插槽，GuardrailsService 守住进出要道。代码结构清晰，未来升级不慌。
 
 ## Transition
-后端讲完了。但一个完整的应用还需要前端。
+Prompt 和安全护栏都已就绪。当模型推理完成后，如何将结果以流式的方式稳定传输给前端？遇到网络中断、长连接堆积、代理层缓冲怎么办？来看第 13 页的“前端集成与 SSE 流式传输四大工程挑战”。

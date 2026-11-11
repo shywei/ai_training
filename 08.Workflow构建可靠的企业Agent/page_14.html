@@ -1,10 +1,29 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280"><script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script><title>ErrorRecovery 代码</title><style>*{margin:0;padding:0;box-sizing:border-box}.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}.code{font-size:10px;color:rgba(224,231,255,0.55);line-height:1.5;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace}</style></head><body><div class="s" style="padding:24px 50px;display:flex;flex-direction:column"><div class="mb-1 sn">CHAPTER 05</div><h1 class="mb-1">ErrorRecovery — 容错实现</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px"></div><div style="flex:1;display:flex;gap:14px"><div style="flex:1;display:flex;flex-direction:column;justify-content:center">
-<div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:8px">ErrorRecovery.java</div>
-<div class="code" style="margin-bottom:10px">@Component<br>public class ErrorRecovery {<br>&nbsp;&nbsp;static final int MAX_RETRY = 3;<br>&nbsp;&nbsp;static final int BREAKER_THRESHOLD = 5;<br>&nbsp;&nbsp;static final long RECOVERY_MS = 60_000;<br><br>&nbsp;&nbsp;ConcurrentHashMap&lt;String, ToolFailureInfo&gt; counters;<br><br>&nbsp;&nbsp;public boolean shouldRetry(WorkflowStep step) {<br>&nbsp;&nbsp;&nbsp;&nbsp;return step.getRetryCount() &lt; MAX_RETRY;<br>&nbsp;&nbsp;}<br><br>&nbsp;&nbsp;public long getRetryDelayMs(WorkflowStep step) {<br>&nbsp;&nbsp;&nbsp;&nbsp;// 指数退避: 1s → 2s → 4s<br>&nbsp;&nbsp;&nbsp;&nbsp;return (long) Math.pow(2,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;step.getRetryCount()) * 1000;<br>&nbsp;&nbsp;}<br><br>&nbsp;&nbsp;public boolean isCircuitBroken(String tool) {<br>&nbsp;&nbsp;&nbsp;&nbsp;// 连续失败 &gt;= 5 → 熔断, 60s 恢复<br>&nbsp;&nbsp;}<br>}</div></div>
-<div style="flex:1;display:flex;flex-direction:column;justify-content:center">
-<div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:8px">三级容错在代码中的体现</div>
-<div style="display:flex;flex-direction:column;gap:8px">
-<div style="padding:12px;background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:4px"><div style="font-size:13px;color:#00E5FF;font-weight:700">重试</div><div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px">executeToolCall() 中：<br>调用失败 → shouldRetry? → waitBeforeRetry → 重试</div></div>
-<div style="padding:12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px"><div style="font-size:13px;color:#FF6B35;font-weight:700">熔断</div><div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px">executeToolCall() 入口：<br>isCircuitBroken? → 跳过调用，返回降级消息</div></div>
-<div style="padding:12px;background:rgba(34,197,94,0.06);border-left:3px solid #22C55E;border-radius:4px"><div style="font-size:13px;color:#22C55E;font-weight:700">降级</div><div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px">返回 null → AgentRuntime 让 LLM 基于已有信息回答</div></div></div>
-<div style="margin-top:12px;padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px"><div style="font-size:12px;color:rgba(224,231,255,0.45);line-height:1.7"><strong style="color:#E0E7FF">代码阅读路线</strong>：先看 shouldRetry() → getRetryDelayMs() → isCircuitBroken()，理解每一级的触发条件和恢复策略。</div></div></div></div></div></body></html>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280"><script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script><title>ErrorRecovery 代码</title><style>*{margin:0;padding:0;box-sizing:border-box}.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}.code{font-size:11px;color:rgba(224,231,255,0.7);line-height:1.45;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace}
+</style></head><body><div class="s" style="padding:22px 48px;display:flex;flex-direction:column"><div class="mb-1 sn">CHAPTER 05 · 代码实现</div><h1 class="mb-1">ErrorRecovery — 容错实现与协同矩阵映射</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:10px"></div><div style="flex:1;display:flex;gap:14px"><div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+<div style="font-size:13.5px;color:#E0E7FF;font-weight:700;margin-bottom:6px">ErrorRecovery.java 核心骨架</div>
+<div class="code" style="margin-bottom:8px">@Component<br>public class ErrorRecovery {<br>&nbsp;&nbsp;static final int MAX_RETRY = 3;<br>&nbsp;&nbsp;static final int BREAKER_THRESHOLD = 5;<br>&nbsp;&nbsp;static final long RECOVERY_MS = 60_000;<br><br>&nbsp;&nbsp;ConcurrentHashMap&lt;String, ToolFailureInfo&gt; counters;<br><br>&nbsp;&nbsp;public boolean shouldRetry(WorkflowStep step) {<br>&nbsp;&nbsp;&nbsp;&nbsp;return step.getRetryCount() &lt; MAX_RETRY;<br>&nbsp;&nbsp;}<br><br>&nbsp;&nbsp;public long getRetryDelayMs(WorkflowStep step) {<br>&nbsp;&nbsp;&nbsp;&nbsp;// 指数退避: 1s → 2s → 4s<br>&nbsp;&nbsp;&nbsp;&nbsp;return (long) Math.pow(2, step.getRetryCount()) * 1000;<br>&nbsp;&nbsp;}<br><br>&nbsp;&nbsp;public boolean isCircuitBroken(String tool) {<br>&nbsp;&nbsp;&nbsp;&nbsp;// 连续失败 &gt;= 5 次 → 开启熔断 60 秒<br>&nbsp;&nbsp;}<br>}</div>
+<div style="padding:6px 10px;background:rgba(0,229,255,0.05);border-left:3px solid #00E5FF;border-radius:4px;font-size:11px;color:rgba(224,231,255,0.7);line-height:1.45;">
+  <strong style="color:#00E5FF">阅读指引：</strong>看 <code>shouldRetry()</code> → <code>getRetryDelayMs()</code> → <code>isCircuitBroken()</code>，体会指数退避与滑动窗口。
+</div>
+</div>
+<div style="flex:1.15;display:flex;flex-direction:column;justify-content:center">
+<div style="font-size:13.5px;color:#E0E7FF;font-weight:700;margin-bottom:6px">代码在四层协同矩阵中的位置</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<div style="padding:9px 12px;background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:4px">
+  <div style="font-size:12.5px;color:#00E5FF;font-weight:700">① 重试（Demo 已覆盖）</div>
+  <div style="font-size:11px;color:rgba(224,231,255,0.75);margin-top:2px"><code>executeToolCall()</code> 中捕获异常 → shouldRetry? → 退避休眠 → 再次调用</div>
+</div>
+<div style="padding:9px 12px;background:rgba(255,209,102,0.06);border-left:3px solid #FFD166;border-radius:4px">
+  <div style="font-size:12.5px;color:#FFD166;font-weight:700">② 熔断与降级（Demo 已覆盖）</div>
+  <div style="font-size:11px;color:rgba(224,231,255,0.75);margin-top:2px"><code>executeToolCall()</code> 入口：isCircuitBroken? → 跳过调用，返回降级信息让模型兜底回答</div>
+</div>
+<div style="padding:9px 12px;background:rgba(168,85,247,0.06);border-left:3px solid #A855F7;border-radius:4px">
+  <div style="font-size:12.5px;color:#A855F7;font-weight:700">③ 错误重规划（生产扩展）</div>
+  <div style="font-size:11px;color:rgba(224,231,255,0.75);margin-top:2px">当工具返回业务不可用状态码时，Runtime 将错误注入 context 重新调用 <code>TaskPlanner</code></div>
+</div>
+<div style="padding:9px 12px;background:rgba(239,68,68,0.06);border-left:3px solid #EF4444;border-radius:4px">
+  <div style="font-size:12.5px;color:#EF4444;font-weight:700">④ 人工介入接管（Demo 覆盖入口）</div>
+  <div style="font-size:11px;color:rgba(224,231,255,0.75);margin-top:2px"><code>ConfirmationService</code> 拦截高危操作或重试耗尽时挂起，状态机置为 <code>CONFIRMING</code></div>
+</div>
+</div>
+</div></div></div></body></html>

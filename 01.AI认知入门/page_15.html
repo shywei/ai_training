@@ -3,146 +3,80 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>当前顶级大模型一览</title>
+<title>核心解惑：为什么是 Coding 领域最先跑通商业闭环？</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
-.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
 .slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:13px; color:#00E5FF; letter-spacing:4px; }
-.slide-model-table { width:100%; border-collapse:collapse; }
-.slide-model-table th { font-size:11px; font-weight:700; padding:7px 8px; text-align:left; border-bottom:2px solid rgba(0,229,255,0.2); }
-.slide-model-table td { font-size:11px; padding:6px 8px; border-bottom:1px solid rgba(255,255,255,0.04); color:rgba(224,231,255,0.6); line-height:1.3; vertical-align:top; }
-.slide-model-table .slide-mn { font-weight:700; color:#E0E7FF; font-size:11px; }
-.slide-model-table .slide-co { color:rgba(224,231,255,0.45); }
-.slide-model-table .slide-hl { color:#00E5FF; font-weight:600; }
-.slide-note-bar { position:absolute; bottom:14px; left:70px; right:70px; padding:8px 14px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.1); }
-.slide-note-text { font-size:11px; color:rgba(224,231,255,0.4); line-height:1.4; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:28px 60px;">
-  <div class="mb-1 slide-section-num">CHAPTER 03 · 模型一览</div>
-  <h1 class="mb-1">当前顶级大模型一览（截至2026年6月）</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:10px;"></div>
+<div class="slide-container">
+  <div style="font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:6px;">CHAPTER 03 · 程序员视角的四大灵魂解惑</div>
+  <h1 class="mb-2">核心解惑：为什么是 Coding 领域最先跑通商业闭环？</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
 
-  <table class="slide-model-table">
-    <thead>
-      <tr>
-        <th style="color:#00E5FF; width:135px;">模型</th>
-        <th style="color:#00E5FF; width:80px;">公司</th>
-        <th style="color:#00E5FF; width:80px;">参数规模</th>
-        <th style="color:#00E5FF; width:70px;">上下文</th>
-        <th style="color:#00E5FF;">核心特点</th>
-        <th style="color:#00E5FF; width:50px;">开源</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="slide-mn">GPT-5.5</td>
-        <td class="slide-co">OpenAI</td>
-        <td>未公开</td>
-        <td class="slide-hl">100万</td>
-        <td>原生电脑使用能力，整合o3推理，Codex版40万token</td>
-        <td style="color:#FF6B35;">闭源</td>
-      </tr>
-      <tr>
-        <td class="slide-mn">Claude Opus 4.8</td>
-        <td class="slide-co">Anthropic</td>
-        <td>未公开</td>
-        <td class="slide-hl">20万</td>
-        <td>极速模式、动态工作流，编程与Agent能力顶尖</td>
-        <td style="color:#FF6B35;">闭源</td>
-      </tr>
-      <tr>
-        <td class="slide-mn">Fable 5 / Mythos 5</td>
-        <td class="slide-co">Anthropic</td>
-        <td>未公开</td>
-        <td>-</td>
-        <td>首个Mythos级公开模型，SWE-Bench Pro <span style="color:#00E5FF;">80.3%</span>；Mythos 5专注网络安全</td>
-        <td style="color:#FF6B35;">闭源</td>
-      </tr>
-      <tr>
-        <td class="slide-mn">Gemini 3.1 Pro</td>
-        <td class="slide-co">Google</td>
-        <td>未公开</td>
-        <td class="slide-hl">100万</td>
-        <td>原生多模态，"人类终极考试"最高分</td>
-        <td style="color:#FF6B35;">闭源</td>
-      </tr>
-      <tr>
-        <td class="slide-mn">Grok 4.3</td>
-        <td class="slide-co">xAI</td>
-        <td>万亿 MoE</td>
-        <td>25.6万</td>
-        <td>多智能体架构，原生多模态，集成X平台</td>
-        <td style="color:#00E5FF;">部分开源</td>
-      </tr>
-      <tr>
-        <td class="slide-mn">Llama 4</td>
-        <td class="slide-co">Meta</td>
-        <td>MoE架构</td>
-        <td>12.8万</td>
-        <td>开源标杆，推动全球开源生态</td>
-        <td style="color:#00E5FF;">开源</td>
-      </tr>
-      <tr style="border-top:2px solid rgba(255,107,53,0.15);">
-        <td class="slide-mn">DeepSeek V4-Pro</td>
-        <td class="slide-co" style="color:#FF6B35;">DeepSeek</td>
-        <td>1.6T MoE<br><span style="font-size:11px; color:rgba(224,231,255,0.35);">激活490B</span></td>
-        <td class="slide-hl">100万</td>
-        <td>Agent能力突出，开源性能对标顶级闭源，MIT协议</td>
-        <td style="color:#00E5FF;">开源</td>
-      </tr>
-      <tr>
-        <td class="slide-mn">Qwen3-Max</td>
-        <td class="slide-co" style="color:#FF6B35;">阿里</td>
-        <td>万亿 MoE</td>
-        <td class="slide-hl">100万</td>
-        <td>开源生态丰富，中文能力突出</td>
-        <td style="color:#00E5FF;">开源</td>
-      </tr>
-      <tr>
-        <td class="slide-mn">GLM-5.2</td>
-        <td class="slide-co" style="color:#FF6B35;">智谱</td>
-        <td>744B MoE</td>
-        <td class="slide-hl">100万</td>
-        <td>编程能力国产标杆，MIT协议开源</td>
-        <td style="color:#00E5FF;">开源</td>
-      </tr>
-      <tr>
-        <td class="slide-mn">MiMo-V2.5 Pro</td>
-        <td class="slide-co" style="color:#FF6B35;">小米</td>
-        <td>万亿 MoE</td>
-        <td class="slide-hl">100万</td>
-        <td>SWE-bench Pro 57.2%，推理与编程并重</td>
-        <td style="color:#FF6B35;">闭源</td>
-      </tr>
-      <tr>
-        <td class="slide-mn">Kimi K2.7 Code</td>
-        <td class="slide-co" style="color:#FF6B35;">月之暗面</td>
-        <td>1T MoE<br><span style="font-size:11px; color:rgba(224,231,255,0.35);">激活32B</span></td>
-        <td>25.6万</td>
-        <td>专注编程Agent，开源，推理token消耗降低30%</td>
-        <td style="color:#00E5FF;">开源</td>
-      </tr>
-      <tr>
-        <td class="slide-mn">MiniMax M3</td>
-        <td class="slide-co" style="color:#FF6B35;">MiniMax</td>
-        <td>428B MSA</td>
-        <td class="slide-hl">100万</td>
-        <td>自研MSA稀疏注意力，SWE-Bench超GPT-5.5，原生多模态</td>
-        <td style="color:#00E5FF;">开源</td>
-      </tr>
-    </tbody>
-  </table>
+  <div style="font-size:14px; color:rgba(224,231,255,0.6); margin-bottom:16px;">
+    AI 在法律、医疗、金融领域的落地依然如履薄冰，为什么偏偏在编程领域，AI 工具能够率先实现万亿美元级的生产力渗透与商业变现？
+  </div>
 
-  <div class="slide-note-bar">
-    <div class="slide-note-text">
-      <i class="fas fa-info-circle" style="color:#00E5FF; margin-right:4px;"></i>
-      MoE已成主流架构。100万token ≈ 75万字。Mythos是Anthropic最高安全等级模型系列，Fable 5是首个面向公众的Mythos级模型。
-      <span style="margin-left:8px; color:rgba(255,107,53,0.5);">信息来源：各公司官方公告，截至2026年6月。</span>
+  <!-- Four Pillars Grid -->
+  <div class="flex gap-4 mb-4">
+    <!-- Pillar 1: Verifiability -->
+    <div style="flex:1; padding:16px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.18);">
+      <div style="font-size:24px; color:#00E5FF; margin-bottom:8px;"><i class="fas fa-check-double"></i></div>
+      <div style="font-size:15px; font-weight:700; color:#00E5FF; margin-bottom:6px;">1. 拥有最客观的裁判</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.6; margin-bottom:8px;">
+        写散文、画图的好坏人人各执一词，极为主观；但代码是否正确，有<strong style="color:#E0E7FF;">编译器（Compiler）与单元测试（Unit Test）</strong>作为绝对客观的裁判！
+      </div>
+      <div style="padding:6px 10px; background:rgba(0,0,0,0.3); font-family:Consolas,monospace; font-size:11px; color:#00E5FF;">
+        ExitCode == 0 & Tests: Pass
+      </div>
+    </div>
+
+    <!-- Pillar 2: Fast Loop -->
+    <div style="flex:1; padding:16px; background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.18);">
+      <div style="font-size:24px; color:#FF6B35; margin-bottom:8px;"><i class="fas fa-sync-alt"></i></div>
+      <div style="font-size:15px; font-weight:700; color:#FF6B35; margin-bottom:6px;">2. 极速秒级反馈闭环</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.6; margin-bottom:8px;">
+        在生物制药中验证一个分子可能需要数年；而在软件工程中：写代码 &rarr; 运行 &rarr; 抛报错堆栈，<strong style="color:#E0E7FF;">只需数秒即可完成一轮试错迭代</strong>。
+      </div>
+      <div style="padding:6px 10px; background:rgba(0,0,0,0.3); font-family:Consolas,monospace; font-size:11px; color:#FF6B35;">
+        Generate &rarr; Run &rarr; Self-Heal
+      </div>
+    </div>
+
+    <!-- Pillar 3: Clean Data -->
+    <div style="flex:1; padding:16px; background:rgba(34,197,94,0.04); border:1px solid rgba(34,197,94,0.18);">
+      <div style="font-size:24px; color:#22C55E; margin-bottom:8px;"><i class="fas fa-code-branch"></i></div>
+      <div style="font-size:15px; font-weight:700; color:#22C55E; margin-bottom:6px;">3. 训练语料纯净规整</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.6; margin-bottom:8px;">
+        GitHub 上数十亿行开源代码天然附带 AST 语法树结构、包依赖声明与严谨的 Git Commit 语义变更历史，具备天然的高信噪比。
+      </div>
+      <div style="padding:6px 10px; background:rgba(0,0,0,0.3); font-family:Consolas,monospace; font-size:11px; color:#22C55E;">
+        High Signal-to-Noise Ratio
+      </div>
+    </div>
+
+    <!-- Pillar 4: High ROI -->
+    <div style="flex:1; padding:16px; background:rgba(168,85,247,0.04); border:1px solid rgba(168,85,247,0.18);">
+      <div style="font-size:24px; color:#A855F7; margin-bottom:8px;"><i class="fas fa-dollar-sign"></i></div>
+      <div style="font-size:15px; font-weight:700; color:#A855F7; margin-bottom:6px;">4. 开发者极高的 ROI</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.6; margin-bottom:8px;">
+        高级软件工程师时薪昂贵。一款每月 $20 的 AI 编程助手只要能帮助开发者每天节省 30 分钟敲样板代码的时间，企业投资回报率立刻爆表。
+      </div>
+      <div style="padding:6px 10px; background:rgba(0,0,0,0.3); font-family:Consolas,monospace; font-size:11px; color:#A855F7;">
+        $20/mo vs $100k+/yr Dev Salary
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Classic Conclusion -->
+  <div style="padding:12px 18px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.2); display:flex; align-items:center;">
+    <div style="font-size:12px; color:#E0E7FF; line-height:1.6;">
+      <i class="fas fa-trophy" style="color:#00E5FF; margin-right:8px;"></i><strong style="color:#00E5FF;">老版核心金句回响：</strong>代码是人类创造的极少数<strong style="color:#00E5FF;">“天生具备严格语法、能全自动可运行验证、且拥有即时反馈闭环”</strong>的高维符号体系。这不是历史的巧合，而是计算机科学本身的确定性法则注定了编程必将成为 AI 时代最先被彻底攻克的桥头堡！
     </div>
   </div>
 </div>

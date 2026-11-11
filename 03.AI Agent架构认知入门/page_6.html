@@ -1,62 +1,117 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>Prompt：原理与实现</title>
+<title>Agent 运行时是怎么“思考与行动”的？—— 三大核心认知循环</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
-.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
-.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
-.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
-.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden;padding:32px 56px;display:flex;flex-direction:column}
+.s h1{font-size:28px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px;font-weight:700}
+.loop-card{flex:1;padding:16px 18px;border-radius:8px;display:flex;flex-direction:column;justify-content:space-between}
+.step-box{padding:8px 10px;border-radius:5px;font-size:11.5px;margin-bottom:6px}
 </style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 04</div><h1 class="mb-2">Prompt：原理与实现</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+<div class="s">
+  <div class="mb-1 sn">CHAPTER 02 · 运行时引擎与上下文工程</div>
+  <h1 class="mb-2">Agent 运行时是怎么“思考与行动”的？—— 三大核心认知循环</h1>
+  <div style="width:56px;height:3px;background:#FF6B35;margin-bottom:14px;"></div>
 
-<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-<div style="display:flex;gap:16px;margin-bottom:12px;">
-  <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
-    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">是什么？</div>
-    <div style="font-size:13px;color:rgba(224,231,255,0.6);line-height:1.8;">给LLM的指令，定义Agent"是谁、做什么、怎么做"。<br>同一个LLM加不同Prompt = 不同Agent。<br>Prompt是所有组件中最基础的——没有它，LLM不知道自己该做什么。</div>
-  </div>
-  <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
-    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">解决什么问题？</div>
-    <div style="font-size:13px;color:rgba(224,231,255,0.6);line-height:1.8;">没有Prompt，LLM只会通用对话。<br>有了Prompt，LLM变成特定角色的专家。<br>三要素：<b style="color:#E0E7FF;">角色</b>（你是导购助手）、<b style="color:#E0E7FF;">能力</b>（帮用户推荐商品）、<b style="color:#E0E7FF;">约束</b>（不编造信息）。</div>
-  </div>
-</div>
-<div style="display:flex;gap:16px;margin-bottom:12px;">
-  <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
-    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">和其他能力的边界</div>
-    <div style="font-size:13px;color:rgba(224,231,255,0.6);line-height:1.8;">Prompt定义<b style="color:#E0E7FF;">"做什么"</b>，其他组件负责<b style="color:#E0E7FF;">"怎么做"</b>。<br>Memory给Prompt提供历史上下文。<br>Knowledge给Prompt提供外部知识。<br>Tool让Prompt能调用外部系统。<br>Prompt是起点，其他组件是支撑。</div>
-  </div>
-  <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
-    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:6px;">系统组成</div>
-    <div style="font-size:13px;color:rgba(224,231,255,0.6);line-height:1.8;">
-      Prompt系统 = <b style="color:#E0E7FF;">System Prompt</b>（角色定义）+ <b style="color:#E0E7FF;">Template</b>（变量模板）+ <b style="color:#E0E7FF;">Few-shot</b>（示例）+ <b style="color:#E0E7FF;">Output Parser</b>（结构化输出）
+  <div class="flex gap-4 flex-1" style="min-height:0;">
+    <!-- 1. ReAct -->
+    <div class="loop-card" style="background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.22);">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span style="font-size:16px;font-weight:700;color:#00E5FF;">① ReAct 循环</span>
+          <span style="font-size:11px;padding:2px 8px;background:rgba(0,229,255,0.12);color:#00E5FF;border-radius:4px;">Reason + Act</span>
+        </div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.65);margin-bottom:10px;">
+          <b style="color:#E0E7FF;">边想边做、走一步看一步</b>：每次推理只决定当前下一步动作，拿到工具真实返回（Observation）后再决定是否继续。
+        </div>
+
+        <div class="step-box" style="background:rgba(0,229,255,0.07);border-left:3px solid #00E5FF;">
+          <div style="color:#00E5FF;font-weight:700;">1. Thought（推理思考）</div>
+          <div style="color:rgba(224,231,255,0.7);">“用户想买2000元内降噪耳机，我需要先搜商品库，再查用户的会员折扣。”</div>
+        </div>
+        <div class="step-box" style="background:rgba(255,107,53,0.07);border-left:3px solid #FF6B35;">
+          <div style="color:#FF6B35;font-weight:700;">2. Action（发起工具调用）</div>
+          <div style="color:rgba(224,231,255,0.7);">输出 <code style="color:#FF6B35;">search_products(category="耳机", maxPrice=2000)</code></div>
+        </div>
+        <div class="step-box" style="background:rgba(34,197,94,0.07);border-left:3px solid #22C55E;">
+          <div style="color:#22C55E;font-weight:700;">3. Observation（观察环境反馈）</div>
+          <div style="color:rgba(224,231,255,0.7);">MCP Server 返回 3 款耳机 JSON 数据，追加回 <code style="color:#22C55E;">messages</code> 进入下一轮 Thought。</div>
+        </div>
+      </div>
+
+      <div style="padding:9px 11px;background:rgba(0,229,255,0.06);border-radius:5px;font-size:11.5px;color:rgba(224,231,255,0.8);">
+        <b style="color:#00E5FF;">工程特性：</b>Tool Calling 多轮工具调用循环的核心机制；优点是灵活快速，缺点是长链路下容易偏离全局目标。
+      </div>
     </div>
-    <div style="margin-top:4px;font-size:11px;color:rgba(224,231,255,0.4);">Spring AI PromptTemplate · LangChain PromptTemplate</div>
+
+    <!-- 2. Plan-and-Execute -->
+    <div class="loop-card" style="background:rgba(255,107,53,0.03);border:1px solid rgba(255,107,53,0.22);">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span style="font-size:16px;font-weight:700;color:#FF6B35;">② Plan-and-Execute</span>
+          <span style="font-size:11px;padding:2px 8px;background:rgba(255,107,53,0.12);color:#FF6B35;border-radius:4px;">先全局规划 · 再分步执行</span>
+        </div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.65);margin-bottom:10px;">
+          <b style="color:#E0E7FF;">谋定而后动</b>：面对多步骤复杂任务，先由 Planner 生成完整步骤清单（DAG/Step List），再交由 Executor 逐项推进。
+        </div>
+
+        <div class="step-box" style="background:rgba(255,107,53,0.07);border-left:3px solid #FF6B35;">
+          <div style="color:#FF6B35;font-weight:700;">1. Planner（全局任务拆解）</div>
+          <div style="color:rgba(224,231,255,0.7);">生成显式计划：<code style="color:#E0E7FF;">[Step1: 查用户尺码画像, Step2: 检索冲锋衣知识库, Step3: 查实时库存价格, Step4: 组装对比表]</code></div>
+        </div>
+        <div class="step-box" style="background:rgba(0,229,255,0.07);border-left:3px solid #00E5FF;">
+          <div style="color:#00E5FF;font-weight:700;">2. Step Executor（分步受控执行）</div>
+          <div style="color:rgba(224,231,255,0.7);">按序执行每个子步骤（内部可用轻量模型或单步 ReAct），状态清晰可追踪。</div>
+        </div>
+        <div class="step-box" style="background:rgba(168,85,247,0.07);border-left:3px solid #A855F7;">
+          <div style="color:#A855F7;font-weight:700;">3. Replanner（动态重规划）</div>
+          <div style="color:rgba(224,231,255,0.7);">若 Step3 发现某款缺货，Replanner 动态修正后续步骤，替换为同档次备选款。</div>
+        </div>
+      </div>
+
+      <div style="padding:9px 11px;background:rgba(255,107,53,0.06);border-radius:5px;font-size:11.5px;color:rgba(224,231,255,0.8);">
+        <b style="color:#FF6B35;">工程特性：</b>适用于长程复杂任务；通过规划（Plan）与执行（Execute）解耦，降低单步上下文负载，支持子步失败重规划。
+      </div>
+    </div>
+
+    <!-- 3. Reflection / Self-Correction -->
+    <div class="loop-card" style="background:rgba(34,197,94,0.03);border:1px solid rgba(34,197,94,0.22);">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span style="font-size:16px;font-weight:700;color:#22C55E;">③ Reflection 自我反思</span>
+          <span style="font-size:11px;padding:2px 8px;background:rgba(34,197,94,0.12);color:#22C55E;border-radius:4px;">Verify + Self-Correction</span>
+        </div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.65);margin-bottom:10px;">
+          <b style="color:#E0E7FF;">先验校验与错题重做</b>：绝不盲目信任模型的第一次输出，通过确定性校验器或 Critic 模型捕获错误并闭环修正。
+        </div>
+
+        <div class="step-box" style="background:rgba(0,229,255,0.07);border-left:3px solid #00E5FF;">
+          <div style="color:#00E5FF;font-weight:700;">1. Draft Generation（初次生成）</div>
+          <div style="color:rgba(224,231,255,0.7);">模型生成 JSON 结构化导购推荐或工具调用参数。</div>
+        </div>
+        <div class="step-box" style="background:rgba(255,107,53,0.07);border-left:3px solid #FF6B35;">
+          <div style="color:#FF6B35;font-weight:700;">2. Critic / Validator（校验拦截）</div>
+          <div style="color:rgba(224,231,255,0.7);">发现 JSON 反序列化失败、必填字段缺失，或推荐价格超出用户预算红线。</div>
+        </div>
+        <div class="step-box" style="background:rgba(34,197,94,0.07);border-left:3px solid #22C55E;">
+          <div style="color:#22C55E;font-weight:700;">3. Self-Correction（带错重试）</div>
+          <div style="color:rgba(224,231,255,0.7);">将精确报错信息（Exception / Critic 意见）拼回上下文，让模型自我修复后输出。</div>
+        </div>
+      </div>
+
+      <div style="padding:9px 11px;background:rgba(34,197,94,0.06);border-radius:5px;font-size:11.5px;color:rgba(224,231,255,0.8);">
+        <b style="color:#22C55E;">工程特性：</b>适用于结构化输出校验、代码自愈重试与业务合规性审查，大幅降低幻觉与接口调用错误率。
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部总结条 -->
+  <div style="margin-top:12px;padding:10px 16px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.25);border-radius:6px;display:flex;align-items:center;justify-content:space-between;font-size:12.5px;">
+    <span style="color:#E0E7FF;"><b style="color:#A855F7;">生产级组合拳：</b>宏观任务用 <b style="color:#FF6B35;">Plan-and-Execute</b> 排步骤 → 单步执行用 <b style="color:#00E5FF;">ReAct</b> 调工具 → 输出与异常用 <b style="color:#22C55E;">Reflection</b> 兜底校验。</span>
+    <span style="color:#00E5FF;font-weight:700;">三大循环的本质：不断更新 Context 并再次调用 LLM →</span>
   </div>
 </div>
-
-<!-- Prompt系统流程图 -->
-<div style="display:flex;align-items:center;justify-content:center;gap:6px;margin:16px 0;padding:12px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
-  <div style="display:flex;flex-direction:column;gap:4px;">
-    <div style="padding:4px 10px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.25);border-radius:3px;font-size:10px;color:#00E5FF;text-align:center;">System Prompt</div>
-    <div style="padding:4px 10px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:3px;font-size:10px;color:rgba(224,231,255,0.5);text-align:center;">Template</div>
-    <div style="padding:4px 10px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:3px;font-size:10px;color:rgba(224,231,255,0.5);text-align:center;">Few-shot</div>
-  </div>
-  <div style="font-size:18px;color:rgba(0,229,255,0.3);">→</div>
-  <div style="padding:6px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.2);border-radius:4px;font-size:10px;color:#FF6B35;font-weight:600;text-align:center;">Output Parser</div>
-  <div style="font-size:18px;color:rgba(0,229,255,0.3);">→</div>
-  <div style="padding:6px 14px;background:rgba(255,107,53,0.12);border:2px solid #FF6B35;border-radius:6px;font-size:11px;color:#FF6B35;font-weight:700;text-align:center;">🧠 LLM</div>
-</div>
-
-<div style="margin-top:auto;padding:8px 12px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:5px;">
-  <div style="font-size:12px;color:#FF6B35;font-weight:700;margin-bottom:3px;">什么时候必须精心设计Prompt？</div>
-  <div style="font-size:11px;color:rgba(224,231,255,0.55);">角色扮演 · JSON约束 · 安全边界 · 多步骤指令</div>
-</div>
-</div>
-</div></body></html>
+</body></html>

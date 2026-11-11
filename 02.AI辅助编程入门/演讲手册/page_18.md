@@ -1,30 +1,19 @@
-# OpenCode实战：安装与配置
-
 ## Slide Objective
-为实操环节扫清技术障碍，提供明确、可落地的安装和配置指南，确保每个学员都能在课后跑通环境。
+演示 Terminal Coding Agent 的快速上手路径，掌握 TUI 交互、Headless 自动化与管道批处理三种工作模式。
 
 ## Suggested Presentation
-我们今天的实战演示，将使用开源的 OpenCode。为什么选它？因为它免费、好用，而且你可以自由切换国内外的任何模型。
-安装非常简单，就三个步骤。第一步，在命令行运行这行脚本，它就会下载一个没有依赖的独立程序。第二步，配置你的 API Key。我们非常推荐大家使用 DeepSeek，因为便宜且编程能力很强。第三步，进到你的项目目录，敲 `opencode` 就可以启动了。
-这里特别提醒使用 Windows 的同学，由于终端环境的差异，强烈建议大家安装 WSL（Windows 下的 Linux 子系统）。在 WSL 里面跑 OpenCode，不仅文件操作更快，而且界面完全不会乱码。
-另外，OpenCode 有三种启动模式。日常你可以在终端里交互（TUI）；如果是跑自动化脚本就用命令行（CLI）；如果你不习惯黑框框，还可以启动 Web 界面。
-大家课后可以根据这张 PPT 自己配一下。现在，请大家把注意力集中在屏幕上，看看实际跑起来是什么样。
+请看第 18 页：Terminal Coding Agent 快速上手与三种工作模式。
+终端 Agent 看起来像黑客终端，但上手其实只要一分钟。
+比如 Claude Code（`npm i -g @anthropic-ai/claude-code`）或开源的 OpenCode（`pip install opencode`），配置好 API Key 后，在任何代码仓库根目录敲 `claude` 就能立刻进入工作状态。
+它有三种无可替代的运行模式：
+1. **TUI 全交互模式**：像聊天一样与终端对话，实时查看它调用的 Git、Bash 和文件编辑 Diff，敲回车即可授权执行；
+2. **Headless 非交互自动化模式**：通过参数 `-p` 或 `run`，直接把任务当成命令行脚本执行！例如在 CI 脚本中一行命令：`opencode run "为 PaymentService 补齐边界单测并跑通 mvn test"`，执行成功返回 0，失败返回 1；
+3. **Unix 管道模式**：把其他系统输出直接喂给它，例如：`tail -n 200 error.log | claude -p "定位 NPE 根因并给出修复补丁"`！
+这种极客级灵活性，是任何图形化 IDE 插件都无法比拟的生产力杀手锏。
 
-## Key Emphasis
-重点强调：不需要复杂的依赖环境，只需安装二进制和配置 Key 即可。
-强调 Windows 用户的最佳实践是 WSL（避免踩坑）。
-
-## Optional Extension
-如果学员提问没有外网怎么安装？可以解释：国内环境可以使用 Go 的国内镜像源进行源码安装，或者直接下载编译好的可执行文件。
-
-## Classroom Interaction
-(无) 这里主要是讲解操作步骤，为接下来的演示做铺垫。
-
-## Take Away
-OpenCode 是一款轻量、灵活、且支持多模型切换的开源 Agent，适合融入日常开发流程。
-
-## Why This Slide Matters
-没有这份傻瓜式的操作指南，学员课后很难将课堂上的震撼转化为自己的实际生产力。这是一张必须被拍照收藏的工具页。
+## Key Q&A / Clarifications
+**Q：在 Windows PowerShell 下使用 Terminal CLI 会有路径或编码问题吗？**
+A：现代 CLI（如 Claude Code 2026 版）对 Windows 路径均有良好原生兼容；推荐在 Windows 终端中确保编码为 UTF-8（`chcp 65001`），或在 WSL2 环境中运行，体验更佳。
 
 ## Transition
-环境准备好了，那么在真实开发中，我们能用它做哪些事呢？来看我们的五个经典演示场景。
+到这里，我们已经掌握了工具和 Harness。现在我们要直面最关键的日常痛点：第六章，为什么 AI 越聊越笨？

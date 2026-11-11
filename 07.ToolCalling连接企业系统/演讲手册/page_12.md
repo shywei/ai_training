@@ -17,5 +17,17 @@ Server 端代码很简洁——定义 Tool/Resource，注册到 McpServer，完�
 ## Key Emphasis
 MCP Server 的职责是"暴露能力"，不是"实现业务"。业务逻辑在 Service 层，MCP 层只做协议转换。这是关注点分离。
 
+## Optional Extension
+**学员问：MCP Server 里的 Tool 处理函数应该写多厚？业务逻辑能不能直接写进去？**
+答：处理函数只做"取参 → 调 Service → 包结果"，业务逻辑留 Service 层。这不是分层洁癖，是给治理留挂载点。
+Demo 做法：`McpServerConfig` 的 `SyncToolSpecification` 从 `request.arguments()` 取参数，调 `ProductRepository`（MySQL）/ `VectorSearchService`（pgvector）/ `UserProfileService`，结果包成 `CallToolResult`——SQL 和检索逻辑都在 Service/Mapper 层，协议层不含业务。
+生产做法：协议层是参数校验、审计埋点、限流的统一挂载点（每个 Tool 一处覆盖），业务 Service 可脱离协议做单元测试；写操作在这里认幂等键。取舍：多一层转发的几毫秒，换所有 Tool 的治理一致性。
+
+## Take Away
+Tool 处理函数固定只做"取参→调 Service→包结果"三件事——校验、审计、限流才有统一挂载点，业务逻辑也才能脱离协议层测试。
+
+## Why This Slide Matters
+跳过这页，学员会把 SQL 和业务规则写进 Tool 处理函数——治理逻辑没有统一挂载点只能逐个补，测试要穿过 MCP 协议层，Server 端演进越来越难。
+
 ## Transition
-MCP Server 暴露了 Tool，Agent 怎么知道该用哪个？需要路由机制。
+看完了 Demo 里两个 MCP Server 的代码实现，那在行业里还有哪些客户端和生态在用 MCP？暴露外部工具又必须防范哪些安全风险？我们看下一页（page_13）：MCP 生态与 Tool 调用安全。

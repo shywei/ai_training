@@ -3,125 +3,101 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>深度学习突破与AI进入日常生活</title>
+<title>深度学习突破：神经元模型、反向传播与“特征自学习”（2002–2016）</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
-.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-era-label { font-size:13px; font-weight:600; letter-spacing:2px; padding:4px 14px; display:inline-block; margin-bottom:14px; }
-.slide-event-row { display:flex; align-items:flex-start; margin-bottom:12px; }
-.slide-event-year { font-size:18px; font-weight:700; min-width:55px; line-height:1; }
-.slide-event-content { flex:1; }
-.slide-event-title { font-size:14px; font-weight:600; color:#E0E7FF; margin-bottom:2px; }
-.slide-event-desc { font-size:12px; color:rgba(224,231,255,0.5); line-height:1.4; }
-.slide-divider-v { width:1px; background:rgba(0,229,255,0.15); margin:0 30px; }
-.slide-note { font-size:13px; color:rgba(224,231,255,0.4); line-height:1.6; font-style:italic; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:26px 65px; display:flex; flex-direction:column; justify-content:space-between; }
+.slide-container h1 { font-size:28px !important; color:#E0E7FF; font-weight:700; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:38px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 01</div>
-  <h1 class="mb-2">深度学习突破与AI进入日常生活（2002-2016）</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:28px;"></div>
+<div class="slide-container">
+  <!-- Top Header -->
+  <div>
+    <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:4px;">CHAPTER 01 · 前大模型时代（1943–2016）</div>
+    <h1 class="mb-1">深度学习突破：神经元模型、反向传播与“特征自学习”的机械原理</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:10px;"></div>
+    <div style="font-size:12.5px; color:rgba(224,231,255,0.65); line-height:1.45;">
+      2012 年 AlexNet 斩获 ImageNet 冠军，深度学习全面引爆。破除 AI 黑盒迷信，从最简单的神经元计算到多层网络反向传播，理解机器如何自主学会高维表征。
+    </div>
+  </div>
 
-  <div class="flex" style="height:500px;">
-    <!-- Left: Technical Breakthroughs -->
-    <div style="flex:1;">
-      <div class="slide-era-label" style="background:rgba(0,229,255,0.1); color:#00E5FF; border:1px solid rgba(0,229,255,0.3);">技术突破 2007-2015</div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#00E5FF;">2007</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">NVIDIA发布CUDA</div>
-          <div class="slide-event-desc">GPU不再只是图形处理器，能做通用并行计算——深度学习的算力基石</div>
-        </div>
+  <!-- Row 1: Three Pillars Strip -->
+  <div class="grid grid-cols-3 gap-3">
+    <div style="padding:8px 14px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.18); border-radius:4px;">
+      <div style="font-size:13px; font-weight:700; color:#00E5FF; margin-bottom:2px;"><i class="fas fa-microchip" style="margin-right:6px;"></i>算力（GPU 登场）</div>
+      <div style="font-size:11.5px; color:rgba(224,231,255,0.65); line-height:1.4;">
+        CUDA 并行加速，GTX 580 将反向传播大矩阵乘法训练时间从数月压缩至数天。
       </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#00E5FF;">2009</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">ImageNet数据集发布</div>
-          <div class="slide-event-desc">李飞飞团队标注1500万张图片，为计算机视觉提供了标准化"考场"</div>
-        </div>
+    </div>
+    <div style="padding:8px 14px; background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.18); border-radius:4px;">
+      <div style="font-size:13px; font-weight:700; color:#FF6B35; margin-bottom:2px;"><i class="fas fa-database" style="margin-right:6px;"></i>数据（ImageNet 建立）</div>
+      <div style="font-size:11.5px; color:rgba(224,231,255,0.65); line-height:1.4;">
+        李飞飞团队构建 1400 万张带标签图像，为深层网络梯度迭代提供充沛燃料。
       </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#00E5FF;">2012</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title" style="color:#FF6B35;">AlexNet横扫ImageNet</div>
-          <div class="slide-event-desc">辛顿团队用GPU训练CNN，错误率比第二名降低41%——深度学习爆发的引爆点</div>
-        </div>
+    </div>
+    <div style="padding:8px 14px; background:rgba(34,197,94,0.04); border:1px solid rgba(34,197,94,0.18); border-radius:4px;">
+      <div style="font-size:13px; font-weight:700; color:#22C55E; margin-bottom:2px;"><i class="fas fa-code-branch" style="margin-right:6px;"></i>算法（ReLU 与正则化）</div>
+      <div style="font-size:11.5px; color:rgba(224,231,255,0.65); line-height:1.4;">
+        非线性激活 ReLU 彻底解决 Sigmoid 梯度消失，结合 Dropout 让深层网络稳定收敛。
       </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#00E5FF;">2013</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">Word2Vec + DQN</div>
-          <div class="slide-event-desc">谷歌将词语映射到向量空间，让模型理解语义；DeepMind让AI自学玩游戏</div>
-        </div>
+    </div>
+  </div>
+
+  <!-- Row 2: Mechanical Model: Neuron & Backpropagation -->
+  <div class="grid grid-cols-2 gap-4">
+    <!-- Left: Neuron Working Model -->
+    <div style="padding:12px 16px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.2); border-radius:4px;">
+      <div class="flex justify-between items-center mb-1.5">
+        <span style="font-size:14px; font-weight:700; color:#00E5FF;"><i class="fas fa-project-diagram mr-1.5"></i>神经元工作模型（Neuron Model）</span>
+        <span style="font-size:11px; font-family:monospace; color:#00E5FF; background:rgba(0,229,255,0.12); padding:1px 6px; border-radius:3px;">y = f(∑ wᵢxᵢ + b)</span>
       </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#00E5FF;">2014</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">GAN + 注意力机制 + Seq2Seq</div>
-          <div class="slide-event-desc">生成对抗网络开创AI创作；注意力机制首次引入翻译；端到端序列模型奠基</div>
-        </div>
+      <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.5; margin-bottom:8px;">
+        单个神经元是线性加权与非线性激活的结合体，构成整个深度学习的原子构件：
       </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#00E5FF;">2015</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">ResNet残差网络</div>
-          <div class="slide-event-desc">何恺明解决深层网络退化问题，启发了后来Transformer的残差连接设计</div>
+      <div style="display:flex; flex-direction:column; gap:4px; font-size:11px; color:rgba(224,231,255,0.75);">
+        <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px;">
+          • <strong style="color:#00E5FF;">输入 (xᵢ) 与权重 (wᵢ)：</strong>每个输入特征乘以对应突触权重，权重衡量特征对决策的重要性。
+        </div>
+        <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px;">
+          • <strong style="color:#FF6B35;">偏置 (Bias b)：</strong>控制神经元被激发的难易门槛，提供坐标系平移自由度。
+        </div>
+        <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px;">
+          • <strong style="color:#22C55E;">激活函数 (f)：</strong>引入非线性映射（ReLU/GELU），否则多层网络叠加数学上等价于单层线性矩阵！
         </div>
       </div>
     </div>
 
-    <div class="slide-divider-v"></div>
+    <!-- Right: Backpropagation & Gradient Descent -->
+    <div style="padding:12px 16px; background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.2); border-radius:4px;">
+      <div class="flex justify-between items-center mb-1.5">
+        <span style="font-size:14px; font-weight:700; color:#FF6B35;"><i class="fas fa-route mr-1.5"></i>反向传播与参数更新（Backprop &amp; SGD）</span>
+        <span style="font-size:11px; font-family:monospace; color:#FF6B35; background:rgba(255,107,53,0.12); padding:1px 6px; border-radius:3px;">w ← w - η · ∂L/∂w</span>
+      </div>
+      <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.5; margin-bottom:8px;">
+        无需人工编写“猫耳朵特征提取算法”，多层参数通过梯度反向传播自动学习进化：
+      </div>
+      <div style="display:flex; flex-direction:column; gap:4px; font-size:11px; color:rgba(224,231,255,0.75);">
+        <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px;">
+          • <strong style="color:#FF6B35;">损失函数 (Loss Function)：</strong>度量当前模型预测值与真实标签（Ground Truth）之间的误差距离。
+        </div>
+        <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px;">
+          • <strong style="color:#00E5FF;">链式法则反向求导：</strong>误差从输出层反向逐层传递，计算损失对每个权重矩阵的梯度 ∂L/∂w。
+        </div>
+        <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px;">
+          • <strong style="color:#22C55E;">梯度下降更新权重：</strong>沿梯度反方向微调权重。海量数据迭代后，网络自发涌现分层抽象特征！
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <!-- Right: AI Enters Daily Life -->
-    <div style="flex:1;">
-      <div class="slide-era-label" style="background:rgba(255,107,53,0.1); color:#FF6B35; border:1px solid rgba(255,107,53,0.3);">AI进入日常生活 2002-2016</div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#FF6B35;">2002</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">Roomba扫地机器人</div>
-          <div class="slide-event-desc">iRobot推出，第一款大规模商用消费级智能机器人，AI走进千家万户</div>
-        </div>
-      </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#FF6B35;">2006</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">Netflix Prize推荐算法竞赛</div>
-          <div class="slide-event-desc">悬赏100万美元征集最优推荐算法，推动了机器学习在推荐系统中的应用</div>
-        </div>
-      </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#FF6B35;">2011</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">苹果Siri语音助手</div>
-          <div class="slide-event-desc">首个消费级智能语音助手，AI第一次以自然语言交互的方式进入手机</div>
-        </div>
-      </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#FF6B35;">2012</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">Facebook信息流算法 + 字节跳动成立</div>
-          <div class="slide-event-desc">AI第一次大规模主导内容分发；字节跳动创立（抖音/TikTok于2016年上线）</div>
-        </div>
-      </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#FF6B35;">2016</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title" style="color:#FF6B35;">AlphaGo 4:1击败李世石</div>
-          <div class="slide-event-desc">全球公众首次意识到AI可能超越人类认知，引发新一轮AI投资热潮</div>
-        </div>
-      </div>
-
-      <div style="margin-top:24px; padding:12px 16px; background:rgba(255,107,53,0.06); border-left:3px solid #FF6B35;">
-        <div class="slide-note">
-          <i class="fas fa-lightbulb" style="color:#FF6B35; margin-right:8px;"></i>
-          关键转变：AI从<strong style="color:#E0E7FF;">实验室里的研究</strong>变成了<strong style="color:#FF6B35;">手机里的功能</strong>和<strong style="color:#FF6B35;">家里的电器</strong>。
-        </div>
-      </div>
+  <!-- Row 3: Feature Learning Comparison & AlphaGo Milestone -->
+  <div style="padding:10px 16px; background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.22); border-radius:4px; display:flex; align-items:center; justify-content:space-between;">
+    <div style="font-size:11.5px; color:#E0E7FF; line-height:1.55;">
+      <i class="fas fa-lightbulb" style="color:#00E5FF; margin-right:8px;"></i><strong style="color:#00E5FF;">从“人工特征工程”到“表征自学习”：</strong>
+      传统 ML 依赖专家人肉写 SIFT 算法提取边缘，模型上限受制于人类经验；深度学习输入原始像素，<strong>底层神经元自动学线条边缘 &rarr; 中层学器官轮廓 &rarr; 高层学抽象语义</strong>。2016 年 AlphaGo 攻克围棋 10¹⁷⁰ 搜索空间，正是策略网络自学习的高维模式识别超越了人类三维直觉极限！
     </div>
   </div>
 </div>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>企业研发的真实战场：90% 是在改没文档的存量老代码</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:4px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; line-height:1.25; margin-bottom:8px; }
+.slide-accent-line { width:50px; height:3px; background:#FF6B35; margin-bottom:14px; }
+.slide-card { padding:12px 15px; margin-bottom:9px; display:flex; align-items:flex-start; gap:12px; border-radius:6px; }
+.slide-icon { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.slide-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
+.slide-desc { font-size:12px; color:rgba(224,231,255,0.65); line-height:1.45; }
+.code-box { background:#060A12; border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:10px 12px; font-family:Consolas,monospace; font-size:11.5px; line-height:1.5; color:#E0E7FF; }
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <div class="slide-section-num">CHAPTER 02 · 存量复杂工程（BROWNFIELD）破局与安全重构</div>
+  <h1>企业研发的真实战场：90% 是在改没文档的存量老代码</h1>
+  <div class="slide-accent-line"></div>
+<div class="flex gap-4 mb-4">
+    <div style="width:32%; background:rgba(34,197,94,0.05); border:1px solid rgba(34,197,94,0.25); border-radius:6px; padding:12px 15px;">
+      <div class="flex items-center justify-between mb-1">
+        <span style="font-size:14px; font-weight:700; color:#22C55E;"><i class="fas fa-seedling mr-2"></i>Greenfield（从零新建项目）</span>
+        <span style="font-size:16px; font-weight:800; color:#22C55E;">~10%</span>
+      </div>
+      <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.5;">
+        网红视频最爱演示：空目录起手、无历史包袱、技术栈全新。AI 自由发挥怎么写都能跑。
+      </div>
+    </div>
+
+    <div style="width:68%; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.3); border-radius:6px; padding:12px 16px;">
+      <div class="flex items-center justify-between mb-1">
+        <span style="font-size:14px; font-weight:700; color:#00E5FF;"><i class="fas fa-industry mr-2"></i>Brownfield（企业存量复杂工程 — 真实日常）</span>
+        <span style="font-size:18px; font-weight:800; color:#FF6B35;">&gt; 90% 研发工作量</span>
+      </div>
+      <div class="grid grid-cols-3 gap-3" style="font-size:11.5px; color:rgba(224,231,255,0.8); line-height:1.45;">
+        <div><i class="fas fa-book-skull mr-1" style="color:#FF6B35;"></i><strong>文档严重过期：</strong>历史 Wiki 与实际代码对不上，前作者已离职。</div>
+        <div><i class="fas fa-network-wired mr-1" style="color:#FF6B35;"></i><strong>牵一发而动全身：</strong>核心计价/路由方法被十几个下游隐式依赖。</div>
+        <div><i class="fas fa-vial-virus mr-1" style="color:#FF6B35;"></i><strong>单测严重匮乏：</strong>缺乏自动化回归单测，改完不敢确认旧功能是否受损。</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="font-size:13.5px; font-weight:700; color:#FF6B35; margin-bottom:8px;">
+    <i class="fas fa-car-burst mr-2"></i>直接让 Coding Agent 上手修改存量代码的“三大翻车现场”：
+  </div>
+  <div class="grid grid-cols-3 gap-3.5 mb-4" style="height:270px;">
+    <div style="background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.25); border-top:4px solid #FF6B35; border-radius:6px; padding:14px; display:flex; flex-direction:column;">
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">
+        <span style="color:#FF6B35;">翻车现场 1：</span>触发切斯顿围栏效应<br><span style="font-size:11.5px; color:#FF6B35;">（误把历史兼容逻辑当 Bug 删掉）</span>
+      </div>
+      <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.5;">
+        老代码有丑陋的向下取整分支。Agent 顺手优化为统一四舍五入，殊不知这是某银行渠道对账专用协议，上线当晚对账全崩！
+      </div>
+      <div style="margin-top:auto; padding:7px 9px; background:rgba(239,68,68,0.12); border-left:3px solid #EF4444; font-size:11px; color:#FCA5A5;">
+        <strong>教训：</strong>不明白为什么存在的代码，绝不轻易删除！
+      </div>
+    </div>
+
+    <div style="background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.25); border-top:4px solid #FF6B35; border-radius:6px; padding:14px; display:flex; flex-direction:column;">
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">
+        <span style="color:#FF6B35;">翻车现场 2：</span>局部打补丁加剧腐化<br><span style="font-size:11.5px; color:#FF6B35;">（顺着 6 层嵌套塞入第 7 层 if-else）</span>
+      </div>
+      <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.5;">
+        大模型天生倾向于模仿当前上下文风格。面对杂乱上帝类，AI 完美复制糟糕命名与魔法值，圈复杂度呈指数级恶化。
+      </div>
+      <div style="margin-top:auto; padding:7px 9px; background:rgba(239,68,68,0.12); border-left:3px solid #EF4444; font-size:11px; color:#FCA5A5;">
+        <strong>教训：</strong>局部打补丁让祖传代码彻底沦为黑盒。
+      </div>
+    </div>
+
+    <div style="background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.25); border-top:4px solid #FF6B35; border-radius:6px; padding:14px; display:flex; flex-direction:column;">
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">
+        <span style="color:#FF6B35;">翻车现场 3：</span>隐式跨模块副作用遗漏<br><span style="font-size:11.5px; color:#FF6B35;">（改了 DTO 导致下游反序列化失败）</span>
+      </div>
+      <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.5;">
+        Agent 仅改动当前 Service，重构了字段名，却没意识到下游微服务通过 Kafka 消息隐式消费。本地编译全过，线上大面积空指针！
+      </div>
+      <div style="margin-top:auto; padding:7px 9px; background:rgba(239,68,68,0.12); border-left:3px solid #EF4444; font-size:11px; color:#FCA5A5;">
+        <strong>教训：</strong>缺乏全局架构地图导致盲目爆破。
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:10px 16px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.3); border-radius:6px; display:flex; align-items:center; justify-content:space-between; font-size:12.5px; color:#E0E7FF;">
+    <div>
+      <i class="fas fa-compass mr-2" style="color:#22C55E;"></i><strong>Brownfield 破局三板斧：</strong>
+      <span style="color:#00E5FF;">① 先逆向测绘 Repo Wiki 架构地图</span> &rarr; <span style="color:#FF6B35;">② 先写黄金特征回归测试锁死现状</span> &rarr; <span style="color:#22C55E;">③ 科学假设检验定位跨模块根因</span>
+    </div>
+    <span style="font-size:12px; color:#22C55E; font-weight:700;">不摸清地图不施工 · 不锁死测试不重构</span>
+  </div>
+</div>
+</body>
+</html>

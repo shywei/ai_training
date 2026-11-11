@@ -1,46 +1,49 @@
 ## Slide Objective
-展示项目架构、代码阅读路线图和 v5.0 新增/修改文件，帮助学员快速上手代码。
+讲解可观测性——TraceService 如何记录 Agent 的每一步执行、分布式 OpenTelemetry 接入，以及基于 Trace 的 Agent 系统级三维评估指标（Agent Evals，与第六课 RAGAS 呼应）。
 
 ## Suggested Presentation
-左边是代码阅读路线图。按这个顺序读，10 分钟就能理解整个 Demo 的架构。
+左边讲 TraceService 的职责。记录 Agent 每一步的完整执行链路：思考内容、工具调用、入参出参、耗时、重试次数、状态变更。Tracing 是调试、审计、优化与量化评估（Agent Evals）的基础。
 
-① WorkflowController.java — API 入口。看它有哪些端点：POST /workflow 执行工作流，POST /workflow/stream SSE 流式，POST /workflow/confirm 确认/取消。响应里有 mode 字段：simple 或 workflow——简单任务不走完整工作流。
+下面展示 Trace 输出示例。Trace #trace-a1b2c3，总耗时 4.2 秒。Plan: 3 步，耗时 0.8 秒。Step 1: search_knowledge("拯救者") → 成功，1.1 秒。Step 2: search_knowledge("MacBook") → 成功，0.9 秒。Step 3: LLM 综合分析 → 完成，1.4 秒。Status: COMPLETED。
 
-② AgentRuntime.java — ReAct 循环引擎（核心）。这是最重要的文件，651 行。先看 execute() 方法的整体流程——构建 context → TaskPlanner → ReAct 循环 → 输出结果。再看 executeAgentLoop() 的循环逻辑——THINK→ACT→OBSERVE。最后看 handleConfirmation() 的暂停/恢复逻辑。
+注意 Trace 记录的粒度——每步都有 action（做了什么）、status（成功/失败）、durationMs（耗时）、retryCount（重试次数）。THINK 阶段的 LLM 思考内容也记录在 llmThought 字段里。这意味着你可以完整回溯 Agent 的执行过程——它为什么调了这个 Tool、参数是什么、返回了什么、花了多久。
 
-③ TaskPlanner.java — 任务规划。看 plan() 方法的 Prompt 设计——怎么让 LLM 输出 JSON 格式的步骤（注意解析要多兕底：LLM 常丢外层数组）。看 needsPlanning() 的判断逻辑——关键词 + 商品名数量；生产做法是规则快路径 + 快模型兜底分类。
+右边列出 API 端点和 Tracing 的四个价值。GET /workflow/status 查状态；GET /workflow/trace 查完整链路；GET /workflow/traces 查最近 50 条 Trace 列表。四个价值：调试、审计、优化、回放。
 
-④ WorkflowState.java + WorkflowStep.java — 状态机。看枚举定义和转换规则。WorkflowStep 是一个步骤的完整描述——序号、描述、工具、参数、状态、重试次数。
+分布式 Trace 的接入，按三格讲透：
+- 是什么问题：TraceService 用 ConcurrentHashMap 存 Trace，traceId 是自己生成的 "trace-xxx"，没接任何标准协议。
+- 不解决会怎样：重启全丢；多实例部署时 A 实例的链路在 B 实例查不到；跨服务调用（Agent→MCP Server）的链路拼不起来，线上事故只能靠猜。
+- 怎么解决（含取舍）：四步——① 引 opentelemetry-api/sdk + otlp-exporter（要零代码就挂 javaagent，但埋点只到方法级）；② 在 TraceService.createTrace() 处建 root span，把 traceId 对齐 W3C traceparent，跨服务自动透传；③ 现有埋点直接映射——recordStepStart/recordStepEnd 变每步一个 span，recordRetry/recordEvent/recordThought 变 span event，recordStateChange 变 span attribute；④ OTLP 导出到 collector → Jaeger，头部采样 10% + 失败链路全量。取舍：手动埋点要改 TraceService 但精确到 step；采样降存储成本，偶发问题靠"失败全量"兜底；Jaeger 保留 7 天，审计级留存落对象存储。
 
-⑤ ErrorRecovery.java — 容错。看 shouldRetry()、getRetryDelayMs()、isCircuitBroken() 三个方法——对应三级容错。
+更进一步，有了结构化 Trace，我们就能建立**Agent 系统级三维评估指标（Agent Evals，与第六课讲的 RAG 评估指标 RAGAS 形成完整闭环）**：
+1. **① 任务完成率（Task Success / Pass@k）**：评估 Agent 端到端是否完成了用户的业务目标，以及在同一任务跑 k 次时的稳定性（`Pass@k` 与 `Pass^k`）。
+2. **② 工具调用准确率（Tool Selection & Argument Accuracy）**：评估 Agent 是否选对了工具（Tool Selection），以及传入的参数是否符合 Schema 与业务意图（Argument Accuracy）。
+3. **③ 轨迹效率（Trajectory Efficiency）**：评估 Agent 解决问题的路径质量——包括**步数冗余度**（实际执行步数 vs 黄金标准最优步数，有没有原地打转或无效调用）、**Token 消耗**与**端到端延迟**。
 
-⑥ ConfirmationService.java — 人在回路。看 isHighRisk() 的风险判断逻辑，以及 requestConfirmation() / confirm() 的暂停/恢复流程。
-
-⑦ TraceService.java — 执行追踪。看 addStep() 和 complete() 怎么记录执行链路。
-
-右边列出 v5.0 新增/修改的文件。新增 7 个文件，共 1761 行新代码。AgentRuntime.java 651 行是核心——ReAct 循环 + 状态机 + Tool 执行。WorkflowController.java 275 行——API 入口 + SSE。TaskPlanner.java 189 行——LLM 任务规划。TraceService.java 197 行——执行追踪。ConfirmationService.java 159 行——人在回路。ErrorRecovery.java 151 行——三级容错。WorkflowState.java + WorkflowStep.java——状态机。
-
-修改了 McpProductClient.java——加了 callToolDirectly() 方法。这是为了解决一个技术问题：Spring AI 的 Function Calling 是框架自动处理的，AgentRuntime 需要自己控制工具调用，所以加了一个直接调用 MCP Server 的方法。
-
-MCP Server 层完全没有变——chat-mcp-service 和 business-mcp-service 的代码零修改。/chat 已删除（被 /api/agent/workflow 替代）。
+我在做 Demo 时，Trace 帮了大忙。有一次 Agent 突然不调工具了，我打开 Trace 一看——THINK 阶段的 llmThought 显示"用户问的是天气，不是购物问题，不需要调用工具"。原来是测试用例写错了。没有 Trace 的话，我根本不知道发生了什么。
 
 ## Key Emphasis
-代码阅读路线图是本页的核心价值——学员课后上手代码的"地图"。按顺序读，从入口到核心到组件。
+没有 Tracing，Agent 就是黑盒。有了 Tracing，每一步都透明，不仅能支撑线上排障，还能沉淀为 **Agent Evals 三维评估体系（任务完成率 Pass@k、工具调用准确率、轨迹效率）**，与第六课的 RAGAS 检索生成评估首尾呼应。
 
-1761 行新代码听起来很多，但拆成 7 个文件每个都不大。最大的 AgentRuntime 651 行，是因为它包含了完整的 ReAct 循环 + 状态机 + Tool 执行逻辑。
+Trace 的粒度很重要——不是记录"调了什么工具"，而是记录"为什么调、参数是什么、返回了什么、花了多久"。
 
 ## Optional Extension
-**学员问：为什么 MCP Server 层没变？**
-答：因为第七课的 MCP 架构设计是正确的——统一数据访问层。第八课只改 Agent 层，MCP Server 层保持稳定。这就是分层架构的好处——下层稳定，上层迭代。
+**学员问：Trace 存在哪里？分布式 Trace 怎么接？**
+答：拆"存哪"和"怎么接"两层。
+**Demo 做法**：TraceService 用 ConcurrentHashMap 存内存，traceId 是自造的 "trace-xxx"，重启丢失、多实例不共享——单实例教学够用。
+**生产做法**：四步接 OpenTelemetry——① 引 opentelemetry-sdk + OTLP exporter（或挂 javaagent，零代码但埋点只到方法级）；② 在 TraceService.createTrace() 处建 root span，traceId 对齐 W3C traceparent，跨服务（Agent→MCP Server）透传；③ 现有埋点映射：recordStepStart/recordStepEnd 变每步一个 span，recordRetry/recordEvent 变 span event，recordStateChange 变 span attribute；④ OTLP → collector → Jaeger，采样 10% + 失败链路全量。取舍：手动埋点改 TraceService 精确到 step；采样省存储但偶发问题靠失败全量兜底。
 
-**学员问：callToolDirectly() 和 Spring AI 的 Function Calling 有什么区别？**
-答：Function Calling 是"LLM 说要调什么，框架自动执行"——你控制不了执行过程。callToolDirectly() 是"AgentRuntime 决定调什么，自己执行"——你能控制重试、熔断、确认。手搓 ReAct 需要后者。
+**学员问：第六课讲了用 RAGAS 评估 RAG，那多步 Agent 怎么自动化评估？**
+答：就靠这页讲的 **Agent Evals 三维评估指标**！把线上收集的高价值 `WorkflowTrace` 转化为评测基准集（Golden Dataset），每次升级 Prompt 或切换模型时，离线跑评测集统计三项核心指标：① **任务完成率（Task Success / Pass@k）**；② **工具调用准确率（Tool Selection & Argument Accuracy）**；③ **轨迹效率（Trajectory Efficiency：步数冗余度、Token 消耗与端到端延迟）**。
+
+**学员问：Trace 和日志（Log）有什么区别？**
+答：日志是"发生了什么"，Trace 是"为什么发生"。日志记录事件（"调用了 search_knowledge"），Trace 记录链路（"用户问了 X → THINK 决定调 Y → 调用 Z → 返回 W → THINK 决定回答"）。Trace 是结构化的、可查询的、有因果关系的。
 
 ## Take Away
-1761 行新代码，7 个文件，10 分钟阅读路线。MCP Server 层不变，分层架构的好处。
+Trace 埋点的最低标准：每次 LLM 调用、每次工具调用、每次状态变更都有带 traceId 的记录——在此之上构建 **任务完成率（Pass@k）、工具调用准确率、轨迹效率** 三维 Agent Evals 评估体系。
 
 ## Why This Slide Matters
-如果跳过这页，学员拿到代码不知道从哪里看起。代码阅读路线图是"上手"的桥梁。
+跳过这页，学员会拿散落的 log 当追踪，事故时按文本搜日志拼链路——多实例部署下根本拼不出来，更无法量化评估 Agent 升级到底是变好了还是退化了。
 
 ## Transition
-接下来讲 Demo vs 生产的具体差距。
+现在我们已经讲完了状态机、Runtime、容错、人在回路与可观测性。接下来进入第七章，先看贯穿全课的 context 在 v5.0 多轮循环中如何演进。

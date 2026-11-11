@@ -1,45 +1,21 @@
 ## Slide Objective
-解释Knowledge与RAG的存在意义，让学员了解RAG的完整技术栈和行业主流方案。
+给出企业级 Agent 核心公式与五层系统能力结构，系统拆解各核心组件的架构定位与解决痛点。
 
 ## Suggested Presentation
-Memory记住了用户，但如果用户问"你们新款路由器怎么配置？"，大模型肯定不知道——训练数据是旧的，也不可能包含你们公司的内部文档。
+请看第 8 页：企业级 Agent 架构核心公式与能力层级拆解。
+我们在业界可以用一个精炼而优美的公式来定义现代生产级 Agent：
+$$\text{Agent} = \text{Model} + \text{Memory} + \text{Knowledge (RAG)} + \text{Tools (MCP)} + \text{Workflow (FSM)}$$
+这个公式里的每一个加号，都对应着一项关键系统能力，且精准解决一项核心工程痛点：
+- **Model（模型与交互基石）**：打通基础交互，解决模型动态路由（轻重分流）、结构化 JSON 输出与 Prefix Caching 成本控制；
+- **Memory（记忆体系）**：解决大模型的无状态失忆，打造近期滑动窗口 + 用户画像 + 长期语义记忆的分层记忆架构；
+- **Knowledge（知识增强系统）**：解决知识截止与专业幻觉，打通领域条目检索与长文档版面解析切块；
+- **Tools（工具连接体系）**：给大模型装上执行手脚，掌握原生 Function Call、MCP 协议与沙箱安全治理；
+- **Workflow（受控工作流与状态机）**：用有限状态机（FSM）给系统注入确定性业务骨架，彻底终结模型死循环与行为失控！
+这五大能力层层递进、筑基闭环，让单次模型调用真正蜕变为生产级智能体系统！
 
-能不能把所有文档全塞给大模型？不行，Context Window有限，塞不下。
-
-所以我们需要RAG——检索增强生成。思路很简单：Agent遇到不懂的知识，先去资料库里查字典，找到最相关的几段文字，然后拿着这些段落去问大模型。大模型有推理能力，但不一定有你的知识；RAG补上了这块短板。
-
-那RAG在工程上怎么做？大家看这条流水线。
-第一步，把企业文档切成小段（Chunking）。
-第二步，用Embedding模型把每段文字转成一个向量——你可以理解为给每段文字打上一组多维度的坐标标签。
-第三步，把向量存进专门的数据库，叫向量数据库（Vector DB）。
-第四步，用户提问时，把问题也转成向量，去向量数据库里找最相似的几段文字（Retrieval）。
-第五步，如果需要更精准，可以加一层ReRank（重排序），把最相关的排在前面。
-最后，把检索到的段落和用户问题一起交给大模型生成回答。
-
-目前行业里做RAG的主流方案有哪些？
-Embedding模型方面，OpenAI的text-embedding系列是标杆，国内BGE和Jina也很常用，开源免费。
-向量数据库方面，Milvus是国内用得最多的开源向量数据库，性能强；PgVector是PostgreSQL的扩展，适合已有PG基础设施的企业；Chroma轻量级，适合快速原型。
-框架方面，LlamaIndex是Python生态里最成熟的RAG框架，Spring AI RAG是Java生态的首选，提供了开箱即用的RAG流程。
-如果需要提升检索精度，可以加ReRanker，比如Cohere Rerank或者BGE Reranker。
-
-这里再强调一个边界：Knowledge查的是静态文档（说明书、政策），Tool调的是实时API（天气、库存）。两者不能互换。
-
-## Key Emphasis
-重点讲RAG的完整流水线：文档切分→Embedding→向量存储→检索→ReRank→生成。
-逐层展开行业方案：Embedding模型（OpenAI/BGE/Jina）、向量数据库（Milvus/PgVector/Chroma）、RAG框架（LlamaIndex/Spring AI RAG）、ReRanker。
-强调Knowledge和Tool的区别。
-
-## Optional Extension
-如果学员问"需不需要自己训练Embedding模型"，回答：大多数场景不需要。通用的Embedding模型已经足够好。只有在非常专业的领域（比如医疗、法律术语），才需要考虑微调。
-
-## Classroom Interaction
-无。
-
-## Take Away
-RAG让Agent具备查资料的能力。核心流水线：文档→Embedding→向量DB→检索→ReRank→LLM生成。
-
-## Why This Slide Matters
-RAG是目前企业AI落地最核心的技术方向。如果只讲概念不讲技术栈，学员回去还是不知道怎么动手。
+## Key Q&A / Clarifications
+**Q：公式里的五个组件必须全部齐备才算一个好 Agent 吗？**
+A：不一定！在后续第 17 页的架构决策树中我们会看到，必须按需裁剪。只做只读客服只需要 Model + RAG；做复杂内部转账才需要严格的 Workflow + Tools。切忌过度设计。
 
 ## Transition
-认知层的三个能力讲完了。现在Agent能思考了，但如果它想真正干活——比如帮用户查快递、下单——它还需要"手和脚"。接下来进入执行层，看看Tool和MCP。
+接下来，我们进入第三章，自顶向下快速拆解各个组件在生产环境下的核心技术指标与设计考量。

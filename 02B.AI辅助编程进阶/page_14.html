@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>团队级 Context 治理灾难与环境隔离边界（Worktree 误区）</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:22px 65px; display:flex; flex-direction:column; justify-content:space-between; }
+.slide-section-num { font-size:13px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:2px; }
+.slide-container h1 { font-size:28px !important; color:#E0E7FF; font-weight:700; line-height:1.25; margin-bottom:4px; }
+.slide-accent-line { width:50px; height:3px; background:#FF6B35; margin-bottom:8px; }
+.code-box { background:#060A12; border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:6px 8px; font-family:Consolas,monospace; font-size:10.5px; line-height:1.4; color:#E0E7FF; }
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <!-- Header -->
+  <div>
+    <div class="slide-section-num">CHAPTER 04 · 团队级 CONTEXT 治理与工程环境隔离</div>
+    <h1>团队级 Context 治理灾难：为什么 3000 行巨型 AGENTS.md 会失灵？</h1>
+    <div class="slide-accent-line"></div>
+    <div style="padding:6px 12px; background:rgba(255,107,53,0.06); border-left:4px solid #FF6B35; font-size:11.5px; color:#E0E7FF; border-radius:3px;">
+      <i class="fas fa-triangle-exclamation mr-1" style="color:#FF6B35;"></i><strong>团队推行 AI 编程的第 2 个月普遍踩坑：</strong>
+      前端塞 800 行 React 规范，后端塞 1200 行 Java 规则，DBA 塞 600 行 SQL 军规……结果：<strong>Agent 开始大面积“选择性失明”，甚至连第一行的编译命令都记不住了！</strong>
+    </div>
+  </div>
+
+  <!-- 3 Root Causes of Context Collapse -->
+  <div class="grid grid-cols-3 gap-3 my-1" style="height:250px;">
+    <!-- Box 1 -->
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(239,68,68,0.28); border-top:4px solid #EF4444; border-radius:4px; padding:10px 12px; display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span style="font-size:13px; font-weight:700; color:#EF4444;">病根 1：迷失在中间效应</span>
+          <span style="font-size:11px; color:#FCA5A5;">Lost in Middle</span>
+        </div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.45; margin-bottom:6px;">
+          大模型对长上下文注意力呈 <strong>U 型分布</strong>（对首尾敏感，中间 500~2500 行注意力衰减超 50%）。规则超 150 条遵循率断崖暴跌。
+        </div>
+      </div>
+      <div class="code-box">
+        50 行精简规则遵循率: <span style="color:#22C55E; font-weight:700;">96%</span><br>
+        3000 行巨型大杂烩遵循率: <span style="color:#EF4444; font-weight:700;">58%</span>
+      </div>
+    </div>
+
+    <!-- Box 2 -->
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(239,68,68,0.28); border-top:4px solid #EF4444; border-radius:4px; padding:10px 12px; display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span style="font-size:13px; font-weight:700; color:#EF4444;">病根 2：噪音稀释注意力</span>
+          <span style="font-size:11px; color:#FCA5A5;">Signal Collapse</span>
+        </div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.45; margin-bottom:6px;">
+          改 Java Service 时，根目录 800 行 React 规则硬塞进会话头部，白烧数万 Token，挤占了真正要读的业务源码窗口，严重干扰注意力。
+        </div>
+      </div>
+      <div class="code-box">
+        每次会话白耗 25,000+ Token<br>
+        核心业务源码被压缩挤出窗口
+      </div>
+    </div>
+
+    <!-- Box 3 -->
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(239,68,68,0.28); border-top:4px solid #EF4444; border-radius:4px; padding:10px 12px; display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span style="font-size:13px; font-weight:700; color:#EF4444;">病根 3：规则冲突与腐化</span>
+          <span style="font-size:11px; color:#FCA5A5;">Rule Contradiction</span>
+        </div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.45; margin-bottom:6px;">
+          大文档没人敢删，第 200 行写“用 StringRedisTemplate”，第 1800 行写“必须用 Redisson”。两行规则相互打架，AI 随机抛硬币。
+        </div>
+      </div>
+      <div class="code-box">
+        产生自相矛盾逻辑<br>
+        规则库变成无人敢动的死胡同
+      </div>
+    </div>
+  </div>
+
+  <!-- Crucial Worktree vs Runtime Isolation Boundary Correction -->
+  <div style="padding:9px 14px; background:rgba(15,23,42,0.85); border:1.5px solid rgba(0,229,255,0.3); border-radius:4px;">
+    <div class="flex items-center justify-between mb-1">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-layer-group" style="color:#00E5FF; font-size:12px;"></i>
+        <span style="font-size:12px; font-weight:700; color:#00E5FF;">架构师警钟：纠偏 Git Worktree 隔离边界 —— 工作区隔离 ≠ 运行环境隔离！</span>
+      </div>
+      <span style="font-size:11px; color:#FF6B35; font-weight:700;">不可将代码多目录等同于独立环境</span>
+    </div>
+    <div class="grid grid-cols-4 gap-2.5" style="font-size:10.5px; color:rgba(224,231,255,0.75); line-height:1.4;">
+      <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px; border-left:3px solid #00E5FF;">
+        <strong style="color:#00E5FF;">1. Worktree 只管代码：</strong>只提供独立文件目录与 Git 分支，解决多 Agent 修改文件不踩踏。
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px; border-left:3px solid #FF6B35;">
+        <strong style="color:#FF6B35;">2. 共享端口冲突：</strong>多个 Worktree 里的 Agent 同时跑服务单测，必然争抢同一本地端口（如 :8080）。
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px; border-left:3px solid #F59E0B;">
+        <strong style="color:#F59E0B;">3. 共享数据库污染：</strong>多个 Agent 并发读写同一个测试库或 Redis，导致脏数据与测试用例偶发红灯。
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px; border-left:3px solid #22C55E;">
+        <strong style="color:#22C55E;">4. 真正环境隔离：</strong>必须结合 <strong>Docker / DevContainer 沙箱</strong> 分配独立端口与隔离测试库实例！
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Banner -->
+  <div style="padding:6px 14px; background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.2); border-radius:4px; font-size:11.5px; color:#E0E7FF; line-height:1.4;">
+    <strong style="color:#00E5FF;">破解之道：</strong>坚决摒弃“大一统巨型文档”，走向下一页的<strong>分层级（Hierarchical）与按需触发（Scoped）上下文治理架构</strong>；同时将 Worktree 与容器沙箱结合！
+  </div>
+</div>
+</body>
+</html>

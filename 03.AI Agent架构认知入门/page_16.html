@@ -1,71 +1,127 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>最终认知总图</title>
+<title>2026 AI Agent 七层技术栈生态坐标</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
-.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
-.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
-.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
-.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden;padding:28px 52px;display:flex;flex-direction:column}
+.s h1{font-size:27px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px;font-weight:700}
+.layer-row{display:flex;align-items:center;gap:12px;padding:6px 10px;border-radius:6px;background:rgba(0,229,255,0.02);border:1px solid rgba(0,229,255,0.12)}
+.layer-label{width:195px;text-align:right;padding-right:10px;border-right:2px solid rgba(0,229,255,0.3)}
+.tech-pill{flex:1;padding:6px 8px;border-radius:4px;text-align:center;font-size:11.5px;font-weight:600}
 </style></head><body>
-<div class="s" style="padding:36px 60px;">
-<div class="mb-2 sn">CHAPTER 07</div><h1 class="mb-2">最终认知总图</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+<div class="s">
+  <div class="mb-1 sn">CHAPTER 05 · 2026 技术生态与架构决策树</div>
+  <h1 class="mb-1">2026 AI Agent 七层技术栈生态坐标（新工具冒出来往哪一层放？）</h1>
+  <div style="font-size:11.5px;color:rgba(224,231,255,0.6);margin-bottom:10px;">
+    消除技术焦虑的最好办法是建立<b style="color:#00E5FF;">分层坐标系</b>——看清每一层解决什么问题，明确哪些是我们应用架构师的主战场：
+  </div>
 
-<div style="margin-bottom:10px;">
-  </div>
-<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
-  <div style="padding:8px 12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:4px;">
-    <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-bottom:4px;">需求</div>
-    <div style="font-size:12px;color:rgba(224,231,255,0.6);">用户要解决什么问题？→ 拆解成Agent需要的能力</div>
-  </div>
-  <div style="text-align:center;font-size:12px;color:rgba(0,229,255,0.2);">▼</div>
-  <div style="display:flex;gap:8px;">
-    <div style="flex:1;padding:8px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
-      <div style="font-size:11px;color:#00E5FF;font-weight:600;margin-bottom:4px;">认知层</div>
-      <div style="display:flex;gap:4px;">
-        <div style="flex:1;padding:3px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:11px;color:#00E5FF;text-align:center;">Prompt</div>
-        <div style="flex:1;padding:3px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:11px;color:#00E5FF;text-align:center;">Memory</div>
-        <div style="flex:1;padding:3px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:11px;color:#00E5FF;text-align:center;">Knowledge</div>
+  <!-- 七层架构栈 -->
+  <div class="flex flex-col gap-2 flex-1 justify-between" style="min-height:0;">
+    <!-- L7 应用与产品层 -->
+    <div class="layer-row">
+      <div class="layer-label">
+        <div style="font-size:12.5px;font-weight:700;color:#00E5FF;">L7 · 产品与应用层</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.45);line-height:1.3;">通用 Harness vs 垂直 Agent</div>
+      </div>
+      <div class="flex gap-2 flex-1">
+        <div class="tech-pill" style="background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);color:#00E5FF;">Claude Code / Qoder / OpenClaw (通用 Harness)</div>
+        <div class="tech-pill" style="background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);color:#00E5FF;">Dify / Coze / FastGPT (低代码工作流平台)</div>
+        <div class="tech-pill" style="background:rgba(255,107,53,0.12);border:1px solid rgba(255,107,53,0.4);color:#FF6B35;">★ 企业自研垂直 Agent (如电商导购/企业助手)</div>
       </div>
     </div>
-    <div style="flex:1;padding:8px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:4px;">
-      <div style="font-size:11px;color:#FF6B35;font-weight:600;margin-bottom:4px;">执行层</div>
-      <div style="display:flex;gap:4px;">
-        <div style="flex:1;padding:3px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.12);border-radius:2px;font-size:11px;color:#FF6B35;text-align:center;">Tool</div>
-        <div style="flex:1;padding:3px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.12);border-radius:2px;font-size:11px;color:#FF6B35;text-align:center;">MCP</div>
-        <div style="flex:1;padding:3px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.12);border-radius:2px;font-size:11px;color:#FF6B35;text-align:center;">Workflow</div>
-        <div style="flex:1;padding:3px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.12);border-radius:2px;font-size:11px;color:#FF6B35;text-align:center;">Multi-Agent</div>
+
+    <!-- L6 通信与互操作协议层 -->
+    <div class="layer-row" style="border-color:rgba(255,107,53,0.25);background:rgba(255,107,53,0.03);">
+      <div class="layer-label" style="border-right-color:#FF6B35;">
+        <div style="font-size:12.5px;font-weight:700;color:#FF6B35;">L6 · 开放互操作协议层</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.45);line-height:1.3;">2026 三大通信标准</div>
+      </div>
+      <div class="flex gap-2 flex-1">
+        <div class="tech-pill" style="background:rgba(255,107,53,0.12);border:1px solid rgba(255,107,53,0.35);color:#FF6B35;">★ MCP (Model Context Protocol：模型接工具/数据标准)</div>
+        <div class="tech-pill" style="background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.35);color:#A855F7;">★ A2A (Agent-to-Agent：跨智能体协作标准)</div>
+        <div class="tech-pill" style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);color:#22C55E;">★ AG-UI (Agent-User Interaction：前端流式事件标准)</div>
+      </div>
+    </div>
+
+    <!-- L5 编排与运行时层 -->
+    <div class="layer-row" style="border-color:rgba(34,197,94,0.25);background:rgba(34,197,94,0.03);">
+      <div class="layer-label" style="border-right-color:#22C55E;">
+        <div style="font-size:12.5px;font-weight:700;color:#22C55E;">L5 · 编排与运行时层</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.45);line-height:1.3;">状态机 · 循环 · HITL · 记忆</div>
+      </div>
+      <div class="flex gap-2 flex-1">
+        <div class="tech-pill" style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.4);color:#22C55E;">★ 自研轻量 FSM 状态机 (受控 AgentRuntime)</div>
+        <div class="tech-pill" style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.4);color:#22C55E;">★ AgentScope Java 2.0 (生产级多智能体运行时)</div>
+        <div class="tech-pill" style="background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);color:#00E5FF;">LangGraph / Spring AI Alibaba Graph</div>
+      </div>
+    </div>
+
+    <!-- L4 应用开发框架层 -->
+    <div class="layer-row" style="border-color:rgba(0,229,255,0.3);background:rgba(0,229,255,0.04);">
+      <div class="layer-label">
+        <div style="font-size:12.5px;font-weight:700;color:#00E5FF;">L4 · AI 开发框架/SDK层</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.45);line-height:1.3;">统一模型/向量库/MCP抽象</div>
+      </div>
+      <div class="flex gap-2 flex-1">
+        <div class="tech-pill" style="background:rgba(0,229,255,0.15);border:1px solid #00E5FF;color:#E0E7FF;">★ Spring AI 1.x / 2.0 (Java 企业开发首选主力)</div>
+        <div class="tech-pill" style="background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.2);color:rgba(224,231,255,0.75);">LangChain4j (Java 备选)</div>
+        <div class="tech-pill" style="background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.2);color:rgba(224,231,255,0.75);">LangChain / LlamaIndex (Python 生态)</div>
+        <div class="tech-pill" style="background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.2);color:rgba(224,231,255,0.75);">Vercel AI SDK / Mastra (TS)</div>
+      </div>
+    </div>
+
+    <!-- L3 网关、可观测与评测治理层 -->
+    <div class="layer-row">
+      <div class="layer-label" style="border-right-color:#A855F7;">
+        <div style="font-size:12.5px;font-weight:700;color:#A855F7;">L3 · 网关与治理底座层</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.45);line-height:1.3;">路由 · 限流 · Tracing · Evals</div>
+      </div>
+      <div class="flex gap-2 flex-1">
+        <div class="tech-pill" style="background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.28);color:#A855F7;">Higress / LiteLLM / OneAPI (AI &amp; MCP 网关)</div>
+        <div class="tech-pill" style="background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.28);color:#A855F7;">OpenTelemetry / Langfuse / Arize Phoenix (可观测追踪)</div>
+        <div class="tech-pill" style="background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.28);color:#A855F7;">RAGAS / DeepEval (自动化评测)</div>
+      </div>
+    </div>
+
+    <!-- L2 模型能力层 -->
+    <div class="layer-row">
+      <div class="layer-label">
+        <div style="font-size:12.5px;font-weight:700;color:rgba(224,231,255,0.75);">L2 · 基础与专用模型层</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.45);line-height:1.3;">推理 · 快模型 · 向量 · 重排</div>
+      </div>
+      <div class="flex gap-2 flex-1">
+        <div class="tech-pill" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.15);color:rgba(224,231,255,0.75);">旗舰推理：DeepSeek-R1/V3 · Qwen3-Max · Claude 4 · GPT-5</div>
+        <div class="tech-pill" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.15);color:rgba(224,231,255,0.75);">快模型：Qwen-Turbo / 4o-mini</div>
+        <div class="tech-pill" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.15);color:rgba(224,231,255,0.75);">Embedding &amp; Reranker (BGE / text-embedding-v3)</div>
+      </div>
+    </div>
+
+    <!-- L1 存储与算力基础设施 -->
+    <div class="layer-row">
+      <div class="layer-label">
+        <div style="font-size:12.5px;font-weight:700;color:rgba(224,231,255,0.6);">L1 · 存储与算力底座层</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.4);line-height:1.3;">状态存储 · 向量检索引擎 · 推理集群</div>
+      </div>
+      <div class="flex gap-2 flex-1">
+        <div class="tech-pill" style="background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);color:#00E5FF;">★ PostgreSQL + pgvector (向量+关系一体化)</div>
+        <div class="tech-pill" style="background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.25);color:#00E5FF;">★ Redis (短期记忆缓冲) + MySQL (核心业务表)</div>
+        <div class="tech-pill" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);color:rgba(224,231,255,0.5);">vLLM / SGLang / Milvus / ES</div>
       </div>
     </div>
   </div>
-  <div style="text-align:center;font-size:12px;color:rgba(0,229,255,0.2);">▼</div>
-  <div style="padding:8px 12px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.08);border-radius:4px;">
-    <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-bottom:4px;">技术选型</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;">
-      <div style="padding:3px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:11px;color:#00E5FF;">Spring AI</div>
-      <div style="padding:3px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:11px;color:#00E5FF;">LangGraph</div>
-      <div style="padding:3px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:11px;color:#00E5FF;">MCP SDK</div>
-      <div style="padding:3px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:11px;color:#00E5FF;">Milvus</div>
-      <div style="padding:3px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:11px;color:#00E5FF;">Redis</div>
-      <div style="padding:3px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:11px;color:#00E5FF;">Dify</div>
-      <div style="padding:3px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:11px;color:#00E5FF;">GPT/Claude</div>
+
+  <!-- 底部减负指南 -->
+  <div class="grid grid-cols-2 gap-4 mt-2.5">
+    <div style="padding:8px 14px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.3);border-radius:6px;font-size:11.5px;color:#E0E7FF;">
+      <b style="color:#FF6B35;">🎯 架构师与后端工程师主战场（L3 ~ L6）：</b>精通 <b style="color:#00E5FF;">Spring AI + AgentScope 2.0 + MCP/A2A + pgvector + 状态机治理</b>，即可搞定 95% 企业级 Agent 系统。
+    </div>
+    <div style="padding:8px 14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.15);border-radius:6px;font-size:11.5px;color:rgba(224,231,255,0.7);">
+      <b style="color:#00E5FF;">💡 为什么架构设计中优选 PostgreSQL `pgvector` 而非独立 Milvus？</b>中小规模（千万级向量以内）用 pgvector 可实现向量与业务字段同库过滤、零额外运维负担！
     </div>
   </div>
-  <div style="text-align:center;font-size:12px;color:rgba(0,229,255,0.2);">▼</div>
-  <div style="padding:8px 12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:4px;">
-    <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-bottom:4px;">与现有系统集成</div>
-    <div style="font-size:11px;color:rgba(224,231,255,0.55);">Agent不是替代已有系统，而是在已有系统之上加一层"智能"。</div>
-  </div>
 </div>
-<div style="padding:10px 14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:5px;text-align:center;">
-  <div style="font-size:13px;color:#FF6B35;font-weight:700;">示例：企业知识问答机器人</div>
-  <div style="font-size:11px;color:rgba(224,231,255,0.5);margin-top:4px;">需求 → 拆解：Knowledge(RAG)+Memory+Prompt → 不需要Tool/Workflow → 技术：Spring AI+PgVector+Redis → 集成：接入OA系统</div>
-  <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-top:6px;">Agent系统设计 = 能力拆解 + 系统组合</div>
-</div>
-
-</div></body></html>
+</body></html>

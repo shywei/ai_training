@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>01B. AI认知进阶（可选深潜）：课程目录</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container h1 { font-size:44px !important; color:#E0E7FF; font-weight:700; }
+.slide-toc-item { display:flex; align-items:flex-start; padding:12px 18px; margin-bottom:9px; background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.12); border-left:4px solid #00E5FF; border-radius:3px; }
+.slide-toc-num { font-size:24px; font-weight:700; color:#00E5FF; min-width:52px; line-height:1.1; }
+.slide-toc-text { flex:1; }
+.slide-toc-title { font-size:16px; color:#E0E7FF; font-weight:700; margin-bottom:3px; display:flex; justify-content:space-between; align-items:center; }
+.slide-toc-pages { font-size:12px; font-weight:600; color:#00E5FF; padding:2px 8px; background:rgba(0,229,255,0.1); border-radius:3px; }
+.slide-toc-desc { font-size:12px; color:rgba(224,231,255,0.6); line-height:1.45; }
+.slide-accent-line { width:60px; height:3px; background:#FF6B35; }
+</style>
+</head>
+<body>
+<div class="slide-container flex">
+  <!-- Left Side Summary -->
+  <div class="flex flex-col justify-center" style="width:380px; padding-left:65px; padding-right:25px;">
+    <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; margin-bottom:8px;">COURSE 01B AGENDA</div>
+    <h1 class="mb-3">课程目录</h1>
+    <div class="slide-accent-line mb-4"></div>
+    <p style="font-size:13px; color:rgba(224,231,255,0.65); line-height:1.75; margin-bottom:16px;">
+      承接第 01 课宏观认知，<br>本课深入底层机械结构与生产基础设施，<br>彻底打开大模型黑盒，掌握计算图、训练流水线、显存调优与工程反哺。
+    </p>
+    <div style="padding:14px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.2); border-radius:4px;">
+      <div style="font-size:12px; color:#FF6B35; font-weight:700; margin-bottom:4px;"><i class="fas fa-layer-group" style="margin-right:6px;"></i>01B 进阶定位（可选深潜）</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.65); line-height:1.55;">专为项目 Leader 与高级开发设计（BPE、RoPE、KV Cache、4阶段训练、显存公式），普通学员可跳过直接进入第 02 课。</div>
+    </div>
+  </div>
+
+  <!-- Right Side 5 Chapters -->
+  <div class="flex flex-col justify-center flex-1" style="padding:25px 65px 25px 15px;">
+    <!-- Chapter 1 -->
+    <div class="slide-toc-item">
+      <div class="slide-toc-num">01</div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title"><span>扩展律前沿与推理全景</span><span class="slide-toc-pages">P03 - P04</span></div>
+        <div class="slide-toc-desc">2024–2026 双引擎 Scaling Laws 深度解剖（预训练扩展 ➔ Test-Time Compute 思考扩展）· 端到端推理计算拓扑与阶段划分</div>
+      </div>
+    </div>
+
+    <!-- Chapter 2 -->
+    <div class="slide-toc-item">
+      <div class="slide-toc-num">02</div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title"><span>模型推理核心机理</span><span class="slide-toc-pages">P05 - P09</span></div>
+        <div class="slide-toc-desc">BPE 分词算法与生产陷阱 · RoPE 旋转位置编码 · MHA 到 GQA 显存降维 · 采样概率分布微积分 · Prefill 与 Decode 访存墙与 KV Cache</div>
+      </div>
+    </div>
+
+    <!-- Chapter 3 -->
+    <div class="slide-toc-item" style="border-left-color:#FF6B35;">
+      <div class="slide-toc-num" style="color:#FF6B35;">03</div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title"><span>现代模型训练范式与前沿架构</span><span class="slide-toc-pages" style="color:#FF6B35; background:rgba(255,107,53,0.12);">P10 - P14</span></div>
+        <div class="slide-toc-desc">2026 四阶段训练流水线全景 · 预训练清洗与 SFT 对齐 · RLHF/DPO 与 RLVR 可验证慢思考 · Dense vs MoE 稀疏路由 · Native Omni 全模态</div>
+      </div>
+    </div>
+
+    <!-- Chapter 4 -->
+    <div class="slide-toc-item" style="border-left-color:#22C55E;">
+      <div class="slide-toc-num" style="color:#22C55E;">04</div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title"><span>模型文件、量化与算力底座</span><span class="slide-toc-pages" style="color:#22C55E; background:rgba(34,197,94,0.12);">P15 - P18</span></div>
+        <div class="slide-toc-desc">Safetensors vs GGUF 格式解析 · 精度、量化原理与反量化损失控制 · 企业私有化部署显存精准速算黄金公式 · HBM 带宽墙与 PagedAttention</div>
+      </div>
+    </div>
+
+    <!-- Chapter 5 -->
+    <div class="slide-toc-item" style="border-left-color:#A855F7; margin-bottom:0;">
+      <div class="slide-toc-num" style="color:#A855F7;">05</div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title"><span>物理边界、架构反哺与全栈选型</span><span class="slide-toc-pages" style="color:#A855F7; background:rgba(168,85,247,0.12);">P19 - P22</span></div>
+        <div class="slide-toc-desc">裸 LLM 四大物理边界 · 底层机理如何反哺 Agent 与 RAG 架构 · 架构师技术栈科学选型矩阵 · 全课认知总结</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

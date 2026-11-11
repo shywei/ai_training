@@ -1,13 +1,82 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280"><script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script><title>context 演进</title><style>*{margin:0;padding:0;box-sizing:border-box}.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}.code{font-size:10px;color:rgba(224,231,255,0.55);line-height:1.5;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace}</style></head><body><div class="s" style="padding:24px 50px;display:flex;flex-direction:column"><div class="mb-1 sn">CHAPTER 07</div><h1 class="mb-1">context 演进 — v5.0 完整形态</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px"></div><div style="flex:1;display:flex;gap:14px"><div style="flex:1;display:flex;flex-direction:column;justify-content:center">
-<div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:10px">context 参数每课都在增长</div>
-<div style="display:flex;flex-direction:column;gap:6px">
-<div style="padding:10px 12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px"><div style="font-size:13px;color:rgba(224,231,255,0.55)"><strong style="color:#E0E7FF">第四课：</strong>context = null</div></div>
-<div style="padding:10px 12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px"><div style="font-size:13px;color:rgba(224,231,255,0.55)"><strong style="color:#00E5FF">第五课：</strong>context = 对话历史 + 用户画像</div></div>
-<div style="padding:10px 12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px"><div style="font-size:13px;color:rgba(224,231,255,0.55)"><strong style="color:#22C55E">第六课：</strong>+ RAG 检索结果</div></div>
-<div style="padding:10px 12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px"><div style="font-size:13px;color:rgba(224,231,255,0.55)"><strong style="color:#FF6B35">第七课：</strong>+ Tool 调用结果</div></div>
-<div style="padding:10px 12px;background:rgba(168,85,247,0.06);border:2px solid rgba(168,85,247,0.3);border-radius:4px"><div style="font-size:13px;color:#A855F7;font-weight:600">第八课：+ Agent Runtime 编排（多步 Tool + 规划 + 追踪）</div></div></div>
-<div style="margin-top:10px;padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px"><div style="font-size:12px;color:rgba(224,231,255,0.45);line-height:1.7"><strong style="color:#E0E7FF">注意：</strong>第八课没有新增 context 内容，而是改变了 context 的<strong style="color:#E0E7FF">使用方式</strong>——从一次性使用变成多轮循环使用。</div></div></div>
-<div style="flex:1;display:flex;flex-direction:column;justify-content:center">
-<div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:10px">v5.0 context 完整形态</div>
-<div style="padding:14px;background:rgba(0,0,0,0.3);border-radius:6px;font-family:monospace;font-size:11px;color:rgba(224,231,255,0.6);line-height:1.8;margin-bottom:12px"><span style="color:#A855F7">// AgentRuntime.execute() 中构建</span><br><br><span style="color:#00E5FF">// 1. 用户画像（MCP Resource）</span><br>String profile = mcpKnowledgeClient<br>&nbsp;&nbsp;.readUserProfile(userId);<br><br><span style="color:#00E5FF">// 2. 用户记忆（MCP Tool）</span><br>String memory = mcpKnowledgeClient<br>&nbsp;&nbsp;.searchMemory(userId, message);<br><br><span style="color:#00E5FF">// 3. 对话历史（Redis）</span><br>List msgs = sessionMemory.getMessages(sid);<br><br><span style="color:#00E5FF">// 4. RAG 检索（MCP Tool）</span><br>String rag = mcpKnowledgeClient.search(msg);<br><br><span style="color:#A855F7">// 5. 多轮工具结果（ReAct 循环积累）</span><br>conversationHistory.append(toolResult);</div>
-<div style="padding:10px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:6px"><div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.7"><strong style="color:#A855F7">第八课变化：</strong>context 在 ReAct 循环中<strong style="color:#E0E7FF">逐步积累</strong>。每轮 THINK 都能看到之前所有工具结果。</div></div></div></div></div></body></html>
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>三级容错③ 降级 — 触发条件 · 参数取值 · 失败模式</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.mb-2{margin-bottom:8px}
+.grid3{display:flex;flex-direction:column;gap:10px}
+.g3{padding:10px 12px;border-radius:6px}
+.g3 .t{font-size:13px;font-weight:700;margin-bottom:5px}
+.g3 .b{font-size:11px;color:rgba(224,231,255,0.78);line-height:1.75}
+.code{font-family:Consolas,Monaco,monospace;font-size:10.5px;color:rgba(224,231,255,0.85);line-height:1.65;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px}
+.miss{padding:10px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:6px}
+.miss .t{font-size:12px;color:#FF6B35;font-weight:700;margin-bottom:5px}
+.miss .b{font-size:11px;color:rgba(224,231,255,0.78);line-height:1.75}
+.tag{font-family:Consolas,Monaco,monospace;color:rgba(224,231,255,0.9)}
+</style></head>
+<body>
+<div class="s" style="padding:28px 56px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 05 · 三级容错 3/3</div>
+  <h1 class="mb-2">③ 降级（Graceful Degradation）— 触发条件 · 兜底取值 · 失败模式</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px;"></div>
+
+  <div style="flex:1;display:flex;gap:16px;">
+    <div style="flex:1.05;display:flex;flex-direction:column;">
+      <div class="grid3">
+        <div class="g3" style="background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);">
+          <div class="t" style="color:#00E5FF;">■ 触发条件（什么时候降级）</div>
+          <div class="b">
+            · <strong style="color:#E0E7FF;">路径 A · 熔断命中</strong>：<span class="tag">executeToolCall()</span> 入口返回 <span class="tag">getDegradationMessage()</span>，作为"工具结果"注入对话，下一轮 THINK 自己决定怎么答<br>
+            · <strong style="color:#E0E7FF;">路径 B · 重试耗尽</strong>：<span class="tag">executeToolCall()</span> 返回 null → 直接 <span class="tag">buildFinalAnswerPrompt()</span> 强制收敛出最终回答<br>
+            · <strong style="color:#E0E7FF;">路径 C · 规划失败</strong>：TaskPlanner 失败 → 返回空步骤列表 → 降级为单步执行（不规划）
+          </div>
+        </div>
+        <div class="g3" style="background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);">
+          <div class="t" style="color:#FF6B35;">■ 兜底取值（降级降成什么样）</div>
+          <div class="b">
+            · 降级消息模板：<span class="tag">"[系统提示: 工具 X 当前不可用（连续失败 N 次），请基于已有信息回答用户。"</span><br>
+            · 回答为空时兜底：<span class="tag">"抱歉，处理过程中遇到了问题，请重新描述您的问题。"</span><br>
+            · 输出仍走 <span class="tag">guardrails.sanitize()</span> 脱敏；<span class="tag">trace.recordEvent("…降级…")</span> 留痕<br>
+            · 降级目标：<strong style="color:#E0E7FF;">有回答 &gt; 报错</strong>，但回答必须标记来源
+          </div>
+        </div>
+        <div class="g3" style="background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);">
+          <div class="t" style="color:#A855F7;">■ 失败模式（降级会怎么坏）</div>
+          <div class="b">
+            · <strong style="color:#E0E7FF;">编造</strong>：提示词只说"基于已有信息"，没禁"编造" → LLM 可能编一个价格<br>
+            · <strong style="color:#E0E7FF;">假成功</strong>：降级回答无标记，用户当正常答案用<br>
+            · <strong style="color:#E0E7FF;">故障被降级吞掉</strong>：只看回答不看 trace，降级率不上指标 → 事故在监控里"不存在"
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+      <div style="font-size:12px;color:#E0E7FF;font-weight:700;">代码锚点 — ErrorRecovery.getDegradationMessage() + AgentRuntime 两条降级路径</div>
+      <div class="code">
+        // 路径 A：熔断命中 → 系统提示注入对话，循环继续<br>
+        return "[系统提示: 工具 " + toolName + " 当前不可用（连续失败 "<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ info.failureCount + " 次），请基于已有信息回答用户。";<br><br>
+        // 路径 B：重试耗尽 → executeToolCall() 返回 null<br>
+        log.warn("⚠️ 降级: 工具调用失败且重试耗尽，降级为直接回答（基于已有信息）");<br>
+        traceService.recordEvent(traceId, "... 降级: 工具调用失败且重试耗尽...");<br>
+        String answer = callLLM(buildFinalAnswerPrompt(...), reasoningModel);<br>
+        // answer 为空 → "抱歉，处理过程中遇到了问题，请重新描述您的问题。"
+      </div>
+      <div class="miss">
+        <div class="t">✗ Demo vs 生产 · 三格</div>
+        <div class="b">
+          <strong style="color:#E0E7FF;">✗ 降级 = 让 LLM 自由发挥</strong><br>
+          <strong style="color:#FF6B35;">问题：</strong>提示词未禁编造、输出无降级标记、故障被降级掩盖，降级率不是指标。<br>
+          <strong style="color:#FF6B35;">不解决：</strong>用户拿编造的价格做决策；故障全被降级吞掉，监控上看不出事故。<br>
+          <strong style="color:#22C55E;">怎么解决：</strong>分级降级（缓存兜底 → 简化回答 → 明确报错三档）；提示词硬约束 + 输出校验（价格/库存字段必须来自工具结果，第四课结构化输出）；响应带降级标记、降级率当 SLO 一等指标；trace 留痕可查。<br>
+          <strong style="color:#E0E7FF;">取舍：</strong>约束越死长尾灵活度越低，但对事实类字段宁可呆板不可编造。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

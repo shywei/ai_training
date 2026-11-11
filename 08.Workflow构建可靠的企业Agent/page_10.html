@@ -1,17 +1,58 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280"><script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script><title>TaskPlanner</title><style>*{margin:0;padding:0;box-sizing:border-box}.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}.code{font-size:10px;color:rgba(224,231,255,0.55);line-height:1.5;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace}</style></head><body><div class="s" style="padding:24px 50px;display:flex;flex-direction:column"><div class="mb-1 sn">CHAPTER 04</div><h1 class="mb-1">TaskPlanner — LLM 任务规划器</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px"></div><div style="flex:1;display:flex;gap:14px"><div style="flex:1;display:flex;flex-direction:column;justify-content:center">
-<div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:10px">复杂任务自动拆步骤</div>
-<div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;margin-bottom:12px"><div style="font-size:12px;color:rgba(224,231,255,0.4);margin-bottom:6px">用户："帮我对比拯救者和 MacBook 的价格，预算 8000"</div><div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.8"><span style="color:#A855F7">TaskPlanner 输出：</span><br>Step 1: 搜索拯救者笔记本价格和库存<br>Step 2: 搜索 MacBook 价格和库存<br>Step 3: 对比分析，结合预算推荐</div></div>
-<div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:10px">什么时候需要规划</div>
-<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
-<span style="padding:4px 10px;background:rgba(255,107,53,0.08);border-radius:4px;font-size:12px;color:#FF6B35">对比</span>
-<span style="padding:4px 10px;background:rgba(255,107,53,0.08);border-radius:4px;font-size:12px;color:#FF6B35">比较</span>
-<span style="padding:4px 10px;background:rgba(255,107,53,0.08);border-radius:4px;font-size:12px;color:#FF6B35">帮我选</span>
-<span style="padding:4px 10px;background:rgba(255,107,53,0.08);border-radius:4px;font-size:12px;color:#FF6B35">推荐几个</span>
-<span style="padding:4px 10px;background:rgba(255,107,53,0.08);border-radius:4px;font-size:12px;color:#FF6B35">然后</span>
-<span style="padding:4px 10px;background:rgba(255,107,53,0.08);border-radius:4px;font-size:12px;color:#FF6B35">同时</span></div>
-<div style="font-size:12px;color:rgba(224,231,255,0.4)">包含多个商品名（≥2）也会触发规划。简单问候、单次查询 → 不规划，直接走 ReAct 循环。<br><span style="color:#22C55E">生产做法：规则快路径 + 快模型兜底分类（混合路由）——关键词补不全，语义分类做补充。</span></div>
-<div style="margin-top:10px;padding:10px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:6px"><div style="font-size:13px;color:rgba(224,231,255,0.55);line-height:1.7"><strong style="color:#A855F7">Agent 和 Chatbot 的本质区别</strong>：<br>Chatbot 是用户问一句，LLM 答一句。<br>Agent 是用户说一个目标，LLM 规划步骤，逐步执行。</div></div></div>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280"><script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script><title>TaskPlanner 规划机制</title><style>*{margin:0;padding:0;box-sizing:border-box}.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}.s h1{font-size:30px!important;color:#E0E7FF;font-weight:700}.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}.code{font-size:11px;color:rgba(224,231,255,0.7);line-height:1.45;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace}</style></head><body>
+<div class="s" style="padding:22px 48px;display:flex;flex-direction:column">
+<div class="mb-1 sn">CHAPTER 04 · P0 升级</div>
+<h1 class="mb-1">TaskPlanner — 认知/概率型规划与确定性 FSM 约束架构</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:10px"></div>
+<div style="flex:1;display:flex;gap:14px">
+
+<!-- 左侧：概率型规划与触发控制 -->
 <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
-<div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:8px">TaskPlanner.java — 核心逻辑</div>
-<div class="code" style="margin-bottom:12px">public List&lt;WorkflowStep&gt; plan(String msg, String ctx) {<br>&nbsp;&nbsp;String prompt = """<br>&nbsp;&nbsp;&nbsp;&nbsp;将用户请求分解为可执行步骤。<br>&nbsp;&nbsp;&nbsp;&nbsp;用户请求：%s<br>&nbsp;&nbsp;&nbsp;&nbsp;输出 JSON 数组：<br>&nbsp;&nbsp;&nbsp;&nbsp;[{"step":1,"action":"..."}]<br>&nbsp;&nbsp;&nbsp;&nbsp;""".formatted(msg);<br><br>&nbsp;&nbsp;String result = callLLM(prompt, reasoningModel);<br>&nbsp;&nbsp;return parseSteps(result);<br>}</div>
-<div style="padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px"><div style="font-size:12px;color:rgba(224,231,255,0.45);line-height:1.7"><strong style="color:#E0E7FF">Demo 已覆盖</strong>：TaskPlanner.java<br>规划失败 → 返回空列表 → AgentRuntime 降级为单步执行</div></div></div></div></div></body></html>
+<div style="font-size:13.5px;color:#E0E7FF;font-weight:700;margin-bottom:6px">学术定位：大模型的认知/概率型规划</div>
+<div style="padding:10px 12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;margin-bottom:8px">
+  <div style="font-size:11.5px;color:rgba(224,231,255,0.5);margin-bottom:3px">输入："帮我对比拯救者和 MacBook 的价格，预算 8000"</div>
+  <div style="font-size:11.5px;color:rgba(224,231,255,0.8);line-height:1.6">
+    <span style="color:#A855F7;font-weight:700">TaskPlanner 输出结构化任务清单（Demo 线性步骤）：</span><br>
+    Step 1: 搜索拯救者笔记本价格与库存<br>
+    Step 2: 搜索 MacBook 价格与库存<br>
+    Step 3: 聚合比对两款配置，结合预算推荐
+  </div>
+</div>
+
+<div style="padding:9px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;margin-bottom:8px">
+  <div style="font-size:12px;color:#FF6B35;font-weight:700;margin-bottom:2px">⚠️ 概率型规划的天然缺陷（不可盲目信任）</div>
+  <div style="font-size:11px;color:rgba(224,231,255,0.7);line-height:1.5">
+    大模型生成规划属于<strong>概率采样（Probabilistic Planning）</strong>，输出不可避免存在<strong>不确定性</strong>：步骤成环死锁、因果顺序颠倒、前置条件遗漏或幻觉出不存在的工具。
+  </div>
+</div>
+
+<div style="font-size:12px;color:#E0E7FF;font-weight:700;margin-bottom:4px">触发机制选型（确定性控制流）</div>
+<div style="font-size:11px;color:rgba(224,231,255,0.7);line-height:1.5">
+  • <strong>触发快路径：</strong>命中关键词（对比/比较/帮我选/分析）或商品数 ≥2 触发规划<br>
+  • <strong>生产演进：</strong>规则快路径 + 快模型语义分类兜底，避免单步问候白花规划成本
+</div>
+</div>
+
+<!-- 右侧：确定性 FSM 校验与代码落地 -->
+<div style="flex:1.15;display:flex;flex-direction:column;justify-content:center">
+<div style="font-size:13.5px;color:#E0E7FF;font-weight:700;margin-bottom:6px">工程解法：确定性有限状态机（FSM）拓扑约束</div>
+
+<div style="padding:10px 12px;background:rgba(34,197,94,0.06);border:1.5px solid rgba(34,197,94,0.25);border-radius:6px;margin-bottom:8px">
+  <div style="font-size:12.5px;color:#22C55E;font-weight:700;margin-bottom:3px">🛡️ 规划收敛两道程序防火墙（Demo 清单 vs 生产 DAG）</div>
+  <div style="display:flex;flex-direction:column;gap:3px;font-size:11px;color:rgba(224,231,255,0.75);line-height:1.5">
+    <div><strong>1. 结构化前置校验：</strong>Demo 程序校验子任务步骤合法性与白名单工具；生产演进扩展为 DAG 有向无环性与依赖拓扑排序。</div>
+    <div><strong>2. 注入受控状态机：</strong>校验通过后交由 FSM 强状态流推进；一旦模型输出格式崩溃或校验失败，<strong>安全降级为单步直接执行</strong>。</div>
+  </div>
+</div>
+
+<div style="font-size:12px;color:#E0E7FF;font-weight:700;margin-bottom:3px">TaskPlanner.java 核心骨架</div>
+<div class="code" style="margin-bottom:6px">public List&lt;WorkflowStep&gt; plan(String msg, String ctx) {<br>&nbsp;&nbsp;String prompt = """<br>&nbsp;&nbsp;&nbsp;&nbsp;将用户请求拆解为可执行步骤。<br>&nbsp;&nbsp;&nbsp;&nbsp;用户请求：%s<br>&nbsp;&nbsp;&nbsp;&nbsp;输出 JSON 数组：[{"step":1,"action":"...","dependencies":[]}]<br>&nbsp;&nbsp;&nbsp;&nbsp;""".formatted(msg);<br>&nbsp;&nbsp;String result = callLLM(prompt, reasoningModel);<br>&nbsp;&nbsp;List&lt;WorkflowStep&gt; steps = parseSteps(result);<br>&nbsp;&nbsp;// 确定性程序校验：Demo 清单合法性校验（生产扩展为 DAG 拓扑校验）<br>&nbsp;&nbsp;return validateSteps(steps) ? steps : Collections.emptyList();<br>}</div>
+
+<div style="padding:6px 10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.15);border-radius:4px">
+  <div style="font-size:11px;color:rgba(224,231,255,0.7);line-height:1.45">
+    <strong style="color:#00E5FF">本质收敛：</strong>概率规划生成结构化清单，确定性 FSM 校验执行。规划失败安全降级为单步执行，保证业务流永不断死。
+  </div>
+</div>
+</div>
+
+</div>
+</div></body></html>

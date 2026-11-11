@@ -1,80 +1,75 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>项目架构</title>
+<title>企业治理五件套</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
 .s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-</style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 07</div>
-<h1 class="mb-2">项目架构 + 代码阅读路线图</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
-<div style="flex:1;display:flex;gap:20px;">
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:13px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">代码阅读路线图（建议顺序）</div>
-    <div style="display:flex;flex-direction:column;gap:4px;">
-      <div style="padding:6px 10px;background:rgba(0,229,255,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
-        <span style="color:#00E5FF;font-weight:700;">①</span> LlmRouter.java — 路由决策（入口）
-      </div>
-      <div style="padding:6px 10px;background:rgba(0,229,255,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
-        <span style="color:#00E5FF;font-weight:700;">②</span> ShoppingAgentController.chat() — 路由 + context + Tool 注册
-      </div>
-      <div style="padding:6px 10px;background:rgba(255,107,53,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
-        <span style="color:#FF6B35;font-weight:700;">③</span> McpKnowledgeClient.java — MCP Client 实现（Tool 发现 + 包装）
-      </div>
-      <div style="padding:6px 10px;background:rgba(255,107,53,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
-        <span style="color:#FF6B35;font-weight:700;">④</span> McpServerConfig.java（knowledge-server）— Server 端 Tool + Resource
-      </div>
-      <div style="padding:6px 10px;background:rgba(34,197,94,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
-        <span style="color:#22C55E;font-weight:700;">⑤</span> MemoryManager.java — context 构建（全部通过 MCP）
-      </div>
-      <div style="padding:6px 10px;background:rgba(34,197,94,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
-        <span style="color:#22C55E;font-weight:700;">⑥</span> PromptManager.java — 三段规则（行为 + 知识 + 记忆）
-      </div>
-      <div style="padding:6px 10px;background:rgba(168,85,247,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
-        <span style="color:#A855F7;font-weight:700;">⑦</span> McpServerConfig.java（product-server）— 企业 Tool 实现
-      </div>
+.mb-2{margin-bottom:8px}
+.gc{padding:8px 11px;background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:4px}
+.gc .t{font-size:12.5px;color:#00E5FF;font-weight:700;margin-bottom:2px}
+.gc .b{font-size:11px;color:rgba(224,231,255,0.75);line-height:1.5}
+.bad{display:inline-block;font-size:11px;padding:1px 6px;border-radius:3px;margin-left:6px;vertical-align:1px}
+.no{color:#FF6B35;background:rgba(255,107,53,0.15);border:1px solid rgba(255,107,53,0.35)}
+.weak{color:#FFD166;background:rgba(255,209,102,0.15);border:1px solid rgba(255,209,102,0.35)}
+.m{padding:8px 11px;background:rgba(168,85,247,0.06);border-left:3px solid #A855F7;border-radius:4px}
+.m .t{font-size:12px;color:#A855F7;font-weight:700;margin-bottom:2px}
+.m .b{font-size:11px;color:rgba(224,231,255,0.75);line-height:1.55}
+</style></head>
+<body>
+<div class="s" style="padding:22px 50px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 07 · 治理防线</div>
+  <h1 class="mb-2">企业治理五件套 — 可靠性治理与安全授权双重护栏</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:10px;"></div>
+
+  <div style="flex:1;display:flex;gap:14px;">
+    <!-- 左：五件套地图 -->
+    <div style="flex:1;display:flex;flex-direction:column;gap:7px;">
+      <div style="font-size:13px;color:#E0E7FF;font-weight:700;">可靠性五件套各管一类生产事故</div>
+      <div class="gc"><div class="t">① 限流（Rate Limiting）<span class="bad no">Demo ❌ 无</span></div>
+        <div class="b">管<strong style="color:#FF6B35;">打挂下游</strong>：LLM 死循环或批量调用 → 令牌桶限制，保护 ERP/库存下游服务</div></div>
+      <div class="gc"><div class="t">② 幂等（Idempotency）<span class="bad no">Demo ❌ 无</span></div>
+        <div class="b">管<strong style="color:#FF6B35;">重复执行</strong>：网络重试、LLM 重复决策 → 强制认幂等键，防止重复扣款与写入</div></div>
+      <div class="gc"><div class="t">③ 超时（Timeout）<span class="bad weak">Demo ⚠️ 写死</span></div>
+        <div class="b">管<strong style="color:#FF6B35;">无限等待</strong>：分级超时预算（查询 3s/写 10s）；超时 ≠ 失败，超时需转未知处理</div></div>
+      <div class="gc"><div class="t">④ 补偿（Compensation）<span class="bad no">Demo ❌ 无</span></div>
+        <div class="b">管<strong style="color:#FF6B35;">半途失败</strong>：A 成功 B 失败 → 执行反向 Saga 补偿或入对账系统，确保最终一致</div></div>
+      <div class="gc"><div class="t">⑤ 审计（Audit Log）<span class="bad weak">Demo ⚠️ 仅日志</span></div>
+        <div class="b">管<strong style="color:#FF6B35;">出事之后</strong>：谁、何时、入参、结果与耗时 → 结构化 Trace 记录，满足合规可追溯</div></div>
     </div>
-  </div>
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:13px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">v4.0 新增/修改文件</div>
-    <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px;">
-      <div style="padding:6px 10px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:11px;color:rgba(224,231,255,0.5);">
-        <span style="color:#22C55E;">新增</span> tool/LlmRouter.java
+
+    <!-- 中：调用链布防与安全矩阵呼应 -->
+    <div style="flex:1.15;display:flex;flex-direction:column;gap:8px;">
+      <div class="m" style="background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;">
+        <div class="t" style="color:#00E5FF;">调用链布防：安全矩阵 + 可靠性五件套协同</div>
+        <div class="b">
+          请求进入 → <strong style="color:#00E5FF;">[租户鉴权+白名单校验]</strong> 判定权限与合法性 → <strong style="color:#22C55E;">[危险分级]</strong> 若高危破坏性操作则挂起走 <strong style="color:#FF6B35;">[人机审批]</strong>
+          → <strong style="color:#22C55E;">[限流+超时]</strong> 准入并定执行预算 → <strong style="color:#22C55E;">[幂等]</strong> 校验幂等键 → 物理执行 → 异常触发 <strong style="color:#22C55E;">[补偿]</strong> → 全程 <strong style="color:#22C55E;">[审计]</strong>。
+        </div>
       </div>
-      <div style="padding:6px 10px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:11px;color:rgba(224,231,255,0.5);">
-        <span style="color:#22C55E;">新增</span> tool/McpProductClient.java
+      <div class="m">
+        <div class="t">为什么"怎么管" &gt; "怎么调"</div>
+        <div class="b">
+          调用一个 Tool 一个下午就能写完；<strong style="color:#E0E7FF;">出事故的从来不是"调不通"，是"调太多、调重复、调一半、越权调"</strong>。
+          <strong>安全授权矩阵（page_13）管"权限与物理边界"，治理五件套管"高并发可靠性"</strong>——两者共同构成企业生产准入基线。
+        </div>
       </div>
-      <div style="padding:6px 10px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:11px;color:rgba(224,231,255,0.5);">
-        <span style="color:#22C55E;">新增</span> tool/McpKnowledgeClient.java
+      <div class="m" style="background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;">
+        <div class="t" style="color:#FF6B35;">本课 Demo 现状与第八课前瞻桥梁</div>
+        <div class="b">
+          在 <code>v1.4</code> Demo 中，仅有客户端写死超时（10s/15s）与控制台调用日志，五件套大部分空白。
+          这直接引出<strong>第八课（Workflow）</strong>我们将手写：<code>AgentRuntime</code>（受控状态机）、<code>ErrorRecovery</code>（重试/熔断）、<code>ConfirmationService</code>（高危人工审批）与 <code>TraceService</code>！
+        </div>
       </div>
-      <div style="padding:6px 10px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:11px;color:rgba(224,231,255,0.5);">
-        <span style="color:#FF6B35;">修改</span> core/ShoppingAgentController.java
-      </div>
-      <div style="padding:6px 10px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:11px;color:rgba(224,231,255,0.5);">
-        <span style="color:#FF6B35;">修改</span> core/PromptManager.java
-      </div>
-      <div style="padding:6px 10px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:11px;color:rgba(224,231,255,0.5);">
-        <span style="color:#FF6B35;">修改</span> memory/MemoryManager.java
-      </div>
-      <div style="padding:6px 10px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:11px;color:rgba(224,231,255,0.5);">
-        <span style="color:#FF6B35;">修改</span> memory/UserMemoryService.java
-      </div>
-      <div style="padding:6px 10px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:11px;color:rgba(224,231,255,0.5);">
-        <span style="color:#22C55E;">新增模块</span> mcp-product-server/
-      </div>
-      <div style="padding:6px 10px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:11px;color:rgba(224,231,255,0.5);">
-        <span style="color:#22C55E;">新增模块</span> mcp-knowledge-server/
-      </div>
-    </div>
-    <div style="padding:8px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px;">
-      <div style="font-size:11px;color:rgba(224,231,255,0.35);">
-        v4.0 删除了：KnowledgeController, RetrievalService,<br>
-        VectorStoreConfig, UserMemoryMapper, ProductInfo, ProductInfoMapper
+      <div style="padding:7px 10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px;">
+        <div style="font-size:11px;color:rgba(224,231,255,0.65);line-height:1.5;">
+          <strong style="color:#00E5FF;">v1.4 已覆盖：</strong>客户端超时参数、断线冷却重连、控制台日志
+          <strong style="color:#A855F7;">｜ 第八课手写补齐：</strong>状态机调度、重试/熔断/降级、高危人机审批
+          <strong style="color:#FF6B35;">｜ 生产平台化：</strong>收在第十一课 <strong>MCP Gateway</strong>
+        </div>
       </div>
     </div>
   </div>
 </div>
-</div></body></html>
+</body></html>

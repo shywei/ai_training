@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>SDD 实战对比：在 Spring Boot 电商交易系统中新增“订单幂等与库存预占”特性</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:4px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; line-height:1.25; margin-bottom:8px; }
+.slide-accent-line { width:50px; height:3px; background:#FF6B35; margin-bottom:14px; }
+.slide-card { padding:12px 15px; margin-bottom:9px; display:flex; align-items:flex-start; gap:12px; border-radius:6px; }
+.slide-icon { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.slide-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
+.slide-desc { font-size:12px; color:rgba(224,231,255,0.65); line-height:1.45; }
+.code-box { background:#060A12; border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:10px 12px; font-family:Consolas,monospace; font-size:11.5px; line-height:1.5; color:#E0E7FF; }
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <div class="slide-section-num">CHAPTER 01 · SPEC-DRIVEN DEVELOPMENT 企业级闭环</div>
+  <h1>SDD 实战对比：在 Spring Boot 电商交易系统中新增“订单幂等与库存预占”特性</h1>
+  <div class="slide-accent-line"></div>
+<div class="flex gap-4" style="height:535px;">
+    <div style="flex:1; background:rgba(239,68,68,0.04); border:1px solid rgba(239,68,68,0.28); border-top:4px solid #EF4444; border-radius:6px; padding:14px; display:flex; flex-direction:column;">
+      <div class="flex items-center justify-between mb-1.5">
+        <span style="font-size:14px; font-weight:700; color:#EF4444;"><i class="fas fa-circle-xmark mr-1"></i>反面：一句话 Vibe Coding 盲写</span>
+        <span style="font-size:11px; color:#FCA5A5;">生产事故高危</span>
+      </div>
+      <div style="padding:6px 10px; background:rgba(239,68,68,0.1); border-radius:4px; font-size:11.5px; color:#E0E7FF; margin-bottom:8px;">
+        <strong>模糊提示词：</strong>“帮我给 OrderService 的 createOrder 加上防重幂等和扣库存，用 Redis 实现。”
+      </div>
+      <div class="code-box flex-1" style="font-size:11px; border-color:rgba(239,68,68,0.25);">
+        <div style="color:#94A3B8;">@Transactional</div>
+        <div>public OrderDTO createOrder(CreateOrderReq req) {</div>
+        <div>&nbsp;&nbsp;<span style="color:#FCA5A5;">// ❌ 漏洞1: 非原子并发穿透 + 忘设TTL永久死锁</span></div>
+        <div>&nbsp;&nbsp;String key = "order:" + req.getUserId() + ":" + req.getSkuId();</div>
+        <div>&nbsp;&nbsp;if (Boolean.TRUE.equals(redis.hasKey(key))) return null; <span style="color:#EF4444;">// NPE</span></div>
+        <div>&nbsp;&nbsp;redis.opsForValue().set(key, "1");</div>
+        <div>&nbsp;&nbsp;try {</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#FCA5A5;">// ❌ 漏洞2: 先查后扣非原子，高并发必然超卖</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;int stock = Integer.parseInt(redis.get("stk:" + req.getSkuId()));</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;if (stock &gt; 0) redis.set("stk:" + req.getSkuId(), String.valueOf(stock-1));</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;return orderMapper.insertOrder(req);</div>
+        <div>&nbsp;&nbsp;} catch (Exception e) {</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#FCA5A5;">// ❌ 漏洞3: 静默吞异常，导致 @Transactional 事务不回滚！</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;log.error("error", e);</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;return new OrderDTO(); <span style="color:#EF4444;">// 假成功脏数据</span></div>
+        <div>&nbsp;&nbsp;}</div>
+        <div>}</div>
+      </div>
+      <div style="margin-top:6px; font-size:11px; color:#FCA5A5; line-height:1.4;">
+        <i class="fas fa-triangle-exclamation mr-1"></i><strong>诊断：</strong>AI 未知已有 Lua 脚本，写出非原子穿透代码，且捕获异常未重抛直接废掉 Spring 事务！
+      </div>
+    </div>
+
+    <div style="flex:1.05; background:rgba(34,197,94,0.04); border:1px solid rgba(34,197,94,0.28); border-top:4px solid #22C55E; border-radius:6px; padding:14px; display:flex; flex-direction:column;">
+      <div class="flex items-center justify-between mb-1.5">
+        <span style="font-size:14px; font-weight:700; color:#22C55E;"><i class="fas fa-circle-check mr-1"></i>正面：Spec-Driven 规格驱动工程产出</span>
+        <span style="font-size:11px; color:#86EFAC;">复用基建 · 原子安全 · 边界清晰</span>
+      </div>
+      <div style="padding:6px 10px; background:rgba(0,229,255,0.08); border-radius:4px; font-size:11px; color:#00E5FF; margin-bottom:8px;">
+        <strong>SDD 规格约定：</strong>EARS 契约拦截重放 + 强制复用 Lua 原子预占 + 独立事务与异常回滚补偿。
+      </div>
+      <div class="code-box flex-1" style="font-size:11px; border-color:rgba(34,197,94,0.25);">
+        <div><span style="color:#86EFAC;">// ✅ 1. 幂等锁置于事务外部，防止锁在事务提交前释放</span></div>
+        <div>public OrderResp submitOrderWithIdem(String tenantId, String idemKey, CreateOrderReq req) {</div>
+        <div>&nbsp;&nbsp;String redisKey = String.format("ord:idem:%s:%s", tenantId, idemKey);</div>
+        <div>&nbsp;&nbsp;<span style="color:#86EFAC;">// ✅ 2. 原子 SET NX EX 15m，重放直接返回业务幂等码</span></div>
+        <div>&nbsp;&nbsp;Boolean locked = redis.setIfAbsent(redisKey, "PROCESSING", Duration.ofMinutes(15));</div>
+        <div>&nbsp;&nbsp;if (!Boolean.TRUE.equals(locked)) throw new BizException(DUPLICATE_ORDER);</div>
+        <div>&nbsp;&nbsp;boolean stockReserved = false;</div>
+        <div>&nbsp;&nbsp;try {</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#86EFAC;">// ✅ 3. 复用存量 Lua 脚本原子预占库存，杜绝超卖</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;stockReserved = stockLuaService.tryReserveStock(req.getSkuId(), req.getQty());</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;if (!stockReserved) throw new BizException(STOCK_INSUFFICIENT);</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;return orderTxService.createOrderInNewTx(tenantId, req);</div>
+        <div>&nbsp;&nbsp;} catch (RuntimeException ex) {</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#86EFAC;">// ✅ 4. 失败补偿：释放预占库存 + 删幂等Key允许重试，异常上抛回滚</span></div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;if (stockReserved) stockLuaService.releaseStock(req.getSkuId(), req.getQty());</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;redis.delete(redisKey);</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;throw ex;</div>
+        <div>&nbsp;&nbsp;}</div>
+        <div>}</div>
+      </div>
+      <div style="margin-top:6px; font-size:11px; color:#86EFAC; line-height:1.4;">
+        <i class="fas fa-check mr-1"></i><strong>验证结果：</strong>通过 `mvn test -Dtest=OrderIdempotencyServiceTest`（含 20 线程并发压测断言），0 缺陷安全交付！
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

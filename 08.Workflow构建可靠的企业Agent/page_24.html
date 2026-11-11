@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>可在 Demo 验证哪些点</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.mb-2{margin-bottom:8px}
+.v{padding:8px 10px;background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:4px}
+.v .t{font-size:11.5px;color:#00E5FF;font-weight:700;margin-bottom:3px}
+.v .b{font-size:10px;color:rgba(224,231,255,0.72);line-height:1.55}
+.code{font-family:Consolas,Monaco,monospace;color:rgba(224,231,255,0.85)}
+</style></head>
+<body>
+<div class="s" style="padding:28px 56px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 08</div>
+  <h1 class="mb-2">🧪 可在 Demo 验证哪些点 — 状态机 · 三级容错 · 人在回路 · 追踪</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px;"></div>
+
+  <div style="flex:1;display:flex;gap:14px;">
+    <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+      <div class="v"><div class="t">① 简单/复杂自动分档（Runtime 说了算）</div>
+        <div class="b"><span class="code">POST /api/agent/workflow?message=&sessionId=&userId=</span>：
+          发"推荐一台笔记本"→ <span class="code">mode=simple</span>、<span class="code">stepCount=1</span>；
+          发"帮我对比游戏本和轻薄本的区别"（命中 <span class="code">TaskPlanner.needsPlanning()</span> 关键词）→ <span class="code">mode=workflow</span>、<span class="code">stepCount≥2</span>。
+          前端不判断复杂度。</div></div>
+      <div class="v"><div class="t">② 计划先行，执行前 trace 就有全貌</div>
+        <div class="b">复杂任务先规划后执行：<span class="code">GET /api/agent/workflow/trace?traceId=</span> 里 steps 全部提前登记（<span class="code">recordStepCreated</span>），
+          每步带 <span class="code">llmThought / toolName / toolInput / toolOutput / durationMs</span>，出问题可逐步回溯。</div></div>
+      <div class="v"><div class="t">③ 重试与指数退避（第 1 级）</div>
+        <div class="b">停掉 mcp-knowledge-server 再提问：日志 <span class="code">[ErrorRecovery] 重试等待 …ms (第 N 次重试)</span>（<span class="code">getRetryDelayMs()</span> 的 2^n×1000）；
+          trace 事件 <span class="code">"Step N 重试第 N 次: …"</span>，<span class="code">steps[].retryCount</span> 递增。</div></div>
+      <div class="v"><div class="t">④ 熔断触发（第 2 级）</div>
+        <div class="b">连续触发 5 次失败：日志 <span class="code">⚡ 工具 search_knowledge 触发熔断！暂停 60 秒</span>；
+          <span class="code">GET /api/agent/workflow/circuit-breaker</span> → <span class="code">{failureCount:5, circuitBroken:true, lastError:…}</span>，
+          再调用直接跳过（不发请求）。</div></div>
+    </div>
+
+    <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+      <div class="v"><div class="t">⑤ 熔断恢复 + 手动复位（简化半开）</div>
+        <div class="b">60 秒后再请求：日志 <span class="code">[ErrorRecovery] 工具 search_knowledge 熔断恢复，重新尝试</span>，计数清零放行（无探测请求，是简化版）；
+          <span class="code">POST /api/agent/workflow/circuit-breaker/reset</span> 可立即复位。</div></div>
+      <div class="v"><div class="t">⑥ 降级有回答 + 留痕（第 3 级）</div>
+        <div class="b">熔断后页面仍给回答（不是报错、不是白屏）；trace <span class="code">events</span> 有 <span class="code">"…降级…"</span>，对应 step 为
+          <span class="code">SKIPPED / FAILED</span>；回答里能看到系统提示 <span class="code">"工具 X 当前不可用…请基于已有信息回答用户"</span>。</div></div>
+      <div class="v"><div class="t">⑦ 人在回路 — 高风险必须确认</div>
+        <div class="b">说"我要买拯救者"→ 响应 <span class="code">status=confirming / confirmRequired=true / pendingTool=place_order</span>；
+          <span class="code">POST /api/agent/workflow/confirm?traceId=&confirmed=true|false</span> 才继续/取消，trace 事件 <span class="code">"Step N 等待用户确认"</span>。</div></div>
+      <div class="v" style="border-left-color:#FF6B35;background:rgba(255,107,53,0.06)"><div class="t" style="color:#FF6B35">⑧ 现状自证 — 治理缺口就在眼前</div>
+        <div class="b">重启 agent-runtime 再查 <span class="code">GET /api/agent/workflow/trace</span> → <span class="code">not_found</span>（Trace 是内存 <span class="code">ConcurrentHashMap</span>）；
+          确认后执行的下单<strong style="color:#E0E7FF;">不再走</strong>重试/熔断（<span class="code">resumeAfterConfirm</span> 直接 <span class="code">callToolDirectly</span>）；
+          连点两次下单两个 <span class="code">ORD-</span> 时间戳 = 无幂等键；trace 的 state 里找不到 <span class="code">RETRYING</span>（声明未使用，重试只体现在 retryCount 与事件）。</div></div>
+    </div>
+  </div>
+</div>
+</body></html>

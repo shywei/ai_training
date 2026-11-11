@@ -1,70 +1,93 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>Transformer：改变一切的架构</title>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>第二章 · Transformer 架构奇点：为什么打破一切？</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
-*{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
-.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-</style></head><body>
-<div class="s" style="padding:38px 70px;">
-<div style="font-size:14px;color:#00E5FF;letter-spacing:4px;margin-bottom:8px;">CHAPTER 02</div>
-<h1 class="mb-2">Transformer：改变一切的架构</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:20px;"></div>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:26px 65px; display:flex; flex-direction:column; justify-content:space-between; }
+.slide-container h1 { font-size:28px !important; color:#E0E7FF; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <!-- Header -->
+  <div>
+    <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:4px;">CHAPTER 02 · 大模型的诞生与本质祛魅</div>
+    <h1 class="mb-1">Transformer 架构奇点（2017）：为什么它打破了一切？</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:10px;"></div>
+    <div style="font-size:12.5px; color:rgba(224,231,255,0.65); line-height:1.45;">
+      2017 年 Google 论文《Attention Is All You Need》重构了底层计算架构。但必须厘清关键工程本质：<strong>训练全并行 vs 推理自回归 Decode 逐 Token 串行</strong>。
+    </div>
+  </div>
 
-<div class="flex" style="gap:28px;">
-<div style="flex:1;">
-<div style="font-size:14px;color:rgba(224,231,255,0.4);margin-bottom:12px;">2017年 · 谷歌 · 《Attention Is All You Need》</div>
-<div style="padding:18px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);margin-bottom:14px;">
-<div style="font-size:15px;font-weight:700;color:#00E5FF;margin-bottom:10px;">注意力机制（Attention）</div>
-<div style="font-size:13px;color:rgba(224,231,255,0.6);line-height:1.8;">
-每个字都在"问"其他字：<strong style="color:#00E5FF;">你跟我有多大关系？</strong><br><br>
-<strong style="color:#00E5FF;">Query（查询）</strong>= 我在找什么<br>
-<strong style="color:#E0E7FF;">Key（标签）</strong>= 你能提供什么<br>
-<strong style="color:#FF6B35;">Value（内容）</strong>= 你的实际信息<br><br>
-Q和K匹配得越好，对V的关注度越高
-</div>
-</div>
-<div style="padding:16px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);">
-<div style="font-size:12px;color:rgba(224,231,255,0.4);margin-bottom:8px;">例子："用户浏览了<strong style="color:#FF6B35;">商品A</strong>，查看了<strong style="color:#FF6B35;">评价</strong>，加入了<strong style="color:#00E5FF;">购物车</strong>"</div>
-<div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.6;">
-处理"购物车"时：<br>
-&emsp;"商品A" → 注意力 <strong style="color:#00E5FF;">0.42</strong>（很相关）<br>
-&emsp;"评价" → 注意力 <strong style="color:#00E5FF;">0.28</strong>（相关）<br>
-&emsp;"用户" → 注意力 0.03（不相关）
-</div>
-</div>
-</div>
+  <!-- Dual Comparison Columns: RNN vs Transformer -->
+  <div class="grid grid-cols-2 gap-4">
+    <!-- Left: RNN Bottleneck -->
+    <div style="padding:14px 18px; background:rgba(255,107,53,0.05); border:1px solid rgba(255,107,53,0.22); border-radius:4px;">
+      <div class="flex justify-between items-center mb-2">
+        <div style="font-size:15px; font-weight:700; color:#FF6B35;"><i class="fas fa-hourglass-half mr-1.5"></i>旧范式：RNN / LSTM 的时间递归死锁</div>
+        <span style="font-size:11px; padding:2px 7px; background:rgba(255,107,53,0.15); color:#FF6B35; font-weight:600; border-radius:3px;">训练与推理双重串行</span>
+      </div>
+      <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.5; margin-bottom:8px;">
+        <strong style="color:#E0E7FF;">时间步强依赖：</strong>必须先计算完 t-1 时刻的隐状态 h_{t-1}，才能计算 t 时刻。训练时无法跨时间步并行：
+      </div>
+      <div style="padding:8px 10px; background:rgba(0,0,0,0.35); font-family:Consolas,monospace; font-size:11px; color:#FF6B35; margin-bottom:8px; border-left:3px solid #FF6B35; line-height:1.4;">
+        for (int t = 1; t &lt;= seq_len; t++) {<br>
+        &nbsp;&nbsp;h[t] = tanh(W_x * x[t] + W_h * h[t-1] + b); // 强制单线程依赖<br>
+        }<br>
+        // GPU 有数万核心，训练时却被时序循环锁死，算力利用率极低！
+      </div>
+      <div style="font-size:11px; color:#FF6B35; line-height:1.45;">
+        <i class="fas fa-times-circle mr-1"></i>双重死穴：集群吞吐上限被锁死；文本超过数百词后梯度弥散，长程记忆严重遗忘。
+      </div>
+    </div>
 
-<div style="flex:1;">
-<div style="font-size:14px;font-weight:700;color:#E0E7FF;margin-bottom:12px;">RNN vs Transformer</div>
-<div style="padding:14px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);margin-bottom:10px;">
-<div style="font-size:13px;font-weight:700;color:#FF6B35;margin-bottom:6px;">RNN：逐字读</div>
-<div style="font-size:12px;color:rgba(224,231,255,0.5);line-height:1.6;">用 → 户 → 在 → 浏 → 览 → ... → 轩<br><span style="color:#FF6B35;font-weight:600;">读到后面，忘了前面</span></div>
-</div>
-<div style="padding:14px;background:rgba(0,229,255,0.04);border:2px solid rgba(0,229,255,0.2);margin-bottom:14px;">
-<div style="font-size:13px;font-weight:700;color:#00E5FF;margin-bottom:6px;">Transformer：整句一起看</div>
-<div style="font-size:12px;color:rgba(224,231,255,0.5);line-height:1.6;">用 户 在 浏 览 了 商 品 A ... 车<br><span style="color:#00E5FF;font-weight:600;">所有字同时处理，直接建立关联</span></div>
-</div>
+    <!-- Right: Transformer Architecture -->
+    <div style="padding:14px 18px; background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.22); border-radius:4px;">
+      <div class="flex justify-between items-center mb-2">
+        <div style="font-size:15px; font-weight:700; color:#00E5FF;"><i class="fas fa-bolt mr-1.5"></i>新纪元：Transformer 自注意力机制</div>
+        <span style="font-size:11px; padding:2px 7px; background:rgba(0,229,255,0.15); color:#00E5FF; font-weight:600; border-radius:3px;">空间注意力矩阵</span>
+      </div>
+      <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.5; margin-bottom:8px;">
+        <strong style="color:#E0E7FF;">空间全连接替换时间循环：</strong>任意两词跳跃距离为 1，将序列转化为高维张量密集乘法：
+      </div>
+      <div style="padding:8px 10px; background:rgba(0,0,0,0.35); font-family:Consolas,monospace; font-size:11px; color:#00E5FF; margin-bottom:8px; border-left:3px solid #00E5FF; line-height:1.4;">
+        Attention(Q, K, V) = softmax(Q · K^T / √d_k) · V<br>
+        // 训练阶段：因果掩码遮盖未来，整篇文章成千上万 Token 一次性 GEMM 并行！<br>
+        // 推理阶段：前缀已固定，但生成新词仍需依序逐 Token 自回归 Decode！
+      </div>
+      <div style="font-size:11px; color:#22C55E; line-height:1.45;">
+        <i class="fas fa-check-circle mr-1"></i>工程飞跃：训练吞吐量打满万卡 GPU 集群，直接引爆千亿参数预训练模型大爆发！
+      </div>
+    </div>
+  </div>
 
-<div style="font-size:14px;font-weight:700;color:#E0E7FF;margin-bottom:10px;">三个关键突破</div>
-<div style="padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);margin-bottom:8px;">
-<div style="font-size:13px;font-weight:700;color:#00E5FF;"><i class="fas fa-bolt" style="margin-right:6px;"></i>并行计算</div>
-<div style="font-size:11px;color:rgba(224,231,255,0.5);">GPU全力工作，训练速度提升数十倍</div>
-</div>
-<div style="padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);margin-bottom:8px;">
-<div style="font-size:13px;font-weight:700;color:#00E5FF;"><i class="fas fa-link" style="margin-right:6px;"></i>长距离依赖</div>
-<div style="font-size:11px;color:rgba(224,231,255,0.5);">直接关联任意距离的信息，不再"遗忘"</div>
-</div>
-<div style="padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);">
-<div style="font-size:13px;font-weight:700;color:#00E5FF;"><i class="fas fa-chart-line" style="margin-right:6px;"></i>可扩展性</div>
-<div style="font-size:11px;color:rgba(224,231,255,0.5);">参数越多能力越强——Scaling Laws的架构基础</div>
-</div>
-</div>
-</div>
+  <!-- Deep Engineering Dichotomy: Training vs Inference -->
+  <div style="padding:12px 18px; background:rgba(15,23,42,0.75); border:1px solid rgba(0,229,255,0.25); border-radius:4px;">
+    <div class="flex items-center gap-2 mb-2">
+      <i class="fas fa-microchip" style="color:#00E5FF; font-size:13px;"></i>
+      <span style="font-size:13px; font-weight:700; color:#00E5FF;">架构师深度辨析：训练全并行（Training Parallelism）vs 推理自回归（Inference Decode）</span>
+    </div>
+    <div class="grid grid-cols-2 gap-4" style="font-size:11.5px; line-height:1.5;">
+      <div style="background:rgba(0,229,255,0.04); padding:8px 12px; border-radius:3px; border-left:3px solid #00E5FF;">
+        <strong style="color:#00E5FF;">1. 训练阶段 · 计算密集型（Compute-Bound 全并行）：</strong><br>
+        <span style="color:rgba(224,231,255,0.7);">语料目标全部已知。利用 Causal Masking 矩阵遮蔽，所有 Token 的注意力与损失反向传播在多卡集群上<strong>100% 全并行计算</strong>，彻底喂饱 GPU Tensor Core！</span>
+      </div>
+      <div style="background:rgba(255,107,53,0.04); padding:8px 12px; border-radius:3px; border-left:3px solid #FF6B35;">
+        <strong style="color:#FF6B35;">2. 推理阶段 · 访存带宽受限（Memory-Bound 逐字串行）：</strong><br>
+        <span style="color:rgba(224,231,255,0.7);">自回归模型必须<strong>逐 Token 生成</strong>（算完词 t 才能作为输入预测词 t+1）。推理无法在时间轴并行，导致每吐一个字都要从显存搬运全部权重，因此需要引入 <strong>KV Cache</strong> 换取性能！</span>
+      </div>
+    </div>
+  </div>
 
-<div style="position:absolute;bottom:20px;left:70px;right:70px;padding:12px 18px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.12);text-align:center;">
-<div style="font-size:13px;color:rgba(224,231,255,0.6);"><i class="fas fa-exchange-alt" style="color:#FF6B35;margin-right:6px;"></i><strong style="color:#E0E7FF;">类比：</strong>同步阻塞IO → NIO，架构层面的根本性突破</div>
+  <!-- Bottom Insight -->
+  <div style="padding:8px 16px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.18); border-radius:4px; font-size:11px; color:#E0E7FF; line-height:1.45;">
+    <strong style="color:#00E5FF;">硬件共振法则：</strong>Transformer 最大的胜利并非生物学拟真，而是<strong>“放弃递归以迎合 GPU 并行矩阵计算”</strong>。看清训练全并行与推理逐字串行的工程权衡，是理解后续大模型部署调度优化的关键基石。
+  </div>
 </div>
-</div></body></html>
+</body>
+</html>

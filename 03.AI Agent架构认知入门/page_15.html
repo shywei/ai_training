@@ -1,68 +1,102 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>Agent能力选择决策树</title>
+<title>架构总蓝图（下）：智能体交互全流程八步时序 & 认知能力分级演进</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
-.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
-.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
-.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
-.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden;padding:28px 48px;display:flex;flex-direction:column}
+.s h1{font-size:26px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px;font-weight:700}
+.seq-step{padding:7px 10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.18);border-radius:6px;font-size:11px;line-height:1.45}
+.ver-row{display:grid;grid-template-columns:140px 170px 1fr 220px;gap:10px;padding:7px 12px;border-bottom:1px solid rgba(0,229,255,0.1);font-size:11px;align-items:center}
 </style></head><body>
-<div class="s" style="padding:36px 60px;">
-<div class="mb-2 sn">CHAPTER 07</div><h1 class="mb-2">Agent能力选择决策树</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+<div class="s">
+  <div class="mb-1 sn">CHAPTER 04 · 架构总蓝图：智能体端到端流转与能力演进</div>
+  <h1 class="mb-2">架构总蓝图（下）：智能体交互全流程八步时序 &amp; 认知能力分级演进</h1>
+  <div style="width:56px;height:3px;background:#FF6B35;margin-bottom:10px;"></div>
 
-<div style="margin-bottom:8px;">
+  <!-- 上半部分：八步完整请求时序 -->
+  <div style="font-size:12.5px;font-weight:700;color:#E0E7FF;margin-bottom:6px;">
+    <i class="fas fa-stream text-[#00E5FF] mr-1"></i> 用户输入：“帮我挑一双适合下周川西徒步的防泼水登山鞋，直接按我的尺码下单” —— 后端八步真实流转：
   </div>
-<div style="font-size:12px;color:rgba(224,231,255,0.5);margin-bottom:10px;">拿到一个AI需求，按顺序问五个问题：</div>
-<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
-  <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
-    <div style="font-size:18px;color:#00E5FF;font-weight:700;width:24px;">①</div>
-    <div style="flex:1;font-size:13px;color:#E0E7FF;">用户是否需要连续对话或个性化？</div>
-    <div style="font-size:12px;color:#00E5FF;font-weight:600;width:80px;text-align:right;">→ Memory</div>
+  <div class="grid grid-cols-4 gap-2.5 mb-3">
+    <div class="seq-step" style="border-left:3px solid #22C55E;">
+      <div style="font-weight:700;color:#22C55E;">Step 1 · 安全护栏与 Trace 初始化</div>
+      <div style="color:rgba(224,231,255,0.7);"><code style="color:#22C55E;">GuardrailsService</code> 校验无注入风险并脱敏敏感词；<code style="color:#22C55E;">TraceService</code> 创建全局 <code style="color:#E0E7FF;">traceId</code>，FSM 进入 <code style="color:#00E5FF;">INIT</code>。</div>
+    </div>
+    <div class="seq-step" style="border-left:3px solid #A855F7;">
+      <div style="font-weight:700;color:#A855F7;">Step 2 · 三层记忆召回</div>
+      <div style="color:rgba(224,231,255,0.7);"><code style="color:#A855F7;">MemoryManager</code> 查画像库得 <code style="color:#E0E7FF;">尺码=42/预算=1500</code>，查语义记忆得“脚背高怕磨脚”，拉取短期近期对话。</div>
+    </div>
+    <div class="seq-step" style="border-left:3px solid #00E5FF;">
+      <div style="font-weight:700;color:#00E5FF;">Step 3 · 任务规划 (PLANNING)</div>
+      <div style="color:rgba(224,231,255,0.7);"><code style="color:#00E5FF;">LlmRouter</code> 路由至旗舰推理模型，<code style="color:#00E5FF;">TaskPlanner</code> 拆解出：[1.查徒步鞋知识库, 2.查42码库存价格, 3.创建订单]。</div>
+    </div>
+    <div class="seq-step" style="border-left:3px solid #00E5FF;">
+      <div style="font-weight:700;color:#00E5FF;">Step 4 · 知识检索服务调用</div>
+      <div style="color:rgba(224,231,255,0.7);">进入 <code style="color:#00E5FF;">EXECUTING</code>，通过标准化协议调用知识检索接口，从向量知识库中混合检索与重排召回防泼水登山鞋评测与尺码建议。</div>
+    </div>
+
+    <div class="seq-step" style="border-left:3px solid #FF6B35;">
+      <div style="font-weight:700;color:#FF6B35;">Step 5 · 实时库存与价格查询</div>
+      <div style="color:rgba(224,231,255,0.7);">智能体调用商品库存与详情工具接口，实时查询业务系统确认现货与会员价。</div>
+    </div>
+    <div class="seq-step" style="border-left:3px solid #FF6B35;background:rgba(255,107,53,0.06);">
+      <div style="font-weight:700;color:#FF6B35;">Step 6 · 高危拦截与挂起 (HITL)</div>
+      <div style="color:rgba(224,231,255,0.7);">模型准备调 <code style="color:#FF6B35;">create_order</code>；<code style="color:#FF6B35;">ConfirmationService</code> 拦截执行，状态切为 <code style="color:#FF6B35;">WAITING_CONFIRM</code>，向前端推送确认卡片。</div>
+    </div>
+    <div class="seq-step" style="border-left:3px solid #22C55E;">
+      <div style="font-weight:700;color:#22C55E;">Step 7 · 用户确认与恢复执行</div>
+      <div style="color:rgba(224,231,255,0.7);">用户点击“确认下单”，调用确认接口；Runtime 从缓存恢复快照，真正执行建单并生成最终导购总结。</div>
+    </div>
+    <div class="seq-step" style="border-left:3px solid #A855F7;">
+      <div style="font-weight:700;color:#A855F7;">Step 8 · 异步记忆沉淀与 Trace 归档</div>
+      <div style="color:rgba(224,231,255,0.7);">状态进入 <code style="color:#22C55E;">COMPLETED</code>；对话追加写缓存，异步提炼“川西徒步偏好”写入画像库与向量库，归档全链路 Trace。</div>
+    </div>
   </div>
-  <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
-    <div style="font-size:18px;color:#00E5FF;font-weight:700;width:24px;">②</div>
-    <div style="flex:1;font-size:13px;color:#E0E7FF;">是否需要查文档、查政策、查产品信息？</div>
-    <div style="font-size:12px;color:#00E5FF;font-weight:600;width:80px;text-align:right;">→ Knowledge (RAG)</div>
+
+  <!-- 下半部分：智能体工程能力五级成熟度阶梯 -->
+  <div style="font-size:12.5px;font-weight:700;color:#E0E7FF;margin-bottom:6px;">
+    <i class="fas fa-layer-group text-[#FF6B35] mr-1"></i> 企业级智能体工程能力五级成熟度阶梯（从基础文本交互到确定性复杂系统）：
   </div>
-  <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
-    <div style="font-size:18px;color:#00E5FF;font-weight:700;width:24px;">③</div>
-    <div style="flex:1;font-size:13px;color:#E0E7FF;">是否需要调API、查库存、操作系统？</div>
-    <div style="font-size:12px;color:#FF6B35;font-weight:600;width:80px;text-align:right;">→ Tool + MCP</div>
-  </div>
-  <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
-    <div style="font-size:18px;color:#00E5FF;font-weight:700;width:24px;">④</div>
-    <div style="flex:1;font-size:13px;color:#E0E7FF;">是否多步骤、有条件分支、需要人工审批？</div>
-    <div style="font-size:12px;color:#FF6B35;font-weight:600;width:80px;text-align:right;">→ Workflow</div>
-  </div>
-  <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
-    <div style="font-size:18px;color:#00E5FF;font-weight:700;width:24px;">⑤</div>
-    <div style="flex:1;font-size:13px;color:#E0E7FF;">是否需要不同专业能力协作？</div>
-    <div style="font-size:12px;color:#FF6B35;font-weight:600;width:80px;text-align:right;">→ Multi-Agent</div>
+  <div style="border:1px solid rgba(0,229,255,0.22);border-radius:8px;overflow:hidden;background:rgba(0,229,255,0.02);flex:1;display:flex;flex-direction:column;justify-content:space-between;">
+    <div class="ver-row" style="background:rgba(0,229,255,0.09);font-weight:700;color:#E0E7FF;">
+      <div>能力成熟度阶梯</div>
+      <div>核心定位</div>
+      <div>核心架构能力与关键机制</div>
+      <div>系统智能化水准</div>
+    </div>
+    <div class="ver-row">
+      <div style="color:#00E5FF;font-weight:700;font-family:Consolas,monospace;">LEVEL 1 · 交互基础</div>
+      <div style="color:#E0E7FF;font-weight:600;">指令遵从与协议契约</div>
+      <div style="color:rgba(224,231,255,0.72);">提示词工程、OpenAI 兼容协议、结构化输出与输入敏感词安全护栏</div>
+      <div style="color:#00E5FF;">标准规范交互的单轮会话大脑</div>
+    </div>
+    <div class="ver-row">
+      <div style="color:#A855F7;font-weight:700;font-family:Consolas,monospace;">LEVEL 2 · 记忆机制</div>
+      <div style="color:#E0E7FF;font-weight:600;">会话生命周期与画像</div>
+      <div style="color:rgba(224,231,255,0.72);">会话生命周期、短期滑动窗口缓冲区、长期结构化画像沉淀</div>
+      <div style="color:#A855F7;">跨会话保持上下文认知的连续服务智能体</div>
+    </div>
+    <div class="ver-row">
+      <div style="color:#00E5FF;font-weight:700;font-family:Consolas,monospace;">LEVEL 3 · 知识增强</div>
+      <div style="color:#E0E7FF;font-weight:600;">私域数据增强与对齐</div>
+      <div style="color:rgba(224,231,255,0.72);">企业知识 Data Pipeline、向量索引、混合检索与查询改写</div>
+      <div style="color:#00E5FF;">消除专业幻觉的领域专家智能体</div>
+    </div>
+    <div class="ver-row">
+      <div style="color:#FF6B35;font-weight:700;font-family:Consolas,monospace;">LEVEL 4 · 系统集成</div>
+      <div style="color:rgba(224,231,255,0.9);font-weight:600;">外部系统连接与执行</div>
+      <div style="color:rgba(224,231,255,0.72);">Function Calling、MCP 协议解耦、工具注册治理与安全审计</div>
+      <div style="color:#FF6B35;">打通企业业务系统、能执行真实事务的实干智能体</div>
+    </div>
+    <div class="ver-row" style="border-bottom:none;background:rgba(34,197,94,0.05);">
+      <div style="color:#22C55E;font-weight:700;font-family:Consolas,monospace;">LEVEL 5 · 确定运行</div>
+      <div style="color:#E0E7FF;font-weight:600;">受控状态机与韧性闭环</div>
+      <div style="color:rgba(224,231,255,0.75);">确定性状态机、ReAct 动态推理引擎、人在回路与分布式追踪</div>
+      <div style="color:#22C55E;font-weight:700;">可控、可审、具备工业级 SLA 的生产级企业智能体系统！</div>
+    </div>
   </div>
 </div>
-<div style="padding:10px 12px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);border-radius:5px;margin-bottom:8px;">
-  <div style="font-size:12px;color:#FF6B35;font-weight:700;margin-bottom:4px;">三层执行体系</div>
-  <div style="display:flex;gap:12px;">
-    <div style="flex:1;text-align:center;padding:6px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
-      <div style="font-size:13px;color:#00E5FF;font-weight:700;">Tool</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.5);">= 单个动作</div>
-    </div>
-    <div style="flex:1;text-align:center;padding:6px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
-      <div style="font-size:13px;color:#00E5FF;font-weight:700;">Workflow</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.5);">= 流程编排</div>
-    </div>
-    <div style="flex:1;text-align:center;padding:6px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
-      <div style="font-size:13px;color:#00E5FF;font-weight:700;">Multi-Agent</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.5);">= 角色编排</div>
-    </div>
-  </div>
-</div>
-<div style="padding:6px 12px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.08);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.45);text-align:center;">Prompt是起点 · 不需要的能力不要加 · 按需组合</div>
-
-</div></body></html>
+</body></html>

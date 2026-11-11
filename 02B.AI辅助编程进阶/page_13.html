@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>运动员与裁判员绝对分离：AI 辅助深度 Code Review 与人类最终把关清单</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:4px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; line-height:1.25; margin-bottom:8px; }
+.slide-accent-line { width:50px; height:3px; background:#FF6B35; margin-bottom:14px; }
+.slide-card { padding:12px 15px; margin-bottom:9px; display:flex; align-items:flex-start; gap:12px; border-radius:6px; }
+.slide-icon { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.slide-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
+.slide-desc { font-size:12px; color:rgba(224,231,255,0.65); line-height:1.45; }
+.code-box { background:#060A12; border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:10px 12px; font-family:Consolas,monospace; font-size:11.5px; line-height:1.5; color:#E0E7FF; }
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <div class="slide-section-num">CHAPTER 03 · AGENTIC TDD 验证闭环与防作弊纪律</div>
+  <h1>运动员与裁判员绝对分离：AI 辅助深度 Code Review 与人类最终把关清单</h1>
+  <div class="slide-accent-line"></div>
+<div class="flex gap-4" style="height:535px;">
+    <div style="flex:1.05; display:flex; flex-direction:column;">
+      <div style="font-size:13.5px; font-weight:700; color:#00E5FF; margin-bottom:8px;">
+        <i class="fas fa-users-viewfinder mr-2"></i>双智能体交叉审查架构（Cross-Agent Review）：
+      </div>
+      <div style="padding:10px 14px; background:rgba(0,229,255,0.06); border-left:4px solid #00E5FF; border-radius:4px; font-size:12px; color:#E0E7FF; margin-bottom:12px;">
+        <strong>铁律：写代码的 Agent 绝不能充当代码审查员！</strong>自己的代码自己看，天生存在证实偏差（Confirmation Bias）。必须拉起一个独立只读会话的 <strong>Reviewer Agent</strong> 专职挑刺！
+      </div>
+
+      <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(0,229,255,0.2); border-radius:6px; padding:12px 14px; margin-bottom:10px;">
+        <div style="font-size:13px; font-weight:700; color:#22C55E; margin-bottom:4px;">1. Coder Agent（编码特种兵）</div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.45;">
+          专注执行 `tasks.md` 切片，拥有文件写权限与终端编译运行权，负责实现特性并跑通单测。
+        </div>
+      </div>
+
+      <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,107,53,0.2); border-radius:6px; padding:12px 14px; margin-bottom:12px;">
+        <div style="font-size:13px; font-weight:700; color:#FF6B35; margin-bottom:4px;">2. Reviewer Agent（红军挑刺专家）</div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.45;">
+          <strong>只读权限！</strong>对比 `git diff` 与 `requirements.md (EARS)`，使用严格 Prompt 针对安全性、边界条件、并发竞争进行攻击性挑刺。
+        </div>
+      </div>
+
+      <div class="code-box flex-1" style="font-size:11px;">
+        <span style="color:#00E5FF;"># 独立 Reviewer Prompt:</span><br>
+        "请审查 git diff。重点检查：1. 是否篡改任何单测断言？2. 是否存在空 catch 吞异常？3. 并发场景是否安全？仅列出严重漏洞阻断合并。"
+      </div>
+    </div>
+
+    <div style="flex:1; background:rgba(255,255,255,0.02); border:1px solid rgba(255,107,53,0.3); border-top:4px solid #FF6B35; border-radius:6px; padding:16px; display:flex; flex-direction:column;">
+      <div class="flex items-center justify-between mb-3">
+        <span style="font-size:15px; font-weight:700; color:#FF6B35;"><i class="fas fa-clipboard-check mr-2"></i>人类架构师最终把关清单（PR 合并前 5 问）</span>
+        <span style="font-size:11px; background:#FF6B35; color:#0B1120; font-weight:700; padding:2px 7px; border-radius:3px;">人工最后防线</span>
+      </div>
+
+      <div class="flex flex-col gap-2.5 flex-1" style="font-size:12px; color:#E0E7FF;">
+        <div style="padding:9px 12px; background:rgba(255,107,53,0.06); border-radius:4px;">
+          <strong style="color:#FF6B35;">1. 架构对齐：</strong>是否遵循已有模块职责？有无私自引入未审批的三方 Jar 包或造轮子？
+        </div>
+        <div style="padding:9px 12px; background:rgba(255,107,53,0.06); border-radius:4px;">
+          <strong style="color:#FF6B35;">2. 安全与合规：</strong>日志是否打印了明文手机号/身份证？SQL 查询是否绑定参数防注入？
+        </div>
+        <div style="padding:9px 12px; background:rgba(255,107,53,0.06); border-radius:4px;">
+          <strong style="color:#FF6B35;">3. 并发与事务：</strong>分布式锁的释放顺序是否在事务提交之后？回滚策略是否覆盖了外部 RPC？
+        </div>
+        <div style="padding:9px 12px; background:rgba(255,107,53,0.06); border-radius:4px;">
+          <strong style="color:#FF6B35;">4. 契约兼容：</strong>DTO/枚举修改是否考虑了老版本客户端与下游 Kafka 消费兼容？
+        </div>
+        <div style="padding:9px 12px; background:rgba(255,107,53,0.06); border-radius:4px;">
+          <strong style="color:#FF6B35;">5. 回滚方案：</strong>一旦线上报错，能否通过开关配置或数据库回滚脚本 1 分钟内止损？
+        </div>
+      </div>
+
+      <div style="margin-top:auto; font-size:11.5px; color:#FCA5A5;">
+        <i class="fas fa-triangle-exclamation mr-1"></i>五项全过方可点击 Merge，任何一项存疑立即打回重做！
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>第六课总结</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">SUMMARY</div>
+<h1 class="mb-2">第六课总结</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+  <div style="padding:14px 24px;background:rgba(255,107,53,0.08);border:2px solid #FF6B35;border-radius:8px;text-align:center;margin-bottom:18px;">
+    <div style="font-size:20px;color:#FF6B35;font-weight:700;">Knowledge 不是原始文档，而是经过治理、分块、向量化与安全隔离后能被 AI 可靠使用的企业知识。</div>
+  </div>
+
+  <div style="display:flex;gap:16px;margin-bottom:16px;">
+    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:10px;">Agent 构建进度（v1.3 / v3.0）</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;align-items:center;gap:8px;"><div style="width:22px;height:22px;background:#00E5FF;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#0B1120;">✓</div><div style="font-size:13px;color:#E0E7FF;">Prompt（LLM 交互工程 · 第四课）</div></div>
+        <div style="display:flex;align-items:center;gap:8px;"><div style="width:22px;height:22px;background:#00E5FF;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#0B1120;">✓</div><div style="font-size:13px;color:#E0E7FF;">Memory（多层记忆系统 · 第五课）</div></div>
+        <div style="display:flex;align-items:center;gap:8px;"><div style="width:22px;height:22px;background:#22C55E;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#0B1120;font-weight:700;">✓</div><div style="font-size:13px;color:#22C55E;font-weight:700;">Knowledge（企业知识系统与 RAG · 第六课）</div></div>
+        <div style="display:flex;align-items:center;gap:8px;"><div style="width:22px;height:22px;border:2px solid rgba(224,231,255,0.2);border-radius:4px;"></div><div style="font-size:13px;color:rgba(224,231,255,0.35);">Tool Calling &amp; MCP（连接企业系统 · 第七课）</div></div>
+        <div style="display:flex;align-items:center;gap:8px;"><div style="width:22px;height:22px;border:2px solid rgba(224,231,255,0.2);border-radius:4px;"></div><div style="font-size:13px;color:rgba(224,231,255,0.35);">Workflow（复杂任务编排与治理 · 第八课）</div></div>
+      </div>
+    </div>
+    <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:10px;">第六课核心能力地图</div>
+      <div style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:rgba(224,231,255,0.65);">
+        <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">选型三角（Prompt/RAG/微调）+ 两大正宗 RAG 形态（Catalog vs Document）</div>
+        <div style="text-align:center;color:rgba(0,229,255,0.3);">↓</div>
+        <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">Docling/MinerU 解析 + Parent-Child/Contextual 分块 + 2026 Embedding/Late Chunking</div>
+        <div style="text-align:center;color:rgba(0,229,255,0.3);">↓</div>
+        <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">pgvector（VectorStoreConfig）+ 语义检索（RetrievalService）+ 关键词门控</div>
+        <div style="text-align:center;color:rgba(0,229,255,0.3);">↓</div>
+        <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">四路 Context 注入 + &lt;retrieved_context&gt; 防间接提示词注入 + UserMemoryService</div>
+        <div style="text-align:center;color:rgba(0,229,255,0.3);">↓</div>
+        <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">Retrieval 五步流水线 + Hybrid/Rerank/Cache + RAG Evaluation 三元组评测</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:10px 16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;text-align:center;">
+    <div style="font-size:14px;color:#E0E7FF;">导购 Agent 现在既懂用户（Memory）、又懂商品（Knowledge）了。但它还不能查实时库存、不能下单——它只能“说”，不能“做”。</div>
+    <div style="font-size:12px;color:rgba(224,231,255,0.45);margin-top:4px;">下一课（第七课）：Tool Calling &amp; MCP — 让 Agent 连接企业业务系统，从“能说”走向“能做”！</div>
+  </div>
+</div>
+</div></body></html>

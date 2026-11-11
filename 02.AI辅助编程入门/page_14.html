@@ -3,118 +3,92 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>Agent与LLM：谁负责什么</title>
+<title>支柱 ⑤ · MCP 与本地 CLI 的边界权衡（Token 经济学警示）</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
 .slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-role-table { width:100%; border-collapse:collapse; }
-.slide-role-table th { font-size:14px; font-weight:700; padding:10px 14px; text-align:left; }
-.slide-role-table td { font-size:13px; padding:9px 14px; border-bottom:1px solid rgba(255,255,255,0.04); color:rgba(224,231,255,0.6); line-height:1.4; }
-.slide-role-table td:first-child { border-right:1px solid rgba(0,229,255,0.15); }
-.slide-vs-divider { width:3px; background:linear-gradient(to bottom, transparent, #FF6B35, transparent); }
+.slide-container h1 { font-size:29px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; }
+.panel-box { padding:12px 15px; background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.16); margin-bottom:10px; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:30px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 04 · 关键区分</div>
-  <h1 class="mb-2">Agent与LLM：谁负责什么？</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
+<div class="slide-container" style="padding:26px 65px;">
+  <div class="mb-1 slide-section-num">CHAPTER 04 · HARNESS 驾驭层“六件套”详解</div>
+  <h1 class="mb-2">支柱 ⑤ · `MCP` 与本地 `CLI` 的边界权衡（Token 经济学警示）</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:12px;"></div>
 
-  <div class="flex" style="gap:28px;">
+  <div class="flex" style="gap:24px;">
+    <!-- Left Column: What MCP solves & The Token Bloat Trap -->
     <div style="flex:1;">
-      <!-- Analogy -->
-      <div style="display:flex; gap:16px; margin-bottom:16px;">
-        <div style="flex:1; padding:14px 16px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.15); text-align:center;">
-          <div style="font-size:28px; margin-bottom:6px;">🧑‍💼</div>
-          <div style="font-size:15px; font-weight:700; color:#00E5FF;">Agent = 秘书</div>
-          <div style="font-size:11px; color:rgba(224,231,255,0.5); margin-top:4px;">搜资料 · 排顺序 · 去重 · 摘要<br>整理好交给专家</div>
+      <div class="panel-box">
+        <div style="font-size:14px; font-weight:700; color:#00E5FF; margin-bottom:5px;">
+          <i class="fas fa-plug" style="margin-right:6px;"></i>1. MCP（Model Context Protocol）：AI 界的“万能 USB 接口”
         </div>
-        <div style="display:flex; align-items:center; font-size:24px; color:#FF6B35;">→</div>
-        <div style="flex:1; padding:14px 16px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.15); text-align:center;">
-          <div style="font-size:28px; margin-bottom:6px;">🧠</div>
-          <div style="font-size:15px; font-weight:700; color:#FF6B35;">LLM = 专家</div>
-          <div style="font-size:11px; color:rgba(224,231,255,0.5); margin-top:4px;">阅读 · 理解 · 推理 · 给建议<br>只看秘书整理好的材料</div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.68); line-height:1.5;">
+          由 Anthropic 发起并成为行业标准的开放协议。它让 Coding Agent 跨出本地代码库，直接读取<strong style="color:#E0E7FF;">飞书/钉钉需求文档、Jira 缺陷单、YApi/Apifox 接口定义、Sentry 线上报错、PostgreSQL 测试库表结构</strong>。
         </div>
       </div>
 
-      <!-- Responsibility table -->
-      <table class="slide-role-table" style="margin-bottom:14px;">
-        <thead>
-          <tr>
-            <th style="color:#00E5FF; border-bottom:2px solid rgba(0,229,255,0.3); background:rgba(0,229,255,0.06);">Agent 负责（准备信息）</th>
-            <th style="color:#FF6B35; border-bottom:2px solid rgba(255,107,53,0.3); background:rgba(255,107,53,0.06);">LLM 负责（理解信息）</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>搜索信息（代码、文档、日志）</td><td>理解Context中的信息</td></tr>
-          <tr><td>读取规则（AGENTS.md、Rules、Skills）</td><td>推理：应该做什么、怎么做</td></tr>
-          <tr><td>调用工具（MCP、文件系统、Shell）</td><td>生成回答、代码、计划</td></tr>
-          <tr><td>构建Context、适配窗口容量</td><td>结合反馈调整方案</td></tr>
-        </tbody>
-      </table>
+      <!-- The 2026 Engineering Warning: MCP Context Bloat -->
+      <div class="panel-box" style="background:rgba(255,60,60,0.05); border:1.5px solid #FF6B35; margin-bottom:0;">
+        <div style="font-size:14.5px; font-weight:700; color:#FF6B35; margin-bottom:6px;">
+          <i class="fas fa-radiation" style="margin-right:6px;"></i>2. 2026 重大工程警示：MCP “工具贪婪症”引发的上下文雪崩！
+        </div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.75); line-height:1.5; margin-bottom:8px;">
+          很多开发者一上来给 Agent 挂载 10 个 MCP Server（GitHub MCP、GitLab MCP、Docker MCP、MySQL MCP、浏览器 MCP……），结果发现 <strong style="color:#FF6B35;">Agent 变笨了、响应极慢且账单暴涨！为什么？</strong>
+        </div>
 
-      <div style="padding:12px 16px; background:rgba(0,229,255,0.06); border:2px solid rgba(0,229,255,0.2);">
-        <div style="font-size:15px; color:#00E5FF; font-weight:700; text-align:center;">Agent负责准备信息，LLM负责理解信息。</div>
+        <div style="padding:9px 12px; background:rgba(0,0,0,0.45); border-left:3px solid #FF6B35; font-family:monospace; font-size:11px; color:#E0E7FF; line-height:1.55; margin-bottom:8px;">
+          · 1 个大型 MCP Server（如官方 GitHub MCP）包含 <span style="color:#FF6B35;">40~60 个 Tool 定义</span>；<br>
+          · 每个 Tool 的 JSON Schema（名称+描述+参数结构）占用 <span style="color:#FF6B35;">300~500 Tokens</span>；<br>
+          · 挂载 8 个 MCP Server = <strong style="color:#FFC832;">150+ 个 Tools 常驻注入上下文前端 ≈ 45,000+ Tokens！</strong><br>
+          · 哪怕你只是让 Agent 改一行 Java 注释，这 4.5 万 Token 的工具定义也会塞进请求！
+        </div>
+
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.68); line-height:1.45;">
+          <strong style="color:#FFC832;">双重副作用：</strong>① 严重挤占有效代码窗口；② 当工具数量超过 50 个时，大模型选错工具或传错参数的概率呈指数级上升！
+        </div>
       </div>
     </div>
 
+    <!-- Right Column: Golden Rule CLI vs MCP Decision Matrix -->
     <div style="flex:1;">
-      <!-- Context vs Context Window -->
-      <div style="font-size:15px; font-weight:700; color:#FF6B35; margin-bottom:12px;"><i class="fas fa-exchange-alt" style="margin-right:6px;"></i>Context ≠ Context Window</div>
+      <div style="font-size:14.5px; font-weight:700; color:#22C55E; margin-bottom:8px;">
+        <i class="fas fa-scale-balanced" style="margin-right:6px;"></i>3. 2026 黄金选型准则：本地成熟工具调 `CLI`，企业内网系统用 `MCP`！
+      </div>
 
-      <div style="display:flex; gap:14px; margin-bottom:14px;">
-        <div style="flex:1; padding:14px 16px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.12);">
-          <div style="font-size:14px; font-weight:700; color:#00E5FF; margin-bottom:8px;">Context（上下文）</div>
-          <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.6;">
-            <strong style="color:#E0E7FF;">Agent组织给模型看的所有信息</strong><br>
-            · AGENTS.md / Rules / Skills<br>
-            · Memory中的历史经验<br>
-            · 用户当前的Prompt<br>
-            · 项目代码 / Git Diff<br>
-            · MCP工具返回的结果
-          </div>
-          <div style="font-size:11px; color:#00E5FF; margin-top:8px; font-weight:600;">→ 是"内容"</div>
+      <!-- Prefer CLI Card -->
+      <div class="panel-box" style="border-left:4px solid #22C55E; background:rgba(34,197,94,0.04);">
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:13.5px; font-weight:700; color:#22C55E;">✅ 优先让 Agent 直接调本地 CLI（0 额外 Schema Token！）</span>
+          <span style="font-size:11px; padding:2px 6px; border-radius:3px; background:#22C55E; color:#0B1120; font-weight:700;">强烈推荐</span>
         </div>
-        <div style="flex:1; padding:14px 16px; background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.12);">
-          <div style="font-size:14px; font-weight:700; color:#FF6B35; margin-bottom:8px;">Context Window（上下文窗口）</div>
-          <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.6;">
-            <strong style="color:#E0E7FF;">模型一次能够阅读的最大Token数量</strong><br>
-            · 像一本书一次最多能翻开的页数<br>
-            · 超出容量的信息模型"看不到"<br>
-            · Agent通过裁剪、摘要、RAG适配容量<br>
-            · 不同模型窗口大小不同
-          </div>
-          <div style="font-size:11px; color:#FF6B35; margin-top:8px; font-weight:600;">→ 是"容量"</div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.72); line-height:1.5;">
+          大模型在预训练阶段早已把开源标准 CLI 背得滚瓜烂熟！直接通过内置 `Bash` 工具执行，**无需挂载任何 MCP Tool Schema**：<br>
+          · 代码与 PR 管理：用 <code style="color:#22C55E;">git</code> / <code style="color:#22C55E;">gh pr view</code> / <code style="color:#22C55E;">glab</code> 替代 GitHub/GitLab MCP<br>
+          · 构建与容器操作：用 <code style="color:#22C55E;">mvn</code> / <code style="color:#22C55E;">gradle</code> / <code style="color:#22C55E;">docker ps</code> / <code style="color:#22C55E;">kubectl</code> 替代容器 MCP<br>
+          · 接口调试与数据查询：用 <code style="color:#22C55E;">curl</code> / <code style="color:#22C55E;">jq</code> / <code style="color:#22C55E;">mysql -e</code> 加上一句 `SKILL.md` 说明即可！
         </div>
       </div>
 
-      <div style="padding:12px 16px; background:rgba(255,107,53,0.06); border:2px solid rgba(255,107,53,0.2); margin-bottom:14px;">
-        <div style="font-size:15px; color:#FF6B35; font-weight:700; text-align:center;">Context 是内容；Context Window 是容量。</div>
+      <!-- When to use MCP Card -->
+      <div class="panel-box" style="border-left:4px solid #00E5FF;">
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:13.5px; font-weight:700; color:#00E5FF;">🔌 什么时候才真正应该接入或封装 MCP Server？</span>
+          <span style="font-size:11px; padding:2px 6px; border-radius:3px; background:rgba(0,229,255,0.2); color:#00E5FF; font-weight:700;">保持 ≤ 3 个</span>
+        </div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.72); line-height:1.5;">
+          1. <strong style="color:#E0E7FF;">企业私有协同与知识系统：</strong>飞书文档/语雀/Confluence PRD 读取、Jira/Tapd 需求状态流转、内部 YApi 接口契约拉取（无标准 CLI 且需 OAuth 鉴权）。<br>
+          2. <strong style="color:#E0E7FF;">需要安全脱敏与只读网关的存储：</strong>通过企业统一封装的只读数据库 MCP（自动脱敏手机号/身份证，禁止写操作）供 Agent 排查数据。<br>
+          3. <strong style="color:#E0E7FF;">浏览器 UI 自动化与视觉验收：</strong>如 `Playwright / Chrome DevTools MCP`，让前端 Agent 自己打开页面截图验收。
+        </div>
       </div>
 
-      <!-- Flow diagram -->
-      <div style="padding:14px 16px; background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.1);">
-        <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:8px;">完整的数据流</div>
-        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.6; text-align:center;">
-          <span style="color:rgba(224,231,255,0.4);">用户需求</span><br>
-          <span style="color:rgba(224,231,255,0.3);">↓</span><br>
-          <span style="color:#00E5FF; font-weight:700;">Agent</span>
-          <span style="color:rgba(224,231,255,0.3);">（搜索 · 读取 · 整理 · 裁剪 · 摘要）</span><br>
-          <span style="color:rgba(224,231,255,0.3);">↓ 构建</span><br>
-          <span style="color:#FF6B35; font-weight:700;">Context</span>
-          <span style="color:rgba(224,231,255,0.3);"> → 塞进 → </span>
-          <span style="color:#FF6B35; font-weight:700;">Context Window</span><br>
-          <span style="color:rgba(224,231,255,0.3);">↓ 交给</span><br>
-          <span style="color:#FF6B35; font-weight:700;">LLM</span>
-          <span style="color:rgba(224,231,255,0.3);">（理解 · 推理 · 生成）</span><br>
-          <span style="color:rgba(224,231,255,0.3);">↓ 输出</span><br>
-          <span style="color:#00E5FF; font-weight:700;">Agent</span>
-          <span style="color:rgba(224,231,255,0.3);"> 执行 → 工具反馈 → 继续循环</span>
-        </div>
+      <div style="padding:8px 12px; background:rgba(255,200,50,0.08); border:1px solid rgba(255,200,50,0.3); font-size:11.5px; color:#FFC832;">
+        <i class="fas fa-sliders" style="margin-right:6px;"></i><strong>实战铁律：</strong>日常保持常驻开启的 MCP Server <strong>不超过 2~3 个</strong>；不常用的 MCP 随用随开！
       </div>
     </div>
   </div>

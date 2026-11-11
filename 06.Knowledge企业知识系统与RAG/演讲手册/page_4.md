@@ -17,5 +17,20 @@ Prompt 做不到的四件事：包含企业所有商品信息（商品有几千�
 ## Key Emphasis
 不要让学员觉得"Prompt 装不下是因为长度限制"。Prompt 装不下是因为架构设计——企业知识应该在外部，不应该硬塞进 Prompt。这是 RAG 存在的根本原因。
 
+## Optional Extension
+**学员问：Long Context 都 1M 了，把商品全塞进 Prompt 不就行了？**
+答：能塞下不等于该塞——算三笔账：成本、延迟、注意力。
+Demo 做法：做一次反例实验——把 `products.json` 全量塞进 `buildUserPrompt()` 的 context，看 token 消耗和回答质量，再切回 RAG 检索对比（page_22 有完整账）。
+生产做法：默认 RAG 按需检索（几百 token），Long-Context 只留给"单文档深度分析"场景；用语义缓存和 Token 预算控制成本。取舍：全量塞入还丢了权限过滤——不同部门看到所有内容，这是安全问题不是成本问题。
+
+## Classroom Interaction
+让学员现场算一笔账：26 个商品约 8K token，每天 1 万次对话都带上 = 每天多烧 8000 万输入 token。数字一算，Prompt 路线自己就死。
+
+## Take Away
+Prompt 讲"怎么做"，不讲"知道什么"——企业知识放外部知识库按需检索注入，别硬塞。
+
+## Why This Slide Matters
+跳过这页，学员会把企业知识硬塞 Prompt，成本和"知识更新要重新部署"两个问题上线后才爆发。
+
 ## Transition
 那把知识"烧"进模型呢？Fine-tuning 行不行？

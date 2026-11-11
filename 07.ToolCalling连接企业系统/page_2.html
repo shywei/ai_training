@@ -7,9 +7,9 @@
 *{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
 .s h1{font-size:48px!important;color:#E0E7FF;font-weight:700}
-.toc-item{display:flex;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(0,229,255,0.08)}
-.toc-num{font-size:20px;font-weight:700;color:#00E5FF;min-width:44px;line-height:1}
-.toc-title{font-size:14px;color:#E0E7FF;font-weight:600;margin-bottom:2px}
+.toc-item{display:flex;align-items:flex-start;padding:6px 0;border-bottom:1px solid rgba(0,229,255,0.08)}
+.toc-num{font-size:19px;font-weight:700;color:#00E5FF;min-width:44px;line-height:1}
+.toc-title{font-size:13.5px;color:#E0E7FF;font-weight:600;margin-bottom:2px}
 .toc-desc{font-size:11px;color:rgba(224,231,255,0.45)}
 </style></head><body>
 <div class="s flex">
@@ -18,37 +18,42 @@
     <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
     <p style="font-size:13px;color:rgba(224,231,255,0.4);line-height:1.8;">
       从"LLM 只能说话"到"Agent 能做事"<br>
-      Function Calling · MCP 协议 · LLM 路由
+      Function Calling · MCP 协议 · LLM 路由<br>
+      企业治理五件套 · v1.4 架构验证
     </p>
   </div>
   <div class="flex flex-col justify-center flex-1" style="padding:10px 50px 10px 20px;">
     <div class="toc-item">
       <div class="toc-num">01</div>
-      <div><div class="toc-title">为什么需要 Tool Calling</div><div class="toc-desc">LLM 的局限、从"懂"到"做"、Function Calling 概念</div></div>
+      <div><div class="toc-title">为什么需要 Tool Calling（P3–P4）</div><div class="toc-desc">第六课回顾、LLM 的局限、从"懂"到"做"、Function Calling 核心思想</div></div>
     </div>
     <div class="toc-item">
       <div class="toc-num">02</div>
-      <div><div class="toc-title">Function Calling</div><div class="toc-desc">OpenAI 协议格式、两种实现方式、ReAct 模式</div></div>
+      <div><div class="toc-title">Function Calling（P5–P8）</div><div class="toc-desc">6 步流程、OpenAI API tools/tool_calls 协议与 strict 模式、两种实现方式、ReAct 模式</div></div>
     </div>
     <div class="toc-item">
       <div class="toc-num">03</div>
-      <div><div class="toc-title">MCP 协议</div><div class="toc-desc">标准协议、四大能力、三层架构、Server 实现、生态与安全</div></div>
+      <div><div class="toc-title">MCP 协议（P9–P13）</div><div class="toc-desc">为什么需要标准协议、四大能力、三层架构与 Transport 演进（stdio / SSE / Streamable HTTP）、双 Server 实现、生态与安全</div></div>
     </div>
     <div class="toc-item">
       <div class="toc-num">04</div>
-      <div><div class="toc-title">Tool vs Resource</div><div class="toc-desc">两种 MCP 能力的选型、Function Calling 完整链路</div></div>
+      <div><div class="toc-title">Tool vs Resource 与协议全景（P14–P17）</div><div class="toc-desc">Tool vs Resource 选型、Function Calling 完整链路、Agent 互操作协议全景（MCP / A2A / AG-UI）、从能力到应用</div></div>
     </div>
     <div class="toc-item">
       <div class="toc-num">05</div>
-      <div><div class="toc-title">LLM 路由</div><div class="toc-desc">三种方案对比、路由实现、路由如何影响 context</div></div>
+      <div><div class="toc-title">LLM 路由与大规模工具治理（P18–P19）</div><div class="toc-desc">三种路由方案对比、Tool RAG 动态工具检索、LlmRouter 实现与 context 按需构建</div></div>
     </div>
     <div class="toc-item">
       <div class="toc-num">06</div>
-      <div><div class="toc-title">记忆与数据架构</div><div class="toc-desc">记忆系统设计、数据分层、context 演进</div></div>
+      <div><div class="toc-title">记忆与数据架构演进（P20–P22）</div><div class="toc-desc">记忆系统设计（系统行为 vs LLM 行为）、数据分层 MCP 化、context 四课演进与三段规则</div></div>
     </div>
     <div class="toc-item">
       <div class="toc-num">07</div>
-      <div><div class="toc-title">Demo vs 生产 · 总结</div><div class="toc-desc">八项具体差距、项目架构、能力地图</div></div>
+      <div><div class="toc-title">企业治理与互操作协议（P16, P23–P29）</div><div class="toc-desc">企业治理五件套（限流 / 幂等 / 超时 / 补偿 / 审计）、v1.4 治理现状与十二项生产差距</div></div>
+    </div>
+    <div class="toc-item">
+      <div class="toc-num">08</div>
+      <div><div class="toc-title">架构验证与实战总结（P30–P34）</div><div class="toc-desc">v1.4 代码阅读路线图、8 个动手验证点、构建进度与能力地图、课后练习、第八课预告</div></div>
     </div>
   </div>
 </div>

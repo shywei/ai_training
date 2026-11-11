@@ -1,39 +1,24 @@
 ## Slide Objective
-明确Prompt在Agent系统中的定位，同时让学员了解当前行业主流的Prompt实现方案和工具链。
+深入剖析 Agent 运行时的三大核心认知循环（ReAct、Plan-and-Execute、Reflection），讲清“思考-行动-观察”的数学与状态本质。
 
 ## Suggested Presentation
-我们先来看第一个能力：Prompt。大家可能觉得，Prompt不就是写提示词吗？有什么好讲的？
+我们来到第二章：运行时认知循环。请看第 6 页：三大核心认知循环。
+这是所有现代 Agent 能够“自主行动”的底层心智模型：
+1. **ReAct 范式（Reason + Act，推理与行动交织）**：
+   这是 2026 年应用最广泛的经典基础循环。它的时序非常直观：
+   **Thought（思考）**：“用户想买 5000 元左右的轻薄办公本，我需要先查库存”；
+   **Action（行动）**：决定调用工具 `search_products(keyword="轻薄本", max_price=5000)`；
+   **Observation（观察）**：系统拦截并执行工具，把真实数据库返回的商品列表作为输入回传；
+   **Thought（再思考）**：“根据返回的 3 款商品，ThinkPad X1 最符合要求，准备生成推荐”；
+   **Final Answer（交付）**：输出最终回复。
+2. **Plan-and-Execute（规划与执行分离）**：
+   面对超长多步任务，ReAct 容易走一步看一步导致短视。此模式由 Planner 先生成一个包含 5 个步骤的执行图，由 Executor 逐项执行，遇到阻塞时触发 Replanner 动态调整计划；
+3. **Reflection（反思与自我批评）**：
+   在输出交付前，引入一个批评者视角（Critic），对结果进行逻辑自洽性校验、代码单测验证或合规审查，不达标则自我纠偏重新生成。
 
-在Agent系统里，Prompt绝不是聊天框里的那句话。它是整个系统的起点。没有Prompt，大模型就只会闲聊。加上了Prompt，大模型才变成特定角色的专家。
-
-Prompt解决的是"做什么"的问题，后面的Memory、Tool解决的是"怎么做"的问题。方向错了，后面全白搭。
-
-那在工程实践中，Prompt到底长什么样？
-大家看左边——一个完整的Prompt系统包含四个部分：System Prompt定义角色和规则，Template是带变量的模板（比如把用户名、订单号动态填进去），Few-shot是给模型看的示例，Output Parser负责把模型的自由文本转成结构化数据（比如JSON）。
-
-再看右边，目前行业里做Prompt管理的主流方案。
-Spring AI提供了PromptTemplate，Java开发者可以直接在Spring项目里用模板变量生成Prompt。
-LangChain也提供了PromptTemplate，Python生态用得更多。
-这两个框架的思路是一样的：把Prompt当代码管理，支持版本控制、变量替换、模板复用。
-
-在实际工程中，Prompt通常会像代码一样被放进Git仓库管理。为什么？因为Prompt改一个词，Agent的行为可能就完全不同。你必须能追溯每次修改，能回滚。
-
-## Key Emphasis
-讲清楚Prompt在Agent架构中作为"角色定义"和"行为约束"的底层作用。
-重点讲工程系统中的Prompt结构（Template和Parser），不要去讲Prompt Engineering的奇技淫巧。
-点出Spring AI和LangChain两个主流方案，让学员知道实际开发中用什么工具。
-
-## Optional Extension
-如果学员问Prompt和Fine-tuning的区别，回答：Prompt是在不改变模型的前提下，通过指令引导行为；Fine-tuning是用训练数据修改模型本身。Prompt成本低、见效快，是Agent系统的首选方案。
-
-## Classroom Interaction
-无。
-
-## Take Away
-Prompt是Agent的"人格定义"，在工程中通过Template和Parser实现结构化管理。
-
-## Why This Slide Matters
-如果不把Prompt作为系统的第一块基石，后续的组件就失去了挂载的主体。如果不讲工程实现方案，学员会以为Prompt就是手动打字。
+## Key Q&A / Clarifications
+**Q：ReAct 循环中的“Thought”在 2026 年通常是如何体现的？**
+A：在早期，Thought 是在 Prompt 中让模型显式输出一段文字；而在 2025–2026 年现代推理模型中，Thought 已经原生内化为大模型的 `reasoning_content`（慢思考思维链），通过流式输出与正文隔离。在工业工程落地中，我们通常基于流式事件通道实现思考流与正文流的优雅解耦。
 
 ## Transition
-现在我们给Agent定义了角色，它知道自己是谁了。但是如果它过一会儿就把用户忘了怎么办？这就需要第二个能力：Memory。
+认知循环中的每一次思考与行动，依赖的全部养料都来自于同一个源头：第 7 页，智能体系统的心智中枢——Context Engineering！

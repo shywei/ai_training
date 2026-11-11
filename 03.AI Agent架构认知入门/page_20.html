@@ -1,46 +1,61 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>工程现实与落地边界</title>
+<title>组件边界与工程融合辨析（五问五答）</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
-.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
-.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
-.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
-.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden;padding:32px 56px;display:flex;flex-direction:column}
+.s h1{font-size:28px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px;font-weight:700}
+.qa-card{padding:13px 17px;background:rgba(0,229,255,0.035);border:1px solid rgba(0,229,255,0.16);border-radius:7px;display:flex;flex-direction:column;justify-content:center}
 </style></head><body>
-<div class="s" style="padding:36px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 08</div><h1 class="mb-2">工程现实与落地边界</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+<div class="s">
+  <div class="mb-1 sn">CHAPTER 06 · 架构误区辨析与演进总结</div>
+  <h1 class="mb-1">组件边界与存量系统融合辨析（五问五答）—— 厘清职责，平滑演进</h1>
+  <div style="width:56px;height:3px;background:#FF6B35;margin-bottom:14px;"></div>
 
-<div style="flex:1;display:flex;flex-direction:column;">
-<div style="margin-bottom:10px;">
-    <div style="font-size:13px;color:rgba(224,231,255,0.4);margin-top:6px;">避免"过度工程化幻想"——不是所有场景都需要Agent</div>
+  <div class="grid grid-cols-2 gap-3.5 flex-1" style="min-height:0;">
+    <div class="qa-card">
+      <div style="font-size:15px;color:#00E5FF;font-weight:700;margin-bottom:5px;">❶ Memory（长期记忆）和 RAG（知识库）到底怎么划清边界？</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.72);line-height:1.6;">
+        虽然底层都用到了 <code style="color:#A855F7;">pgvector</code> 向量表，但职责完全正交：<br>
+        • <b style="color:#A855F7;">Memory 记的是“人（User-Scoped）”</b>：与特定 <code style="color:#A855F7;">user_id</code> 强绑定（画像、偏好、历史对话），在对话过程中<b style="color:#E0E7FF;">实时读写动态生长</b>；<br>
+        • <b style="color:#00E5FF;">RAG 记的是“事（Global Domain Knowledge）”</b>：全员共享的商品手册与售后政策，由运营/ETL 管道<b style="color:#E0E7FF;">离线批量构建、在线只读检索</b>。
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div style="font-size:15px;color:#00E5FF;font-weight:700;margin-bottom:5px;">❷ 为什么商品实时价格和库存不能放进 RAG 向量库，必须走 MCP Tool？</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.72);line-height:1.6;">
+        因为<b style="color:#FF6B35;">数据突变频率与精确度要求不同</b>！向量化（Embedding）有延迟且余弦相似度是模糊匹配。商品卖点评测、尺码指南半年不变，适合放 <code style="color:#00E5FF;">pgvector</code> 走 RAG；而库存余量、秒杀价每秒在变且要求 100% 精确，必须通过 <code style="color:#FF6B35;">实时业务微服务</code> 实时查 MySQL 主库。
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div style="font-size:15px;color:#00E5FF;font-weight:700;margin-bottom:5px;">❸ Tool、MCP、Workflow、Multi-Agent 四个概念是什么层级关系？</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.72);line-height:1.6;">
+        它们不是四选一的竞品，而是<b style="color:#E0E7FF;">由小到大的四个工程层级</b>：<br>
+        • <b style="color:#FF6B35;">Tool</b> = 单个原子函数（如 <code style="color:#FF6B35;">create_order</code>）；<br>
+        • <b style="color:#FF6B35;">MCP</b> = 暴露和调用 Tool 的标准化通信协议；<br>
+        • <b style="color:#22C55E;">Workflow (FSM)</b> = 单 Agent 内部编排多个 Tool 执行顺序与容错的骨架；<br>
+        • <b style="color:#A855F7;">Multi-Agent (A2A)</b> = 多个拥有独立 Workflow 的专业 Agent 之间的分工协作。
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div style="font-size:15px;color:#00E5FF;font-weight:700;margin-bottom:5px;">❹ 引入 Agent 意味着要把公司现有的 ERP / CRM / 商城微服务重写一遍吗？</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.72);line-height:1.6;">
+        <b style="color:#22C55E;">绝不需要重写！Agent 不是替代存量系统，而是存量系统之上的“智能交互与编排层”。</b>现有商城订单库、CRM、协同过滤推荐算法全部保留，只需在外部包一层薄薄的 <b style="color:#FF6B35;">MCP Server 适配器</b>（调用原有 Dubbo/Feign/REST 接口），就能让老系统秒变 Agent 的手脚。
+      </div>
+    </div>
+
+    <div class="qa-card col-span-2" style="background:rgba(34,197,94,0.04);border-color:rgba(34,197,94,0.28);">
+      <div style="font-size:15px;color:#22C55E;font-weight:700;margin-bottom:4px;">❺ 传统搜推系统（搜索+协同过滤推荐）会被导购 Agent 取代吗？</div>
+      <div style="font-size:12px;color:rgba(224,231,255,0.78);line-height:1.6;">
+        <b style="color:#E0E7FF;">两者是完美的上下游互补关系，而非替代关系：</b>传统搜推引擎擅长在毫秒内从百万商品池中做批量粗排召回（千人千面首页瀑布流，高并发、极低成本）；而导购 Agent 擅长在用户拿不定主意时，通过多轮对话 clarifying 复杂场景需求（如“送长辈的护膝散步鞋”），并调用传统搜推接口拿候选集做深度对比导购。
+      </div>
+    </div>
+  </div>
 </div>
-<div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:16px;flex:1;align-content:stretch;">
-  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❶ 小型项目需要Agent架构吗？</div>
-    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">大多数不需要。如果需求是"让LLM回答问题"，一个API调用就够了。Agent架构解决的是复杂系统问题，不是简单对话问题。</div>
-  </div>
-  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❷ 什么场景不适合用Agent？</div>
-    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">规则明确、不需要理解意图、不需要动态决策的场景。例如：数据报表、定时任务、表单审批。这些用传统程序更可靠。</div>
-  </div>
-  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❸ 是否必须使用RAG？</div>
-    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">不是。如果LLM的训练数据已经够用，不需要RAG。只有需要接入企业私有知识时才需要。Prompt写得好的话，很多场景不需要RAG。</div>
-  </div>
-  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❹ MCP是必须的吗？</div>
-    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">不是。工具少于3个，直接用Function Calling。MCP的价值是标准化和复用。工具越多、越需要跨框架复用时，MCP的价值才体现。</div>
-  </div>
-  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❺ 一个Agent系统最小可行架构是什么？</div>
-    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">Prompt + LLM + 一个Tool。三样东西就能跑起来。其他组件（Memory、Knowledge、Workflow、MCP）都是按需添加。从最小架构开始，根据需求逐步扩展。</div>
-  </div>
-</div>
-</div>
-</div></body></html>
+</body></html>

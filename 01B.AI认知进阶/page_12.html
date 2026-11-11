@@ -1,0 +1,122 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>训练进阶与技术迁移：主观偏好对齐、RLVR/GRPO 慢思考与独立知识蒸馏闭环</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.s { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:24px 60px; display:flex; flex-direction:column; justify-content:space-between; }
+.s h1 { font-size:26px !important; color:#E0E7FF; font-weight:700; }
+.card { background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.15); border-radius:4px; padding:10px 12px; }
+.badge { font-size:11px; font-weight:700; padding:1px 6px; border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="s">
+  <!-- Header -->
+  <div>
+    <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; margin-bottom:4px;">CHAPTER 03 · 现代模型训练范式与前沿架构</div>
+    <h1 class="mb-1">训练进阶与技术迁移：偏好对齐、RLVR/GRPO 慢思考与独立知识蒸馏</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:8px;"></div>
+    <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.45;">
+      主观偏好对齐规范合规安全，可验证强化学习（RLVR/GRPO）攻克深度推理；而<strong>知识蒸馏作为独立的模型迁移与压缩方法，打通商业落地性价比闭环</strong>（非所有模型固定阶段）。
+    </div>
+  </div>
+
+  <!-- 3 Columns: DPO vs RLVR/GRPO vs Distillation -->
+  <div class="grid grid-cols-3 gap-3 my-1" style="height:355px;">
+    <!-- Column 1: RLHF & DPO -->
+    <div class="card" style="border-top:3px solid #38BDF8; display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="badge" style="background:rgba(56,189,248,0.15); color:#38BDF8;">阶段三 · 主观对齐</span>
+          <span style="font-size:11px; color:rgba(224,231,255,0.5);">RLHF &amp; DPO</span>
+        </div>
+        <div style="font-size:13.5px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">从 PPO 到轻量 DPO 直接对齐</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.45; margin-bottom:6px;">
+          • <strong>传统 PPO 痛点：</strong>显存需常驻 Actor、Critic、Reward 与 Ref 四个模型，极易发散崩溃；<br>
+          • <strong>DPO 数学跨越：</strong>隐式奖励直接表示为策略概率对数几率，无需独立训练奖励模型：
+        </div>
+        <div style="background:rgba(0,0,0,0.3); padding:6px 8px; border-radius:3px; font-size:11px; color:#38BDF8; font-family:Consolas,monospace; margin-bottom:6px; line-height:1.35;">
+          ℒ_DPO = -𝔼 [ log σ( β log(π/π_ref(y_w)) - β log(π/π_ref(y_l)) ) ]
+        </div>
+      </div>
+      <div style="background:rgba(56,189,248,0.06); padding:6px 8px; border-radius:3px; font-size:11px; color:#38BDF8;">
+        <i class="fas fa-check-circle mr-1"></i><strong>收益：</strong>消除谄媚毒性，闭式稳定微调，极大降低工业对齐门槛。
+      </div>
+    </div>
+
+    <!-- Column 2: RLVR & GRPO -->
+    <div class="card" style="border-top:3px solid #22C55E; display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="badge" style="background:rgba(34,197,94,0.15); color:#22C55E;">阶段四 · 客观推理</span>
+          <span style="font-size:11px; color:#22C55E; font-weight:700;">RLVR / GRPO</span>
+        </div>
+        <div style="font-size:13.5px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">可验证规则驱动的慢思考自涌现</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.45; margin-bottom:6px;">
+          在具备绝对客观真理的代码与数理世界，消除主观打分黑客攻击（Reward Hacking）：
+        </div>
+        <div class="space-y-1" style="font-size:11px; color:rgba(224,231,255,0.75);">
+          <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px;">
+            • <strong>确定性真理沙箱：</strong>代码单测是否 100% Passed？数学算式是否精确相等？
+          </div>
+          <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px;">
+            • <strong>GRPO 组相对策略优化：</strong>无需 Critic 模型，依靠组内候选结果相对奖励自博弈更新。
+          </div>
+          <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px;">
+            • <strong>慢思考涌现：</strong>自发展开 <code>&lt;think&gt;</code> 假设、验算、碰壁回溯的长思维链条！
+          </div>
+        </div>
+      </div>
+      <div style="background:rgba(34,197,94,0.06); padding:6px 8px; border-radius:3px; font-size:11px; color:#22C55E;">
+        <i class="fas fa-brain mr-1"></i><strong>突破：</strong>DeepSeek-R1 / o1 攻克前沿数理与复杂重构。
+      </div>
+    </div>
+
+    <!-- Column 3: Distillation & Compression -->
+    <div class="card" style="border-top:3px solid #FF6B35; display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="badge" style="background:rgba(255,107,53,0.15); color:#FF6B35;">独立迁移 · 知识蒸馏</span>
+          <span style="font-size:11px; color:rgba(224,231,255,0.5);">Distillation (Cross-Model)</span>
+        </div>
+        <div style="font-size:13.5px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">知识蒸馏：大教师传授小弟子</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.45; margin-bottom:6px;">
+          千亿超大推理模型算力昂贵，蒸馏是连接前沿智力与商业高性价比落地的必由之路：
+        </div>
+        <div class="space-y-1" style="font-size:11px; color:rgba(224,231,255,0.75);">
+          <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px;">
+            • <strong>CoT 思维链蒸馏：</strong>将超大模型产出的高质量深思步骤作为学生模型黄金训练集。
+          </div>
+          <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px;">
+            • <strong>概率分布软标签（Soft-Labels）：</strong>不仅学答案，还学教师模型输出概率的连续平滑度。
+          </div>
+          <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px;">
+            • <strong>以小博大奇迹：</strong>如 DeepSeek-R1-Distill-Qwen-14B/32B 在单卡上即可发挥顶级推理效能！
+          </div>
+        </div>
+      </div>
+      <div style="background:rgba(255,107,53,0.06); padding:6px 8px; border-radius:3px; font-size:11px; color:#FF6B35;">
+        <i class="fas fa-server mr-1"></i><strong>闭环：</strong>让企业在消费级显卡（如 4090）跑通大模型生产部署。
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom: Profound Insight Card -->
+  <div style="background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.2); border-radius:4px; padding:10px 18px;">
+    <div class="flex items-center gap-2 mb-1">
+      <i class="fas fa-lightbulb" style="color:#F59E0B; font-size:12px;"></i>
+      <span style="font-size:12.5px; font-weight:700; color:#F59E0B;">为什么 2026 年模型演进的核心是“强化学习突破 + 蒸馏普惠”？</span>
+    </div>
+    <div style="font-size:11.5px; color:rgba(224,231,255,0.75); line-height:1.5;">
+      在写诗聊天中，人类裁判极易被华丽辞藻糊弄；而在<strong>数理逻辑与编程重构</strong>中，编译器与测试套件是客观无私的“真理发生器（Ground Truth Verifier）”。
+      通过 RLVR/GRPO 训练出极度聪明的巨型教师模型，再通过<strong>知识蒸馏</strong>将反思推理能力压缩进 7B~32B 小模型，彻底打通了从科研登顶到企业规模化投产的商业飞轮！
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -17,13 +17,13 @@
     </p>
   </div>
   <div class="flex flex-col justify-center flex-1" style="padding:10px 50px 10px 20px;">
-    <div class="toc-item"><div class="toc-num">01</div><div><div class="toc-title">为什么需要 Workflow</div><div class="toc-desc">Agent 能"做事"了，但还不够可靠</div></div></div>
-    <div class="toc-item"><div class="toc-num">02</div><div><div class="toc-title">为什么不能相信 LLM</div><div class="toc-desc">ReAct 的致命缺陷 — 不确定性、不可控、无限循环、无审计</div></div></div>
-    <div class="toc-item"><div class="toc-num">03</div><div><div class="toc-title">状态机</div><div class="toc-desc">有限状态机、Node/Edge/Condition、Checkpoint/Resume</div></div></div>
-    <div class="toc-item"><div class="toc-num">04</div><div><div class="toc-title">Agent Runtime</div><div class="toc-desc">六大组件、TaskPlanner、THINK→ACT→OBSERVE 循环、模型路由</div></div></div>
-    <div class="toc-item"><div class="toc-num">05</div><div><div class="toc-title">容错设计</div><div class="toc-desc">三级容错 — 重试（指数退避）→ 熔断 → 降级</div></div></div>
-    <div class="toc-item"><div class="toc-num">06</div><div><div class="toc-title">人在回路与可观测性</div><div class="toc-desc">Human-in-the-loop、TraceService 执行追踪</div></div></div>
-    <div class="toc-item"><div class="toc-num">07</div><div><div class="toc-title">Demo 架构与知识体系</div><div class="toc-desc">项目架构、context 演进、Demo 覆盖 vs 仅 PPT 讲解</div></div></div>
-    <div class="toc-item"><div class="toc-num">08</div><div><div class="toc-title">Demo vs 生产 · 总结</div><div class="toc-desc">六项差距、能力地图、一句话带走</div></div></div>
+    <div class="toc-item"><div class="toc-num">01</div><div><div class="toc-title">为什么需要 Workflow <span style="color:#00E5FF;font-size:11px;font-weight:400;margin-left:6px">P3</span></div><div class="toc-desc">Agent 能"做事"了，但还不够可靠（多步查询、高危确认、超时重试、执行记录）</div></div></div>
+    <div class="toc-item"><div class="toc-num">02</div><div><div class="toc-title">为什么不能相信 LLM <span style="color:#00E5FF;font-size:11px;font-weight:400;margin-left:6px">P4</span></div><div class="toc-desc">纯 ReAct 的致命缺陷 — 不确定性、不可控、无限循环、无审计</div></div></div>
+    <div class="toc-item"><div class="toc-num">03</div><div><div class="toc-title">状态机 <span style="color:#00E5FF;font-size:11px;font-weight:400;margin-left:6px">P5 – P7</span></div><div class="toc-desc">有限状态机、Node/Edge/Condition 与 StateGraph 四大原语、Checkpoint/Resume、状态机 vs 纯 ReAct</div></div></div>
+    <div class="toc-item"><div class="toc-num">04</div><div><div class="toc-title">Agent Runtime <span style="color:#00E5FF;font-size:11px;font-weight:400;margin-left:6px">P8 – P12</span></div><div class="toc-desc">完整执行流程、六大组件、TaskPlanner、THINK→ACT→OBSERVE 循环与生产级协议、模型路由</div></div></div>
+    <div class="toc-item"><div class="toc-num">05</div><div><div class="toc-title">容错设计 <span style="color:#00E5FF;font-size:11px;font-weight:400;margin-left:6px">P13 – P17</span></div><div class="toc-desc">三级容错总览、ErrorRecovery 实现、① 重试（指数退避）→ ② 熔断（Circuit Breaker）→ ③ 降级</div></div></div>
+    <div class="toc-item"><div class="toc-num">06</div><div><div class="toc-title">人在回路与可观测性 <span style="color:#00E5FF;font-size:11px;font-weight:400;margin-left:6px">P18 – P19</span></div><div class="toc-desc">Human-in-the-loop 安全边界、TraceService 分布式追踪与 Agent Evals 三维评估指标</div></div></div>
+    <div class="toc-item"><div class="toc-num">07</div><div><div class="toc-title">Demo 架构与知识体系 <span style="color:#00E5FF;font-size:11px;font-weight:400;margin-left:6px">P20 – P22</span></div><div class="toc-desc">context 演进（v5.0）、Demo 覆盖 vs 仅 PPT 讲解、项目架构与代码阅读路线图</div></div></div>
+    <div class="toc-item"><div class="toc-num">08</div><div><div class="toc-title">Demo vs 生产 · 实验验证 · 总结 <span style="color:#00E5FF;font-size:11px;font-weight:400;margin-left:6px">P23 – P26</span></div><div class="toc-desc">七项生产差距（含 Agentic SSE 多事件流）、8 个动手验证点、能力地图、总结与第九课预告</div></div></div>
   </div>
 </div></body></html>

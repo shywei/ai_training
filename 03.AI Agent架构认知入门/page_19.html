@@ -1,46 +1,55 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>系统替代与演进关系</title>
+<title>Agent 基础认知误区辨析（五问五答）</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
-.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
-.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
-.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
-.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden;padding:32px 56px;display:flex;flex-direction:column}
+.s h1{font-size:28px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px;font-weight:700}
+.qa-card{padding:14px 18px;background:rgba(0,229,255,0.035);border:1px solid rgba(0,229,255,0.16);border-radius:7px;display:flex;flex-direction:column;justify-content:center}
 </style></head><body>
-<div class="s" style="padding:36px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 08</div><h1 class="mb-2">系统替代与演进关系</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+<div class="s">
+  <div class="mb-1 sn">CHAPTER 06 · 架构误区辨析与演进总结</div>
+  <h1 class="mb-1">Agent 基础认知误区辨析（五问五答）—— 打破“智能体幻觉”</h1>
+  <div style="width:56px;height:3px;background:#FF6B35;margin-bottom:14px;"></div>
 
-<div style="flex:1;display:flex;flex-direction:column;">
-<div style="margin-bottom:10px;">
-    <div style="font-size:13px;color:rgba(224,231,255,0.4);margin-top:6px;">建立"系统共存认知"——Agent不是替代，是增强</div>
+  <div class="grid grid-cols-2 gap-3.5 flex-1" style="min-height:0;">
+    <div class="qa-card">
+      <div style="font-size:15.5px;color:#FF6B35;font-weight:700;margin-bottom:6px;">❶ 误区一：“Agent 不就是大模型 API + 几个工具函数吗？”</div>
+      <div style="font-size:12.5px;color:rgba(224,231,255,0.72);line-height:1.65;">
+        <b style="color:#00E5FF;">正解：不是。</b>“LLM + Tool”只完成了最基础的单步动作调用。真正的企业级 Agent 是一个完整的<b style="color:#E0E7FF;">软件系统工程</b>——包含了 Context Engineering 动态上下文组装、三层 Memory 状态延续、RAG 私域知识接地、FSM 状态机编排、HITL 人工确认以及全链路 Trace 与降级护栏。
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div style="font-size:15.5px;color:#FF6B35;font-weight:700;margin-bottom:6px;">❷ 误区二：“Agent 和传统的 RPA / 规则自动化系统是一回事吗？”</div>
+      <div style="font-size:12.5px;color:rgba(224,231,255,0.72);line-height:1.65;">
+        <b style="color:#00E5FF;">正解：本质不同。</b>传统自动化（RPA/审批流）是<b style="color:#E0E7FF;">100% 确定性的固定轨道</b>，输入稍微偏离预设格式就会报错卡死；而 Agent 的核心价值在于<b style="color:#00E5FF;">处理模糊意图与非结构化输入</b>，能在受控状态机边界内根据环境反馈（Observation）动态规划与自愈调整。
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div style="font-size:15.5px;color:#FF6B35;font-weight:700;margin-bottom:6px;">❸ 误区三：“只要换个参数更大的新模型，就能解决 Agent 线上所有坏案例？”</div>
+      <div style="font-size:12.5px;color:rgba(224,231,255,0.72);line-height:1.65;">
+        <b style="color:#00E5FF;">正解：极具误导性。</b>线上 80% 的 Bad Case 并非因为模型智商不够，而是<b style="color:#FF6B35;">喂给模型的 Context 质量差</b>（比如 RAG 切块把表格切碎了、Tool 描述含糊不清、缺少用户尺码画像）。<b style="color:#22C55E;">好架构 + 中等模型 &gt;&gt; 烂上下文 + 顶级模型</b>。
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div style="font-size:15.5px;color:#FF6B35;font-weight:700;margin-bottom:6px;">❹ 误区四：“Prompt Engineering 和 Context Engineering 有什么本质区别？”</div>
+      <div style="font-size:12.5px;color:rgba(224,231,255,0.72);line-height:1.65;">
+        <b style="color:#00E5FF;">正解：局部与全局的区别。</b>Prompt Engineering 关注的是“怎么措辞写好那段静态指令”；而 <b style="color:#A855F7;">Context Engineering（上下文工程）</b> 是系统级运行时调度——决定在调用 LLM 的那一刻，如何从 MySQL/Redis/pgvector/MCP 中精准筛选信息、排布前缀缓存并控制 Token 预算。
+      </div>
+    </div>
+
+    <div class="qa-card col-span-2" style="background:rgba(255,107,53,0.04);border-color:rgba(255,107,53,0.28);">
+      <div style="font-size:15.5px;color:#FF6B35;font-weight:700;margin-bottom:6px;">❺ 误区五：“Agent 是更先进的技术，所以所有业务功能都应该改造成 Autonomous Agent 吗？”</div>
+      <div style="font-size:12.5px;color:rgba(224,231,255,0.78);line-height:1.65;">
+        <b style="color:#22C55E;">正解：绝对不是！</b>自主 Agent 伴随着更高的延迟（多次 LLM 往返）、更高的 Token 成本以及概率性不确定风险。对于<b style="color:#E0E7FF;">规则完全明确、输入输出高度结构化的场景</b>（如月底财务结算、固定表单 CRUD），传统 Java 代码或确定性 Workflow 永远更快、更省、更准；Agent 只用在真正需要<b style="color:#00E5FF;">理解复杂自然语言意图与动态多源信息综合决策</b>的刀刃上。
+      </div>
+    </div>
+  </div>
 </div>
-<div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:16px;flex:1;align-content:stretch;">
-  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❶ 传统客服系统还需要吗？会被Agent取代吗？</div>
-    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">不会完全取代。Agent适合处理复杂、开放性问题。传统客服的工单系统、知识库、路由规则仍然需要。Agent是在现有系统之上加一层"智能"。</div>
-  </div>
-  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❷ 推荐系统会被Agent取代吗？</div>
-    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">不会。推荐系统用算法批量计算，效率高、成本低。Agent适合个性化对话式推荐。两者互补：推荐系统做批量筛选，Agent做深度交互。</div>
-  </div>
-  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❸ Workflow系统是不是过时了？</div>
-    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">完全不过时。企业里大量业务流程是确定性的——审批、报关、结算。这些用传统Workflow比用Agent更可靠、更便宜。Agent适合不确定性高的场景。</div>
-  </div>
-  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❹ 现有企业系统如何和Agent融合？</div>
-    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">通过MCP连接。Agent不替代已有系统，而是在已有系统之上加一层"智能"。MCP是Agent和现有系统之间的桥梁。</div>
-  </div>
-  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❺ Agent是不是必须重写所有系统？</div>
-    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">不需要。Agent通过MCP调用现有系统的API，不需要重写。只需把现有系统的接口封装成MCP Server，Agent就能调用。</div>
-  </div>
-</div>
-</div>
-</div></body></html>
+</body></html>

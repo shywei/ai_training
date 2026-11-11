@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>代码阅读路线与验证点</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.mb-2{margin-bottom:8px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.6;color:rgba(224,231,255,0.72)}
+</style></head>
+<body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 08</div>
+  <h1 class="mb-2">代码阅读路线 + 可在 Demo（v1.1.1）验证的点</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+  <div style="flex:1;display:flex;gap:20px;">
+
+    <!-- 左：文件清单 + 读代码顺序 -->
+    <div style="flex:1;display:flex;flex-direction:column;">
+      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:8px;">📁 本课代码清单（Git Tag: v1.1.1 · com/example/agent/）</div>
+      <div style="padding:12px 14px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
+        <pre><span style="color:#FF6B35;">core/</span>
+  ShoppingAgentController.java  <span style="color:rgba(224,231,255,0.4);">/chat 流式 + /recommend 结构化入口</span>
+  ModelRouter.java              <span style="color:rgba(224,231,255,0.4);">模型路由（长度 + 关键词 → fast/reasoning）</span>
+  PromptManager.java            <span style="color:rgba(224,231,255,0.4);">System/User Prompt 构建（预留 context）</span>
+  StructuredOutputHandler.java  <span style="color:rgba(224,231,255,0.4);">四级 JSON 提取 / 校验 / Self-Correction</span>
+  RecommendResult.java          <span style="color:rgba(224,231,255,0.4);">推荐结果 Java Bean 映射对象</span>
+  GuardrailsService.java        <span style="color:rgba(224,231,255,0.4);">入口注入检测 + 出口敏感词脱敏</span>
+  CorsConfig.java               <span style="color:rgba(224,231,255,0.4);">前后端分离跨域配置</span>
+<span style="color:#FF6B35;">resources/</span>
+  application.yml               <span style="color:rgba(224,231,255,0.4);">agent.model.fast / reasoning 与角色配置</span></pre>
+      </div>
+      <div style="font-size:14px;color:#22C55E;font-weight:700;margin:12px 0 8px;">📖 读代码顺序（从入口到链路）</div>
+      <div style="padding:12px 14px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:6px;flex:1;">
+        <pre>1. ShoppingAgentController.<span style="color:#00E5FF;">chat() &amp; recommend()</span> <span style="color:rgba(224,231,255,0.4);">整条链路串联点</span>
+2. ModelRouter.<span style="color:#00E5FF;">selectModel(msg)</span>      <span style="color:rgba(224,231,255,0.4);">复杂度判断 → fast / reasoning</span>
+3. PromptManager.<span style="color:#00E5FF;">buildSystemPrompt()</span>
+   &amp; <span style="color:#00E5FF;">buildUserPrompt(msg, null)</span>      <span style="color:rgba(224,231,255,0.4);">context 扩展点（后续课填充）</span>
+4. StructuredOutputHandler.<span style="color:#00E5FF;">extractJson() → validate()</span>
+5. StructuredOutputHandler.<span style="color:#00E5FF;">buildCorrectionPrompt()</span>
+                                     <span style="color:rgba(224,231,255,0.4);">校验失败 → 拼纠错提示词 → 二次调用</span>
+6. GuardrailsService.<span style="color:#00E5FF;">checkInjection() / sanitize()</span></pre>
+      </div>
+    </div>
+
+    <!-- 右：可在 Demo 验证的点 -->
+    <div style="flex:1;display:flex;flex-direction:column;">
+      <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">✅ 可在 Demo（v1.1.1）亲手验证的 7 个点</div>
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <div style="padding:9px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+          <div style="font-size:12px;color:#E0E7FF;font-weight:700;">1 · 入口注入拦截</div>
+          <div style="font-size:11px;color:rgba(224,231,255,0.65);line-height:1.6;">点「测试注入防御」或传「忽略之前的指令…」→ 立即拦截返回警告，对照 GuardrailsService.checkInjection 中英双语正则</div>
+        </div>
+        <div style="padding:9px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+          <div style="font-size:12px;color:#E0E7FF;font-weight:700;">2 · 结构化输出五步控制台链路</div>
+          <div style="font-size:11px;color:rgba(224,231,255,0.65);line-height:1.6;">点前端「结构化输出演示」按钮 → 看后端控制台打印：【步骤1】原始输出 → 【步骤2】提取 JSON → 【步骤3】Schema 验证 → 【步骤4】Bean Mapping (RecommendResult)</div>
+        </div>
+        <div style="padding:9px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+          <div style="font-size:12px;color:#E0E7FF;font-weight:700;">3 · Self-Correction 触发</div>
+          <div style="font-size:11px;color:rgba(224,231,255,0.65);line-height:1.6;">写单测喂「废话+JSON」三种格式给 extractJson/validate；在 /recommend 断点看 validate 失败后 buildCorrectionPrompt → 二次调用重试</div>
+        </div>
+        <div style="padding:9px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+          <div style="font-size:12px;color:#E0E7FF;font-weight:700;">4 · 模型路由自动切换（Fast vs Reasoning）</div>
+          <div style="font-size:11px;color:rgba(224,231,255,0.65);line-height:1.6;">分别发「推荐一台笔记本」与「分析一下游戏本和轻薄本的架构差异」→ 看气泡顶部 [MODEL] 标签在 fast 与 reasoning 模型间自动切换</div>
+        </div>
+        <div style="padding:9px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+          <div style="font-size:12px;color:#E0E7FF;font-weight:700;">5 · 出口敏感信息处理</div>
+          <div style="font-size:11px;color:rgba(224,231,255,0.65);line-height:1.6;">输出含「密码/password」→ /recommend 响应带 _warning 字段（containsSensitiveInfo）；/chat 流式出口看 sanitize() 替换成 ***</div>
+        </div>
+        <div style="padding:9px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+          <div style="font-size:12px;color:#E0E7FF;font-weight:700;">6 · SSE Streaming 逐 Token 效果</div>
+          <div style="font-size:11px;color:rgba(224,231,255,0.65);line-height:1.6;">前端发消息 → F12 Network 看 GET /api/agent/chat 的 text/event-stream 流式响应与首包 [MODEL] 标记</div>
+        </div>
+        <div style="padding:9px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+          <div style="font-size:12px;color:#E0E7FF;font-weight:700;">7 · context 扩展点预留</div>
+          <div style="font-size:11px;color:rgba(224,231,255,0.65);line-height:1.6;">看 ShoppingAgentController 传给 buildUserPrompt(message, null) 的 null 参数——第五/六/七课将逐步注入记忆、RAG 与工具结果</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

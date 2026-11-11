@@ -1,77 +1,110 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>企业知识全景</title>
+<title>企业多元数据接入矩阵 — 向量数据库绝非万能银弹</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-</style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 02</div>
-<h1 class="mb-2">企业知识全景 — 知识从哪来</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+.s h1{font-size:30px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px}
+.mb-2{margin-bottom:6px}
+.card{flex:1;padding:10px 12px;border-radius:6px;display:flex;flex-direction:column;justify-content:space-between}
+.card .t{font-size:13px;font-weight:700;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.card .b{font-size:11px;color:rgba(224,231,255,0.68);line-height:1.55}
+.card .path{font-size:11px;font-weight:700;padding-top:4px;border-top:1px solid rgba(224,231,255,0.12)}
+</style></head>
+<body>
+<div class="s" style="padding:22px 50px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 02 · 知识全景</div>
+  <h1 class="mb-2">企业多元数据接入矩阵 — 向量数据库绝非万能银弹</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:10px;"></div>
 
-<div style="flex:1;display:flex;gap:20px;">
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">知识来源不只是文档</div>
-    <div style="display:flex;gap:10px;margin-bottom:12px;">
-      <div style="flex:1;padding:12px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:6px;">
-        <div style="font-size:13px;color:#22C55E;font-weight:700;margin-bottom:4px;">数据库（结构化）</div>
-        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">商品表、FAQ 表、知识库表<br>CRM、ERP、API 接口<br><strong style="color:#22C55E;">本课 Demo 用这个</strong></div>
+  <!-- 顶部警示横幅 -->
+  <div style="padding:8px 14px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;border-radius:4px;margin-bottom:10px;">
+    <div style="font-size:13px;color:#FF6B35;font-weight:700;">⚠️ 架构核心原则：向量数据库绝非万能银弹（Vector DB is NOT a Silver Bullet）！</div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.7);margin-top:2px;line-height:1.5;">
+      切忌将企业所有数据盲目做 Embedding 塞进向量库！必须根据数据类型与查询特征，选择最优访问路径。
+    </div>
+  </div>
+
+  <!-- 4 类企业数据矩阵：2x2 网格 -->
+  <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+    <!-- 第一行：结构化 vs 非结构化 -->
+    <div style="flex:1;display:flex;gap:12px;">
+      <!-- 1. 结构化数据 -->
+      <div class="card" style="background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.22);">
+        <div>
+          <div class="t" style="color:#00E5FF;">
+            <span>① 结构化数据 (Structured Data)</span>
+            <span style="font-size:11px;color:rgba(0,229,255,0.7);font-weight:400;">精确计算与聚合</span>
+          </div>
+          <div class="b">
+            <strong style="color:#E0E7FF;">数据形态：</strong>业务订单表、商品属性规格库、ERP/CRM 表格、经营财务事实表。<br>
+            <strong style="color:#EF4444;">避坑红线：</strong>严禁将表格直接切块向量化！向量检索无法计算求和、过滤求极值。<br>
+            <strong style="color:#22C55E;">特征优势：</strong>高一致性、确定性查询与精确统计。
+          </div>
+        </div>
+        <div class="path" style="color:#00E5FF;">🎯 最优访问路径：Text-to-SQL / 语义层 / 结构化函数调用</div>
       </div>
-      <div style="flex:1;padding:12px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15);border-radius:6px;">
-        <div style="font-size:13px;color:#3B82F6;font-weight:700;margin-bottom:4px;">文档（非结构化）</div>
-        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">PDF、Word、Excel<br>Wiki、Confluence、客服记录<br><strong style="color:#3B82F6;">生产中常见的挑战</strong></div>
+
+      <!-- 2. 非结构化数据 -->
+      <div class="card" style="background:rgba(59,130,246,0.05);border:1px solid rgba(59,130,246,0.25);">
+        <div>
+          <div class="t" style="color:#3B82F6;">
+            <span>② 非结构化数据 (Unstructured Data)</span>
+            <span style="font-size:11px;color:rgba(59,130,246,0.7);font-weight:400;">长文档与语义问答</span>
+          </div>
+          <div class="b">
+            <strong style="color:#E0E7FF;">数据形态：</strong>企业规章制度、操作手册、售后政策、长篇 PDF 研报、客服 FAQ 问答。<br>
+            <strong style="color:#E0E7FF;">核心挑战：</strong>版面解析保留层级表格，避免切块断章取义。<br>
+            <strong style="color:#22C55E;">特征优势：</strong>自然语言泛化匹配、长文本语义理解。
+          </div>
+        </div>
+        <div class="path" style="color:#3B82F6;">🎯 最优访问路径：企业 RAG 管道（稠密向量 + BM25 混合检索）</div>
       </div>
     </div>
 
-    <div style="padding:12px 14px;background:rgba(0,229,255,0.06);border-left:4px solid #00E5FF;margin-bottom:12px;">
-      <div style="font-size:13px;color:#00E5FF;font-weight:700;">知识的"文档"不一定是文件</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.5);margin-top:4px;line-height:1.7;">
-        RAG 管道的输入是<strong style="color:#E0E7FF;">文本内容</strong>，不管这文本是从 PDF 解析出来的，还是从 MySQL 字段拼接出来的。<br>
-        商品导购场景：MySQL product 表 → 提取描述字段 → Embedding → 向量存储
+    <!-- 第二行：关系图谱 vs 实时动态数据 -->
+    <div style="flex:1;display:flex;gap:12px;">
+      <!-- 3. 关系图谱数据 -->
+      <div class="card" style="background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.25);">
+        <div>
+          <div class="t" style="color:#A855F7;">
+            <span>③ 关系图谱数据 (Relational Graph Data)</span>
+            <span style="font-size:11px;color:rgba(168,85,247,0.7);font-weight:400;">多跳关联与推理</span>
+          </div>
+          <div class="b">
+            <strong style="color:#E0E7FF;">数据形态：</strong>复杂供应链网络、股权穿透关系、组织架构、跨文档因果推理链条。<br>
+            <strong style="color:#E0E7FF;">核心痛点：</strong>普通 RAG“只见切片不见全局”，多跳推理容易在上下文断裂。<br>
+            <strong style="color:#22C55E;">特征优势：</strong>全局拓扑洞察、实体关系路径追踪。
+          </div>
+        </div>
+        <div class="path" style="color:#A855F7;">🎯 访问路径：图数据库检索（Cypher/SPARQL）或 GraphRAG（多跳拓扑路线之一）</div>
       </div>
-    </div>
 
-    <div style="font-size:13px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">多种知识怎么管理？</div>
-    <div style="padding:10px 14px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:5px;">
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.7;">
-        <strong style="color:#A855F7;">共享一张表 + metadata 过滤</strong>（推荐）<br>
-        商品、FAQ、报告都存同一张 vector_store 表<br>
-        metadata 加 type 字段区分，查询时按类型过滤<br>
-        一次检索可跨类型搜索
+      <!-- 4. 实时动态数据 -->
+      <div class="card" style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.25);">
+        <div>
+          <div class="t" style="color:#22C55E;">
+            <span>④ 实时动态数据 (Real-time Dynamic Data)</span>
+            <span style="font-size:11px;color:rgba(34,197,94,0.7);font-weight:400;">秒级实效与状态</span>
+          </div>
+          <div class="b">
+            <strong style="color:#E0E7FF;">数据形态：</strong>实时库存、即时外汇价格、实时物流轨迹、第三方天气/航班状态。<br>
+            <strong style="color:#EF4444;">避坑红线：</strong>实时数据绝不可写入向量库！时效性极高，重算 Embedding 成本高昂。<br>
+            <strong style="color:#22C55E;">特征优势：</strong>秒级更新、即时精准。
+          </div>
+        </div>
+        <div class="path" style="color:#22C55E;">🎯 最优访问路径：外部业务 API / MCP 工具调用 (Tool Calling)</div>
       </div>
     </div>
   </div>
 
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">商品导购的知识流</div>
-    <div style="padding:14px;background:rgba(0,0,0,0.3);border:1px solid rgba(0,229,255,0.15);border-radius:6px;margin-bottom:12px;">
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:2;">
-        <span style="color:#3B82F6;">MySQL product 表</span>（数据源）<br>
-        &nbsp;&nbsp;↓ 提取描述字段<br>
-        <span style="color:#00E5FF;">products.json</span>（Demo 用 JSON 模拟）<br>
-        &nbsp;&nbsp;↓ Embedding<br>
-        <span style="color:#22C55E;">vector_store 表</span>（向量索引）<br>
-        &nbsp;&nbsp;↓ 语义检索<br>
-        <span style="color:#FF6B35;">商品 ID</span> → 回 MySQL 查实时价格库存（第七课 Tool）
-      </div>
+  <!-- 底部 Demo 映射 -->
+  <div style="margin-top:8px;padding:6px 14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.15);border-radius:5px;display:flex;justify-content:space-between;align-items:center;">
+    <div style="font-size:11.5px;color:rgba(224,231,255,0.75);">
+      <strong style="color:#00E5FF;">Demo 读写分层架构：</strong>静态商品评测描述进 pgvector（供 RAG 语义理解）；动态库存与实时价格放 MySQL（供第七课 Tool 实时查询）。
     </div>
-
-    <div style="padding:14px;background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.25);border-radius:6px;margin-bottom:12px;">
-      <div style="font-size:14px;color:#22C55E;font-weight:700;margin-bottom:6px;">Demo：26 个商品，4 个品类</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.8;">
-        笔记本(12)、手机(6)、耳机(4)、平板(4)<br>
-        每个商品：名称、品牌、配置、亮点、适用场景<br>
-        一个商品 = 一个 Chunk，天然分块<br>
-        <strong style="color:#22C55E;">JSON 天然有结构边界，分块最简单</strong>
-      </div>
-    </div>
-
-    <div style="padding:10px 14px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);border-radius:5px;">
-      <div style="font-size:11px;color:rgba(224,231,255,0.5);"><strong style="color:#FF6B35;">注意：</strong>商品的<strong style="color:#E0E7FF;">价格和库存</strong>不放知识库——这些是实时数据，放 MySQL，第七课 Tool 调用查询。</div>
-    </div>
+    <div style="font-size:11px;color:#FF6B35;font-weight:700;">静态知识归 RAG · 实时状态归 Tool</div>
   </div>
 </div>
-</div></body></html>
+</body></html>

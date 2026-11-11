@@ -23,8 +23,14 @@ Demo 中"拯救者和 MacBook 哪个便宜"的例子，实际上是 LLM 在一�
 ## Key Emphasis
 不要让学员误以为 Demo 已经实现了完整的 ReAct 循环。Demo 实现了 Function Calling（单次 tool_call），但 Agent Loop（多轮自主循环）需要 Runtime 支持，是第八课的内容。
 
+## Optional Extension
+**学员问：为什么说循环控制权在 LLM 才叫 Agent Loop？框架自动执行 tool_call 不也是一轮一轮来的吗？**
+答：看谁决定"下一步做什么"。框架自动执行是 LLM 一次给出全部计划、执行层照单全收；Agent Loop 是 LLM 每轮看到 Observe 结果后重新决定下一步。
+Demo 做法：今天的链路里 Spring AI 一次性执行 tool_call，批量调用是 LLM 提前规划好的；第八课 `AgentRuntime` 里 `extractToolCall()` 每轮从 THINK 输出解析 `TOOL_CALL:工具名(参数)`，`MAX_ITERATIONS = 10` 封顶，上一轮工具结果拼进下一轮 THINK 的输入——这才是按中间结果动态决策。
+生产做法：循环必须带预算（轮数/时间/token 三个上限都要有），失败有三级容错（第八课：重试/熔断/降级），全程 Trace 可回放。取舍：循环给了 LLM 决策自由度，预算和 Trace 是缰绳——没有缰绳的循环是失控的起点。
+
 ## Take Away
-ReAct = 推理→行动→观察→循环。Demo 做到了单次 tool_call，完整循环在第八课。
+判断一段实现是不是真 Agent Loop：看 LLM 能否根据上一轮 Observe 改变下一步计划——一次性批量 tool_call 不算；出现"中间结果决定后续步骤"的需求，才值得上第八课的 Agent Runtime。
 
 ## Why This Slide Matters
 没有这页，学员会误以为"Spring AI 处理 tool_call 就是 Agent Loop"，不理解真正的 Agent Loop 需要 Runtime 控制循环。

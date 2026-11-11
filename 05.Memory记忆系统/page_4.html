@@ -1,41 +1,166 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>Memory Architecture — 三层记忆架构</title>
-<style>*{margin:0;padding:0;box-sizing:border-box}
+<title>记忆系统双层解耦架构 — 逻辑记忆分类 vs 物理存储映射</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
-.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)}</style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;position:relative;">
-<div class="sn">CHAPTER 02</div>
-<h1 class="mb-2">Memory Architecture — 三层记忆架构</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+.s h1{font-size:28px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px}
+.mb-2{margin-bottom:5px}
+.logic-card{flex:1;padding:8px 10px;border-radius:5px;display:flex;flex-direction:column;justify-content:space-between}
+.logic-card .t{font-size:12.5px;font-weight:700;display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.logic-card .b{font-size:11px;color:rgba(224,231,255,0.7);line-height:1.45}
+.logic-card .tag{font-size:11px;font-weight:700;padding:1px 5px;border-radius:3px}
+.storage-box{flex:1;padding:7px 10px;border-radius:4px;background:rgba(0,0,0,0.3);border:1px solid rgba(224,231,255,0.1)}
+.storage-box .st{font-size:11.5px;font-weight:700;margin-bottom:2px}
+.storage-box .sb{font-size:11px;color:rgba(224,231,255,0.65);line-height:1.4}
+</style></head>
+<body>
+<div class="s" style="padding:20px 48px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 02 · 记忆架构体系</div>
+  <h1 class="mb-2">【架构重构】记忆系统双层解耦架构 — 逻辑记忆分类 vs 物理存储映射</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+  
+  <div style="font-size:11.5px;color:rgba(224,231,255,0.72);margin-bottom:8px;line-height:1.45;">
+    <strong style="color:#FF6B35;">课程工程分类模型：</strong>严禁将功能类型、时间生命周期与物理存储混为一谈！区分<strong>原始记录载体</strong>（会话流水）与<strong>认知记忆类型</strong>（工作/情景/语义/程序），第二层<strong>物理存储</strong>按访问模式与生命周期选型。
+  </div>
 
-<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-  <div style="display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
-    <div style="padding:12px 24px;background:rgba(255,107,53,0.1);border:2px solid #FF6B35;border-radius:8px;text-align:center;">
-      <div style="font-size:15px;color:#FF6B35;font-weight:700;">LLM</div>
-      <div style="font-size:10px;color:rgba(224,231,255,0.4);">每次请求注入 context</div>
+  <!-- 第一层：逻辑记忆分类体系 -->
+  <div style="background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.2);border-radius:6px;padding:8px 12px;margin-bottom:8px;">
+    <div style="font-size:12px;color:#00E5FF;font-weight:700;margin-bottom:6px;display:flex;justify-content:space-between;">
+      <span>🧠 第一层 · 逻辑记忆分类体系（工程分类模型：流水载体 + 四大认知记忆类型）</span>
+      <span style="font-size:11px;color:rgba(0,229,255,0.8);font-weight:400;">认知功能与数据职责解耦</span>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <!-- 1. Conversation History -->
+      <div class="logic-card" style="background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.22);">
+        <div>
+          <div class="t" style="color:#00E5FF;">
+            <span>① 会话历史 (流水载体)</span>
+            <span class="tag" style="background:rgba(0,229,255,0.15);color:#00E5FF;">记录载体</span>
+          </div>
+          <div class="b">
+            <strong>核心：</strong>原始交互时序记录载体（工程流水）。<br>
+            <strong>定位：</strong>承载原始日志；作为下述认知记忆抽取源头。
+          </div>
+        </div>
+        <div style="font-size:11px;color:#22C55E;font-weight:700;margin-top:2px;">★ Demo 落地 (Redis)</div>
+      </div>
+
+      <!-- 2. Working Memory -->
+      <div class="logic-card" style="background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.22);">
+        <div>
+          <div class="t" style="color:#A855F7;">
+            <span>② 工作记忆</span>
+            <span class="tag" style="background:rgba(168,85,247,0.15);color:#A855F7;">临时</span>
+          </div>
+          <div class="b">
+            <strong>核心：</strong>当前任务运行态草稿纸（Scratchpad）。<br>
+            <strong>价值：</strong>支撑 ReAct 循环与多步拆解，随任务销毁。
+          </div>
+        </div>
+        <div style="font-size:11px;color:#A855F7;margin-top:2px;">运行态 Context Window</div>
+      </div>
+
+      <!-- 3. Episodic Memory -->
+      <div class="logic-card" style="background:rgba(234,179,8,0.06);border:1px solid rgba(234,179,8,0.22);">
+        <div>
+          <div class="t" style="color:#EAB308;">
+            <span>③ 情景记忆</span>
+            <span class="tag" style="background:rgba(234,179,8,0.15);color:#EAB308;">事件</span>
+          </div>
+          <div class="b">
+            <strong>核心：</strong>含时空因果的历史经历与成败案例。<br>
+            <strong>价值：</strong>从历史挫败复盘，避免同类场景再次犯错。
+          </div>
+        </div>
+        <div style="font-size:11px;color:#EAB308;margin-top:2px;">事件记录 + 向量知识图谱</div>
+      </div>
+
+      <!-- 4. Semantic Memory -->
+      <div class="logic-card" style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.25);">
+        <div>
+          <div class="t" style="color:#22C55E;">
+            <span>④ 语义事实与画像</span>
+            <span class="tag" style="background:rgba(34,197,94,0.15);color:#22C55E;">静态</span>
+          </div>
+          <div class="b">
+            <strong>核心：</strong>客观事实、长效偏好与用户画像 Profile。<br>
+            <strong>价值：</strong>高密度结论，每轮全量或相似检索注入。
+          </div>
+        </div>
+        <div style="font-size:11px;color:#22C55E;font-weight:700;margin-top:2px;">★ Demo 落地 (MySQL)</div>
+      </div>
+
+      <!-- 5. Procedural Memory -->
+      <div class="logic-card" style="background:rgba(244,63,94,0.06);border:1px solid rgba(244,63,94,0.22);">
+        <div>
+          <div class="t" style="color:#F43F5E;">
+            <span>⑤ 程序记忆</span>
+            <span class="tag" style="background:rgba(244,63,94,0.15);color:#F43F5E;">技能</span>
+          </div>
+          <div class="b">
+            <strong>核心：</strong>任务执行策略、操作技能与工作流 SOP。<br>
+            <strong>价值：</strong>固化最佳工具调用轨迹与反思策略。
+          </div>
+        </div>
+        <div style="font-size:11px;color:#F43F5E;margin-top:2px;">Prompt 策略模板库 / 规则集</div>
+      </div>
     </div>
   </div>
-  <div style="display:flex;gap:18px;margin-bottom:16px;">
-    <div style="flex:1;padding:16px;background:rgba(0,229,255,0.06);border:2px solid rgba(0,229,255,0.2);border-radius:8px;">
-      <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:4px;">Session 短期记忆</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">存<strong style="color:#E0E7FF;">当前对话</strong>的消息历史<br>存储：Redis（快，易失）<br>生命周期：对话开始→结束</div>
+
+  <!-- 第二层：物理存储与全生命周期实现 -->
+  <div style="flex:1;background:rgba(255,107,53,0.03);border:1px solid rgba(255,107,53,0.2);border-radius:6px;padding:8px 12px;display:flex;flex-direction:column;justify-content:space-between;">
+    <div style="font-size:12px;color:#FF6B35;font-weight:700;margin-bottom:4px;display:flex;justify-content:space-between;">
+      <span>💾 第二层 · 物理存储实现与生命周期治理（Storage Implementation & Lifecycle — 存哪里与怎么管）</span>
+      <span style="font-size:11px;color:rgba(255,107,53,0.8);font-weight:400;">按生命周期、读写频率与检索方式选型</span>
     </div>
-    <div style="flex:1;padding:16px;background:rgba(255,107,53,0.06);border:2px solid rgba(255,107,53,0.2);border-radius:8px;">
-      <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:4px;">Long-term Memory</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">存<strong style="color:#E0E7FF;">用户画像</strong>（偏好、事实）<br>存储：MySQL（持久化）<br>生命周期：跨 Session 永久</div>
+    
+    <div style="display:flex;gap:8px;flex:1;">
+      <!-- Storage 1: Redis -->
+      <div class="storage-box">
+        <div class="st" style="color:#00E5FF;">Redis 内存缓存</div>
+        <div class="sb">
+          <strong>映射：</strong>近期会话近景窗口（Sliding Window）。<br>
+          <strong>机制：</strong>List 存最近 20 条，配 24h 滑动 TTL 衰减淘汰；极高读写吞吐，容忍易失。
+        </div>
+      </div>
+
+      <!-- Storage 2: MySQL -->
+      <div class="storage-box">
+        <div class="st" style="color:#22C55E;">MySQL 关系库</div>
+        <div class="sb">
+          <strong>映射：</strong>结构化用户画像（user_profile 表）。<br>
+          <strong>机制：</strong>ACID 事务，每用户一行；大模型异步抽取，执行新旧偏好覆盖合并。
+        </div>
+      </div>
+
+      <!-- Storage 3: pgvector -->
+      <div class="storage-box">
+        <div class="st" style="color:#A855F7;">pgvector 向量库</div>
+        <div class="sb">
+          <strong>映射：</strong>跨会话非结构化长期语义记忆。<br>
+          <strong>机制：</strong>切片 Embedding + HNSW 索引，按余弦相似度 Top-K 召回历史事实。
+        </div>
+      </div>
+
+      <!-- Storage 4: 摘要与生命周期 -->
+      <div class="storage-box">
+        <div class="st" style="color:#FF6B35;">摘要压缩与遗忘治理</div>
+        <div class="sb">
+          <strong>映射：</strong>上下文防膨胀与合规遗忘。<br>
+          <strong>机制：</strong>SummaryPipeline 滚动摘要；Mem0 状态冲突消解；Ebbinghaus 衰减曲线与级联删除。
+        </div>
+      </div>
     </div>
-    <div style="flex:1;padding:16px;background:rgba(224,231,255,0.03);border:2px solid rgba(224,231,255,0.12);border-radius:8px;">
-      <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:4px;">Knowledge 知识</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">存<strong style="color:#E0E7FF;">企业知识</strong>（文档、产品）<br>存储：Vector DB（语义检索）<br>下节课详讲</div>
+
+    <!-- 底部对齐横幅 -->
+    <div style="margin-top:6px;padding:5px 12px;background:rgba(0,0,0,0.3);border-radius:4px;display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-size:11px;color:rgba(224,231,255,0.75);">
+        <strong style="color:#00E5FF;">分层落地：</strong>逻辑记忆与物理存储<strong>不是一一对应关系</strong>！一个数据库可以承载多种记忆，一种逻辑记忆也可分级沉淀至不同介质。
+      </div>
+      <div style="font-size:11px;color:#22C55E;font-weight:700;">★ v2.0 Demo 聚焦：会话历史缓冲 (Redis) + 静态画像抽取合并 (MySQL)</div>
     </div>
-  </div>
-  <div style="padding:12px 18px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;text-align:center;">
-    <div style="font-size:14px;color:#E0E7FF;"><strong style="color:#00E5FF;">Session</strong> 存"这轮对话" · <strong style="color:#FF6B35;">Long-term</strong> 存"这个用户" · <strong style="color:#E0E7FF;">Knowledge</strong> 存"这家公司"</div>
   </div>
 </div>
-<div style="position:absolute;bottom:14px;right:60px;padding:4px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.2);border-radius:12px;font-size:10px;color:#FF6B35;">知识体系</div>
-</div></body></html>
+</body></html>

@@ -1,91 +1,85 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>进度图 + 能力地图</title>
+<title>幂等</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
 .s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-</style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 07</div>
-<h1 class="mb-2">Agent 构建进度 + 能力地图</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
-<div style="flex:1;display:flex;gap:20px;">
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:12px;">Agent 构建进度</div>
-    <div style="display:flex;flex-direction:column;gap:6px;">
-      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(34,197,94,0.06);border-radius:4px;">
-        <span style="color:#22C55E;font-size:14px;">✓</span>
-        <span style="font-size:13px;color:#22C55E;font-weight:600;flex:1;">第四课：LLM 交互</span>
-        <span style="font-size:11px;color:rgba(224,231,255,0.4);">Prompt + Streaming + 结构化输出</span>
+.mb-2{margin-bottom:8px}
+.card{padding:10px 12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:6px}
+.card .t{font-size:12px;color:#00E5FF;font-weight:700;margin-bottom:5px}
+.b{font-size:10.5px;color:rgba(224,231,255,0.72);line-height:1.65}
+.m{padding:9px 11px;background:rgba(168,85,247,0.06);border-left:3px solid #A855F7;border-radius:4px}
+.m .t{font-size:11.5px;color:#A855F7;font-weight:700;margin-bottom:3px}
+.m .b{font-size:10.5px;color:rgba(224,231,255,0.72);line-height:1.6}
+.g{padding:8px 10px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px}
+.g .t{font-size:11px;color:#FF6B35;font-weight:700;margin-bottom:3px}
+.g .b{font-size:10px;color:rgba(224,231,255,0.72);line-height:1.55}
+</style></head>
+<body>
+<div class="s" style="padding:28px 56px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 07</div>
+  <h1 class="mb-2">幂等 — 重复调用是常态，不是意外</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px;"></div>
+
+  <div style="flex:1;display:flex;gap:14px;">
+    <!-- 左：重复从哪来 -->
+    <div style="flex:1;display:flex;flex-direction:column;gap:9px;">
+      <div class="card" style="flex:1;">
+        <div class="t">① 重复调用从哪来（四个来源）</div>
+        <div class="b">
+          <strong style="color:#E0E7FF;">超时后重试：</strong>调用超时 ≠ 没执行——下游可能已经下单了，重试就是第二单。<br>
+          <strong style="color:#E0E7FF;">LLM 重复决策：</strong>ReAct 循环里 LLM 看到不确定的结果会再调一次；提示词注入可以让它反复调。<br>
+          <strong style="color:#E0E7FF;">用户重复提交：</strong>页面卡顿用户再点一次；前端重发请求。<br>
+          <strong style="color:#E0E7FF;">链路重放：</strong>消息队列重投、运维手工补单。
+        </div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(34,197,94,0.06);border-radius:4px;">
-        <span style="color:#22C55E;font-size:14px;">✓</span>
-        <span style="font-size:13px;color:#22C55E;font-weight:600;flex:1;">第五课：Memory</span>
-        <span style="font-size:11px;color:rgba(224,231,255,0.4);">Session + 摘要 + 用户画像</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(34,197,94,0.06);border-radius:4px;">
-        <span style="color:#22C55E;font-size:14px;">✓</span>
-        <span style="font-size:13px;color:#22C55E;font-weight:600;flex:1;">第六课：Knowledge</span>
-        <span style="font-size:11px;color:rgba(224,231,255,0.4);">RAG + pgvector + 记忆增强</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(0,229,255,0.08);border:2px solid rgba(0,229,255,0.3);border-radius:4px;">
-        <span style="color:#00E5FF;font-size:14px;">✓</span>
-        <span style="font-size:13px;color:#00E5FF;font-weight:700;flex:1;">第七课：Tool Calling</span>
-        <span style="font-size:11px;color:rgba(224,231,255,0.5);">MCP + Function Calling + 路由</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(224,231,255,0.02);border-radius:4px;">
-        <span style="color:rgba(224,231,255,0.2);font-size:14px;">○</span>
-        <span style="font-size:13px;color:rgba(224,231,255,0.3);flex:1;">第八课：Workflow</span>
-        <span style="font-size:11px;color:rgba(224,231,255,0.2);">状态机 + Human-in-the-loop</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(224,231,255,0.02);border-radius:4px;">
-        <span style="color:rgba(224,231,255,0.2);font-size:14px;">○</span>
-        <span style="font-size:13px;color:rgba(224,231,255,0.3);flex:1;">第九课：框架选型</span>
-        <span style="font-size:11px;color:rgba(224,231,255,0.2);">Spring AI 重构 + 对比</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(224,231,255,0.02);border-radius:4px;">
-        <span style="color:rgba(224,231,255,0.2);font-size:14px;">○</span>
-        <span style="font-size:13px;color:rgba(224,231,255,0.3);flex:1;">第十课：企业 AI 平台</span>
-        <span style="font-size:11px;color:rgba(224,231,255,0.2);">平台组件 + 多 Agent</span>
+      <div class="card">
+        <div class="t">② Demo 现状（v1.4）：写操作没有幂等键</div>
+        <div class="b">
+          <strong style="color:#FF6B35;">save_memory（真实写操作）：</strong><code>mcp-knowledge-server</code> 的 <code>MemoryService.save()</code> 每次都直接 <code>INSERT INTO user_memory</code>——无幂等键，重复触发沉淀就会把同一条记忆存多次。<br>
+          <strong style="color:#FF6B35;">扩展下单 Tool（如 place_order）：</strong>若接入订单写入且不带幂等键，每次超时重试都会生成新订单号（双下单事故）。<br>
+          <strong style="color:#22C55E;">index_knowledge 算幂等雏形：</strong><code>index(force)</code> 检测到已有数据则跳过、<code>force=true</code> 才重建——重跑结果一致。
+        </div>
       </div>
     </div>
-  </div>
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:12px;">第七课能力地图</div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px;">
-      <div style="padding:10px 14px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:6px;width:48%;">
-        <div style="font-size:13px;color:#00E5FF;font-weight:600;">Function Calling</div>
-        <div style="font-size:11px;color:rgba(224,231,255,0.45);margin-top:4px;">概念 · 两种实现 · 选型</div>
+
+    <!-- 中：幂等键设计 -->
+    <div style="flex:1.1;display:flex;flex-direction:column;gap:9px;">
+      <div class="m" style="background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;">
+        <div class="t" style="color:#00E5FF;">③ 幂等键怎么设计</div>
+        <div class="b">
+          <strong style="color:#E0E7FF;">键的生成（调用方）：</strong><code>sessionId/requestId + toolName + 业务参数哈希</code>（第八课引入 <code>TraceService</code> 与 <code>WorkflowStep</code> 后即可升级为 <code>traceId + stepNumber + toolName + 参数哈希</code>）——同一笔业务重试沿用同一个键。<br>
+          <strong style="color:#E0E7FF;">键的存放（Tool 端）：</strong>去重表（idempotency_key, tool, args_hash, result, created_at）
+          或业务表加<strong style="color:#FF6B35;">唯一索引</strong>（如订单表 `uk_request_id`）——插入冲突即视为重复。<br>
+          <strong style="color:#E0E7FF;">重复请求的返回：</strong>不重新执行，<strong style="color:#22C55E;">回放首次结果</strong>（含首次的 orderId）——
+          调用方无感知，这才是幂等，"什么都不返回"不算。<br>
+          <strong style="color:#E0E7FF;">清理：</strong>去重表设 TTL（如 24~72h），覆盖重试与补单的时间窗。
+        </div>
       </div>
-      <div style="padding:10px 14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;width:48%;">
-        <div style="font-size:13px;color:#FF6B35;font-weight:600;">MCP 协议</div>
-        <div style="font-size:11px;color:rgba(224,231,255,0.45);margin-top:4px;">Tool · Resource · 架构 · Transport</div>
-      </div>
-      <div style="padding:10px 14px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:6px;width:48%;">
-        <div style="font-size:13px;color:#A855F7;font-weight:600;">LLM 路由</div>
-        <div style="font-size:11px;color:rgba(224,231,255,0.45);margin-top:4px;">三种方案 · 选型 · 实现</div>
-      </div>
-      <div style="padding:10px 14px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:6px;width:48%;">
-        <div style="font-size:13px;color:#22C55E;font-weight:600;">数据分层</div>
-        <div style="font-size:11px;color:rgba(224,231,255,0.45);margin-top:4px;">pgvector · MySQL · MCP 统一访问</div>
-      </div>
-      <div style="padding:10px 14px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;width:48%;">
-        <div style="font-size:13px;color:rgba(224,231,255,0.7);font-weight:600;">Tool vs Resource</div>
-        <div style="font-size:11px;color:rgba(224,231,255,0.45);margin-top:4px;">选型决策 · 跨路由设计</div>
-      </div>
-      <div style="padding:10px 14px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;width:48%;">
-        <div style="font-size:13px;color:rgba(224,231,255,0.7);font-weight:600;">企业治理</div>
-        <div style="font-size:11px;color:rgba(224,231,255,0.45);margin-top:4px;">权限 · 幂等 · 超时 · 审计</div>
+      <div class="m">
+        <div class="t">④ 读与写要分开看</div>
+        <div class="b">
+          <strong style="color:#22C55E;">查询天然幂等：</strong>`queryProductInfo` / `queryPrice` / `queryStock` 都是 SELECT，
+          重复调用无副作用——只做超时和限流就够。<br>
+          <strong style="color:#FF6B35;">写操作必须设计：</strong>下单、扣库存、发消息、写记忆。判断标准一句话：
+          <strong style="color:#E0E7FF;">"这个 Tool 执行两次，世界会不会不一样？"——会，就必须有幂等键。</strong>
+        </div>
       </div>
     </div>
-    <div style="margin-top:10px;padding:10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
-      <div style="font-size:13px;color:#00E5FF;font-weight:700;text-align:center;">一句话带走</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.6);text-align:center;margin-top:4px;">
-        Agent 的能力 = LLM 的决策 + Tool 的执行 + 标准协议的连接
-      </div>
+
+    <!-- 右：三格 -->
+    <div style="flex:1;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+      <div class="g"><div class="t">✗ 幂等键设计 ｜ 问题</div>
+        <div class="b">Tool 没有幂等键，重复调用重复执行：<code>save_memory</code> 每次 <code>INSERT</code> 新行，写接口（如下单）重试即产生重复单。</div></div>
+      <div class="g"><div class="t">不解决</div>
+        <div class="b">用户下一单变三单（客诉+退款）、记忆库里一堆重复条目污染检索；超时重试越重试越糟——重试与幂等必须成对出现。</div></div>
+      <div class="g" style="background:rgba(34,197,94,0.06);border-left:3px solid #22C55E;">
+        <div class="t" style="color:#22C55E;">怎么解决</div>
+        <div class="b">调用方生成 idempotency-key（traceId+step+tool+参数哈希）；Tool 端唯一索引/去重表挡重复，命中就回放首次结果；
+          读操作不加、写操作必加。取舍：去重表要容量与 TTL，跨系统键要约定归属方（谁生成谁负责），补偿动作本身也要带同一个键。</div></div>
     </div>
   </div>
 </div>
-</div></body></html>
+</body></html>

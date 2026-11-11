@@ -22,13 +22,13 @@
 答：Workflow 强调的是"可控"——状态机、条件判断、人工确认。Agent Loop 强调的是"循环"——THINK→ACT→OBSERVE。第八课两者都有，但核心价值是"可控"。
 
 **学员问：和 LangGraph 的 Workflow 有什么关系？**
-答：LangGraph 是把这套模式做成了框架——状态图、节点、边。第八课手搓一遍，第九课用 Spring AI Alibaba 重构，第十课对比 LangGraph。三步下来你就理解了 Workflow 的本质。
+答：LangGraph 是把这套模式做成了框架——状态图、节点、边。**Demo 做法**：本课手搓 WorkflowState + AgentRuntime 循环，7 个状态和转换条件全在代码里。**生产做法**：第九课用 AgentScope Java 2.0 重构同等功能，第十课对比 LangGraph——看清框架接管什么、你还要写什么，你就理解了 Workflow 的本质。
 
 ## Take Away
-Workflow 不是流程图，而是让 AI 在企业中可控运行的机制。
+判断要不要上 Workflow 看三条硬指标：流程有多步、有高风险操作、要可追溯——占一条就需要状态机 + Runtime，只是单轮问答就别上。
 
 ## Why This Slide Matters
-目录页是课程的"地图"。没有地图，学员会迷失在细节里。这页让学员知道：每章解决什么问题、和前后章什么关系。
+跳过这页，学员容易把 Workflow 理解成画流程图——项目里只画图不建状态机/容错/确认，落地时整套返工。
 
 ## Transition
 先回答一个关键问题——为什么需要 Workflow。

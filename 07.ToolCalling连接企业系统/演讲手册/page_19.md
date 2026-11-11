@@ -1,40 +1,44 @@
 ## Slide Objective
-讲清记忆保存和记忆使用的分工——系统行为 vs LLM 行为。这是记忆系统设计的核心决策。
+展示 LLM 路由的代码实现，以及路由如何同时返回意图和推荐模型——一次调用做两件事。
 
 ## Suggested Presentation
-记忆系统有两个操作：保存（写入）和使用（读取）。关键是分清谁负责什么。
+`LlmRouter.java` 的实现。核心方法 `route(String userMessage)` 返回 `RouteResult(route, model)`——一次 LLM 调用同时拿到路由决策和推荐模型。
 
-### 记忆保存是系统行为
+模型选择逻辑：KNOWLEDGE 和 TOOL 用 reasoning 模型（理解需求、结合知识推荐 / 理解参数、多步推理），CHAT 用 chat 模型（快、便宜）。这样不需要额外的 ModelRouter 组件，路由和模型选择在同一个快模型调用中完成。
 
-不通过 LLM FunctionCallback 调用。两个触发时机：
+这里有个细节：temperature=0 是必须的。如果 temperature > 0，同一个消息可能在不同时间得到不同的路由结果——用户体验不一致。路由需要确定性，生成需要创造性。
 
-**自动沉淀**：对话达到 10 条消息时触发。`MemoryManager.checkAndPrecipitate()` 检查 Redis 中的消息数量，超过阈值后：① 从 Redis 取出所有消息 ② 调用 LLM 从对话中提取关键信息（`extractConversationSummary()`） ③ 通过 `McpKnowledgeClient.saveMemory()` → MCP → pgvector 写入 ④ 清空 Redis。
+路由 Prompt 很短："判断用户消息的意图，只输出 KNOWLEDGE、TOOL 或 CHAT"。不需要 few-shot 示例，不需要复杂的指令。快模型做三分类已经足够准确。
 
-**清空会话**：用户点击清空时触发。`MemoryManager.clearSession()` 提取剩余消息并保存，然后清空 Redis。
+`ShoppingAgentController.chat()`（本课 `v1.4` / v4.0 核心入口）中路由如何影响三个决策：
 
-为什么不让 LLM 调 save_memory？三个原因：① 时机不可控——LLM 可能在不恰当的时候调用（用户说"今天天气不错"也保存）② 可能不调——用户说了重要信息但 LLM 没意识到要保存 ③ 幂等性问题——LLM 可能重复调用，导致同一条记忆存多次。自动沉淀机制保证了：只要对话够长，一定会保存，且只保存一次。
+**① 注入什么 context**：始终构建 `memoryManager.buildContext(sessionId, userId, message)`（画像 + 记忆 + 历史）。只有 KNOWLEDGE 路由才追加 RAG 结果：`mcpKnowledgeClient.search(message)`。其他路由不注入 RAG——这是和第六课的核心区别。第六课每次都注入 RAG，第七课由路由决定。
 
-### 记忆使用是 LLM 行为
+**② 注册什么 Tool**：只有 TOOL 路由才注册 product tools：`mcpProductClient.getFunctionCallbacks()`。其他路由不注册，节省 token。注意：注册 FunctionCallback 会增加 LLM 请求中的 token 数（每个 tool definition 约 200-500 token），所以只在需要时注册。
 
-每次对话时，`MemoryManager.buildContext()` 从 pgvector 语义检索相关记忆，注入到 context 的「相关记忆」段。LLM 看到记忆后，结合记忆了解用户的真实需求。
+**③ save_memory 不通过 LLM 调用**：save_memory 由系统内部调用（MemoryManager 自动沉淀），不注册给 LLM。这是设计决策——记忆保存的时机应该可控，不应该依赖 LLM 的判断。
 
-系统提示词引导 LLM：`「参考信息」中的用户记忆，记录了用户之前的需求和决策。推荐商品时，结合记忆了解用户的真实需求。` 这条规则告诉 LLM 记忆有什么用，但不告诉 LLM 怎么保存记忆。
+**演进预告（本课 `v1.4` → 下一课第八课 `v1.5`）**：在本课 `v1.4` 代码中，`ShoppingAgentController.chat()` 和 `recommend()` 都使用 `LlmRouter.route()`，按 `Route`（`KNOWLEDGE / TOOL / CHAT`）走三条分支。但如果用户问一句跨路由的复合任务（例如"帮我对比推荐两款笔记本并查实时库存下单"），单次三选一分支就不够用了——这正是下一课（第八课 `v1.5`）引入 `AgentRuntime` 多步 ReAct 循环的原因：届时将由循环内的 THINK 自主决定每步调知识检索还是调商品工具，而把"要不要规划"和"要不要人工确认"沉淀为确定性的控制流规则。
 
-### 画像是更高层的抽象
-
-画像（user_profile MySQL）由 `UserProfileExtractor` 从对话中提炼结构化标签（facts + preferences）。画像和记忆的关系：记忆是"对话中发生了什么"（原始记录），画像是"用户是谁"（提炼后的结论）。画像从多轮记忆中提炼，不是每次对话都更新。
-
-Demo 中画像抽取由关键词"记住"触发，这是简化。实际企业中，画像是由专门的画像系统维护的，通过批量任务（每天定时从近期对话中抽取）、事件驱动（会话结束、订单完成后触发）、或流处理（Kafka 实时分析对话标签）来更新。
-
-### 对比 queryProductInfo
-
-queryProductInfo 是 LLM 主动调用的 Tool（用户问价格，LLM 决定查）。save_memory 是系统调用的 Tool（对话沉淀，系统决定存）。两者的控制权不同：一个由 LLM 决策，一个由系统决策。
+这里有个坑：`getFunctionCallbacks()` 返回的列表在 MCP Server 未连接时为空。Demo 做了优雅降级——MCP Server 未启动时 Agent 仍可正常运行，只是 Tool 不可用。日志会显示 `[Tool] MCP Server 未连接，无可用 Tool`。生产中应该有告警机制。
 
 ## Key Emphasis
-记忆保存是系统行为，记忆使用是 LLM 行为。这个分工保证了记忆的可靠性（不依赖 LLM 的判断）和灵活性（LLM 可以自由使用记忆上下文）。
+路由不只是分类，它决定了整个对话的处理方式。这是第七课和第六课的核心区别——第六课每次都注入 RAG，第七课由路由决定。
 
 ## Demo 与生产的差距
-Demo 的自动沉淀阈值是硬编码的 10 条消息。生产中应该根据对话频率动态调整——高频对话可以降低阈值，低频对话可以提高。Demo 的 LLM 提取摘要用的是同一个 ChatModel，生产中可能用更便宜的模型做摘要（降低 token 成本）。Demo 没有做记忆去重——同一个偏好被多次提到会存多条，生产中需要去重或合并。
+Demo 用 LLM 做三分类，生产中可能需要更复杂的路由：多标签分类（一个消息可能既是 KNOWLEDGE 又是 TOOL）、意图层级（TOOL 下分查价格/查库存/下单）、路由缓存（相似问题直接复用路由结果）。Demo 的路由是无状态的，生产中可能需要考虑对话上下文（前一轮是 KNOWLEDGE，这一轮说"多少钱"应该路由到 TOOL）。
+
+## Optional Extension
+**学员问：路由是快模型调用，它超时或挂了怎么办？整条对话跟着挂吗？**
+答：路由必须有失败默认路由，默认值偏保守——路由跳过的是优化，不是可用性。
+Demo 做法：`LlmRouter.route()` 里 try-catch 兜底，异常直接返回 `RouteResult(Route.CHAT, chatModel)`，对话永不因路由失败而中断；路由结果和耗时打在 `LLM_ROUTE` 日志里可回看。
+生产做法：默认路由做成配置项（默认 CHAT 或"最近一次成功路由"），路由错误率单独打点告警（它一抖动说明下游全在退化）；路由决策进 Trace，出问题能回放"当时为什么走这条路由"。取舍：默认 CHAT 会让工具类问题在路由故障期答不满，但比整条对话 500 的体验损失小。
+
+## Take Away
+路由器必须带"失败默认路由"且默认值保守（CHAT）——路由是优化路径不是可用性路径，宁可少注入也别断对话。
+
+## Why This Slide Matters
+跳过这页，学员会让路由异常直接向上抛——快模型一次抖动整条对话报错，全链路最便宜、最该无害的一跳成了最脆的一跳。
 
 ## Transition
-现在把第七课的数据分层完整过一遍。
+看完了路由如何按需挂载 Tool 与 RAG，接下来进入第六章（page_20）：为什么 `save_memory` 不暴露给 LLM？看记忆系统设计——系统行为 vs LLM 行为。

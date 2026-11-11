@@ -3,87 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>Agent日常交互高阶心法</title>
+<title>优质学习资源、Spec 标准与开源生态推荐</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
-.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-skill-card { padding:10px 12px; margin-bottom:6px; }
-.slide-skill-title { font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
-.slide-skill-desc { font-size:11px; color:rgba(224,231,255,0.55); line-height:1.4; }
-.slide-skill-demo { margin-top:4px; padding:4px 8px; background:rgba(0,0,0,0.3); font-family:monospace; font-size:10.5px; color:rgba(224,231,255,0.5); line-height:1.35; border-left:2px solid; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:38px 65px; }
+.slide-container h1 { font-size:29px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:13px; color:#A855F7; letter-spacing:4px; font-weight:700; }
+.res-card { padding:14px 16px; background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.12); border-radius:3px; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:24px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 08 · 实操</div>
-  <h1 class="mb-2">Agent日常交互高阶心法</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:10px;"></div>
+<div class="slide-container">
+  <div class="slide-section-num mb-1">CHAPTER 06 · 上下文退化原理与单兵防坑铁律</div>
+  <h1 class="mb-2">优质学习资源、Spec 标准与开源生态推荐</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
 
-  <div class="flex" style="gap:24px;">
-    <!-- Left Column: Context, Compile, Git -->
-    <div style="flex:1;">
-      <div class="slide-skill-card" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.12);">
-        <div class="slide-skill-title"><i class="fas fa-crosshairs" style="color:#00E5FF; margin-right:6px;"></i>技巧1：精确上下文控制（@ 引用）</div>
-        <div class="slide-skill-desc">拒绝让 Agent 盲目扫描整个项目库。主动使用 <strong style="color:#00E5FF;">@Files</strong> 或 <strong style="color:#00E5FF;">@Symbols</strong> 锁定关联范围，防止注意力分散并大幅节省 Token。</div>
-        <div class="slide-skill-demo" style="border-color:#00E5FF;">
-          <span style="color:#00E5FF;"># 精确提问示例</span><br>
-          "修改 `@OrderServiceImpl.java` 中的计算逻辑，使其入参字段与 `@OrderDTO.java` 严格对齐。"
-        </div>
+  <div style="font-size:13px; color:rgba(224,231,255,0.7); margin-bottom:16px; line-height:1.5;">
+    AI 编程工具层出不穷，但<strong>底层的协议标准、最佳实践与思维模式是高度相通的</strong>。精选 2026 前沿生态资源，助你持续精进：
+  </div>
+
+  <!-- 4 Blocks Grid -->
+  <div class="grid grid-cols-2 gap-4 mb-4">
+    <!-- Block 1 -->
+    <div class="res-card" style="border-left:3px solid #00E5FF;">
+      <div style="font-size:15px; font-weight:700; color:#00E5FF; margin-bottom:8px; display:flex; align-items:center;">
+        <i class="fas fa-file-contract" style="margin-right:8px;"></i>1. 开放规范与官方标准
       </div>
-
-      <div class="slide-skill-card" style="background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.12);">
-        <div class="slide-skill-title"><i class="fas fa-terminal" style="color:#FF6B35; margin-right:6px;"></i>技巧2：终端命令闭环验证</div>
-        <div class="slide-skill-desc">不要充当 AI 的人肉编译器。在 Prompt 中明确授权 Agent <strong style="color:#FF6B35;">运行本地终端命令</strong>，让其在沙箱内完成“编译-报错-修复”闭环。</div>
-        <div class="slide-skill-demo" style="border-color:#FF6B35;">
-          <span style="color:#FF6B35;"># 编译验证指令</span><br>
-          "实现接口后，在终端运行 `mvn clean compile` 验证。若报错请读取错误日志自行修正，直至编译通过。"
-        </div>
-      </div>
-
-      <div class="slide-skill-card" style="background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.12);">
-        <div class="slide-skill-title"><i class="fas fa-history" style="color:#E0E7FF; margin-right:6px;"></i>技巧3：Git 快速止损与回滚</div>
-        <div class="slide-skill-desc">Agent 容易陷入“越修越错”的循环中。大改前<strong style="color:#E0E7FF;">必须做 Git Commit 暂存</strong>。如果 Agent 连续两轮修不好 Bug，立刻硬回滚，调整 Prompt 重新开始。</div>
-        <div class="slide-skill-demo" style="border-color:#E0E7FF;">
-          <span style="color:rgba(224,231,255,0.5);"># 止损口诀</span><br>
-          大改前：git commit -m "checkpoint"<br>
-          改砸时：git reset --hard HEAD & 重新调整Prompt
-        </div>
+      <div class="space-y-2" style="font-size:12px; color:rgba(224,231,255,0.78); line-height:1.5;">
+        <div>• <strong>AGENTS.md 规范标准</strong>：跨 Cursor、Claude Code、Qoder 的统一项目级指令标准。</div>
+        <div>• <strong>Model Context Protocol (MCP)</strong>：Anthropic 开源的智能体统一系统集成协议（<code>modelcontextprotocol.io</code>）。</div>
+        <div>• <strong>OpenSpec / GitHub Spec-Kit</strong>：标准化 SDD 规格驱动开发模板与生命周期定义。</div>
       </div>
     </div>
 
-    <!-- Right Column: Scripts, Chunking, Rule -->
-    <div style="flex:1;">
-      <div class="slide-skill-card" style="background:rgba(255,200,50,0.04); border:1px solid rgba(255,200,50,0.15);">
-        <div class="slide-skill-title"><i class="fas fa-file-code" style="color:#FFC832; margin-right:6px;"></i>技巧4：临时脚本开路法</div>
-        <div class="slide-skill-desc">遇到数据迁移、批量重命名、或接口联调等繁重任务，指示 Agent 在 <strong style="color:#FFC832;">scratch/ 目录下编写轻量脚本</strong>（Python/Bash）直接执行。</div>
-        <div class="slide-skill-demo" style="border-color:#FFC832;">
-          <span style="color:#FFC832;"># 临时脚本指令</span><br>
-          "在 `scratch/` 下写个 Python 脚本，读取 `data.json` 转换为格式化 SQL，运行它并将结果输出。"
-        </div>
+    <!-- Block 2 -->
+    <div class="res-card" style="border-left:3px solid #FF6B35;">
+      <div style="font-size:15px; font-weight:700; color:#FF6B35; margin-bottom:8px; display:flex; align-items:center;">
+        <i class="fas fa-boxes" style="margin-right:8px;"></i>2. 顶级社区与规则市场
       </div>
-
-      <div class="slide-skill-card" style="background:rgba(255,200,50,0.04); border:1px solid rgba(255,200,50,0.15);">
-        <div class="slide-skill-title"><i class="fas fa-shoe-prints" style="color:#FFC832; margin-right:6px;"></i>技巧5：小步快跑任务分步走</div>
-        <div class="slide-skill-desc">大需求容易使 Agent 的长文本生成逻辑过载。将大目标拆解为 <strong style="color:#FFC832;">3-4 步渐进式交互</strong>，每一步输出并验证无误后，再推进下一步。</div>
-        <div class="slide-skill-demo" style="border-color:#FFC832;">
-          <span style="color:#FFC832;"># 分步提问示例</span><br>
-          Turn 1: "先阅读项目结构，输出重构计划（不改代码）"<br>
-          Turn 2: "按照计划，先编写 Entity 类，并编译验证"<br>
-          Turn 3: "编写业务实现与单元测试"
-        </div>
+      <div class="space-y-2" style="font-size:12px; color:rgba(224,231,255,0.78); line-height:1.5;">
+        <div>• <strong>Cursor Directory (cursor.directory)</strong>：全球最大的企业级 <code>.cursorrules</code> / <code>AGENTS.md</code> 最佳实践库。</div>
+        <div>• <strong>skills.sh 技能市场</strong>：一键安装开源 Agent CLI 技能包（涵盖 Git、K8s、SQL、安全审计）。</div>
+        <div>• <strong>Roo Code / Cline 开源社区</strong>：在开源透明与细粒度工具执行权限控制领域的先锋阵地。</div>
       </div>
+    </div>
 
-      <div style="padding:8px 10px; background:rgba(0,229,255,0.06); border:2px solid rgba(0,229,255,0.2); margin-top:4px;">
-        <div style="font-size:12px; color:#00E5FF; font-weight:700; margin-bottom:2px;"><i class="fas fa-star" style="margin-right:6px;"></i>金牌防坑铁律</div>
-        <div style="font-size:11px; color:rgba(224,231,255,0.55); line-height:1.4;"><strong style="color:#E0E7FF;">如果大模型开始胡言乱语：</strong>1. 检查是不是上下文文件给得太多了；2. 检查是否有历史报错没有丢给它；3. 立刻回滚，不要让它“越修越乱”。</div>
+    <!-- Block 3 -->
+    <div class="res-card" style="border-left:3px solid #22C55E;">
+      <div style="font-size:15px; font-weight:700; color:#22C55E; margin-bottom:8px; display:flex; align-items:center;">
+        <i class="fas fa-book-reader" style="margin-right:8px;"></i>3. 架构必读权威指南
+      </div>
+      <div class="space-y-2" style="font-size:12px; color:rgba(224,231,255,0.78); line-height:1.5;">
+        <div>• <strong>Anthropic《Building effective agents》</strong>：系统拆解 Workflows 与 Autonomous Agents 的宗师级白皮书。</div>
+        <div>• <strong>OpenAI《Practices for Harnessing Coding LLMs》</strong>：官方关于 Token 缓存与代码单测闭环的深度洞见。</div>
+        <div>• <strong>国内大厂工程实践</strong>：阿里 Qoder 仓库级上下文架构演进、腾讯 CodeBuddy Spec 闭环落地报告。</div>
+      </div>
+    </div>
+
+    <!-- Block 4 -->
+    <div class="res-card" style="border-left:3px solid #A855F7;">
+      <div style="font-size:15px; font-weight:700; color:#A855F7; margin-bottom:8px; display:flex; align-items:center;">
+        <i class="fas fa-route" style="margin-right:8px;"></i>4. 进阶学习路线图
+      </div>
+      <div class="space-y-2" style="font-size:12px; color:rgba(224,231,255,0.78); line-height:1.5;">
+        <div>• <strong>普通学员主线（直通 03 课）</strong>：学完本课直接迈入《第 03 课：AI Agent架构认知入门》，打通智能体顶层应用架构。</div>
+        <div>• <strong>进阶深潜支线（02B 可选深潜）</strong>：若为项目 Leader/高级开发，可选修《02B. AI辅助编程进阶》，攻坚 SDD 规格驱动与多 Agent 并行。</div>
       </div>
     </div>
   </div>
 
+  <!-- Bottom Quote -->
+  <div style="padding:10px 16px; background:rgba(34,197,94,0.06); border:1px solid rgba(34,197,94,0.22); font-size:12px; color:#E0E7FF; display:flex; align-items:center;">
+    <i class="fas fa-hand-holding-heart" style="color:#22C55E; margin-right:8px; font-size:14px;"></i>
+    <span><strong>工具会不断洗牌，但标准与工程方法论永存：</strong>不与任何单一工具深度绑定，依托开放标准沉淀团队的规范资产，才能立于不败之地。</span>
+  </div>
 </div>
 </body>
 </html>

@@ -1,88 +1,134 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>Demo 项目架构</title>
+<title>前端集成与 SSE 流式传输四大工程挑战</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.6;color:rgba(224,231,255,0.6)}
-</style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 08</div>
-<h1 class="mb-2">Demo 项目架构 — 每个文件的意义</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+.s h1{font-size:30px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px}
+.mb-2{margin-bottom:6px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.4;color:rgba(224,231,255,0.75)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.35)} .fn{color:#E0E7FF}
+.card{padding:9px 12px;border-radius:5px}
+.ch{padding:8px 10px;border-radius:4px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.15);display:flex;flex-direction:column;gap:2px}
+.ch .ct{font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.ch .cb{font-size:11px;color:rgba(224,231,255,0.65);line-height:1.45}
+</style></head>
+<body>
+<div class="s" style="padding:22px 50px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 07 · 流式与前端集成</div>
+  <h1 class="mb-2">前端集成与 SSE 流式传输四大工程挑战</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:10px;"></div>
 
-<div style="flex:1;display:flex;gap:20px;">
-  <!-- 左：项目结构 -->
-  <div style="flex:1;display:flex;flex-direction:column;">
-    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:8px;">📁 enterprise-ai-agent/ 项目结构</div>
-    <div style="padding:14px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;flex:1;">
-      <pre style="font-size:12px;">
-enterprise-ai-agent/
-├── agent-runtime/           <span style="color:#FF6B35;">后端 (Spring Boot)</span>
-│   ├── pom.xml              <span style="color:rgba(224,231,255,0.35);">Maven 依赖</span>
-│   ├── mvnw                 <span style="color:rgba(224,231,255,0.35);">Maven Wrapper</span>
-│   └── src/main/
-│       ├── java/.../core/
-│       │   ├── AgentApplication.java
-│       │   ├── CorsConfig.java
-│       │   ├── ModelRouter.java
-│       │   ├── PromptManager.java
-│       │   ├── StructuredOutputHandler.java
-│       │   ├── GuardrailsService.java
-│       │   └── ShoppingAgentController.java
-│       └── resources/
-│           ├── application.yml
-│           └── application-local.yml
-│
-└── web/                     <span style="color:#FF6B35;">前端 (Vue 2)</span>
-    ├── package.json
-    ├── vue.config.js
-    └── src/
-        ├── main.js
-        └── App.vue
-      </pre>
+  <div style="flex:1;display:flex;gap:18px;">
+    <!-- 左：前后端架构与前端处理代码 -->
+    <div style="flex:1.05;display:flex;flex-direction:column;justify-content:space-between;">
+      <!-- 架构链条 -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:5px;">
+        <div style="text-align:center;"><div style="font-size:12px;color:#00E5FF;font-weight:700;">Vue 前端</div><div style="font-size:11px;color:rgba(224,231,255,0.4);">:3000 / fetch</div></div>
+        <div style="font-size:12px;color:rgba(0,229,255,0.4);">→</div>
+        <div style="text-align:center;"><div style="font-size:12px;color:#FF6B35;font-weight:700;">Nginx 反向代理</div><div style="font-size:11px;color:rgba(224,231,255,0.4);">proxy_buffering off</div></div>
+        <div style="font-size:12px;color:rgba(0,229,255,0.4);">→</div>
+        <div style="text-align:center;"><div style="font-size:12px;color:#00E5FF;font-weight:700;">Spring Boot</div><div style="font-size:11px;color:rgba(224,231,255,0.4);">:8080 / SSE</div></div>
+        <div style="font-size:12px;color:rgba(0,229,255,0.4);">→</div>
+        <div style="text-align:center;"><div style="font-size:12px;color:#22C55E;font-weight:700;">LLM API</div><div style="font-size:11px;color:rgba(224,231,255,0.4);">上游流式生成</div></div>
+      </div>
+
+      <!-- 前端代码 -->
+      <div style="font-size:13px;color:#FF6B35;font-weight:700;margin-top:4px;">💻 前端 fetch + ReadableStream 解析与取消控制</div>
+      <div style="padding:10px;background:rgba(0,0,0,0.45);border:1px solid rgba(255,107,53,0.18);border-radius:6px;flex:1;">
+        <pre><span class="cm">// 支持主动取消的流式请求</span>
+<span class="kw">const</span> abortCtrl = <span class="kw">new</span> <span class="fn">AbortController</span>();
+<span class="kw">const</span> resp = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`/api/agent/chat`</span>, {
+  method: <span class="str">'POST'</span>, body: JSON.stringify({ message: text }),
+  signal: abortCtrl.signal <span class="cm">// 绑定中断信号</span>
+});
+
+<span class="kw">const</span> reader = resp.body.getReader();
+<span class="kw">const</span> decoder = <span class="kw">new</span> <span class="fn">TextDecoder</span>();
+<span class="kw">let</span> buffer = <span class="str">''</span>; <span class="cm">// 维护半行数据缓冲区</span>
+
+<span class="kw">while</span> (<span class="kw">true</span>) {
+  <span class="kw">const</span> { done, value } = <span class="kw">await</span> reader.read();
+  <span class="kw">if</span> (done) <span class="kw">break</span>;
+  buffer += decoder.decode(value, { stream: <span class="kw">true</span> });
+  <span class="kw">const</span> lines = buffer.split(<span class="str">'\n'</span>);
+  buffer = lines.pop(); <span class="cm">// 截留最后未闭合的半行，防止解析崩溃</span>
+
+  <span class="kw">for</span> (<span class="kw">const</span> line <span class="kw">of</span> lines) {
+    <span class="kw">if</span> (line.startsWith(<span class="str">'data:'</span>)) {
+      <span class="kw">const</span> chunk = line.substring(5).trim();
+      <span class="kw">if</span> (chunk === <span class="str">'[DONE]'</span>) <span class="kw">continue</span>;
+      fullText += chunk;
+      updateUI(fullText); <span class="cm">// 增量渲染 Markdown</span>
+    }
+  }
+}</pre>
+      </div>
+    </div>
+
+    <!-- 右：四大工程挑战与工业级解法 -->
+    <div style="flex:1.15;display:flex;flex-direction:column;justify-content:space-between;">
+      <div style="font-size:13.5px;color:#00E5FF;font-weight:700;display:flex;align-items:center;gap:6px;">
+        <span>⚡ SSE 流式传输四大生产工程挑战与解法</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <!-- 挑战 1 -->
+        <div class="ch" style="border-color:rgba(255,107,53,0.3);background:rgba(255,107,53,0.05);">
+          <div class="ct" style="color:#FF6B35;">
+            <span>① 代理层缓冲机制风险 (Proxy Buffering)</span>
+            <span style="font-size:11px;color:#FFC832;">高频线上踩坑</span>
+          </div>
+          <div class="cb">
+            <strong style="color:#E0E7FF;">痛点：</strong>Nginx / 网关默认开启缓冲，拦截后端 Token 攒满 4KB 或等连接结束才一次性下发，导致前端“打字机流式”彻底失效！<br>
+            <strong style="color:#22C55E;">工业解法：</strong>Nginx 显式配置 <code style="color:#00E5FF;">proxy_buffering off;</code>，后端响应头加 <code style="color:#00E5FF;">X-Accel-Buffering: no</code> 与 <code style="color:#00E5FF;">Cache-Control: no-cache</code>，并关闭 gzip 块缓冲。
+          </div>
+        </div>
+
+        <!-- 挑战 2 -->
+        <div class="ch">
+          <div class="ct" style="color:#00E5FF;">
+            <span>② 粘包拆包与半行数据截断 (Chunk Parse Boundary)</span>
+            <span style="font-size:11px;color:#22C55E;">Demo 已覆盖</span>
+          </div>
+          <div class="cb">
+            <strong style="color:#E0E7FF;">痛点：</strong>TCP 传输的分片与 SSE 事件行边界不重合。单个 chunk 常常从中间截断 JSON（如前半包 <code style="color:#00E5FF;">{"choi</code>，后半包 <code style="color:#00E5FF;">ces":...}</code>），直接解析必报错。<br>
+            <strong style="color:#22C55E;">工业解法：</strong>客户端/网关维护行暂存缓冲区 <code style="color:#00E5FF;">buffer</code>，以换行符切割，未闭合的半行留存等待下一包拼接。
+          </div>
+        </div>
+
+        <!-- 挑战 3 -->
+        <div class="ch" style="border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.05);">
+          <div class="ct" style="color:#EF4444;">
+            <span>③ 客户端断开检测与上游取消 (Client Disconnect)</span>
+            <span style="font-size:11px;color:#EF4444;">Token 止损底线</span>
+          </div>
+          <div class="cb">
+            <strong style="color:#E0E7FF;">痛点：</strong>用户中途关闭页面或点击“停止生成”，若后端不感知，上游 LLM 继续空跑几十秒，白白烧光企业 Token 预算与 GPU 算力！<br>
+            <strong style="color:#22C55E;">工业解法：</strong>前端调用 <code style="color:#00E5FF;">abortCtrl.abort()</code>；后端监听连接断开（Servlet ClientAbortException / Flux doOnCancel），<strong style="color:#E0E7FF;">立即向上游 LLM 发送 Cancel 请求终止生成</strong>。
+          </div>
+        </div>
+
+        <!-- 挑战 4 -->
+        <div class="ch">
+          <div class="ct" style="color:#A855F7;">
+            <span>④ 长连接资源保活与中断重连 (Keep-Alive & Reconnect)</span>
+            <span style="font-size:11px;color:#A855F7;">生产稳定性</span>
+          </div>
+          <div class="cb">
+            <strong style="color:#E0E7FF;">痛点：</strong>推理模型深度思考（Reasoning）长达 20~60 秒不发正文，中间网络代理因空闲超时强制掐断；移动端网络抖动。<br>
+            <strong style="color:#22C55E;">工业解法：</strong>后端每隔 15 秒主动下发 SSE 注释心跳帧（<code style="color:#00E5FF;">: keep-alive\n\n</code>）；支持带 <code style="color:#00E5FF;">Last-Event-ID</code> 断点重连机制，避免用户从头重来。
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- 右：每个文件的职责 -->
-  <div style="flex:1;display:flex;flex-direction:column;">
-    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">🔑 核心文件职责</div>
-    <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
-      <div style="padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
-        <div style="font-size:12px;color:#00E5FF;font-weight:700;">ModelRouter.java</div>
-        <div style="font-size:10px;color:rgba(224,231,255,0.5);">模型路由 — 根据消息复杂度选择快模型或推理模型</div>
-      </div>
-      <div style="padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
-        <div style="font-size:12px;color:#00E5FF;font-weight:700;">PromptManager.java</div>
-        <div style="font-size:10px;color:rgba(224,231,255,0.5);">Prompt 构建 — System/User 分离，模板变量替换</div>
-      </div>
-      <div style="padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
-        <div style="font-size:12px;color:#00E5FF;font-weight:700;">StructuredOutputHandler.java</div>
-        <div style="font-size:10px;color:rgba(224,231,255,0.5);">结构化输出 — JSON 提取、Schema 验证、Self-Correction</div>
-      </div>
-      <div style="padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
-        <div style="font-size:12px;color:#00E5FF;font-weight:700;">GuardrailsService.java</div>
-        <div style="font-size:10px;color:rgba(224,231,255,0.5);">安全防护 — 入口 Injection 检测 + 出口敏感信息过滤</div>
-      </div>
-      <div style="padding:8px 12px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:4px;">
-        <div style="font-size:12px;color:#FF6B35;font-weight:700;">ShoppingAgentController.java</div>
-        <div style="font-size:10px;color:rgba(224,231,255,0.5);">导购 Agent API — 流式对话 + 结构化推荐，串联所有组件</div>
-      </div>
-      <div style="padding:8px 12px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:4px;">
-        <div style="font-size:12px;color:#FF6B35;font-weight:700;">CorsConfig.java</div>
-        <div style="font-size:10px;color:rgba(224,231,255,0.5);">CORS 配置 — 前后端分离时允许跨域</div>
-      </div>
-      <div style="padding:8px 12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:4px;">
-        <div style="font-size:12px;color:#E0E7FF;font-weight:700;">application.yml</div>
-        <div style="font-size:10px;color:rgba(224,231,255,0.5);">配置文件 — API Key、模型名、Agent 角色定义</div>
-      </div>
+  <div style="margin-top:8px;padding:6px 14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:5px;text-align:center;">
+    <div style="font-size:11.5px;color:rgba(224,231,255,0.7);">
+      <strong style="color:#FF6B35;">流式总结：</strong>SSE 不只是前端打字机特效，更是贯穿“反向代理缓冲、数据拆包缓冲、客户端断连止损与长连接保活”的系统工程。
     </div>
   </div>
 </div>
-
-<div style="margin-top:10px;padding:8px 14px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:5px;text-align:center;">
-  <div style="font-size:12px;color:rgba(224,231,255,0.5);"><strong style="color:#FF6B35;">v1.0-prompt</strong> — 第四课完成。后续每课都会在这个基础上增加新模块（Memory → Knowledge → Tool → Workflow）。</div>
-</div>
-</div></body></html>
+</body></html>

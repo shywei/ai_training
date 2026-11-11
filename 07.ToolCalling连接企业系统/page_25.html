@@ -1,55 +1,83 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>总结</title>
+<title>超时</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
 .s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-</style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">SUMMARY</div>
-<h1 class="mb-2">总结 + 第八课预告</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
-<div style="flex:1;display:flex;gap:20px;">
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:12px;">三个核心能力</div>
-    <div style="display:flex;flex-direction:column;gap:10px;">
-      <div style="padding:14px;background:rgba(0,229,255,0.06);border:2px solid rgba(0,229,255,0.2);border-radius:8px;">
-        <div style="font-size:18px;color:#00E5FF;font-weight:700;">① LLM 路由</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px;">Agent 判断意图，决定该做什么</div>
+.mb-2{margin-bottom:8px}
+.card{padding:10px 12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:6px}
+.card .t{font-size:12px;color:#00E5FF;font-weight:700;margin-bottom:5px}
+.b{font-size:10.5px;color:rgba(224,231,255,0.72);line-height:1.65}
+.m{padding:9px 11px;background:rgba(168,85,247,0.06);border-left:3px solid #A855F7;border-radius:4px}
+.m .t{font-size:11.5px;color:#A855F7;font-weight:700;margin-bottom:3px}
+.m .b{font-size:10.5px;color:rgba(224,231,255,0.72);line-height:1.6}
+.g{padding:8px 10px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px}
+.g .t{font-size:11px;color:#FF6B35;font-weight:700;margin-bottom:3px}
+.g .b{font-size:10px;color:rgba(224,231,255,0.72);line-height:1.55}
+</style></head>
+<body>
+<div class="s" style="padding:28px 56px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 07</div>
+  <h1 class="mb-2">超时 — 超时 ≠ 失败，结果未知最危险</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px;"></div>
+
+  <div style="flex:1;display:flex;gap:14px;">
+    <!-- 左：Demo 现状 -->
+    <div style="flex:1;display:flex;flex-direction:column;gap:9px;">
+      <div class="card" style="flex:1;">
+        <div class="t">① Demo 现状（v1.4）：超时写死 + 冷却重连，尚无重试与熔断</div>
+        <div class="b">
+          <strong style="color:#E0E7FF;">客户端超时写死：</strong><code>McpProductClient.init()</code> → <code>.requestTimeout(Duration.ofSeconds(10))</code>；
+          <code>McpKnowledgeClient</code> → 15 秒。两个常量不区分查询/写入/批量操作。<br>
+          <strong style="color:#E0E7FF;">断线冷却重连：</strong><code>ensureConnected()</code> 设置 10 秒冷却（<code>RECONNECT_COOLDOWN_MS = 10_000</code>），避免每次请求都阻塞重连。<br>
+          <strong style="color:#FF6B35;">v1.4 缺口（引出第八课）：</strong><code>McpToolCallback</code> 捕获异常后直接返回错误文本，<strong>没有任何重试与熔断机制</strong>——下一课（第八课）我们将构建 <code>ErrorRecovery</code>（指数退避重试 1s→2s→4s + 连续失败 5 次熔断降级）。
+        </div>
       </div>
-      <div style="padding:14px;background:rgba(255,107,53,0.06);border:2px solid rgba(255,107,53,0.2);border-radius:8px;">
-        <div style="font-size:18px;color:#FF6B35;font-weight:700;">② MCP 协议</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px;">Tool 的标准化暴露和调用</div>
-      </div>
-      <div style="padding:14px;background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.2);border-radius:8px;">
-        <div style="font-size:18px;color:#22C55E;font-weight:700;">③ Function Calling</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px;">LLM 调用工具查实时数据（queryProductInfo 等）</div>
+      <div class="card" style="background:rgba(255,107,53,0.06);border-color:rgba(255,107,53,0.2);">
+        <div class="t" style="color:#FF6B35;">② 关键认知：超时是"结果未知"</div>
+        <div class="b">
+          网络超时只说明<strong style="color:#FF6B35;">"我没等到"</strong>，不说明<strong style="color:#FF6B35;">"下游没做"</strong>。
+          下单请求发出去、下游扣了库存、响应在路上丢了——这时重试就是重复下单。
+          所以：<strong style="color:#E0E7FF;">超时后的重试必须配幂等键</strong>（上一页），查询类才敢裸重试。
+        </div>
       </div>
     </div>
-  </div>
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:12px;">Agent 能力演进</div>
-    <div style="padding:14px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;margin-bottom:14px;">
-      <div style="font-size:13px;color:rgba(224,231,255,0.6);line-height:2;">
-        第四课：Agent 能<strong style="color:#E0E7FF;">说话</strong>（LLM 交互）<br>
-        第五课：Agent 能<strong style="color:#E0E7FF;">记住</strong>（Memory）<br>
-        第六课：Agent 能<strong style="color:#E0E7FF;">理解</strong>（Knowledge/RAG）<br>
-        第七课：Agent 能<strong style="color:#00E5FF;">做事</strong>（Tool Calling）← 今天<br>
-        第八课：Agent 能<strong style="color:rgba(224,231,255,0.3);">规划</strong>（Workflow）← 下节课
+
+    <!-- 中：分级超时 -->
+    <div style="flex:1.1;display:flex;flex-direction:column;gap:9px;">
+      <div class="m" style="background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;">
+        <div class="t" style="color:#00E5FF;">③ 分级超时 + 超时预算</div>
+        <div class="b">
+          <strong style="color:#E0E7FF;">按操作分级：</strong>查询 2~3s / 写入 5~10s / 批量 30s——一个档位定所有 Tool，
+          等于慢的被砍、快的被拖。分级依据是<strong style="color:#22C55E;">下游 SLA + 操作的可重试性</strong>。<br>
+          <strong style="color:#E0E7FF;">链路预算（deadline 分摊）：</strong>一轮对话总预算 10s，其中路由 1s、检索 2s、Tool 2s、生成 5s——
+          每跳带上剩余预算（透传 deadline），避免每跳都"还剩 10 秒"，加起来超时 5 倍。<br>
+          <strong style="color:#E0E7FF;">退避加抖动：</strong>固定退避会造成重试齐步走（惊群），加 ±20% 随机抖动错峰。
+        </div>
+      </div>
+      <div class="m">
+        <div class="t">④ 超时之后的三条路</div>
+        <div class="b">
+          <strong style="color:#22C55E;">重试：</strong>幂等的读操作、明确失败的错误码（5xx）才重试；4xx 不重试。<br>
+          <strong style="color:#FFD166;">降级：</strong>返回缓存/简化结果/直说"价格系统暂时不可用"——比挂住强，比编造强。<br>
+          <strong style="color:#FF6B35;">熔断：</strong>连续失败到阈值就短路，别再拿请求去撞一个已经挂了的下游（本课 <code>v1.4</code> 尚未实现，<strong>第八课</strong>将在 <code>ErrorRecovery</code> 中完整实现重试 + 熔断 + 降级三级容错）。
+        </div>
       </div>
     </div>
-    <div style="padding:12px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:6px;">
-      <div style="font-size:14px;color:#A855F7;font-weight:600;">第八课预告</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.55);margin-top:4px;line-height:1.8;">
-        状态机 + Agent Runtime<br>
-        Human-in-the-loop（人工确认）<br>
-        多步骤任务编排<br>
-        第七课的 Agent 能"做事"了，但还是一问一答<br>
-        第八课要让 Agent 能完成复杂的多步骤任务
-      </div>
+
+    <!-- 右：三格 -->
+    <div style="flex:1;display:flex;flex-direction:column;gap:8px;justify-content:center;">
+      <div class="g"><div class="t">✗ 分级超时 ｜ 问题</div>
+        <div class="b">超时写死 10s/15s，不分查询/写入/批量；超时后按"失败"处理直接重试，但下游可能已经执行完。</div></div>
+      <div class="g"><div class="t">不解决</div>
+        <div class="b">慢查询挂住整轮对话（用户等 15 秒）；快操作被宽超时拖着；写操作超时重试造成重复执行——超时越粗，事故越大。</div></div>
+      <div class="g" style="background:rgba(34,197,94,0.06);border-left:3px solid #22C55E;">
+        <div class="t" style="color:#22C55E;">怎么解决</div>
+        <div class="b">按操作类型分级超时（查询 3s / 写入 10s / 批量 30s）+ 链路 deadline 透传分摊 + 退避加抖动重试 + 熔断兜底。
+          取舍：超时定太紧会把慢而正常的请求误杀（成功率掉），定太松等于没定——用下游 P99 延迟 × 1.5 起步，再按 SLA 调。</div></div>
     </div>
   </div>
 </div>
-</div></body></html>
+</body></html>

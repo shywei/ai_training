@@ -3,7 +3,7 @@
   <div v-if="!userId" class="login-container">
     <div class="login-card">
       <h1>🛒 导购 Agent</h1>
-      <p class="login-subtitle">v4.0-tool · 企业 AI 应用开发培训</p>
+      <p class="login-subtitle">v5.0-workflow · 企业 AI 应用开发培训</p>
       <el-input
         v-model="loginForm.username"
         placeholder="用户名"
@@ -49,7 +49,7 @@
     <!-- 顶部栏 -->
     <div class="chat-header">
       <h1>🛒 导购 Agent</h1>
-      <span class="version">v4.0-tool</span>
+      <span class="version">v5.0-workflow</span>
       <span class="model-info" v-if="currentModel">
         <i class="el-icon-cpu"></i> {{ currentModel }}
       </span>
@@ -262,7 +262,7 @@ export default {
       this.loading = true
 
       const assistantIndex = this.messages.length
-      this.messages.push({ role: 'assistant', content: '', loading: true, modelUsed: '', traceId: '', mode: '' })
+      this.messages.push({ role: 'assistant', content: '', loading: true, modelUsed: '', traceId: '', mode: '', originalMessage: text })
 
       this.$nextTick(() => this.scrollToBottom())
 
@@ -320,7 +320,8 @@ export default {
               }
 
               if (event.type === 'done') {
-                // 完成
+                if (event.mode) this.messages[assistantIndex].mode = event.mode
+                if (event.stepCount) this.messages[assistantIndex].stepCount = event.stepCount
                 continue
               }
 
@@ -341,6 +342,10 @@ export default {
             if (event.type === 'token') fullText += event.content
             if (event.type === 'done' || event.type === 'token') {
               this.messages[assistantIndex].content = fullText || '（无响应）'
+            }
+            if (event.type === 'done') {
+              if (event.mode) this.messages[assistantIndex].mode = event.mode
+              if (event.stepCount) this.messages[assistantIndex].stepCount = event.stepCount
             }
           } catch (e) {}
         }
@@ -381,7 +386,7 @@ export default {
         const resp = await fetch('/api/agent/workflow/confirm', {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: `traceId=${msg.traceId}&confirmed=${confirmed}&sessionId=${this.sessionId}&userId=${this.userId}`
+          body: `traceId=${msg.traceId}&confirmed=${confirmed}&sessionId=${this.sessionId}&userId=${this.userId}&message=${encodeURIComponent(msg.originalMessage || msg.content || '')}`
         })
         const data = await resp.json()
 
@@ -600,7 +605,7 @@ body {
   margin-bottom: 6px;
 }
 
-/* 路由标签（v4.0-tool） */
+/* 路由标签（v5.0-workflow） */
 .route-tag {
   margin-left: 6px;
   padding: 1px 6px;

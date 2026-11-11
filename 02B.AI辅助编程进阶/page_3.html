@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>为什么 Vibe Coding 在企业存量项目必死？</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:4px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; line-height:1.25; margin-bottom:8px; }
+.slide-accent-line { width:50px; height:3px; background:#FF6B35; margin-bottom:14px; }
+.slide-card { padding:12px 15px; margin-bottom:9px; display:flex; align-items:flex-start; gap:12px; border-radius:6px; }
+.slide-icon { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.slide-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
+.slide-desc { font-size:12px; color:rgba(224,231,255,0.65); line-height:1.45; }
+.code-box { background:#060A12; border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:10px 12px; font-family:Consolas,monospace; font-size:11.5px; line-height:1.5; color:#E0E7FF; }
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <div class="slide-section-num">CHAPTER 01 · SPEC-DRIVEN DEVELOPMENT 企业级闭环</div>
+  <h1>为什么 Vibe Coding 在企业存量项目必死？</h1>
+  <div class="slide-accent-line"></div>
+<div style="font-size:13.5px; font-weight:700; color:#FF6B35; margin-bottom:10px;">
+    <i class="fas fa-skull-crossbones mr-2"></i>“边聊边改、不看代码只看能跑”（Vibe Coding）在企业研发中的四大工程灾难：
+  </div>
+  <div class="grid grid-cols-4 gap-3 mb-4">
+    <div style="background:rgba(255,107,53,0.05); border:1px solid rgba(255,107,53,0.22); border-left:4px solid #FF6B35; padding:12px 14px; border-radius:4px;">
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:5px;"><span style="color:#FF6B35;">01</span> 架构腐化与重复造轮</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.65); line-height:1.5;">
+        AI 不了解公共二方包（统一鉴权/Redis锁/脱敏），顺手重写，同一仓库出现多套分页与异常逻辑。
+      </div>
+    </div>
+    <div style="background:rgba(255,107,53,0.05); border:1px solid rgba(255,107,53,0.22); border-left:4px solid #FF6B35; padding:12px 14px; border-radius:4px;">
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:5px;"><span style="color:#FF6B35;">02</span> 隐式业务契约破坏</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.65); line-height:1.5;">
+        存量系统充满历史状态机。AI 为修局部报错顺手删掉“看似冗余”的校验，直接引发资损或脏数据。
+      </div>
+    </div>
+    <div style="background:rgba(255,107,53,0.05); border:1px solid rgba(255,107,53,0.22); border-left:4px solid #FF6B35; padding:12px 14px; border-radius:4px;">
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:5px;"><span style="color:#FF6B35;">03</span> 巨型 PR 审查瘫痪</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.65); line-height:1.5;">
+        多轮对话堆砌出 3000+ 行 Diff，夹杂无关格式化。Reviewer 看不懂设计意图，只能橡皮图章通过。
+      </div>
+    </div>
+    <div style="background:rgba(255,107,53,0.05); border:1px solid rgba(255,107,53,0.22); border-left:4px solid #FF6B35; padding:12px 14px; border-radius:4px;">
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:5px;"><span style="color:#FF6B35;">04</span> 线上故障排障丧失</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.65); line-height:1.5;">
+        开发一路点 Accept，凌晨生产雪崩时连调用链和事务边界在哪都不知道，彻底丧失兜底能力。
+      </div>
+    </div>
+  </div>
+
+  <div style="font-size:13.5px; font-weight:700; color:#00E5FF; margin-bottom:8px;">
+    <i class="fas fa-scale-balanced mr-2"></i>范式分野：Vibe Coding（凭感觉探索） vs Spec-Driven Agentic Engineering（规格驱动工程）
+  </div>
+  <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(0,229,255,0.18); border-radius:6px; overflow:hidden; margin-bottom:12px;">
+    <table class="w-full" style="border-collapse:collapse; font-size:12px;">
+      <thead>
+        <tr style="background:rgba(0,229,255,0.1); border-bottom:1px solid rgba(0,229,255,0.25);">
+          <th style="padding:8px 12px; text-align:left; color:#00E5FF; width:18%;">核心工程维度</th>
+          <th style="padding:8px 12px; text-align:left; color:#FF6B35; width:41%;"><i class="fas fa-dice mr-1"></i> Vibe Coding（个人玩具模式）</th>
+          <th style="padding:8px 12px; text-align:left; color:#22C55E; width:41%;"><i class="fas fa-compass-drafting mr-1"></i> Spec-Driven 规格驱动（企业级模式）</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+          <td style="padding:8px 12px; font-weight:700; color:#E0E7FF;">单一事实源 (SSOT)</td>
+          <td style="padding:8px 12px; color:rgba(224,231,255,0.65);">碎片化聊天记录，关掉窗口即灰飞烟灭</td>
+          <td style="padding:8px 12px; color:#E0E7FF;">受版本控制的规格工件（<code style="color:#00E5FF;">requirements / design / tasks</code>）</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+          <td style="padding:8px 12px; font-weight:700; color:#E0E7FF;">人类核心精力分配</td>
+          <td style="padding:8px 12px; color:rgba(224,231,255,0.65);">10% 随口提需求 + 90% 肉眼看代码修 Bug</td>
+          <td style="padding:8px 12px; color:#E0E7FF;"><strong style="color:#22C55E;">60% 审查架构与规格</strong> + 10% 编码监督 + 30% 自动化测试验收</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+          <td style="padding:8px 12px; font-weight:700; color:#E0E7FF;">任务粒度与可逆性</td>
+          <td style="padding:8px 12px; color:rgba(224,231,255,0.65);">一把梭改动十几个文件，改坏只能推倒重来</td>
+          <td style="padding:8px 12px; color:#E0E7FF;">5–15 分钟原子任务，每步独立跑单测，随时安全回滚</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 12px; font-weight:700; color:#E0E7FF;">适用场景边界</td>
+          <td style="padding:8px 12px; color:rgba(224,231,255,0.65);">一次性脚本、黑客松原型（&lt;1000 行抛弃型）</td>
+          <td style="padding:8px 12px; color:#00E5FF;"><strong>多人协作生产系统、高并发金融/电商、十万行存量工程迭代</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="padding:10px 16px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.22); border-left:4px solid #00E5FF; border-radius:4px; display:flex; align-items:center; justify-content:space-between;">
+    <span style="font-size:12.5px; color:#E0E7FF;"><i class="fas fa-lightbulb mr-2" style="color:#00E5FF;"></i><strong>核心认知跃迁：</strong>AI 时代写代码已经不值钱，<strong>“定义清晰规格、审查架构边界、锁定测试网”</strong>才是工程师的核心壁垒！</span>
+    <span style="font-size:12px; color:#22C55E; font-weight:700;"><i class="fas fa-arrow-right mr-1"></i>下一页拆解三阶段工件</span>
+  </div>
+</div>
+</body>
+</html>

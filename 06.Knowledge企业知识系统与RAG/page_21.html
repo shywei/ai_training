@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>记忆体系升级</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:10px;line-height:1.45;color:rgba(224,231,255,0.75)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.35)} .fn{color:#E0E7FF}
+</style></head><body>
+<div class="s" style="padding:26px 56px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 06</div>
+<h1 class="mb-2">记忆体系升级 — MySQL + pgvector 双层长期记忆（UserMemoryService）</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:14px;"></div>
+
+<div style="flex:1;display:flex;gap:20px;">
+  <div style="flex:0.98;display:flex;flex-direction:column;justify-content:center;">
+    <div style="padding:12px 14px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:10px;">
+      <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:4px;">第五课（v2.0）的局限</div>
+      <div style="font-size:11.5px;color:rgba(224,231,255,0.55);line-height:1.7;">
+        长期记忆只存了 MySQL 结构化画像（<code style="color:#00E5FF;">user_profile</code>）。<br>
+        “喜欢轻薄本”是高度浓缩的结论标签，丢失了原始对话中的具体背景与细节（如“平时还做视频剪辑，希望显卡强一些”）。
+      </div>
+    </div>
+    <div style="text-align:center;color:#00E5FF;font-size:15px;margin-bottom:10px;">↓ v1.3 引入 pgvector UserMemoryService 后 ↓</div>
+    <div style="padding:12px 14px;background:rgba(34,197,94,0.06);border-left:4px solid #22C55E;margin-bottom:12px;">
+      <div style="font-size:14px;color:#22C55E;font-weight:700;margin-bottom:4px;">第六课（v1.3）的增强：双层长期记忆</div>
+      <div style="font-size:11.5px;color:rgba(224,231,255,0.6);line-height:1.7;">
+        历史对话经提要与 Embedding 后存入 pgvector <code style="color:#22C55E;">user_memory</code> 表（<code style="color:#22C55E;">UserMemoryService</code> + <code style="color:#22C55E;">UserMemoryMapper</code>）。<br>
+        当用户问“给我推荐几款电脑”时，按语义相似度精准召回历史对话细节！<br>
+        <strong style="color:#22C55E;">同一个 pgvector，商品知识（vector_store）和用户记忆（user_memory）分表共用。</strong>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <div style="flex:1;padding:9px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:5px;">
+        <div style="font-size:11.5px;color:#00E5FF;font-weight:600;">MySQL 画像</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.5);margin-top:2px;"><code style="color:#00E5FF;">user_profile</code><br>结构化结论标签</div>
+      </div>
+      <div style="flex:1;padding:9px;background:rgba(168,85,247,0.06);border:2px solid rgba(168,85,247,0.25);border-radius:5px;">
+        <div style="font-size:11.5px;color:#A855F7;font-weight:600;">pgvector 记忆</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.5);margin-top:2px;"><code style="color:#A855F7;">user_memory</code><br>非结构化语义片段</div>
+      </div>
+      <div style="flex:1;padding:9px;background:rgba(234,179,8,0.06);border:1px solid rgba(234,179,8,0.15);border-radius:5px;">
+        <div style="font-size:11.5px;color:#EAB308;font-weight:600;">Redis 缓冲</div>
+        <div style="font-size:10px;color:rgba(224,231,255,0.5);margin-top:2px;"><code style="color:#EAB308;">SessionMemory</code><br>短期工作缓冲区</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex:1.02;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:13.5px;color:#FF6B35;font-weight:700;margin-bottom:6px;">💻 v1.3 代码：UserMemoryService.java &amp; UserMemoryMapper.java</div>
+    <div style="padding:10px 12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;margin-bottom:10px;">
+      <pre><span class="cm">// UserMemoryService.java — agent-runtime 直接读写 pgvector user_memory 表</span>
+<span class="kw">public void</span> <span class="fn">saveMemory</span>(String userId, String content, String type) {
+  <span class="kw">float</span>[] embedding = embeddingModel.embed(content);
+  userMemoryMapper.insertMemory(userId, content, type, embedding);
+}
+
+<span class="kw">public</span> String <span class="fn">search</span>(String userId, String query) {
+  <span class="kw">float</span>[] queryVec = embeddingModel.embed(query);
+  <span class="cm">// 按 userId 过滤 + pgvector 余弦相似度检索 Top-3 记忆片段</span>
+  List&lt;UserMemory&gt; memories =
+      userMemoryMapper.searchSimilar(userId, queryVec, <span class="str">0.3</span>, <span class="str">3</span>);
+  <span class="kw">return</span> formatMemories(memories);
+}</pre>
+    </div>
+
+    <div style="padding:10px 12px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:6px;margin-bottom:8px;">
+      <div style="font-size:12px;color:#22C55E;font-weight:700;margin-bottom:4px;">数据分层全景：各司其职</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.7;">
+        • <strong style="color:#22C55E;">pgvector（语义理解层）</strong>：<code style="color:#22C55E;">vector_store</code>（商品描述）+ <code style="color:#A855F7;">user_memory</code>（用户历史对话片段）<br>
+        • <strong style="color:#3B82F6;">MySQL（精确事实层）</strong>：<code style="color:#3B82F6;">product_info</code>（实时价格库存）+ <code style="color:#00E5FF;">user_profile</code>（结构化画像结论）<br>
+        • <strong style="color:#EAB308;">Redis（高速缓冲层）</strong>：当前会话近期消息，满阈值经 <code style="color:#00E5FF;">checkAndPrecipitate()</code> 沉淀至 pgvector
+      </div>
+    </div>
+
+    <div style="padding:8px 12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
+      <div style="font-size:10.5px;color:rgba(224,231,255,0.55);line-height:1.5;"><strong style="color:#00E5FF;">演进说明：</strong>在 <code style="color:#00E5FF;">v1.3</code> 中，<code style="color:#00E5FF;">UserMemoryService</code> 在 <code style="color:#00E5FF;">agent-runtime</code> 内直连 PG；在第七课 <code style="color:#00E5FF;">v4.0</code> 中将进一步抽取到 MCP Server 背后。</div>
+    </div>
+  </div>
+</div>
+</div></body></html>

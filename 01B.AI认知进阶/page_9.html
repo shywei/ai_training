@@ -1,0 +1,92 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>推理性能密码：Prefill 计算密集 vs Decode 访存密集与 KV Cache</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.s { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.s h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
+.card { background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.15); border-radius:4px; padding:14px 18px; }
+.badge { font-size:11px; font-weight:700; padding:2px 8px; border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="s flex flex-col justify-between">
+  <!-- Header -->
+  <div>
+    <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; margin-bottom:4px;">CHAPTER 02 · 模型推理核心机理</div>
+    <h1 class="mb-2">推理性能密码：Prefill 计算密集 vs Decode 访存密集与 KV Cache</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:12px;"></div>
+    <div style="font-size:13px; color:rgba(224,231,255,0.7); line-height:1.5;">
+      大语言模型推理在物理硬件层呈现鲜明的两阶段特性：算力瓶颈与访存带宽墙交替主导，KV Cache 是性能的核心救赎与最大显存负担。
+    </div>
+  </div>
+
+  <!-- Top: Prefill vs Decode Dual Cards -->
+  <div class="grid grid-cols-2 gap-4 my-1">
+    <!-- Prefill Card -->
+    <div class="card" style="border-top:3px solid #00E5FF;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(0,229,255,0.15); color:#00E5FF;">阶段一 · 输入评估</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Prefill / Prompt Phase</span>
+      </div>
+      <div style="font-size:15px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">典型计算密集型（Compute-Bound · GEMM）</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.55; margin-bottom:8px;">
+        • <strong>计算特征：</strong>Prompt 中的 $T$ 个 Token 并行送入 GPU 执行矩阵乘（GEMM），计算强度高。<br>
+        • <strong>硬件利用率：</strong>Tensor Core 利用率通常达 60%~80%，算力被充分压榨。<br>
+        • <strong>业务对应指标：</strong>直接决定<strong>首字到达延迟（TTFT, Time To First Token）</strong>。
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px; font-size:11px; color:#00E5FF;">
+        <i class="fas fa-microchip" style="margin-right:4px;"></i>主导瓶颈：GPU TFLOPS 纯浮点算力峰值（极短序列受带宽影响）
+      </div>
+    </div>
+
+    <!-- Decode Card -->
+    <div class="card" style="border-top:3px solid #FF6B35;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(255,107,53,0.15); color:#FF6B35;">阶段二 · 逐字吐字</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Decode / Generation Phase</span>
+      </div>
+      <div style="font-size:15px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">典型访存密集型（Memory-Bound · GEMV）</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.55; margin-bottom:8px;">
+        • <strong>计算特征：</strong>单步输入 1 个 Token 执行 GEMV，计算强度低，依赖显存带宽反复搬运全权重。<br>
+        • <strong>硬件利用率：</strong>低 Batch 下算力核心空转；<em>超大 Batch 并发下计算强度提升，可转化为计算密集</em>。<br>
+        • <strong>业务对应指标：</strong>直接决定<strong>逐字生成速度（TPS, Tokens Per Second）</strong>。
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px; font-size:11px; color:#FF6B35;">
+        <i class="fas fa-tachometer-alt" style="margin-right:4px;"></i>主导瓶颈：GPU HBM 显存带宽（Batch Size 极显著影响瓶颈跃迁）
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom: KV Cache & VRAM Curse -->
+  <div style="background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.2); border-top:3px solid #22C55E; border-radius:4px; padding:14px 18px;">
+    <div class="flex justify-between items-center mb-2">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-database" style="color:#22C55E; font-size:14px;"></i>
+        <span style="font-size:14px; font-weight:700; color:#22C55E;">KV Cache 的空间换时间机理与长文本显存膨胀公式</span>
+      </div>
+      <span class="badge" style="background:rgba(34,197,94,0.15); color:#22C55E;">推理引擎必备核心优化</span>
+    </div>
+    <div class="grid grid-cols-2 gap-4" style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.55;">
+      <div>
+        <strong style="color:#E0E7FF;">1. 空间换时间直觉：</strong><br>
+        如果没有 KV Cache，生成第 $N$ 个 Token 时，前 $N-1$ 个历史词的 Key 和 Value 必须全部从头重新算一遍，推理计算复杂度将飙升至 $O(N^2)$！<br>
+        缓存历史 $K$ 与 $V$ 矩阵后，单步复杂度直降为 $O(1)$。
+      </div>
+      <div>
+        <strong style="color:#FF6B35;">2. KV 显存精准计算黄金公式：</strong><br>
+        <div style="font-family:Consolas,monospace; color:#38BDF8; background:rgba(0,0,0,0.3); padding:6px 8px; border-radius:3px; margin:4px 0;">
+          VRAM_KV = 2 × 2 × L × H_kv × d_h × Context_Len × Batch_Size (bytes)
+        </div>
+        <span style="color:rgba(224,231,255,0.6);">示例：70B 模型（80层, 8对KV头, 128维），并发 16，单会话 32K 长度，KV Cache 显存独占 <strong>67 GB</strong>，直接超越模型权重本身！</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

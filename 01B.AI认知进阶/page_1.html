@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>01B. AI认知进阶（可选深潜）：大模型底层工程与算力机理</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-timeline-line { position:absolute; left:110px; top:80px; bottom:80px; width:3px; background:linear-gradient(to bottom, transparent, #00E5FF, transparent); }
+.slide-timeline-dot { position:absolute; left:102px; width:20px; height:20px; border-radius:50%; border:2px solid #00E5FF; background:#0B1120; }
+.slide-timeline-dot::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:8px; height:8px; border-radius:50%; background:#00E5FF; }
+.slide-glow { position:absolute; width:460px; height:460px; border-radius:50%; background:radial-gradient(circle, rgba(0,229,255,0.08) 0%, transparent 70%); }
+.slide-container h1 { font-size:46px !important; color:#E0E7FF; font-weight:700; line-height:1.25; }
+.slide-container h2 { font-size:22px !important; color:#00E5FF; font-weight:400; letter-spacing:1.5px; }
+</style>
+</head>
+<body>
+<div class="slide-container flex items-center">
+  <!-- Background glow -->
+  <div class="slide-glow" style="top:-100px; right:-80px;"></div>
+  <div class="slide-glow" style="bottom:-150px; left:180px; width:340px; height:340px;"></div>
+
+  <!-- Timeline decoration -->
+  <div class="slide-timeline-line"></div>
+  <div class="slide-timeline-dot" style="top:130px;"></div>
+  <div class="slide-timeline-dot" style="top:250px;"></div>
+  <div class="slide-timeline-dot" style="top:370px;"></div>
+  <div class="slide-timeline-dot" style="top:490px;"></div>
+  <div class="slide-timeline-dot" style="top:590px;"></div>
+
+  <!-- Main content -->
+  <div class="ml-44 flex flex-col justify-center" style="max-width:880px; z-index:2;">
+    <div class="mb-3 flex items-center gap-3">
+      <span style="padding:4px 12px; background:rgba(0,229,255,0.12); border:1px solid rgba(0,229,255,0.3); color:#00E5FF; font-size:13px; font-weight:700; letter-spacing:2px;">COURSE 01B · 可选深潜</span>
+      <span style="color:rgba(224,231,255,0.45); font-size:13px; letter-spacing:3px;">ADVANCED LLM MECHANICS</span>
+    </div>
+    <h1 class="mb-4">01B. AI认知进阶（可选深潜）：<br><span style="color:#00E5FF;">大模型底层工程与算力机理</span></h1>
+    <h2 class="mb-4">面向项目 Leader 与高级开发：深入机器齿轮、推理计算图、训练流水线与算力显存底座</h2>
+    <div style="width:90px; height:3px; background:#FF6B35;" class="mb-4"></div>
+
+    <!-- Audience Notice Pill -->
+    <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 14px; background:rgba(255,107,53,0.1); border:1px solid rgba(255,107,53,0.3); border-radius:4px; margin-bottom:18px; width:fit-content;">
+      <i class="fas fa-info-circle" style="color:#FF6B35; font-size:13px;"></i>
+      <span style="color:#FF6B35; font-size:12px; font-weight:700;">选修提示：专为项目 Leader 和资深工程师深入底层机理打造；普通学员可跳过，直接进入第 02 课。</span>
+    </div>
+
+    <!-- Core Pillars -->
+    <div class="flex gap-4 mb-6">
+      <div style="padding:12px 16px; background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.15); width:200px; border-radius:4px;">
+        <div style="font-size:12px; color:#00E5FF; font-weight:700; margin-bottom:4px;">01 · 扩展律前沿</div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.6); line-height:1.4;">双引擎 Scaling & 推理慢思考</div>
+      </div>
+      <div style="padding:12px 16px; background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.15); width:200px; border-radius:4px;">
+        <div style="font-size:12px; color:#00E5FF; font-weight:700; margin-bottom:4px;">02 · 推理计算图</div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.6); line-height:1.4;">BPE / RoPE / GQA / KV Cache</div>
+      </div>
+      <div style="padding:12px 16px; background:rgba(255,107,53,0.05); border:1px solid rgba(255,107,53,0.18); width:200px; border-radius:4px;">
+        <div style="font-size:12px; color:#FF6B35; font-weight:700; margin-bottom:4px;">03 · 现代训练流水线</div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.6); line-height:1.4;">SFT / DPO / RLVR / MoE / Omni</div>
+      </div>
+      <div style="padding:12px 16px; background:rgba(34,197,94,0.05); border:1px solid rgba(34,197,94,0.18); width:200px; border-radius:4px;">
+        <div style="font-size:12px; color:#22C55E; font-weight:700; margin-bottom:4px;">04-05 · 算力与架构反哺</div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.6); line-height:1.4;">显存速算 / PagedAttention / 决策</div>
+      </div>
+    </div>
+
+    <p style="font-size:14px; color:rgba(224,231,255,0.75); letter-spacing:1px; line-height:1.6;">
+      <i class="fas fa-cog" style="color:#FF6B35; margin-right:8px;"></i>承接第 01 课宏观认知：打开大模型黑盒，透视现代 AI 齿轮传动与底层生产基础设施
+    </p>
+  </div>
+
+  <!-- Right side decorative -->
+  <div class="absolute right-14 top-1/2 transform -translate-y-1/2" style="opacity:0.12;">
+    <i class="fas fa-microchip" style="font-size:220px; color:#00E5FF;"></i>
+  </div>
+</div>
+</body>
+</html>

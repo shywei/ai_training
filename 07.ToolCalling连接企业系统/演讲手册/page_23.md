@@ -1,29 +1,44 @@
 ## Slide Objective
-展示项目架构和代码阅读路线图，让学员知道从哪开始看代码。
+讲清"怎么管 Tool"的全貌：企业治理五件套（限流 / 幂等 / 超时 / 补偿 / 审计）各管一类生产事故，以及它们在一条调用链上的布防顺序。对应本课 `v1.4` Demo 的真实代码锚点是 `ShoppingAgentController` + `McpProductClient` + `McpKnowledgeClient` + `McpToolCallback`——在 `v1.4` 中只有客户端超时常量（10s/15s）、10 秒断线冷却重连（`ensureConnected()`）和控制台/文件日志，而失败重试与熔断、高危人工确认、执行链路追踪（Trace）以及限流/幂等/补偿均尚未实现，这既立起生产治理五件套的全局坐标，又自然引出下一课（第八课 Workflow）我们要手写的 `AgentRuntime`、`ErrorRecovery`、`ConfirmationService` 和 `TraceService`。
 
 ## Suggested Presentation
-代码阅读路线图，建议按顺序看：
+这一页先立一个核心判断：**Tool 不是接口，是安全边界**。接口只回答"能不能调通"；边界回答"能不能放你进来调、调出事怎么办"。企业放行 Agent 接生产系统，必须具备双重护栏：
+1. **安全授权矩阵（page_13 立下的规矩）**：工具危险等级三级划分（Read / Write / Destructive）、高危操作强制人机协同审批（HITL）、入参白名单与多租户隔离——这是**权限与合规边界**。
+2. **企业治理五件套（本页重点）**：限流、幂等、超时、补偿、审计——这是**高并发与分布式环境下的可靠性治理防线**。
 
-**① LlmRouter.java**：路由入口。理解"怎么判断意图"。代码很短，核心就是一个 Prompt + 一次 LLM 调用。
+企业放行 Agent 接生产系统，评审会上问的就是五件事：会不会把下游打挂（限流）、会不会重复执行（幂等）、会不会无限等待（超时）、失败了怎么回到一致（补偿）、出事了说得清吗（审计）。
 
-**② ShoppingAgentController.chat()**：路由 + context + Tool 注册。理解"路由如何影响整个对话处理"。这是最核心的文件——所有逻辑在这里汇聚。
+左边五张卡是"各管一类事故"——讲的时候不要念定义，每张卡念"事故"：限流管打挂下游和超卖；幂等管双下单与重复写入；超时管整轮对话被慢查询挂住；补偿管"下单成功扣库存失败"这种中间态；审计管"出了事故答不出谁干了什么"。五件套不是五个最佳实践，是五种真实事故的防线。
 
-**③ McpKnowledgeClient.java**：MCP Client 实现。理解"怎么连接 MCP Server、怎么发现 Tool、怎么包装为 FunctionCallback"。重点看 `init()` 方法和 `discoverTools()` 方法。
+中间是布防顺序，这条顺序比单件技术更重要：请求进入先过**租户鉴权与入参白名单**，高危破坏性操作挂起走**人机协同审批**；放行后先**限流**（准入），执行前给**超时**预算，写操作先认**幂等**键，失败走**补偿**，全程**审计**留痕。两个顺序红线必须讲：**审计要包住补偿**（补偿动作本身也要有审计记录，否则回滚过程是黑盒）；**幂等要挡在重试前面**（重试没有幂等就是重复扣款或重复写入）。
 
-**④ McpServerConfig.java**（knowledge-server）：Server 端 Tool + Resource。理解"怎么定义 Tool、怎么注册 Resource"。重点看 Tool 的 Schema 定义和处理函数。
-
-**⑤ MemoryManager.java**：context 构建。理解"画像、记忆、历史怎么组装成 context"。重点看 `buildContext()` 方法——全部通过 MCP 访问。
-
-**⑥ PromptManager.java**：三段规则。理解"怎么引导 LLM 使用 Tool"。重点看「记忆使用规则」。
-
-**⑦ McpServerConfig.java**（product-server）：企业 Tool 实现。理解"Tool 怎么查 MySQL 返回实时数据"。
-
-v4.0 新增了 3 个文件：`LlmRouter.java`、`McpProductClient.java`、`McpKnowledgeClient.java`。修改了 4 个文件：`ShoppingAgentController.java`、`PromptManager.java`、`MemoryManager.java`、`UserMemoryService.java`。新增了 2 个模块：`mcp-product-server/`、`mcp-knowledge-server/`。
-
-删除了 6 个文件：`KnowledgeController.java`、`KnowledgeService.java`、`RetrievalService.java`、`VectorStoreConfig.java`、`UserMemoryMapper.java`、`UserMemory.java`。这些是 v3.0 的遗留代码，MCP 化后不再需要。agent-runtime 的 pom.xml 移除了 `spring-ai-pgvector-store-spring-boot-starter` 和 `postgresql` 驱动——agent-runtime 不再直接连接 PostgreSQL。
+右下角是本课 `v1.4` Demo 现状锚点，对着真实代码讲：在 `v1.4`（`ShoppingAgentController` + `McpProductClient` + `McpKnowledgeClient` + `McpToolCallback`）中，目前已有的只有 `McpProductClient.init()` 的 `.requestTimeout(Duration.ofSeconds(10))`（`McpKnowledgeClient` 为 15 秒）、`ensureConnected()` 的 10 秒冷却断线重连，以及 `McpToolCallback` 打在控制台的 `[MCP] 调用 Tool` 日志。**而失败退避重试与熔断、高风险人工确认、步骤级执行追踪（Trace），以及限流、幂等、补偿在 `v1.4` 里全部是空白**——因此：
+1. 接下来五页（page_24~28）我们先从架构上把**治理五件套**逐件讲透；
+2. 到了**下一课（第八课 Workflow `v1.5`）**，我们将亲手编写 `AgentRuntime`、`ErrorRecovery`（指数退避重试 + 熔断降级）、`ConfirmationService`（高危人工确认）和 `TraceService`（执行链路追踪），把执行层容错与管控补齐；
+3. 到了**第十一课「AI 网关与成本治理」**，再把限流、幂等、RBAC、审计表收进企业级 **MCP Gateway**。
 
 ## Key Emphasis
-按路线图顺序阅读代码，从路由入口开始，到 MCP Server 结束。不要随机打开文件——那样看不懂整体流程。
+必须讲清楚三点：① 五件套各管什么事故（用事故讲，不用定义讲）；② 布防顺序与两个红线（审计包补偿、幂等挡重试）；③ 本课 `v1.4` 真实代码的边界（只有写死超时、10s 冷却重连与文本日志），从而明确为什么第八课要引入 `AgentRuntime` + `ErrorRecovery` + `ConfirmationService` + `TraceService`。
+
+## Optional Extension
+**学员问：五件套里哪个最优先？我们人少，一次做不完。**
+答：按"事故代价 × 实现成本"排序，别按名词顺序做。
+Demo 做法：从 `v1.4` 现成锚点起步——已有超时参数（`requestTimeout`）、断线冷却重连（`ensureConnected`）和调用日志（`McpToolCallback`），先把写操作的幂等键补上（例如给 `save_memory` 或下单 Tool 加 `requestId` + 唯一索引，半天工作量），限流用 Guava RateLimiter 先挡单机风险。
+生产做法：写接口（下单/扣款/发通知）优先上幂等 + 补偿，读接口优先上超时 + 限流，审计在合规场景（金融/医疗）第一天就要有，否则上线后补不回历史。取舍：限流和审计是平台能力（第十一课支柱一「AI 网关与成本治理」里的 MCP Gateway 就是干这个的），小团队早期用注解 + 起步配置做单机版，别一上来就搭平台。
+
+**学员问：这五件套和下一课（第八课）要讲的三级容错（重试/熔断/降级）是什么关系？会不会重复？**
+答：不重复，是上下两层咬合。
+Demo 做法：下一课第八课我们将手写 `ErrorRecovery` 的重试/熔断/降级，那是**执行层容错**——让一次调用失败后系统还能跑；本课讲的五件套里的超时/幂等是**调用语义层**的约束——保证重试是安全的。没有幂等键的写操作，一旦放进第八课的重试循环里就会制造重复记录。
+生产做法：容错归容错（第八课讲透触发条件和参数），治理归治理（本课），落地时是同一套中间件里的两个配置面。取舍：只有容错没有治理，系统"活着"但账是错的——活着且账对，才是生产可用。
+
+## Classroom Interaction
+让学员打开当前 `v1.4` 的 `McpProductClient.java` 和 `McpToolCallback.java`，找一找当前代码里已经有哪些保护措施（答案：10 秒 `requestTimeout`、10 秒 `RECONNECT_COOLDOWN_MS` 冷却重连、try-catch 打日志），再对照五件套说出缺了哪些——找到真实缺口比背下定义有价值。
+
+## Take Away
+接生产系统前先把五件套排进排期，顺序是：幂等挡在重试前面、审计包住补偿、限流站在所有调用的入口——顺序错了，做得再全也会出事故。
+
+## Why This Slide Matters
+跳过这页，学员会把"治理"理解成"加个日志加个 try-catch"，然后在第一个写接口上翻车：重试不带幂等键双下单、限流没做被一个失控循环打挂 ERP、出事了拿不出调用记录。五件套是放行评审的底线问题，不是加分项。
 
 ## Transition
-来看 Agent 构建进度和能力地图。
+先看五件套里最容易被低估的一件（page_24）——幂等。它的前提是承认一个事实：重复调用是常态。

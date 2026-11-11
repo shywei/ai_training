@@ -3,116 +3,84 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>从回答问题到执行任务：Agent时代</title>
+<title>第四章 · 软件工程的范式革命：迈向 AI 原生编程时代</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
-.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
 .slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:13px; color:#00E5FF; letter-spacing:4px; }
-.slide-compare-box { flex:1; padding:16px 20px; }
-.slide-compare-label { font-size:12px; font-weight:600; letter-spacing:2px; margin-bottom:10px; }
-.slide-flow { display:flex; align-items:center; gap:0; flex-wrap:wrap; }
-.slide-flow-step { padding:6px 14px; font-size:12px; font-weight:600; text-align:center; }
-.slide-flow-arrow { font-size:16px; padding:0 4px; }
-.slide-agent-table { width:100%; border-collapse:collapse; }
-.slide-agent-table th { font-size:11px; font-weight:700; padding:7px 10px; text-align:left; border-bottom:2px solid rgba(0,229,255,0.2); color:#00E5FF; }
-.slide-agent-table td { font-size:11px; padding:6px 10px; border-bottom:1px solid rgba(255,255,255,0.04); color:rgba(224,231,255,0.6); line-height:1.3; vertical-align:top; }
-.slide-agent-table .slide-an { font-weight:700; color:#E0E7FF; font-size:12px; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:26px 60px;">
-  <div class="mb-1 slide-section-num">CHAPTER 04 · Agent时代</div>
-  <h1 class="mb-1">从回答问题到执行任务：Agent时代</h1>
+<div class="slide-container">
+  <div style="font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:6px;">CHAPTER 04 · 软件工程的范式革命与角色重塑</div>
+  <h1 class="mb-2">软件工程的范式革命：迈向 AI 原生编程时代（1.0 &rarr; 2.0 &rarr; 3.0）</h1>
   <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
 
-  <!-- 对比 -->
-  <div class="flex" style="gap:16px; margin-bottom:16px;">
-    <div class="slide-compare-box" style="border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.02);">
-      <div class="slide-compare-label" style="color:rgba(224,231,255,0.4);">传统AI（被动响应）</div>
-      <div class="slide-flow">
-        <div class="slide-flow-step" style="background:rgba(255,255,255,0.05); color:rgba(224,231,255,0.5);">人提问</div>
-        <div class="slide-flow-arrow" style="color:rgba(255,255,255,0.2);"><i class="fas fa-arrow-right"></i></div>
-        <div class="slide-flow-step" style="background:rgba(255,255,255,0.05); color:rgba(224,231,255,0.5);">AI回答</div>
-        <div class="slide-flow-arrow" style="color:rgba(255,255,255,0.2);"><i class="fas fa-arrow-right"></i></div>
-        <div class="slide-flow-step" style="background:rgba(255,255,255,0.05); color:rgba(224,231,255,0.5);">人执行</div>
+  <div style="font-size:14px; color:rgba(224,231,255,0.6); margin-bottom:16px;">
+    从逐行敲打确定性指令，到数据驱动训练网络权重，再到意图驱动自主闭环，软件工程正在经历七十年来最深刻的三代范式跨越。
+  </div>
+
+  <!-- Three Generations Horizontal Comparison -->
+  <div class="flex gap-4 mb-4">
+    <!-- Generation 1.0 -->
+    <div style="flex:1; padding:16px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.1);">
+      <div class="flex justify-between items-center mb-2">
+        <div style="font-size:15px; font-weight:700; color:#E0E7FF;">Software 1.0</div>
+        <span style="font-size:11px; padding:2px 8px; background:rgba(255,255,255,0.1); color:rgba(224,231,255,0.6);">手写代码时代</span>
       </div>
-      <div style="font-size:11px; color:rgba(224,231,255,0.3); margin-top:6px;">ChatGPT对话模式：AI只负责输出文字，执行靠人</div>
-    </div>
-    <div style="display:flex; align-items:center; font-size:24px; color:#00E5FF;">
-      <i class="fas fa-chevron-right"></i>
-    </div>
-    <div class="slide-compare-box" style="border:2px solid #00E5FF; background:rgba(0,229,255,0.05);">
-      <div class="slide-compare-label" style="color:#00E5FF;">Agent AI（主动完成）</div>
-      <div class="slide-flow">
-        <div class="slide-flow-step" style="background:rgba(0,229,255,0.15); color:#00E5FF;">人定目标</div>
-        <div class="slide-flow-arrow" style="color:#00E5FF;"><i class="fas fa-arrow-right"></i></div>
-        <div class="slide-flow-step" style="background:rgba(0,229,255,0.15); color:#00E5FF;">AI规划</div>
-        <div class="slide-flow-arrow" style="color:#00E5FF;"><i class="fas fa-arrow-right"></i></div>
-        <div class="slide-flow-step" style="background:rgba(0,229,255,0.15); color:#00E5FF;">AI执行</div>
-        <div class="slide-flow-arrow" style="color:#00E5FF;"><i class="fas fa-arrow-right"></i></div>
-        <div class="slide-flow-step" style="background:rgba(255,107,53,0.15); color:#FF6B35;">人审查</div>
+      <div style="font-size:11px; color:#00E5FF; margin-bottom:8px; font-weight:600;">1950s – 2010s · 人类硬编码</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.6; margin-bottom:10px;">
+        <strong style="color:#E0E7FF;">范式本质：</strong>人类程序员直接编写每一行 C/Java/Python 语法逻辑。代码是第一公民。<br>
+        <strong style="color:#E0E7FF;">工作流：</strong>需求 &rarr; 人脑翻译为算法 &rarr; 手工敲打 &rarr; 编译器检查 &rarr; 线上发布。
       </div>
-      <div style="font-size:11px; color:rgba(0,229,255,0.5); margin-top:6px;">Agent模式：AI自主规划+执行+调用工具，人负责验收</div>
+      <div style="padding:8px 10px; background:rgba(0,0,0,0.3); font-family:Consolas,monospace; font-size:11px; color:rgba(224,231,255,0.5);">
+        Rules + Input = Output<br>
+        // 瓶颈：面对高维复杂现实规则爆炸
+      </div>
+    </div>
+
+    <!-- Generation 2.0 -->
+    <div style="flex:1; padding:16px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.2);">
+      <div class="flex justify-between items-center mb-2">
+        <div style="font-size:15px; font-weight:700; color:#00E5FF;">Software 2.0</div>
+        <span style="font-size:11px; padding:2px 8px; background:rgba(0,229,255,0.15); color:#00E5FF; font-weight:600;">数据驱动时代</span>
+      </div>
+      <div style="font-size:11px; color:#00E5FF; margin-bottom:8px; font-weight:600;">2012 – 2022 · 权重优化</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.6; margin-bottom:10px;">
+        <strong style="color:#E0E7FF;">范式本质：</strong>人类不再手写具体执行逻辑，而是设计神经网络架构与损失函数，由机器在数据中自动搜索权重矩阵。<br>
+        <strong style="color:#E0E7FF;">工作流：</strong>定义网络 &rarr; 准备标注数据集 &rarr; GPU 梯度下降 &rarr; 模型打包。
+      </div>
+      <div style="padding:8px 10px; background:rgba(0,0,0,0.3); font-family:Consolas,monospace; font-size:11px; color:#00E5FF;">
+        Input + Output = Weights<br>
+        // 瓶颈：针对单一业务训练专用小模型
+      </div>
+    </div>
+
+    <!-- Generation 3.0 -->
+    <div style="flex:1; padding:16px; background:rgba(255,107,53,0.05); border:1px solid rgba(255,107,53,0.25);">
+      <div class="flex justify-between items-center mb-2">
+        <div style="font-size:15px; font-weight:700; color:#FF6B35;">Software 3.0</div>
+        <span style="font-size:11px; padding:2px 8px; background:rgba(255,107,53,0.15); color:#FF6B35; font-weight:600;">意图驱动时代</span>
+      </div>
+      <div style="font-size:11px; color:#FF6B35; margin-bottom:8px; font-weight:600;">2023 – 2026+ · Agent 闭环</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.6; margin-bottom:10px;">
+        <strong style="color:#E0E7FF;">范式本质：</strong>人类用自然语言与精准规格（Spec）表达目标意图与安全护栏，AI 自主规划、编写代码、驱动工具并在终端闭环验证！<br>
+        <strong style="color:#E0E7FF;">工作流：</strong>人类定义意图契约 &rarr; Agent 自主实现与自愈 &rarr; 架构师终审。
+      </div>
+      <div style="padding:8px 10px; background:rgba(0,0,0,0.3); font-family:Consolas,monospace; font-size:11px; color:#FF6B35;">
+        Human Spec + AI Agent = Done<br>
+        // 代码退化为按需生成的中间态产物
+      </div>
     </div>
   </div>
 
-  <!-- Agent产品生态 -->
-  <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:8px;">
-    <i class="fas fa-robot" style="color:#00E5FF; margin-right:6px;"></i>通用 Agent 产品生态
-  </div>
-  <div style="font-size:11px; color:rgba(224,231,255,0.4); margin-bottom:8px;">Coding Agent之外，一批通用Agent平台正在崛起——它们不只写代码，而是连接一切工具执行任意任务。</div>
-
-  <table class="slide-agent-table">
-    <thead>
-      <tr>
-        <th style="width:120px;">产品</th>
-        <th style="width:90px;">厂商</th>
-        <th>核心定位</th>
-        <th>关键能力</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><div class="slide-an">OpenClaw</div></td>
-        <td style="color:rgba(224,231,255,0.5);">开源社区</td>
-        <td>开源AI Agent框架，35万+ GitHub Stars</td>
-        <td>连接50+平台（微信、Telegram、Discord等），自动执行任务、管理日程、代码部署，支持私有化</td>
-      </tr>
-      <tr>
-        <td><div class="slide-an">Coze</div></td>
-        <td style="color:rgba(224,231,255,0.5);">字节跳动</td>
-        <td>低代码Agent搭建平台</td>
-        <td>可视化编排工作流，插件市场丰富，一键发布到豆包/飞书/微信</td>
-      </tr>
-      <tr>
-        <td><div class="slide-an">Dify</div></td>
-        <td style="color:rgba(224,231,255,0.5);">开源社区</td>
-        <td>开源LLM应用开发平台</td>
-        <td>RAG引擎、Agent编排、API输出，私有化部署，企业级知识库场景首选</td>
-      </tr>
-      <tr>
-        <td><div class="slide-an">Manus</div></td>
-        <td style="color:rgba(224,231,255,0.5);">Butterfly Effect</td>
-        <td>通用任务执行Agent</td>
-        <td>端到端完成复杂任务（调研、写报告、做PPT），多Agent协作，云端执行</td>
-      </tr>
-      <tr>
-        <td><div class="slide-an">AutoGLM</div></td>
-        <td style="color:rgba(224,231,255,0.5);">智谱</td>
-        <td>手机/电脑操控Agent</td>
-        <td>操作手机App和电脑桌面，模拟人类点击滑动，跨应用自动执行</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <div style="position:absolute; bottom:16px; left:60px; right:60px; text-align:center; padding:10px 0;">
-    <div style="font-size:15px; font-weight:700; color:#E0E7FF;">
-      Agent的本质 = 把<span style="color:rgba(224,231,255,0.4);">"回答问题"</span>变成<span style="color:#00E5FF;">"执行目标"</span>
+  <!-- Paradigm Shift Summary -->
+  <div style="padding:14px 20px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.2); display:flex; align-items:center;">
+    <div style="font-size:12px; color:#E0E7FF; line-height:1.6;">
+      <i class="fas fa-layer-group" style="color:#00E5FF; margin-right:8px;"></i><strong style="color:#00E5FF;">范式革命的真谛：</strong>在 Software 1.0 时代，代码是最终交付物；而在 Software 3.0 时代，<strong style="color:#00E5FF;">“解决业务问题的运行系统”才是最终交付物</strong>，代码正在退化为由 AI 在运行时动态生成、编译、检验并按需丢弃的“中间计算态”。人类工程师的核心职责，彻底从“写代码”升维为“设计意图并治理执行”。
     </div>
-    <div style="font-size:11px; color:rgba(224,231,255,0.35); margin-top:4px;">工具调用、文件操作、代码执行、自主规划——AI不再只是"嘴上说说"</div>
   </div>
 </div>
 </body>

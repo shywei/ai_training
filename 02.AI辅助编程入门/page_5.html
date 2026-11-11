@@ -1,87 +1,115 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>Token机制与上下文窗口</title>
+<title>Token 经济学与 Prefix Caching：缓存命中 vs 上下文质量辩证法</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
-.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-concept { padding:10px 16px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.12); margin-bottom:8px; }
-.slide-concept-title { font-size:14px; font-weight:700; color:#00E5FF; margin-bottom:4px; }
-.slide-concept-desc { font-size:12px; color:rgba(224,231,255,0.55); line-height:1.5; }
-.slide-example { padding:8px 12px; background:rgba(255,107,53,0.06); border-left:3px solid #FF6B35; margin-top:6px; }
-.slide-example-text { font-size:11px; color:rgba(224,231,255,0.5); line-height:1.4; font-family:monospace; }
-.slide-note-bar { position:absolute; bottom:10px; left:70px; right:70px; padding:5px 14px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.1); }
-.slide-note-text { font-size:11px; color:rgba(224,231,255,0.4); line-height:1.4; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:24px 65px; display:flex; flex-direction:column; justify-content:space-between; }
+.slide-container h1 { font-size:28px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:13px; color:#00E5FF; letter-spacing:4px; font-weight:700; }
+.slide-box { padding:10px 14px; background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.14); border-radius:4px; margin-bottom:8px; }
+.slide-box-title { font-size:13.5px; font-weight:700; color:#00E5FF; margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+.cache-bar { display:flex; height:28px; border-radius:4px; overflow:hidden; font-size:11px; font-weight:700; font-family:monospace; margin:6px 0; }
+.cache-seg { display:flex; align-items:center; justify-content:center; color:#0B1120; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:28px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 02</div>
-  <h1 class="mb-2">Token机制与上下文窗口</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
+<div class="slide-container">
+  <!-- Header -->
+  <div>
+    <div class="mb-1 slide-section-num">CHAPTER 02 · TOKEN、缓存与编程模型选型</div>
+    <h1 class="mb-1">Token 经济学与 Prefix Caching：缓存命中率 vs 上下文质量辩证法</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:8px;"></div>
+    <div style="font-size:12px; color:rgba(224,231,255,0.65); line-height:1.45;">
+      前缀缓存（Prefix Caching）拯救了多轮 Agent 的账单与延迟，但必须深度辨析：<strong>缓存命中率高，绝不等于上下文质量好</strong>！
+    </div>
+  </div>
 
-  <div class="flex" style="gap:24px;">
-    <div style="flex:1;">
-      <div class="slide-concept">
-        <div class="slide-concept-title"><i class="fas fa-puzzle-piece" style="margin-right:8px;"></i>什么是Token？</div>
-        <div class="slide-concept-desc">大模型不直接处理文字，而是把文本拆成<strong style="color:#E0E7FF;">token</strong>（词元）。一个汉字通常1-2个token，一个英文单词通常1个token。模型的输入和输出都是token序列。</div>
-        <div class="slide-example">
-          <div class="slide-example-text">"你好世界" → [你, 好, 世界] → 3个token<br>"Hello World" → [Hello, World] → 2个token<br>"indescribable" → [in, descri, bable] → 3个token</div>
+  <div class="flex gap-5 my-1" style="flex:1; min-height:0;">
+    <!-- Left Column: Prefix Caching Economics -->
+    <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
+      <div class="slide-box">
+        <div class="slide-box-title"><i class="fas fa-sack-dollar"></i>1. Coding Agent 多轮循环为什么不破产？</div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.68); line-height:1.5;">
+          Agent 完成一个需求通常需自动循环 15~25 轮（Grep→读文件→Edit→单测）。如果每轮都对前序 50K 上下文全额计费，20 轮将烧掉上百万 Token！<br>
+          <strong style="color:#22C55E;">救星是 Prefix Caching（KV Cache 复用）：</strong>
+        </div>
+        <div style="margin-top:6px; display:grid; grid-template-columns:repeat(3,1fr); gap:6px; text-align:center;">
+          <div style="padding:5px; background:rgba(0,229,255,0.08); border:1px solid rgba(0,229,255,0.2); border-radius:3px;">
+            <div style="font-size:11px; color:rgba(224,231,255,0.6);">常规输入 Input</div>
+            <div style="font-size:13px; font-weight:700; color:#00E5FF;">100% 基准价</div>
+          </div>
+          <div style="padding:5px; background:rgba(255,107,53,0.08); border:1px solid rgba(255,107,53,0.2); border-radius:3px;">
+            <div style="font-size:11px; color:rgba(224,231,255,0.6);">模型输出 Output</div>
+            <div style="font-size:13px; font-weight:700; color:#FF6B35;">300%~500%</div>
+          </div>
+          <div style="padding:5px; background:rgba(34,197,94,0.12); border:1px solid #22C55E; border-radius:3px;">
+            <div style="font-size:11px; color:#22C55E; font-weight:700;">Cache Hit 命中</div>
+            <div style="font-size:13px; font-weight:700; color:#22C55E;">仅 10% ~ 25%!</div>
+          </div>
         </div>
       </div>
-      <div class="slide-concept">
-        <div class="slide-concept-title"><i class="fas fa-ruler-horizontal" style="margin-right:8px;"></i>上下文窗口</div>
-        <div class="slide-concept-desc">模型一次能处理的最大token数。<strong style="color:#E0E7FF;">输入+输出的总和</strong>不能超过这个限制。超出会截断或报错。</div>
-        <div class="slide-example">
-          <div class="slide-example-text">GPT-2 (2019): 1,024 tokens → 约500字<br>GPT-3 (2020): 2,048 tokens → 约1000字<br>GPT-4 (2023): 128K tokens → 约6万字<br>主流模型 (2026): 100万+ tokens → 约50万字<br>一个中型Java项目 ≈ 30-50万token</div>
+
+      <div class="slide-box" style="border-color:rgba(34,197,94,0.25);">
+        <div class="slide-box-title" style="color:#22C55E;"><i class="fas fa-layer-group"></i>2. 缓存友好的上下文内存布局（从静到动）</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.6); margin-bottom:4px;">
+          Prefix Cache 严格从左到右匹配。必须保持最稳定的静态规则在前，动态增量在后：
+        </div>
+        <div class="cache-bar">
+          <div class="cache-seg" style="width:20%; background:#22C55E;">System Prompt</div>
+          <div class="cache-seg" style="width:20%; background:#10B981;">AGENTS.md</div>
+          <div class="cache-seg" style="width:40%; background:#00E5FF;">历史稳定上下文 (1..N-1)</div>
+          <div class="cache-seg" style="width:20%; background:#FF6B35; color:#fff;">最新增量</div>
+        </div>
+        <div style="font-size:11px; color:#22C55E; margin-bottom:2px;">
+          <i class="fas fa-lock mr-1"></i>前 80% 连续命中缓存（单价打 1~2 折，首字 TTFT 暴降 3~5 倍）
+        </div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.55); line-height:1.35;">
+          ⚠️ 缓存收益深度依赖厂商策略（Anthropic 显式缓存块、DeepSeek 自动前缀匹配、OpenAI 自动缓存）与严格严格的前缀字节对齐！
         </div>
       </div>
     </div>
-    <div style="flex:1;">
-      <div class="slide-concept">
-        <div class="slide-concept-title"><i class="fas fa-coins" style="margin-right:8px;"></i>三种Token与计费原理</div>
-        <div class="slide-concept-desc">Token是模型计算的基本单位，计费分三类：</div>
-        <div style="margin-top:6px; padding:6px 10px; background:rgba(0,0,0,0.2); border-radius:4px;">
-          <div style="font-size:11px; color:rgba(224,231,255,0.6); line-height:1.5;">
-            <strong style="color:#00E5FF;">① 输入Token（Input）</strong>：你发给模型的内容（指令+代码+上下文）<br>
-            <strong style="color:#FF6B35;">② 输出Token（Output）</strong>：模型生成的内容，通常<strong style="color:#FF6B35;">比输入贵2-5倍</strong><br>
-            <strong style="color:#E0E7FF;">③ 缓存命中（Cache Hit）</strong>：重复内容被缓存，<strong style="color:#00E5FF;">价格仅为输入的10%-25%</strong><br>
+
+    <!-- Right Column: Cache Hit vs Context Quality Dichotomy -->
+    <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
+      <div class="slide-box" style="background:rgba(255,107,53,0.05); border:1.5px solid #FF6B35;">
+        <div class="slide-box-title" style="color:#FF6B35;">
+          <i class="fas fa-exclamation-triangle"></i>3. 核心纠偏：警惕“高缓存命中率”掩盖下的“上下文退化”
+        </div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.5; margin-bottom:6px;">
+          许多工程师误以为只要命中率 90%，上下文放任膨胀到 100K 也没关系。<strong>这是致命的认知误区！</strong>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:4px; font-size:11px; color:rgba(224,231,255,0.75);">
+          <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px; border-left:3px solid #EF4444;">
+            • <strong style="color:#EF4444;">大海捞针退化（Lost-in-the-Middle）：</strong>上下文超过 50K 后，注意力呈 U 型分布，中间核心业务规则遵循率从 95% 暴跌至 60% 以下！
+          </div>
+          <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px; border-left:3px solid #FF6B35;">
+            • <strong style="color:#FF6B35;">错误假设与废弃代码污染：</strong>前序 10 轮试错产生的废弃代码段、无效报错堆栈成为“认知垃圾”，严重干扰模型当前决策。
+          </div>
+          <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px; border-left:3px solid #F59E0B;">
+            • <strong style="color:#F59E0B;">推理算力与延迟累加：</strong>即便命中了缓存，自回归生成每吐一个字，注意力计算量依然与总上下文长度正相关。
           </div>
         </div>
-        <div style="margin-top:6px; padding:4px 8px; background:rgba(255,107,53,0.06); border-left:2px solid #FF6B35;">
-          <div style="font-size:11px; color:rgba(224,231,255,0.5); line-height:1.5;"><strong style="color:#FF6B35;">计费公式：</strong>总费用 = 输入token×输入单价 + 输出token×输出单价 + 缓存token×缓存单价。Agent模式下，系统提示词、Rules等重复内容会自动缓存，<strong style="color:#E0E7FF;">善用缓存可节省30-50%成本</strong>。</div>
-        </div>
       </div>
-      <div class="slide-concept">
-        <div class="slide-concept-title"><i class="fas fa-memory" style="margin-right:8px;"></i>上下文窗口的实际影响</div>
-        <div class="slide-concept-desc">
-          <strong style="color:#E0E7FF;">对编程的影响：</strong><br>
-          · 窗口越大，Agent能"看到"的代码越多<br>
-          · 100万token ≈ 一个中型Java项目的全部代码<br>
-          · 但窗口越大，推理越慢、成本越高<br>
-          · <strong style="color:#FF6B35;">不是越大越好，要匹配任务复杂度</strong>
-        </div>
-      </div>
-      <div class="slide-concept">
-        <div class="slide-concept-title"><i class="fas fa-lightbulb" style="margin-right:8px;"></i>实际使用建议</div>
-        <div class="slide-concept-desc">
-          · 简单问答：4K-8K够用<br>
-          · 代码审查/重构：32K-128K<br>
-          · 整个项目级别的Agent：需要100K+<br>
-          · <strong style="color:#E0E7FF;">模型会自动管理上下文，但你需要知道它的边界</strong>
+
+      <div class="slide-box" style="margin-bottom:0; background:rgba(0,229,255,0.04); border-color:rgba(0,229,255,0.22);">
+        <div class="slide-box-title"><i class="fas fa-broom"></i>4. 架构师上下文治理铁律：主动剪枝 &gt; 盲目贪图缓存</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.45;">
+          • <strong>周期性主动 Compaction：</strong>遇到大重构或排障死胡同，执行 <code>/compact</code> 提炼精华，重置干净窗口；<br>
+          • <strong>Subagent 物理隔离：</strong>翻阅海量文件交给探索子智能体，只带回 200 字结论，杜绝主窗口污染！
         </div>
       </div>
     </div>
   </div>
 
-  <div class="slide-note-bar">
-    <div class="slide-note-text"><i class="fas fa-info-circle" style="color:#00E5FF; margin-right:6px;"></i>理解Token机制是使用一切AI工具的基础——它决定了你能给模型多少信息、模型能记住多少上下文、以及你的使用成本。</div>
+  <!-- Bottom Banner -->
+  <div style="padding:8px 16px; background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.2); border-radius:4px; font-size:11.5px; color:#E0E7FF; line-height:1.45;">
+    <strong style="color:#00E5FF;"><i class="fas fa-compass mr-1.5"></i>架构师选型心智：</strong>
+    Prefix Caching 优化的是<strong>运行成本与响应速度</strong>，而 Context Engineering 守护的是<strong>代码交付质量</strong>。绝不能为了省下几分钱缓存费用，放任污染的脏上下文拉垮模型的代码生成准确率！
   </div>
 </div>
 </body>

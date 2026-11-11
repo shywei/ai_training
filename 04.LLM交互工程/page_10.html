@@ -1,81 +1,103 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>Demo：Prompt 与容错</title>
+<title>Prompt 工程与 Guardrails 纵深防御架构</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
-.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)} .fn{color:#E0E7FF}
-</style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 06 · DEMO</div>
-<h1 class="mb-2">Demo 代码：PromptManager + GuardrailsService</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+.s h1{font-size:30px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px}
+.mb-2{margin-bottom:6px}
+.card{padding:9px 12px;border-radius:5px}
+.layer{flex:1;padding:8px 10px;border-radius:4px;border:1px solid rgba(0,229,255,0.15);background:rgba(0,229,255,0.04);display:flex;flex-direction:column;justify-content:space-between}
+.layer .lt{font-size:12px;font-weight:700;margin-bottom:3px}
+.layer .ld{font-size:11px;color:rgba(224,231,255,0.65);line-height:1.45}
+</style></head>
+<body>
+<div class="s" style="padding:22px 50px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 05 · 安全与规范</div>
+  <h1 class="mb-2">Prompt 工程与 Guardrails 纵深防御架构</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:10px;"></div>
 
-<div style="flex:1;display:flex;gap:20px;">
-  <!-- 左：PromptManager -->
-  <div style="flex:1;display:flex;flex-direction:column;">
-    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:8px;">PromptManager.java — 构建 Prompt</div>
-    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;flex:1;">
-      <pre><span class="kw">@Component</span>
-<span class="kw">public class</span> <span class="fn">PromptManager</span> {
-
-  <span class="kw">public</span> String <span class="fn">buildSystemPrompt</span>() {
-    <span class="kw">return</span> String.format(<span class="str">"""
-      # 角色
-      你是%s。%s
-      # 约束
-      %s
-      # 输出要求
-      - 回答简洁明了
-      - 不确定的不要编造
-      """</span>, agentName, agentRole,
-         agentConstraints);
-  }
-
-  <span class="kw">public</span> String <span class="fn">buildUserPrompt</span>(
-      String msg, String context) {
-    <span class="kw">if</span> (context == <span class="kw">null</span>) <span class="kw">return</span> msg;
-    <span class="kw">return</span> <span class="str">"## 参考信息\n"</span>
-      + context + <span class="str">"\n## 用户问题\n"</span> + msg;
-  }
-}</pre>
-    </div>
-    <div style="margin-top:6px;padding:8px 10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
-      <div style="font-size:11px;color:rgba(224,231,255,0.5);line-height:1.6;"><strong style="color:#E0E7FF;">System/User 分离</strong>，Text Block 做模板。<br><strong style="color:#FF6B35;">context 参数当前传 null</strong> — 第四课只做系统提示词 + 用户输入。<br>后续课程逐步填充：<br>· v2.0 Memory：传入对话历史 + 用户画像<br>· v3.0 Knowledge：传入 RAG 检索结果<br>· v4.0 Tool：传入工具调用结果</div>
+  <!-- 上半部：Prompt 结构与前缀缓存铁律 -->
+  <div style="margin-bottom:12px;">
+    <div style="font-size:13.5px;color:#00E5FF;font-weight:700;margin-bottom:6px;">📐 Prompt 结构化设计与缓存友好铁律</div>
+    <div style="display:flex;gap:12px;">
+      <div style="flex:1;padding:9px 12px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.2);border-radius:5px;">
+        <div style="font-size:12.5px;color:#FF6B35;font-weight:700;margin-bottom:2px;">System Prompt（静态置顶）</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;">定义角色、能力、红线边界与输出规范。决定 Agent 行为基线。类比员工“入职安全手册”。</div>
+      </div>
+      <div style="flex:1;padding:9px 12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.2);border-radius:5px;">
+        <div style="font-size:12.5px;color:#00E5FF;font-weight:700;margin-bottom:2px;">User Prompt（动态置底）</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;">动态检索上下文（用户画像、历史对话、RAG 知识片段）+ 当前用户输入。严格隔离注入。</div>
+      </div>
+      <div style="flex:1;padding:9px 12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.12);border-radius:5px;">
+        <div style="font-size:12.5px;color:#E0E7FF;font-weight:700;margin-bottom:2px;">Few-shot 少量样本示范</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;">给小模型 1~3 个标准示范以固化格式；对深度思考推理模型则尽量减少僵化干扰。</div>
+      </div>
+      <div style="flex:1.2;padding:9px 12px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.25);border-radius:5px;">
+        <div style="font-size:12.5px;color:#22C55E;font-weight:700;margin-bottom:2px;">💰 缓存友好型布局铁律</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.65);line-height:1.5;"><strong style="color:#E0E7FF;">静态前缀严格置顶</strong>（System + Tools），<strong style="color:#E0E7FF;">动态变量完全置底</strong>。严禁在 System 头部塞实时秒级时间戳，否则前缀缓存命中率瞬间归零！</div>
+      </div>
     </div>
   </div>
 
-  <!-- 右：GuardrailsService -->
-  <div style="flex:1;display:flex;flex-direction:column;">
-    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">GuardrailsService.java — 两道防线</div>
-    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,107,53,0.15);border-radius:6px;flex:1;">
-      <pre><span class="kw">@Component</span>
-<span class="kw">public class</span> <span class="fn">GuardrailsService</span> {
-
-  <span class="cm">// 第一道防线：入口检查</span>
-  <span class="kw">public boolean</span> <span class="fn">checkInjection</span>(String input) {
-    <span class="kw">for</span> (Pattern p : INJECTION_PATTERNS)
-      <span class="kw">if</span> (p.matcher(input).find())
-        <span class="kw">return true</span>;  <span class="cm">// 检测到注入</span>
-    <span class="kw">return false</span>;
-  }
-
-  <span class="cm">// 第二道防线：出口过滤</span>
-  <span class="kw">public</span> String <span class="fn">sanitize</span>(String output) {
-    String result = output;
-    <span class="kw">for</span> (String kw : SENSITIVE_KEYWORDS)
-      result = result.replaceAll(
-        <span class="str">"(?i)"</span> + kw, <span class="str">"***"</span>);
-    <span class="kw">return</span> result;
-  }
-}</pre>
+  <!-- 下半部：Guardrails 四层纵深防御体系 -->
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <div style="font-size:13.5px;color:#FF6B35;font-weight:700;">🛡️ Guardrails 四层纵深防御体系 (Defense-in-Depth)</div>
+      <div style="font-size:11px;color:rgba(255,107,53,0.85);font-weight:700;">⚠️ 严正警示：Regex 正则仅是最外层轻量粗筛，绝不是防注入的银弹！</div>
     </div>
-    <div style="margin-top:6px;padding:6px 10px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:4px;">
-      <div style="font-size:10px;color:rgba(224,231,255,0.5);"><strong style="color:#FF6B35;">两道防线独立。</strong>入口在 Controller 开头调用，出口在返回前调用。不合并。</div>
+
+    <div style="display:flex;gap:10px;flex:1;">
+      <!-- Layer 1 -->
+      <div class="layer" style="border-color:rgba(0,229,255,0.25);">
+        <div class="lt" style="color:#00E5FF;">L1 · 静态规则与正则层</div>
+        <div class="ld">
+          <strong style="color:#E0E7FF;">手段：</strong>正则匹配、敏感词典、SQL/Shell 注入特征、长度截断。<br>
+          <strong style="color:#00E5FF;">特点：</strong>耗时 &lt;1ms，零模型开销。<br>
+          <strong style="color:#EF4444;">局限：</strong>易被同音字、藏头隐喻、多语言混淆绕过。<br>
+          <span style="font-size:11px;color:#22C55E;">★ Demo 已覆盖（GuardrailsService）</span>
+        </div>
+      </div>
+
+      <!-- Layer 2 -->
+      <div class="layer" style="border-color:rgba(59,130,246,0.3);background:rgba(59,130,246,0.05);">
+        <div class="lt" style="color:#3B82F6;">L2 · 向量与分类模型层</div>
+        <div class="ld">
+          <strong style="color:#E0E7FF;">手段：</strong>攻击向量库比对（计算与已知越狱 Jailbreak Prompt 相似度）+ 轻量小分类模型（DistilBERT）。<br>
+          <strong style="color:#3B82F6;">特点：</strong>耗时 ~5-15ms，阻断大部分变种攻击。<br>
+          <strong style="color:#E0E7FF;">定位：</strong>拦截已知恶意意图的高性价比防线。
+        </div>
+      </div>
+
+      <!-- Layer 3 -->
+      <div class="layer" style="border-color:rgba(168,85,247,0.3);background:rgba(168,85,247,0.05);">
+        <div class="lt" style="color:#A855F7;">L3 · 语义审查护栏层</div>
+        <div class="ld">
+          <strong style="color:#E0E7FF;">手段：</strong>专业安全防护大模型（Llama Guard / NeMo Guardrails），分析上下文真实意图。<br>
+          <strong style="color:#A855F7;">特点：</strong>耗时 100-300ms，深度理解语境。<br>
+          <strong style="color:#E0E7FF;">定位：</strong>防御社工伪装、催眠诱导等高阶 Prompt 注入攻击。
+        </div>
+      </div>
+
+      <!-- Layer 4 -->
+      <div class="layer" style="border-color:rgba(34,197,94,0.3);background:rgba(34,197,94,0.05);">
+        <div class="lt" style="color:#22C55E;">L4 · 输出校验与事实审查</div>
+        <div class="ld">
+          <strong style="color:#E0E7FF;">手段：</strong>PII 脱敏脱出、幻觉与事实一致性审查（Faithfulness）、防止 Prompt 反向泄露、JSON Schema 强校验。<br>
+          <strong style="color:#22C55E;">特点：</strong>把好最终出口关。<br>
+          <strong style="color:#E0E7FF;">定位：</strong>合规兜底（Demo 已做基础敏感词替换与重试自纠错）。
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部总结 -->
+    <div style="margin-top:8px;padding:7px 14px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.12);border-radius:4px;display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-size:11px;color:rgba(224,231,255,0.65);">
+        <strong style="color:#E0E7FF;">生产共识：</strong>安全是层层衰减的漏斗——L1 挡粗暴攻击，L2/L3 识语义变种，L4 防幻觉合规泄露。单凭正则连 OWASP Top 10 的第 1 关都过不去。
+      </div>
+      <div style="font-size:11px;color:#FF6B35;font-weight:700;">OWASP LLM01: Prompt Injection</div>
     </div>
   </div>
 </div>
-</div></body></html>
+</body></html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>跨模态演进：从单一文本模型到 Native Omni（原生全模态融合）</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.s { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.s h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
+.card { background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.15); border-radius:4px; padding:14px 18px; }
+.badge { font-size:11px; font-weight:700; padding:2px 8px; border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="s flex flex-col justify-between">
+  <!-- Header -->
+  <div>
+    <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; margin-bottom:4px;">CHAPTER 03 · 现代模型训练范式与前沿架构</div>
+    <h1 class="mb-2">跨模态演进：从单一文本模型到 Native Omni（原生全模态融合）</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:12px;"></div>
+    <div style="font-size:13px; color:rgba(224,231,255,0.7); line-height:1.5;">
+      从早期的“三段式外挂拼装管道”演进为 2026 原生全模态端到端统一 Token 空间，大模型正在实现真正的视听体感一体化。
+    </div>
+  </div>
+
+  <!-- Dual Architectural Paradigms -->
+  <div class="grid grid-cols-2 gap-4 my-1">
+    <!-- Legacy Pipeline -->
+    <div class="card" style="border-top:3px solid #F59E0B;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(245,158,11,0.15); color:#F59E0B;">早期阶段 · 外挂拼装管道</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Late Fusion & Cascaded Pipeline</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">三段式串行拼装与严重信息损耗</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.55; margin-bottom:8px;">
+        1. <strong>语音链路：</strong>麦克风 ➔ 外部 ASR（Whisper 语音转文字）➔ LLM 文本处理 ➔ 外部 TTS（文字合成语音）➔ 扬声器。<br>
+        2. <strong>视觉链路：</strong>独立 ViT 提取特征 ➔ 简陋线性投影层（MLP Adapter）硬塞进文本嵌入层。
+      </div>
+      <div style="background:rgba(245,158,11,0.08); padding:8px 10px; border-radius:3px; font-size:11px; color:rgba(224,231,255,0.75); line-height:1.5; border-left:3px solid #F59E0B;">
+        <strong style="color:#F59E0B;">工程死穴：</strong><br>
+        • 延迟叠加灾难：端到端交互延迟高达 <strong>2.5 ~ 4.0 秒</strong>，毫无真实交谈感；<br>
+        • 语意盲区：ASR 彻底丢失说话者的语气、笑意、叹气、语速与背景声环境。
+      </div>
+    </div>
+
+    <!-- Native Omni -->
+    <div class="card" style="border-top:3px solid #22C55E;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(34,197,94,0.15); color:#22C55E;">2026 前沿 · 原生全模态</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Native Omni Early Fusion</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">统一 Token 空间与端到端实时流式计算</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.55; margin-bottom:8px;">
+        1. <strong>统一 Tokenizer：</strong>将音频波形（神经编解码器 EnCodec/Mimi）、视频帧 Patch 与文字全部离散化为统一维度的 Token 序列。<br>
+        2. <strong>单一骨干网络：</strong>在同一个巨型 Transformer 内部同时进行多模态因果自回归注意力计算，直接输出音频/图像 Token。
+      </div>
+      <div style="background:rgba(34,197,94,0.08); padding:8px 10px; border-radius:3px; font-size:11px; color:rgba(224,231,255,0.75); line-height:1.5; border-left:3px solid #22C55E;">
+        <strong style="color:#22C55E;">工程飞跃（GPT-4o / Qwen2-Audio 范式）：</strong><br>
+        • 极致低延迟：端到端语音首包延迟压至 <strong>200 ~ 300 毫秒</strong>；<br>
+        • 原生全双工：天然支持用户随时插话打断（Barge-in）、感知哭笑叹气。
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom: 3 Key Metrics Comparison -->
+  <div style="background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.2); border-radius:4px; padding:12px 18px;">
+    <div class="flex items-center gap-2 mb-2">
+      <i class="fas fa-sliders-h" style="color:#00E5FF; font-size:13px;"></i>
+      <span style="font-size:13px; font-weight:700; color:#00E5FF;">工业级跨模态工程能力质变矩阵</span>
+    </div>
+    <div class="grid grid-cols-3 gap-3" style="font-size:11px;">
+      <div style="background:rgba(255,255,255,0.03); padding:8px 10px; border-radius:3px;">
+        <strong style="color:#38BDF8;">1. 实时流式响应（TTFT）</strong><br>
+        <span style="color:rgba(224,231,255,0.7);">从 3000ms ➔ <strong>250ms</strong></span><br>
+        <span style="color:rgba(224,231,255,0.5);">真正匹配人类面对面交谈的生理神经反应窗口。</span>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); padding:8px 10px; border-radius:3px;">
+        <strong style="color:#22C55E;">2. 情感与副语言感知</strong><br>
+        <span style="color:rgba(224,231,255,0.7);">从纯文本 ➔ <strong>情绪/环境声建模</strong></span><br>
+        <span style="color:rgba(224,231,255,0.5);">直接听出用户的急促、犹豫、背景警报声并动态调整回答语气。</span>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); padding:8px 10px; border-radius:3px;">
+        <strong style="color:#FF6B35;">3. 全双工中断（Barge-in）</strong><br>
+        <span style="color:rgba(224,231,255,0.7);">从半双工对讲机 ➔ <strong>自然电话交谈</strong></span><br>
+        <span style="color:rgba(224,231,255,0.5);">用户开口打断瞬间，模型无需重置会话，直接停止输出并平滑切入新话题。</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

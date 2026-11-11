@@ -3,108 +3,83 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>搜索时代：AI的第一次商业成功</title>
+<title>搜索时代：AI 的第一次商业成功（1998–2010）</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
-.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-era-label { font-size:13px; font-weight:600; letter-spacing:2px; padding:4px 14px; display:inline-block; margin-bottom:14px; }
-.slide-event-row { display:flex; align-items:flex-start; margin-bottom:12px; }
-.slide-event-year { font-size:18px; font-weight:700; min-width:55px; line-height:1; }
-.slide-event-content { flex:1; }
-.slide-event-title { font-size:14px; font-weight:600; color:#E0E7FF; margin-bottom:2px; }
-.slide-event-desc { font-size:12px; color:rgba(224,231,255,0.5); line-height:1.4; }
-.slide-divider-v { width:1px; background:rgba(0,229,255,0.15); margin:0 30px; }
-.slide-note { font-size:13px; color:rgba(224,231,255,0.4); line-height:1.6; font-style:italic; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:38px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 01</div>
-  <h1 class="mb-2">搜索时代：AI的第一次商业成功（1998-2010）</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:28px;"></div>
+<div class="slide-container">
+  <div style="font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:6px;">CHAPTER 01 · 前大模型时代（1943–2016）</div>
+  <h1 class="mb-2">搜索时代：AI 的第一次商业成功（1998–2010）：数据统计战胜人肉规则</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
 
-  <div class="flex" style="height:500px;">
-    <!-- Left: Google's AI-Powered Rise -->
-    <div style="flex:1;">
-      <div class="slide-era-label" style="background:rgba(0,229,255,0.1); color:#00E5FF; border:1px solid rgba(0,229,255,0.3);">谷歌：AI驱动的万亿美元公司</div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#00E5FF;">1998</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">谷歌创立，PageRank算法</div>
-          <div class="slide-event-desc">通过分析网页间链接关系计算重要性，彻底改变了搜索引擎排序方式</div>
-        </div>
+  <div style="font-size:14px; color:rgba(224,231,255,0.6); margin-bottom:16px;">
+    1990 年代末万维网爆发，海量非结构化文本涌现。人类第一次放弃“教计算机懂语法逻辑”，转向用“大规模分布式数据与统计概率”解决信息检索。
+  </div>
+
+  <!-- Three Classic Technical Pillars -->
+  <div class="flex gap-4 mb-4">
+    <!-- Pillar 1: Inverted Index -->
+    <div style="flex:1; padding:16px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.18);">
+      <div style="font-size:24px; color:#00E5FF; margin-bottom:8px;"><i class="fas fa-database"></i></div>
+      <div style="font-size:15px; font-weight:700; color:#00E5FF; margin-bottom:6px;">倒排索引（Inverted Index）</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.6; margin-bottom:8px;">
+        从传统关系型数据库的“按行找字段”，逆转为“按词项（Term）找文档列表（Posting List）”。
       </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#00E5FF;">2000</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">AdWords广告系统</div>
-          <div class="slide-event-desc">基于关键词匹配和竞价排名，开创了互联网搜索广告商业模式</div>
-        </div>
+      <div style="padding:8px 10px; background:rgba(0,0,0,0.35); font-family:Consolas,monospace; font-size:11px; color:#00E5FF; line-height:1.5;">
+        "Spring" &rarr; [Doc1, Doc5, Doc8]<br>
+        "Boot" &rarr; [Doc1, Doc2, Doc8]<br>
+        // 取交集快速定位 Doc1, Doc8
       </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#00E5FF;">2004</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">Gmail：AI过滤垃圾邮件</div>
-          <div class="slide-event-desc">机器学习进入日常互联网产品，用户第一次感受到AI的实用价值</div>
-        </div>
-      </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#00E5FF;">2006</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">Google Translate</div>
-          <div class="slide-event-desc">基于统计机器翻译，支持10种语言互译，最早的大规模AI消费产品之一</div>
-        </div>
-      </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#00E5FF;">2008</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">Android系统发布</div>
-          <div class="slide-event-desc">AI进入移动互联网时代，搜索、地图、语音识别逐渐成为手机标配</div>
-        </div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.5); margin-top:8px;">
+        将全文检索耗时从 $O(N)$ 全表扫描降低至 $O(1)$ 字典寻址，奠定 Lucene/ES 基石。
       </div>
     </div>
 
-    <div class="slide-divider-v"></div>
-
-    <!-- Right: Impact & Lesson -->
-    <div style="flex:1;">
-      <div class="slide-era-label" style="background:rgba(255,107,53,0.1); color:#FF6B35; border:1px solid rgba(255,107,53,0.3);">核心启示</div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#FF6B35;">2002</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">Google News：信息流鼻祖</div>
-          <div class="slide-event-desc">利用算法自动聚合新闻内容，成为最早的信息流产品之一</div>
-        </div>
+    <!-- Pillar 2: TF-IDF -->
+    <div style="flex:1; padding:16px; background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.18);">
+      <div style="font-size:24px; color:#FF6B35; margin-bottom:8px;"><i class="fas fa-balance-scale"></i></div>
+      <div style="font-size:15px; font-weight:700; color:#FF6B35; margin-bottom:6px;">TF-IDF 与向量空间模型</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.6; margin-bottom:8px;">
+        用统计频率量化词的重要性：本篇出现频率高（TF）但全网罕见（IDF）的词是关键。
       </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#FF6B35;">2005</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">Google Maps</div>
-          <div class="slide-event-desc">结合卫星图像和路线规划算法，AI应用于地理信息服务</div>
-        </div>
+      <div style="padding:8px 10px; background:rgba(0,0,0,0.35); font-family:Consolas,monospace; font-size:11px; color:#FF6B35; line-height:1.5;">
+        TF = freq(t, d) / total_words<br>
+        IDF = log(Total_Docs / Docs_with_t)<br>
+        Score = TF &times; IDF
       </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#FF6B35;">2010</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">Google Instant</div>
-          <div class="slide-event-desc">搜索结果实时预测用户输入，AI开始改变人机交互方式</div>
-        </div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.5); margin-top:8px;">
+        不理解语法修辞，仅靠词频统计即可将文档转化为高维稀疏向量并计算相关度余弦值。
       </div>
+    </div>
 
-      <div style="margin-top:30px; padding:16px 20px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.12);">
-        <div style="font-size:14px; color:#00E5FF; font-weight:600; margin-bottom:10px;">
-          <i class="fas fa-star" style="margin-right:8px;"></i>关键认知
-        </div>
-        <div style="font-size:14px; color:rgba(224,231,255,0.65); line-height:1.7;">
-          谷歌证明了：<strong style="color:#E0E7FF;">AI算法可以成为万亿美元公司的核心引擎</strong>。搜索广告模式成为互联网商业模式基石，AI从学术研究走向大规模商业应用。
-        </div>
+    <!-- Pillar 3: PageRank -->
+    <div style="flex:1; padding:16px; background:rgba(34,197,94,0.04); border:1px solid rgba(34,197,94,0.18);">
+      <div style="font-size:24px; color:#22C55E; margin-bottom:8px;"><i class="fas fa-project-diagram"></i></div>
+      <div style="font-size:15px; font-weight:700; color:#22C55E; margin-bottom:6px;">PageRank 拓扑投票算法</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.6; margin-bottom:8px;">
+        利用超链接将人类互联网络视为有向图，采用随机游走马尔可夫链计算网页权威度权重。
       </div>
+      <div style="padding:8px 10px; background:rgba(0,0,0,0.35); font-family:Consolas,monospace; font-size:11px; color:#22C55E; line-height:1.5;">
+        PR(A) = (1-d) + d &times; &sum;(PR(Ti)/C(Ti))<br>
+        // 高质量网页的投票价值千金<br>
+        // 彻底摧毁早期雅虎人工目录分类
+      </div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.5); margin-top:8px;">
+        用全网用户的集体行为无意识投票，取代专家的人肉评审，造就万亿商业帝国。
+      </div>
+    </div>
+  </div>
 
-
+  <!-- Bottom Paradigm Shift -->
+  <div style="padding:12px 18px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.2); display:flex; align-items:center;">
+    <div style="font-size:12px; color:#E0E7FF; line-height:1.6;">
+      <i class="fas fa-lightbulb" style="color:#00E5FF; margin-right:8px;"></i><strong style="color:#00E5FF;">开发范式初变：</strong>搜索引擎没有引入任何所谓“拟人智能”，而是用分布式存储计算（MapReduce/GFS/BigTable）加上纯粹的统计学与概率论，证明了“大规模数据 + 统计模型 > 昂贵的人工手写规则”。
     </div>
   </div>
 </div>

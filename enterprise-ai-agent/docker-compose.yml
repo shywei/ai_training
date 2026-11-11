@@ -1,7 +1,12 @@
 # ============================================================
-# 企业导购 Agent — 一键部署编排
+# 企业导购 Agent — 本地打包 + 挂载产物一键部署编排
 #
-#   docker compose up -d --build
+# 启动步骤：
+#   1. 本地手动打包（生成各模块 jar 包与前端 dist 目录）：
+#      Linux / macOS:  ./build-all.sh
+#      Windows:        build-all.bat
+#   2. 启动服务：
+#      docker compose up -d
 #
 # 服务拓扑：
 #   web(nginx :3000) ──/api──▶ agent-runtime(:8080)
@@ -71,10 +76,11 @@ services:
 
   # ---------------- MCP Server ----------------
   mcp-product-server:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.java
-      args: { MODULE: mcp-product-server }
+    image: eclipse-temurin:17-jre-jammy
+    working_dir: /app
+    volumes:
+      - ./mcp-product-server/target/app.jar:/app/app.jar:ro
+    command: ["java", "-jar", "/app/app.jar"]
     environment:
       <<: *java-env
     depends_on:
@@ -84,10 +90,11 @@ services:
     networks: [backend]
 
   mcp-knowledge-server:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.java
-      args: { MODULE: mcp-knowledge-server }
+    image: eclipse-temurin:17-jre-jammy
+    working_dir: /app
+    volumes:
+      - ./mcp-knowledge-server/target/app.jar:/app/app.jar:ro
+    command: ["java", "-jar", "/app/app.jar"]
     environment:
       <<: *java-env
       PG_HOST: postgres
@@ -103,10 +110,11 @@ services:
 
   # ---------------- Agent Runtime ----------------
   agent-runtime:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.java
-      args: { MODULE: agent-runtime }
+    image: eclipse-temurin:17-jre-jammy
+    working_dir: /app
+    volumes:
+      - ./agent-runtime/target/app.jar:/app/app.jar:ro
+    command: ["java", "-jar", "/app/app.jar"]
     environment:
       <<: *java-env
       REDIS_HOST: redis
@@ -131,9 +139,10 @@ services:
 
   # ---------------- 前端（nginx：静态文件 + /api 反代） ----------------
   web:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.web
+    image: nginx:1.27-alpine
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./web/dist:/usr/share/nginx/html:ro
     ports:
       - "3000:80"
     depends_on:

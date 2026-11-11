@@ -1,67 +1,92 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>Agent能力全景图</title>
+<title>核心定义与形态分水岭：通用 Harness vs 垂直应用 Agent</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
-.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
-.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
-.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
-.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden;padding:22px 56px;display:flex;flex-direction:column;justify-content:space-between}
+.s h1{font-size:28px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px;font-weight:700}
+.cmp-row{display:grid;grid-template-columns:140px 1fr 1fr;gap:12px;padding:7px 12px;border-bottom:1px solid rgba(0,229,255,0.1);align-items:center;font-size:11.5px}
 </style></head><body>
-<div class="s" style="padding:36px 60px;">
-<div class="mb-2 sn">CHAPTER 03</div><h1 class="mb-2">Agent能力全景图</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+<div class="s">
+  <!-- Header -->
+  <div>
+    <div class="mb-1 sn">CHAPTER 01 · 范式边界：AGENT 核心定义与产品形态</div>
+    <h1 class="mb-1">核心定义与形态分水岭：通用 Harness vs 垂直应用 Agent</h1>
+    <div style="width:56px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+  </div>
 
-<div style="margin-bottom:10px;">
-  </div>
-<div style="font-size:13px;color:rgba(224,231,255,0.5);margin-bottom:12px;">一个完整的Agent系统，由两类能力组成：</div>
-<div style="display:flex;gap:16px;margin-bottom:12px;">
-  <div style="flex:1;padding:14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-    <div style="font-size:15px;color:#00E5FF;font-weight:700;margin-bottom:8px;">🧠 认知层——Agent"知道什么"</div>
-    <div style="display:flex;flex-direction:column;gap:6px;">
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:4px;">
-        <div style="font-size:14px;color:#00E5FF;font-weight:700;width:90px;">Prompt</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.6);">定义Agent如何工作——角色、能力、约束</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:4px;">
-        <div style="font-size:14px;color:#00E5FF;font-weight:700;width:90px;">Memory</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.6);">记住用户——对话历史、偏好、上下文</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:4px;">
-        <div style="font-size:14px;color:#00E5FF;font-weight:700;width:90px;">Knowledge</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.6);">理解企业知识——RAG检索文档、产品信息</div>
-      </div>
+  <!-- P0 Core Definition Banner -->
+  <div style="padding:10px 16px; background:rgba(0,229,255,0.06); border:1.5px solid #00E5FF; border-radius:6px;">
+    <div class="flex items-center gap-2 mb-1">
+      <i class="fas fa-bullseye" style="color:#00E5FF; font-size:13px;"></i>
+      <span style="font-size:13px; font-weight:700; color:#00E5FF;">【P0 核心定义】：什么是真正的 AI Agent？</span>
+      <span style="font-size:11px; padding:1px 6px; background:rgba(255,107,53,0.15); color:#FF6B35; border-radius:3px; font-weight:700;">彻底破除概念矛盾</span>
+    </div>
+    <div style="font-size:12px; color:#E0E7FF; line-height:1.6;">
+      <strong>Agent 是以大模型为认知与决策引擎，通过上下文、记忆、工具和运行时控制机制构成的智能应用系统。系统需要用确定性工程机制约束模型的不确定性。</strong><br>
+      <span style="color:rgba(224,231,255,0.7); font-size:11px;">
+        纠偏：大模型本身是连续条件概率流形采样，绝非确定性 CPU！试图将模型称为“确定性 CPU”自相矛盾。真正的工程思想是：<strong>模型负责发散与认知推理，外围的上下文装配、分层记忆、工具沙箱与状态机运行时负责收敛确定性边界</strong>。
+      </span>
     </div>
   </div>
-  <div style="flex:1;padding:14px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);border-radius:6px;">
-    <div style="font-size:15px;color:#FF6B35;font-weight:700;margin-bottom:8px;">⚡ 执行层——Agent"做什么"</div>
-    <div style="display:flex;flex-direction:column;gap:6px;">
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:4px;">
-        <div style="font-size:14px;color:#FF6B35;font-weight:700;width:90px;">Tool</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.6);">操作外部系统——调API、查数据库</div>
+
+  <!-- Dual Product Forms Table -->
+  <div style="border:1px solid rgba(0,229,255,0.2); border-radius:6px; overflow:hidden; background:rgba(0,229,255,0.02);">
+    <div class="cmp-row" style="background:rgba(0,229,255,0.08); font-weight:700; font-size:12px;">
+      <div style="color:#E0E7FF;">核心维度</div>
+      <div style="color:#00E5FF;"><i class="fas fa-terminal mr-1"></i> 通用智能体宿主（General Agent Harness）</div>
+      <div style="color:#FF6B35;"><i class="fas fa-shopping-bag mr-1"></i> 企业垂直应用 Agent（Vertical Domain Agent）</div>
+    </div>
+    <div class="cmp-row">
+      <div style="color:rgba(224,231,255,0.6); font-weight:600;">代表产品与受众</div>
+      <div style="color:#E0E7FF;"><b style="color:#00E5FF;">Claude Code、OpenClaw、Cursor</b>（面向开发者）</div>
+      <div style="color:#E0E7FF;"><b style="color:#FF6B35;">电商智能导购、智能理赔、ERP 助手</b>（面向企业业务客户）</div>
+    </div>
+    <div class="cmp-row">
+      <div style="color:rgba(224,231,255,0.6); font-weight:600;">能力边界配置权</div>
+      <div style="color:rgba(224,231,255,0.75);"><b style="color:#00E5FF;">终端用户开放自配</b>：用户挂载本地 Shell、私有 MCP 与自定义 Rules</div>
+      <div style="color:rgba(224,231,255,0.75);"><b style="color:#FF6B35;">研发团队严格封闭</b>：System Prompt、业务可用 MCP 工具与权限死锁</div>
+    </div>
+    <div class="cmp-row">
+      <div style="color:rgba(224,231,255,0.6); font-weight:600;">发力方向比喻</div>
+      <div style="color:rgba(224,231,255,0.75);"><b style="color:#E0E7FF;">横向广度（改装越野车）</b>：文件读写 + Bash 即可干万物，重在长上下文沙箱</div>
+      <div style="color:rgba(224,231,255,0.75);"><b style="color:#E0E7FF;">纵向深度（工业专用机床）</b>：深耕单一业务域，重在私域数据、一致性与合规</div>
+    </div>
+    <div class="cmp-row" style="border-bottom:none;">
+      <div style="color:rgba(224,231,255,0.6); font-weight:600;">核心研发重心</div>
+      <div style="color:rgba(224,231,255,0.75);">插件生态、本地权限审批、长会话 Compaction、多模型路由</div>
+      <div style="color:rgba(224,231,255,0.75);"><b style="color:#FF6B35;">领域 Prompt、分层业务 Memory、私域 RAG、内部系统 MCP、状态机护栏</b></div>
+    </div>
+  </div>
+
+  <!-- Bottom Three Layers Breakdown -->
+  <div class="grid grid-cols-3 gap-3" style="font-size:11px;">
+    <div style="padding:10px 12px; background:rgba(168,85,247,0.05); border:1px solid rgba(168,85,247,0.25); border-radius:4px;">
+      <div style="font-size:11px; color:#A855F7; font-weight:700; margin-bottom:1px;">LAYER 1 · 编排工具与零件</div>
+      <div style="font-size:13px; color:#E0E7FF; font-weight:700; margin-bottom:4px;">开发框架 / SDK</div>
+      <div style="color:rgba(224,231,255,0.65); line-height:1.45;">
+        <strong>Spring AI 2.0、AgentScope、LangGraph</strong>：提供 ChatClient、VectorStore 与状态图抽象，供程序员编写系统。
       </div>
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:4px;">
-        <div style="font-size:14px;color:#FF6B35;font-weight:700;width:90px;">MCP</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.6);">标准化工具协议——统一接口、跨框架复用</div>
+    </div>
+
+    <div style="padding:10px 12px; background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.25); border-radius:4px;">
+      <div style="font-size:11px; color:#00E5FF; font-weight:700; margin-bottom:1px;">LAYER 2 · 开放式通用越野车</div>
+      <div style="font-size:13px; color:#E0E7FF; font-weight:700; margin-bottom:4px;">通用 Agent Harness</div>
+      <div style="color:rgba(224,231,255,0.65); line-height:1.45;">
+        <strong>Claude Code、Qoder、OpenClaw</strong>：面向开发者的开箱即用研发宿主，直接使用，不要在企业业务中重复造轮子。
       </div>
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:4px;">
-        <div style="font-size:14px;color:#FF6B35;font-weight:700;width:90px;">Workflow</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.6);">编排复杂流程——多步骤、条件、人工审批</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:4px;">
-        <div style="font-size:14px;color:#FF6B35;font-weight:700;width:90px;">Multi-Agent</div>
-        <div style="font-size:12px;color:rgba(224,231,255,0.6);">多Agent协作——分工、协调、团队完成任务</div>
+    </div>
+
+    <div style="padding:10px 12px; background:rgba(255,107,53,0.05); border:1px solid rgba(255,107,53,0.3); border-radius:4px;">
+      <div style="font-size:11px; color:#FF6B35; font-weight:700; margin-bottom:1px;">LAYER 3 · 深度定制专用机床</div>
+      <div style="font-size:13px; color:#E0E7FF; font-weight:700; margin-bottom:4px;">企业垂直应用 Agent</div>
+      <div style="color:rgba(224,231,255,0.65); line-height:1.45;">
+        <strong>企业导购/理赔系统（我们亲手造的业务系统）</strong>：严禁开放通用 Shell！用确定性工程机制精细编排，安全交付业务价值。
       </div>
     </div>
   </div>
 </div>
-<div style="padding:10px 14px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.08);border-radius:5px;text-align:center;">
-  <div style="font-size:14px;color:#E0E7FF;font-weight:600;">Prompt + Memory + Knowledge = <span style="color:#00E5FF;">认知</span>（知道什么）</div>
-  <div style="font-size:14px;color:#E0E7FF;font-weight:600;margin-top:4px;">Tool + MCP + Workflow + Multi-Agent = <span style="color:#FF6B35;">执行</span>（做什么）</div>
-  <div style="font-size:13px;color:rgba(224,231,255,0.45);margin-top:6px;">LLM是大脑，连接认知和执行。不是每个Agent都需要全部能力——按需组合。</div>
-</div>
-</div></body></html>
+</body></html>

@@ -3,102 +3,97 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>Agent实战技巧精讲</title>
+<title>单兵日常高效交互五条铁律 —— 拒绝“AI 越修 Bug 越多”</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
-.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-skill-card { padding:12px 14px; margin-bottom:8px; }
-.slide-skill-title { font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:4px; }
-.slide-skill-desc { font-size:11px; color:rgba(224,231,255,0.55); line-height:1.4; }
-.slide-skill-demo { margin-top:6px; padding:6px 10px; background:rgba(0,0,0,0.3); font-family:monospace; font-size:11px; color:rgba(224,231,255,0.5); line-height:1.4; border-left:2px solid; }
-.slide-ref-item strong { color:rgba(224,231,255,0.5); }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:38px 65px; }
+.slide-container h1 { font-size:29px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:13px; color:#A855F7; letter-spacing:4px; font-weight:700; }
+.rule-item { display:flex; align-items:flex-start; padding:9px 14px; background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.12); border-left:3px solid #00E5FF; }
+.rule-num { font-size:18px; font-weight:700; color:#00E5FF; min-width:32px; line-height:1.2; }
+.rule-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:2px; }
+.rule-desc { font-size:11.5px; color:rgba(224,231,255,0.65); line-height:1.45; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:24px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 08 · 进阶</div>
-  <h1 class="mb-2">Agent实战技巧精讲</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:10px;"></div>
+<div class="slide-container">
+  <div class="slide-section-num mb-1">CHAPTER 06 · 上下文退化原理与单兵防坑铁律</div>
+  <h1 class="mb-2">单兵日常高效交互五条铁律 —— 拒绝“AI 越修 Bug 越多”</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
 
-  <div class="flex" style="gap:24px;">
-    <div style="flex:1;">
-      <div class="slide-skill-card" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.12);">
-        <div class="slide-skill-title"><i class="fas fa-file-alt" style="color:#00E5FF; margin-right:6px;"></i>技巧1：写好项目指令文件</div>
-        <div class="slide-skill-desc">在项目根目录放一个 <strong style="color:#00E5FF;">CLAUDE.md</strong>（Claude Code）或 <strong style="color:#00E5FF;">AGENTS.md</strong>（OpenCode），写明技术栈、代码规范、项目结构。<strong style="color:#E0E7FF;">Agent每次启动都会自动读取</strong>，相当于给Agent一份"入职手册"。</div>
-        <div class="slide-skill-demo" style="border-color:#00E5FF;">
-          <span style="color:#00E5FF;"># CLAUDE.md 示例</span><br>
-          技术栈：Java 17 + Spring Boot 3 + JPA<br>
-          规范：阿里巴巴Java开发手册<br>
-          数据库：MySQL 8.0，禁止直接写SQL拼接<br>
-          测试：新功能必须有JUnit5单元测试<br>
-          分支：禁止直接改main，必须走feature分支
-        </div>
-        <div class="slide-skill-desc" style="margin-top:6px;"><strong style="color:#FF6B35;">为什么重要？</strong>没有指令文件，Agent每次都要猜你的技术栈和规范。有了它，Agent的行为一致性提升10倍，减少反复纠正。</div>
-      </div>
-
-      <div class="slide-skill-card" style="background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.12);">
-        <div class="slide-skill-title"><i class="fas fa-comments" style="color:#FF6B35; margin-right:6px;"></i>技巧2：提示词的黄金公式</div>
-        <div class="slide-skill-desc">官方课程反复强调的公式：<strong style="color:#FF6B35;">角色 + 任务 + 上下文 + 约束 + 输出格式</strong></div>
-        <div class="slide-skill-demo" style="border-color:#FF6B35;">
-          <span style="color:rgba(255,107,53,0.7);">差：</span>"帮我写个接口"<br><br>
-          <span style="color:#00E5FF;">好：</span>"你是Spring Boot高级工程师（角色），<br>
-          给UserService添加密码重置功能（任务），<br>
-          项目用Java 17 + JPA，已有User实体类（上下文），<br>
-          保持现有Controller接口风格不变（约束），<br>
-          生成Controller+Service+单元测试（格式）"
+  <!-- 5 Rules Stack -->
+  <div class="space-y-2 mb-3">
+    <!-- Rule 1 -->
+    <div class="rule-item" style="border-left-color:#FF6B35;">
+      <div class="rule-num" style="color:#FF6B35;">01</div>
+      <div style="flex:1;">
+        <div class="rule-title">Plan Mode 先行：想清楚再动刀，严禁上来就直接改代码</div>
+        <div class="rule-desc">
+          面对超过 2 个文件修改的任务，先切换至 <code>Plan Mode</code>（只读规划模式）。要求 Agent 先梳理涉及文件、依赖关系并列出 <code>Task List</code>。人类架构师花 1 分钟确认方案没硬伤后，再授权进入 <code>Act Mode</code> 开始编码。
         </div>
       </div>
-
-      <div class="slide-skill-card" style="background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.12);">
-        <div class="slide-skill-title"><i class="fas fa-puzzle-piece" style="color:#E0E7FF; margin-right:6px;"></i>技巧3：用Skills固化工作流</div>
-        <div class="slide-skill-desc">把团队的高频任务写成 <strong style="color:#E0E7FF;">SKILL.md</strong> 文件。Agent自动匹配执行，<strong style="color:#FF6B35;">写一次，用无数次</strong>。典型场景：</div>
-        <div class="slide-skill-demo" style="border-color:#E0E7FF;">
-          · <strong style="color:#E0E7FF;">代码审查Skill</strong> — 每次PR前自动执行5项检查<br>
-          · <strong style="color:#E0E7FF;">部署检查清单Skill</strong> — 上线前逐项确认<br>
-          · <strong style="color:#E0E7FF;">数据库迁移Skill</strong> — 检查SQL兼容性和回滚方案<br>
-          · <strong style="color:#E0E7FF;">新人入职Skill</strong> — 自动梳理项目结构和核心流程
-        </div>
-      </div>
+      <span style="font-size:11px; padding:2px 8px; background:rgba(255,107,53,0.15); color:#FF6B35; border-radius:2px; font-weight:700;">防无头苍蝇</span>
     </div>
 
-    <div style="flex:1;">
-      <div class="slide-skill-card" style="background:rgba(255,200,50,0.04); border:1px solid rgba(255,200,50,0.15);">
-        <div class="slide-skill-title"><i class="fas fa-code-branch" style="color:#FFC832; margin-right:6px;"></i>技巧4：先Plan再Code</div>
-        <div class="slide-skill-desc">复杂任务（超过3个文件修改）<strong style="color:#FFC832;">先让Agent输出计划</strong>，确认方案合理后再执行。避免Agent"上来就改"导致方向错误、返工浪费token。</div>
-        <div class="slide-skill-demo" style="border-color:#FFC832;">
-          <span style="color:#FFC832;">第一步（Plan模式）：</span><br>
-          "分析OrderService，列出重构为策略模式的步骤和文件清单"<br>
-          <span style="color:#00E5FF;">第二步（确认后执行）：</span><br>
-          "方案没问题，按计划执行"
-        </div>
-        <div class="slide-skill-desc" style="margin-top:6px;">Codex和OpenCode都支持<strong style="color:#E0E7FF;">Plan/Build模式切换</strong>，Claude Code中用"先分析不要改代码"实现同样效果。</div>
-      </div>
-
-      <div class="slide-skill-card" style="background:rgba(255,200,50,0.04); border:1px solid rgba(255,200,50,0.15);">
-        <div class="slide-skill-title"><i class="fas fa-search" style="color:#FFC832; margin-right:6px;"></i>技巧5：用AI做代码Review</div>
-        <div class="slide-skill-desc">不只是让AI写代码——<strong style="color:#FFC832;">让AI审代码，收益可能更大</strong>。一个结构化的Review提示词：</div>
-        <div class="slide-skill-demo" style="border-color:#FFC832;">
-          <span style="color:#FFC832;">Review这个PR，逐条检查：</span><br>
-          1.安全：SQL注入、XSS、敏感信息泄露<br>
-          2.空指针：所有可能为null的调用链<br>
-          3.事务：@Transactional传播行为<br>
-          4.性能：N+1查询、缺失索引<br>
-          5.规范：是否符合阿里巴巴Java手册<br>
-          <span style="color:rgba(224,231,255,0.4);">输出：严重程度、位置、修复建议</span>
+    <!-- Rule 2 -->
+    <div class="rule-item">
+      <div class="rule-num">02</div>
+      <div style="flex:1;">
+        <div class="rule-title">@ 精准喂料：用显式引用限定输入边界，杜绝全仓盲猜</div>
+        <div class="rule-desc">
+          提问时务必附带明确锚点：<code>@PaymentService.java</code>、<code>@order_schema.sql</code> 或指定报错行号。绝不要说“看看我的项目为什么下单失败”，漫无目的的全盘扫描会迅速将垃圾文件灌满上下文并稀释核心逻辑。
         </div>
       </div>
+      <span style="font-size:11px; padding:2px 8px; background:rgba(0,229,255,0.15); color:#00E5FF; border-radius:2px; font-weight:700;">省Token防中毒</span>
+    </div>
 
-      <div style="padding:6px 10px; background:rgba(0,229,255,0.06); border:2px solid rgba(0,229,255,0.2); margin-top:4px;">
-        <div style="font-size:12px; color:#00E5FF; font-weight:700; margin-bottom:3px;"><i class="fas fa-star" style="margin-right:6px;"></i>核心原则</div>
-        <div style="font-size:11px; color:rgba(224,231,255,0.55); line-height:1.4;"><strong style="color:#E0E7FF;">Agent是"对话式协作"，不是"一次性生成"。</strong>给方向→执行→审查→调整→循环。你的判断力是最后一道防线。</div>
+    <!-- Rule 3 -->
+    <div class="rule-item" style="border-left-color:#22C55E;">
+      <div class="rule-num" style="color:#22C55E;">03</div>
+      <div style="flex:1;">
+        <div class="rule-title">频繁快照，小步提交：Git 是你最强的“后悔药与止损线”</div>
+        <div class="rule-desc">
+          Agent 每成功实现一个小功能或跑通一个单测，立即执行 <code>git commit -m "feat: xxx"</code>。一旦发现 Agent 改偏了或把无关文件改坏，<strong>立刻 <code>git reset --hard HEAD</code> 彻底止损</strong>，绝不在被污染的代码上继续跟它争辩！
+        </div>
       </div>
+      <span style="font-size:11px; padding:2px 8px; background:rgba(34,197,94,0.15); color:#22C55E; border-radius:2px; font-weight:700;">秒级止损机制</span>
+    </div>
+
+    <!-- Rule 4 -->
+    <div class="rule-item" style="border-left-color:#A855F7;">
+      <div class="rule-num" style="color:#A855F7;">04</div>
+      <div style="flex:1;">
+        <div class="rule-title">十五轮法则：聊到第 15 轮未果，果断执行断舍离</div>
+        <div class="rule-desc">
+          当会话超过 15 轮，或者上下文中堆满了长篇报错日志时，必须果断执行 <code>/compact</code> 压缩记忆，或者让 Agent 输出一份当前进展总结，直接开一个全新的 Clean Session 继续。千万不要在一个充满错误自回归的脏上下文里死磕！
+        </div>
+      </div>
+      <span style="font-size:11px; padding:2px 8px; background:rgba(168,85,247,0.15); color:#A855F7; border-radius:2px; font-weight:700;">清空错误累积</span>
+    </div>
+
+    <!-- Rule 5 -->
+    <div class="rule-item">
+      <div class="rule-num">05</div>
+      <div style="flex:1;">
+        <div class="rule-title">临时脚本开路：批量重构与脏活让外部独立脚本先验证</div>
+        <div class="rule-desc">
+          遇到上百个文件的批量替换、正则重构或数据库数据清洗时，不要让 Agent 逐个文件手写修改。命令它先在 <code>scratch/</code> 目录下写一个轻量 Python 或 Shell 脚本执行 dry-run，跑通输出确认无误后再一键合入代码库。
+        </div>
+      </div>
+      <span style="font-size:11px; padding:2px 8px; background:rgba(0,229,255,0.15); color:#00E5FF; border-radius:2px; font-weight:700;">安全高效防脏</span>
     </div>
   </div>
 
+  <!-- Bottom Bar -->
+  <div style="padding:10px 16px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.22); font-size:12px; color:#E0E7FF; display:flex; justify-content:space-between; align-items:center;">
+    <span>
+      <i class="fas fa-magic" style="color:#FF6B35; margin-right:8px;"></i><strong>日常交互二十字口诀：</strong>
+      <strong>先想后动刀，精准喂材料；小步常提交，十五轮就跑，脚本先验好！</strong>
+    </span>
+    <span style="color:#22C55E; font-weight:700;"><i class="fas fa-shield-alt" style="margin-right:4px;"></i>从源头消灭 90% 的 Bug 循环</span>
+  </div>
 </div>
 </body>
 </html>

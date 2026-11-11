@@ -3,96 +3,118 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>提示词工程</title>
+<title>告别 2023 对话套话：面向 Coding Agent 的结构化提示词四要素</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
 .slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-tip { display:flex; align-items:flex-start; margin-bottom:14px; padding:12px 16px; background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.1); }
-.slide-tip-num { width:32px; height:32px; border-radius:50%; background:rgba(0,229,255,0.15); color:#00E5FF; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; flex-shrink:0; margin-right:14px; }
-.slide-tip-content { flex:1; }
-.slide-tip-title { font-size:15px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
-.slide-tip-desc { font-size:12px; color:rgba(224,231,255,0.55); line-height:1.5; }
-.slide-bad-good { display:flex; gap:16px; margin-top:6px; }
-.slide-bad { flex:1; padding:8px 12px; background:rgba(255,60,60,0.06); border-left:3px solid rgba(255,60,60,0.4); }
-.slide-good { flex:1; padding:8px 12px; background:rgba(0,229,255,0.06); border-left:3px solid #00E5FF; }
-.slide-example-label { font-size:11px; font-weight:700; margin-bottom:4px; }
-.slide-example-text { font-size:11px; color:rgba(224,231,255,0.5); line-height:1.4; }
+.slide-container h1 { font-size:29px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; }
+.pillar-card { padding:14px 16px; background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.16); display:flex; flex-direction:column; justify-content:space-between; }
+.pillar-title { font-size:15px; font-weight:700; color:#E0E7FF; margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+.pillar-desc { font-size:12px; color:rgba(224,231,255,0.65); line-height:1.5; margin-bottom:8px; }
+.pillar-code { padding:7px 10px; background:rgba(0,0,0,0.45); border-left:3px solid #00E5FF; font-family:monospace; font-size:11px; color:#E0E7FF; line-height:1.45; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:32px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 03</div>
-  <h1 class="mb-2">提示词工程：基础技巧</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:18px;"></div>
+<div class="slide-container" style="padding:26px 65px;">
+  <div class="mb-1 slide-section-num">CHAPTER 03 · 面向 CODING AGENT 的提示词工程</div>
+  <h1 class="mb-2">告别 2023 对话套话：面向 Coding Agent 的结构化提示词四要素</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:12px;"></div>
 
-  <div class="flex" style="gap:30px;">
-    <div style="flex:1;">
-      <div class="slide-tip">
-        <div class="slide-tip-num">1</div>
-        <div class="slide-tip-content">
-          <div class="slide-tip-title">明确角色和任务</div>
-          <div class="slide-tip-desc">告诉模型它是什么角色、要做什么事。角色设定直接影响输出风格和专业度。</div>
-          <div class="slide-bad-good">
-            <div class="slide-bad"><div class="slide-example-label" style="color:rgba(255,60,60,0.6);">差</div><div class="slide-example-text">"帮我写个接口"</div></div>
-            <div class="slide-good"><div class="slide-example-label" style="color:#00E5FF;">好</div><div class="slide-example-text">"你是一个Spring Boot高级工程师，帮我写一个RESTful接口，要求..."</div></div>
-          </div>
+  <!-- Top Banner: Why 2023 Prompting is Obsolete -->
+  <div style="padding:10px 16px; background:rgba(255,60,60,0.06); border:1px solid rgba(255,60,60,0.22); margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; gap:16px;">
+    <div style="font-size:12.5px; color:rgba(224,231,255,0.8); line-height:1.5;">
+      <strong style="color:#FF6B35;"><i class="fas fa-ban" style="margin-right:6px;"></i>彻底淘汰 2023 年玄学咒语：</strong>
+      在 2026 推理模型与 Coding Agent 面前，手写<span style="text-decoration:line-through; color:rgba(224,231,255,0.45);">“你是一位 20 年经验的 Java 架构师，请深呼吸一步步思考，做对了给你 200 美元小费”</span>毫无意义（模型原生自带 Thinking 思维链，且角色已由 `AGENTS.md` 固化）。
+    </div>
+    <span style="padding:4px 10px; background:rgba(0,229,255,0.15); color:#00E5FF; font-size:11.5px; font-weight:700; white-space:nowrap;">给情绪价值 ❌ ➔ 给工程契约 ✅</span>
+  </div>
+
+  <!-- 2x2 Grid: 4 Pillars of 2026 Agent Prompting -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; height:400px;">
+    <!-- Element 1 -->
+    <div class="pillar-card" style="border-top:3px solid #00E5FF;">
+      <div>
+        <div class="pillar-title">
+          <span style="background:rgba(0,229,255,0.18); color:#00E5FF; padding:2px 8px; border-radius:4px; font-family:monospace;">要素 ①</span>
+          <span>精准锚定上下文（`@File` / `@Symbol` / `@Git Diff`）</span>
+        </div>
+        <div class="pillar-desc">
+          不要让 Agent 在十万行代码里大海捞针盲猜！直接用 `@` 喂给它<strong>参考样板文件（Golden Sample）</strong>与目标修改文件，信噪比提升 10 倍，且省去大量搜索 Token。
         </div>
       </div>
-      <div class="slide-tip">
-        <div class="slide-tip-num">2</div>
-        <div class="slide-tip-content">
-          <div class="slide-tip-title">提供上下文和约束</div>
-          <div class="slide-tip-desc">模型不知道你的项目背景。给它技术栈、代码规范、已有代码片段等上下文。</div>
-          <div class="slide-bad-good">
-            <div class="slide-bad"><div class="slide-example-label" style="color:rgba(255,60,60,0.6);">差</div><div class="slide-example-text">"优化这段代码"</div></div>
-            <div class="slide-good"><div class="slide-example-label" style="color:#00E5FF;">好</div><div class="slide-example-text">"项目用Java 17 + Spring Boot 3，优化以下代码的性能，不要改变接口签名"</div></div>
-          </div>
-        </div>
-      </div>
-      <div class="slide-tip">
-        <div class="slide-tip-num">3</div>
-        <div class="slide-tip-content">
-          <div class="slide-tip-title">给出输出格式要求</div>
-          <div class="slide-tip-desc">明确你要什么格式的输出——代码、表格、列表、JSON、步骤说明等。</div>
-        </div>
+      <div class="pillar-code" style="border-color:#00E5FF;">
+        <span style="color:#00E5FF;"># 精准锚定示例</span><br>
+        参考 <span style="color:#22C55E;">@OrderController.java</span> 的统一返回包装与异常处理风格，<br>
+        在 <span style="color:#22C55E;">@RefundServiceImpl.java</span> 的 <span style="color:#FFC832;">#applyRefund</span> 方法中新增部分退款逻辑。
       </div>
     </div>
-    <div style="flex:1;">
-      <div class="slide-tip">
-        <div class="slide-tip-num">4</div>
-        <div class="slide-tip-content">
-          <div class="slide-tip-title">Few-shot：给例子</div>
-          <div class="slide-tip-desc">给1-3个输入→输出的例子，模型会模仿你的格式和风格。这是最有效的技巧之一。</div>
+
+    <!-- Element 2 -->
+    <div class="pillar-card" style="border-top:3px solid #FF6B35;">
+      <div>
+        <div class="pillar-title">
+          <span style="background:rgba(255,107,53,0.18); color:#FF6B35; padding:2px 8px; border-radius:4px; font-family:monospace;">要素 ②</span>
+          <span>明确输入输出契约与异常边界（I/O Contract）</span>
+        </div>
+        <div class="pillar-desc">
+          把自然语言变成消除歧义的<strong>工程契约</strong>：显式声明入参 DTO 校验规则、状态流转条件、并发幂等要求以及业务异常码。
         </div>
       </div>
-      <div class="slide-tip">
-        <div class="slide-tip-num">5</div>
-        <div class="slide-tip-content">
-          <div class="slide-tip-title">Chain of Thought：让模型分步思考</div>
-          <div class="slide-tip-desc">加一句"请一步步分析"或"先列出思路再给答案"，复杂任务准确率显著提升。</div>
-        </div>
-      </div>
-      <div class="slide-tip">
-        <div class="slide-tip-num">6</div>
-        <div class="slide-tip-content">
-          <div class="slide-tip-title">迭代优化</div>
-          <div class="slide-tip-desc">第一次输出不满意很正常。根据结果调整提示词，逐步逼近理想输出。<strong style="color:#E0E7FF;">提示词工程是迭代过程，不是一次写对。</strong></div>
-        </div>
-      </div>
-      <div style="padding:14px 16px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.15); margin-top:8px;">
-        <div style="font-size:13px; color:#FF6B35; font-weight:700; margin-bottom:4px;"><i class="fas fa-star" style="margin-right:6px;"></i>编程场景的核心提示词</div>
-        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.5;">
-          代码审查："审查以下代码，重点关注线程安全、空指针、SQL注入"<br>
-          重构："将以下代码重构为策略模式，保持行为不变"<br>
-          写单测："为以下Service写单元测试，覆盖正常/异常/边界场景，用Mockito"<br>
-          排错："以下代码运行时报NullPointerException，分析原因并修复"
-        </div>
+      <div class="pillar-code" style="border-color:#FF6B35;">
+        <span style="color:#FF6B35;"># 契约定义示例</span><br>
+        1. 入参 `RefundApplyReq` 需校验 `refundAmount &lt;= paidAmount - refundedAmount`<br>
+        2. 超额时抛出 `BizException(ErrorCode.REFUND_AMOUNT_EXCEEDED)`<br>
+        3. 以 `orderNo + requestId` 加 Redis 分布式锁防重（TTL=5s）。
       </div>
     </div>
+
+    <!-- Element 3 -->
+    <div class="pillar-card" style="border-top:3px solid #A855F7;">
+      <div>
+        <div class="pillar-title">
+          <span style="background:rgba(168,85,247,0.18); color:#A855F7; padding:2px 8px; border-radius:4px; font-family:monospace;">要素 ③</span>
+          <span>划定禁改边界（Negative Constraints 负面约束）</span>
+        </div>
+        <div class="pillar-desc">
+          Coding Agent 极度热衷“顺手重构”你没让它动的代码！必须明确告知<strong>禁止修改哪些公共类、禁止升级依赖、禁止破坏存量接口签名</strong>。
+        </div>
+      </div>
+      <div class="pillar-code" style="border-color:#A855F7;">
+        <span style="color:#A855F7;"># 禁改红线示例</span><br>
+        <strong style="color:#FF6B35;">[DO NOT]</strong> 严禁修改 `OrderEntity` 表结构及已有 public 方法签名；<br>
+        <strong style="color:#FF6B35;">[DO NOT]</strong> 严禁改动 `pom.xml` 依赖版本或顺手格式化无关代码行。
+      </div>
+    </div>
+
+    <!-- Element 4 -->
+    <div class="pillar-card" style="border-top:3px solid #22C55E;">
+      <div>
+        <div class="pillar-title">
+          <span style="background:rgba(34,197,94,0.18); color:#22C55E; padding:2px 8px; border-radius:4px; font-family:monospace;">要素 ④</span>
+          <span>指定闭环验证命令（Verification Command）</span>
+        </div>
+        <div class="pillar-desc">
+          这是区别于网页聊天的<strong>灵魂一击</strong>！在指令末尾指定定向单测或编译命令，赋予 Agent 明确的“完成定义（Definition of Done）”。
+        </div>
+      </div>
+      <div class="pillar-code" style="border-color:#22C55E;">
+        <span style="color:#22C55E;"># 闭环验收命令示例</span><br>
+        完成后请在 `@RefundServiceTest.java` 补充正常/超额/幂等 3 个单测用例，<br>
+        并在终端运行 <span style="color:#22C55E;">`mvn test -Dtest=RefundServiceTest`</span> 直至全部绿灯通过。
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Formula -->
+  <div style="margin-top:14px; padding:9px 16px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.22); display:flex; align-items:center; justify-content:space-between;">
+    <div style="font-size:12.5px; color:#E0E7FF;">
+      <strong style="color:#00E5FF;"><i class="fas fa-key" style="margin-right:6px;"></i>2026 编程 Prompt 黄金公式：</strong>
+      <span style="font-family:monospace; color:#22C55E;">[@精准锚点 + 参考样板]</span> + <span style="font-family:monospace; color:#FF6B35;">[I/O 业务契约]</span> + <span style="font-family:monospace; color:#A855F7;">[DO NOT 禁改红线]</span> + <span style="font-family:monospace; color:#00E5FF;">[终端单测验收命令]</span>
+    </div>
+    <span style="font-size:11.5px; color:rgba(224,231,255,0.5);">把 Prompt 当作微型 Spec 契约来写</span>
   </div>
 </div>
 </body>

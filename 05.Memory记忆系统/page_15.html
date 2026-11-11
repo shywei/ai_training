@@ -1,56 +1,115 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>Demo 架构 — v2.0 新增组件</title>
-<style>*{margin:0;padding:0;box-sizing:border-box}
+<title>记忆全生命周期治理 — 写入、冲突、遗忘与并发控制</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
-.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)}</style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;position:relative;">
-<div class="sn">CHAPTER 09</div>
-<h1 class="mb-2">Demo 架构 — v2.0 新增组件</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+.s h1{font-size:30px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px}
+.mb-2{margin-bottom:6px}
+.col{flex:1;padding:10px 12px;border-radius:6px;display:flex;flex-direction:column;justify-content:space-between}
+.col .t{font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.col .b{font-size:11px;color:rgba(224,231,255,0.68);line-height:1.55}
+</style></head>
+<body>
+<div class="s" style="padding:22px 50px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 08 · 生命周期治理</div>
+  <h1 class="mb-2">记忆全生命周期治理 — 写入、冲突、遗忘与并发控制</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:10px;"></div>
 
-<div style="flex:1;display:flex;gap:18px;">
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:8px;">v2.0 新增文件</div>
-    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
-      <pre style="font-size:10px;"><span style="color:#FF6B35;">auth/</span>
-  User.java + UserMapper + AuthController
+  <!-- 四大核心治理模块：4 列并排 -->
+  <div style="flex:1;display:flex;gap:12px;">
+    <!-- 1. 写入策略 -->
+    <div class="col" style="background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.2);">
+      <div>
+        <div class="t" style="color:#00E5FF;">
+          <span>✍️ 写入策略与门槛</span>
+        </div>
+        <div class="b">
+          <strong style="color:#E0E7FF;">写入机制：</strong><br>
+          · <strong style="color:#00E5FF;">同步写：</strong>强一致约束（用户显式纠正偏好），立即生效；<br>
+          · <strong style="color:#00E5FF;">异步缓冲写：</strong>主流方案（消息队列解耦削峰，后台 LLM 提取画像，不阻塞主对话响应）；<br>
+          · <strong style="color:#00E5FF;">定时批处理：</strong>低峰期批量聚类沉淀。<br><br>
+          <strong style="color:#E0E7FF;">入库准入门槛：</strong><br>
+          严加过滤！仅记住长期偏好与客观事实；临时密码、短信验证码、无关闲聊与一次性需求坚决不入库。
+        </div>
+      </div>
+      <div style="font-size:11px;color:#00E5FF;font-weight:700;border-top:1px solid rgba(0,229,255,0.15);padding-top:4px;">
+        ★ 生产规范：重要画像支持用户确认
+      </div>
+    </div>
 
-<span style="color:#FF6B35;">memory/</span>
-  SessionMemory.java      <span style="color:rgba(224,231,255,0.3);">Redis + 滑动窗口</span>
-  MemoryManager.java      <span style="color:rgba(224,231,255,0.3);">context 构建</span>
-  SummaryPipeline.java    <span style="color:rgba(224,231,255,0.3);">累积压缩</span>
-  UserProfile.java        <span style="color:rgba(224,231,255,0.3);">画像实体</span>
-  UserProfileMapper.java  <span style="color:rgba(224,231,255,0.3);">MyBatis Plus</span>
-  UserProfileExtractor.java <span style="color:rgba(224,231,255,0.3);">异步抽取</span>
+    <!-- 2. 冲突解决 -->
+    <div class="col" style="background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.22);">
+      <div>
+        <div class="t" style="color:#FF6B35;">
+          <span>⚔️ 冲突消解与事实覆写</span>
+        </div>
+        <div class="b">
+          <strong style="color:#E0E7FF;">业务痛点：</strong><br>
+          用户偏好反转（“上月预算5000，今天改口预算15000”），新旧记忆冲突导致回答自相矛盾。<br><br>
+          <strong style="color:#E0E7FF;">借鉴 Mem0 状态处理思想（ADD/UPDATE/DELETE/NOOP）：</strong><br>
+          新记忆入库前与已有记忆计算语义相似度，由 LLM 判定流转：<br>
+          · <strong style="color:#22C55E;">ADD：</strong>全新事实，直接插入；<br>
+          · <strong style="color:#FF6B35;">UPDATE：</strong>新事实更新/推翻旧偏好；<br>
+          · <strong style="color:#EF4444;">DELETE：</strong>用户显式要求清除；<br>
+          · <strong style="color:#94A3B8;">NOOP：</strong>语义重复，无变动忽略。
+        </div>
+      </div>
+      <div style="font-size:11px;color:#FF6B35;font-weight:700;border-top:1px solid rgba(255,107,53,0.15);padding-top:4px;">
+        ★ 核心法则：时间戳生效 + 事实覆写
+      </div>
+    </div>
 
-<span style="color:#FF6B35;">core/</span>
-  LlmInteractionLogger.java <span style="color:rgba(224,231,255,0.3);">LLM 日志</span></pre>
+    <!-- 3. 过期与遗忘 -->
+    <div class="col" style="background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.22);">
+      <div>
+        <div class="t" style="color:#A855F7;">
+          <span>⏳ 遗忘曲线与合规清理</span>
+        </div>
+        <div class="b">
+          <strong style="color:#E0E7FF;">时间衰减（遗忘曲线）：</strong><br>
+          模拟艾宾浩斯遗忘模型，检索打分引入时间加权衰减因子：<br>
+          <code style="color:#22C55E;font-size:11px;">Score = Sim · e^(-λ·Δt) · Weight</code><br>
+          久未访问的边缘记忆自然沉降降权。<br><br>
+          <strong style="color:#E0E7FF;">TTL 与合规被遗忘权：</strong><br>
+          · Redis 设空闲与绝对双 TTL 上限防 OOM；<br>
+          · 遵守 GDPR / 个保法要求，支持按 userId 级联物理清除（MySQL + Redis + pgvector 一键清除）。
+        </div>
+      </div>
+      <div style="font-size:11px;color:#A855F7;font-weight:700;border-top:1px solid rgba(168,85,247,0.15);padding-top:4px;">
+        ★ 合规底线：不可删除即不可控
+      </div>
+    </div>
+
+    <!-- 4. 并发控制 -->
+    <div class="col" style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.25);">
+      <div>
+        <div class="t" style="color:#22C55E;">
+          <span>🔒 并发控制方案矩阵</span>
+        </div>
+        <div class="b">
+          <strong style="color:#E0E7FF;">并发写覆盖（Lost Update）：</strong>多 Pod 并发处理同一用户导致读-改-写覆盖。<br>
+          <strong style="color:#E0E7FF;">方案权衡矩阵（拒绝盲目加锁）：</strong><br>
+          · <strong style="color:#22C55E;">MySQL 乐观锁：</strong><code>version</code> 字段 CAS 比较重试，低冲突高吞吐，首选方案；<br>
+          · <strong style="color:#00E5FF;">原子更新/追加：</strong>利用 Redis <code>RPUSH</code> / 数据库行级局部原子更新，无需读取整行；<br>
+          · <strong style="color:#EAB308;">幂等写入：</strong>按 <code>msgId / traceId</code> 唯一索引判重防重放；<br>
+          · <strong style="color:#FF6B35;">分布式锁：</strong>仅用于跨系统高危一致性，绝非所有记忆写入通加分布式锁！
+        </div>
+      </div>
+      <div style="font-size:11px;color:#22C55E;font-weight:700;border-top:1px solid rgba(34,197,94,0.15);padding-top:4px;">
+        ★ 架构准则：轻量原子与乐观锁优先
+      </div>
     </div>
   </div>
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">日志文件（演示重点）</div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
-      <div style="padding:10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-        <div style="font-size:12px;color:#00E5FF;font-weight:700;">logs/llm-chat.log</div>
-        <div style="font-size:11px;color:rgba(224,231,255,0.5);">对话请求/响应。看 context 注入。</div>
-      </div>
-      <div style="padding:10px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);border-radius:6px;">
-        <div style="font-size:12px;color:#FF6B35;font-weight:700;">logs/llm-summary.log / llm-profile.log</div>
-        <div style="font-size:11px;color:rgba(224,231,255,0.5);">画像抽取 + 压缩的完整过程。</div>
-      </div>
-    </div>
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">模型配置（从 yml 读取）</div>
-    <div style="padding:8px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
-      <pre style="font-size:10px;">agent.model.fast     -> 对话路由（快）
-agent.model.reasoning -> 对话路由（推理）
-agent.model.summary   -> 上下文压缩
-agent.model.extract   -> 画像抽取</pre>
+
+  <!-- 底部：明确标注 Demo 教学简化与生产级差异 -->
+  <div style="margin-top:8px;padding:7px 14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.2);border-radius:5px;">
+    <div style="font-size:11.5px;color:rgba(224,231,255,0.78);line-height:1.5;">
+      <strong style="color:#FF6B35;">⚠️ 架构说明（Demo 教学简化 vs 生产级差异）：</strong>
+      Demo 中采用“固定满 8 条对话触发摘要压缩”或“固定 5 轮从 Redis 刷入持久库”，属于<strong>教学演示简化（Educational Simplification）</strong>；
+      生产实践中多采用<strong>动态 Token 预算阈值触发（达窗口 65%）</strong>、<strong>基于语义完整性的任务边界触发（识别话题收尾）</strong>或<strong>异步周期性事实合并触发</strong>。
     </div>
   </div>
 </div>
-<div style="position:absolute;bottom:14px;right:60px;padding:4px 12px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:12px;font-size:10px;color:#00E5FF;">Demo 可验证</div>
-</div></body></html>
+</body></html>

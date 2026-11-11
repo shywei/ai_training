@@ -1,93 +1,101 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>总结</title>
+<title>工程现实与 MVP 最小可行演进原则</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
-.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
-.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
-.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
-.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden;padding:30px 52px;display:flex;flex-direction:column}
+.s h1{font-size:27px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px;font-weight:700}
+.stage-box{flex:1;padding:12px 14px;border-radius:7px;display:flex;flex-direction:column;justify-content:space-between}
 </style></head><body>
-<div class="s" style="padding:36px 60px;display:flex;flex-direction:column;">
-<h1 class="mb-2">总结</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+<div class="s">
+  <div class="mb-1 sn">CHAPTER 06 · 架构误区辨析与演进总结</div>
+  <h1 class="mb-1">工程现实与落地边界：反过度设计（Anti-Overengineering）与 MVP 渐进演进</h1>
+  <div style="font-size:12px;color:rgba(224,231,255,0.65);margin-bottom:12px;">
+    架构师最容易犯的错误是“拿着锤子找钉子”，在一个日活 50 人的内部小工具上堆砌全套分布式多智能体。请牢记以下<b style="color:#FF6B35;">四条克制原则</b>与<b style="color:#00E5FF;">四阶 MVP 演进法</b>：
+  </div>
 
-<div style="flex:1;display:flex;flex-direction:column;">
-<div style="margin-bottom:10px;">
+  <!-- 上半部分：四条反过度设计铁律 -->
+  <div class="grid grid-cols-2 gap-3.5 mb-3.5">
+    <div style="padding:12px 16px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.24);border-radius:7px;">
+      <div style="font-size:14px;font-weight:700;color:#FF6B35;margin-bottom:4px;">❶ 什么时候根本不该上 Agent？</div>
+      <div style="font-size:11.5px;color:rgba(224,231,255,0.72);line-height:1.55;">
+        当业务流程 100% 确定、无需自然语言理解、无需动态推理时（如定时同步报表、固定公式计费），直接写 Java SQL/定时任务！强行上 Agent 只会带来 10 倍延迟与幻觉风险。
+      </div>
+    </div>
+
+    <div style="padding:12px 16px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.24);border-radius:7px;">
+      <div style="font-size:14px;font-weight:700;color:#FF6B35;margin-bottom:4px;">❷ 什么时候不必搭建向量数据库做 RAG？</div>
+      <div style="font-size:11.5px;color:rgba(224,231,255,0.72);line-height:1.55;">
+        如果业务规则文档总共不到 5,000 字且极少变动，直接放进 System Prompt 并开启 <b style="color:#22C55E;">Prefix Caching（前缀缓存）</b>，效果比切块向量检索更好、更准，且省去整套 ETL 维护成本！
+      </div>
+    </div>
+
+    <div style="padding:12px 16px;background:rgba(0,229,255,0.035);border:1px solid rgba(0,229,255,0.2);border-radius:7px;">
+      <div style="font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:4px;">❸ 什么时候不必拆分独立 MCP Server 微服务？</div>
+      <div style="font-size:11.5px;color:rgba(224,231,255,0.72);line-height:1.55;">
+        如果只有 1~3 个专属工具，且只给当前这一个 Spring Boot 应用使用，直接用 Spring AI 本地 <code style="color:#00E5FF;">@Tool</code> 注解即可；只有当工具需要<b style="color:#E0E7FF;">跨团队、跨多 Agent 宿主共享复用或独立扩缩容</b>时，才拆成独立 MCP Server。
+      </div>
+    </div>
+
+    <div style="padding:12px 16px;background:rgba(0,229,255,0.035);border:1px solid rgba(0,229,255,0.2);border-radius:7px;">
+      <div style="font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:4px;">❹ 什么时候绝对不要拆 Multi-Agent？</div>
+      <div style="font-size:11.5px;color:rgba(224,231,255,0.72);line-height:1.55;">
+        单 Agent 还没调优好、评测集还没建起来之前，严禁拆多智能体！每增加一次 Agent 间通信（Handoff/A2A），就会增加一次上下文损耗与延迟翻倍。单 Agent + FSM 状态机是 80% 项目的终点。
+      </div>
+    </div>
   </div>
-<div style="display:flex;gap:16px;margin-bottom:14px;flex:1;">
-  <div style="flex:1;padding:16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:8px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:28px;color:#00E5FF;margin-bottom:4px;text-align:center;">①</div>
-    <div style="font-size:15px;color:#E0E7FF;font-weight:600;margin-bottom:6px;text-align:center;">知道Agent是什么</div>
-    <div style="font-size:12px;color:rgba(224,231,255,0.5);line-height:1.6;text-align:center;">不是模型，是系统<br>LLM是大脑，Agent还有手、脚和记忆<br>Agent = LLM + Memory + Knowledge<br>+ Tool + Workflow</div>
+
+  <!-- 下半部分：从 Day 1 到生产级的 MVP 四步演进法 -->
+  <div style="font-size:13px;font-weight:700;color:#E0E7FF;margin-bottom:8px;">
+    <i class="fas fa-stairs text-[#22C55E] mr-1"></i> 企业新项目落地标准路径：从最小可行闭环（MVP）按需演进
   </div>
-  <div style="flex:1;padding:16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:8px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:28px;color:#00E5FF;margin-bottom:4px;text-align:center;">②</div>
-    <div style="font-size:15px;color:#E0E7FF;font-weight:600;margin-bottom:6px;text-align:center;">知道能力体系</div>
-    <div style="font-size:12px;color:rgba(224,231,255,0.5);line-height:1.6;text-align:center;">认知层：Prompt + Memory + Knowledge<br>执行层：Tool + MCP + Workflow + Multi-Agent<br>每层解决不同问题，按需组合</div>
-  </div>
-  <div style="flex:1;padding:16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:8px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:28px;color:#00E5FF;margin-bottom:4px;text-align:center;">③</div>
-    <div style="font-size:15px;color:#E0E7FF;font-weight:600;margin-bottom:6px;text-align:center;">会拆需求</div>
-    <div style="font-size:12px;color:rgba(224,231,255,0.5);line-height:1.6;text-align:center;">需求 → 需要什么能力<br>→ 用什么技术 → 怎么集成<br>不要从技术出发，要从问题出发</div>
+  <div class="flex gap-3 flex-1" style="min-height:0;">
+    <div class="stage-box" style="background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.25);">
+      <div>
+        <div style="font-size:11px;color:#00E5FF;font-weight:700;">STAGE 1 · 最小闭环 (Day 1~3)</div>
+        <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin:3px 0 6px;">Prompt + LLM + 1~2 Local Tools</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.68);line-height:1.55;">
+          先把核心意图识别、结构化 JSON 输出和最关键的 1 个只读查询工具跑通，收集第一批 50 条真实业务测试集（Golden Cases）。
+        </div>
+      </div>
+      <div style="font-size:11px;color:#00E5FF;font-weight:600;padding-top:4px;">验证目标：核心业务价值是否成立</div>
+    </div>
+
+    <div class="stage-box" style="background:rgba(168,85,247,0.04);border:1px solid rgba(168,85,247,0.25);">
+      <div>
+        <div style="font-size:11px;color:#A855F7;font-weight:700;">STAGE 2 · 补齐认知 (Week 1~2)</div>
+        <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin:3px 0 6px;">+ Memory 三层记忆 + pgvector RAG</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.68);line-height:1.55;">
+          发现单轮对话记不住上下文时加 Redis/MySQL 画像；发现模型对私域商品/规则产生幻觉时接入 pgvector 混合检索与 Rerank。
+        </div>
+      </div>
+      <div style="font-size:11px;color:#A855F7;font-weight:600;padding-top:4px;">验证目标：回答准确率与个性化达标</div>
+    </div>
+
+    <div class="stage-box" style="background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.28);">
+      <div>
+        <div style="font-size:11px;color:#FF6B35;font-weight:700;">STAGE 3 · 解耦与受控 (Week 3~4)</div>
+        <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin:3px 0 6px;">+ MCP Server 解耦 + FSM 状态机</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.68);line-height:1.55;">
+          将通用业务工具抽离为标准 MCP Server；引入 <code style="color:#FF6B35;">AgentRuntime</code> 状态机、HITL 高危下单人工确认、三级容错与全链路 Trace。
+        </div>
+      </div>
+      <div style="font-size:11px;color:#FF6B35;font-weight:600;padding-top:4px;">验证目标：满足生产 SLA 与安全审计</div>
+    </div>
+
+    <div class="stage-box" style="background:rgba(34,197,94,0.04);border:1px solid rgba(34,197,94,0.28);">
+      <div>
+        <div style="font-size:11px;color:#22C55E;font-weight:700;">STAGE 4 · 规模化协同 (Month 2+)</div>
+        <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin:3px 0 6px;">+ AgentScope 2.0 + Multi-Agent 中台</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.68);line-height:1.55;">
+          当扩展到全集团跨部门场景（导购+售后+供应链）时，升级工业级运行时框架并通过 A2A 协议组建多智能体网关中台。
+        </div>
+      </div>
+      <div style="font-size:11px;color:#22C55E;font-weight:600;padding-top:4px;">验证目标：企业级多业务域复用</div>
+    </div>
   </div>
 </div>
-
-<!-- 快速决策表 -->
-<div style="display:flex;gap:10px;margin-bottom:14px;">
-  <div style="flex:1;padding:8px 12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:5px;text-align:center;">
-    <div style="font-size:11px;color:#00E5FF;font-weight:700;">需要记用户？</div>
-    <div style="font-size:11px;color:rgba(224,231,255,0.5);">→ Memory</div>
-  </div>
-  <div style="flex:1;padding:8px 12px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:5px;text-align:center;">
-    <div style="font-size:11px;color:#00E5FF;font-weight:700;">需要查文档？</div>
-    <div style="font-size:11px;color:rgba(224,231,255,0.5);">→ Knowledge (RAG)</div>
-  </div>
-  <div style="flex:1;padding:8px 12px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:5px;text-align:center;">
-    <div style="font-size:11px;color:#FF6B35;font-weight:700;">需要调系统？</div>
-    <div style="font-size:11px;color:rgba(224,231,255,0.5);">→ Tool + MCP</div>
-  </div>
-  <div style="flex:1;padding:8px 12px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:5px;text-align:center;">
-    <div style="font-size:11px;color:#FF6B35;font-weight:700;">多步骤有审批？</div>
-    <div style="font-size:11px;color:rgba(224,231,255,0.5);">→ Workflow</div>
-  </div>
-  <div style="flex:1;padding:8px 12px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:5px;text-align:center;">
-    <div style="font-size:11px;color:#FF6B35;font-weight:700;">需要专业分工？</div>
-    <div style="font-size:11px;color:rgba(224,231,255,0.5);">→ Multi-Agent</div>
-  </div>
-</div>
-
-<!-- 后续学习路线 -->
-<div style="display:flex;gap:8px;margin-bottom:14px;">
-  <div style="flex:1;padding:8px 10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
-    <div style="font-size:11px;color:#00E5FF;font-weight:700;margin-bottom:3px;">🧠 深入Memory</div>
-    <div style="font-size:10px;color:rgba(224,231,255,0.45);line-height:1.5;">Mem0 · Zep · 向量化记忆<br>长期记忆压缩与检索策略</div>
-  </div>
-  <div style="flex:1;padding:8px 10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
-    <div style="font-size:11px;color:#00E5FF;font-weight:700;margin-bottom:3px;">📚 深入RAG</div>
-    <div style="font-size:10px;color:rgba(224,231,255,0.45);line-height:1.5;">LlamaIndex · Haystack · Spring AI RAG<br>Embedding选型 · ReRank优化 · 多路召回</div>
-  </div>
-  <div style="flex:1;padding:8px 10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
-    <div style="font-size:11px;color:#00E5FF;font-weight:700;margin-bottom:3px;">⚙️ 深入Workflow</div>
-    <div style="font-size:10px;color:rgba(224,231,255,0.45);line-height:1.5;">LangGraph · Dify · n8n<br>状态机设计 · 人机协作节点</div>
-  </div>
-  <div style="flex:1;padding:8px 10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
-    <div style="font-size:11px;color:#00E5FF;font-weight:700;margin-bottom:3px;">🔌 深入MCP</div>
-    <div style="font-size:10px;color:rgba(224,231,255,0.45);line-height:1.5;">Spring AI MCP · MCP SDK<br>自定义MCP Server开发</div>
-  </div>
-  <div style="flex:1;padding:8px 10px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:5px;">
-    <div style="font-size:11px;color:#FF6B35;font-weight:700;margin-bottom:3px;">🤖 深入Agent</div>
-    <div style="font-size:10px;color:rgba(224,231,255,0.45);line-height:1.5;">OpenClaw · CrewAI · AutoGen<br>Multi-Agent协作模式实战</div>
-  </div>
-</div>
-
-<div style="padding:12px 16px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;text-align:center;">
-  <div style="font-size:16px;color:#FF6B35;font-weight:700;">Agent不是模型，Agent是系统。</div>
-  <div style="font-size:13px;color:rgba(224,231,255,0.5);margin-top:6px;">Agent系统设计 = 能力拆解 + 系统组合 · 不需要的能力不要加 · 从最小架构开始</div>
-  </div>
-</div>
-</div></body></html>
+</body></html>

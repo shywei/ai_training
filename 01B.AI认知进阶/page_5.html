@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>第二章 · Tokenizer 深度剖析：BPE 字节对编码算法与分词陷阱</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.s { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.s h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
+.card { background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.15); border-radius:4px; padding:14px 18px; }
+.badge { font-size:11px; font-weight:700; padding:2px 8px; border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="s flex flex-col justify-between">
+  <!-- Header -->
+  <div>
+    <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; margin-bottom:4px;">CHAPTER 02 · 模型推理核心机理</div>
+    <h1 class="mb-2">Tokenizer 深度剖析：BPE 字节对编码算法与分词陷阱</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:12px;"></div>
+    <div style="font-size:13px; color:rgba(224,231,255,0.7); line-height:1.5;">
+      分词器（Tokenizer）是大模型看世界的唯一感官窗口，其编码规则直接决定了模型的压缩效率、算术稳定性与代码理解精度。
+    </div>
+  </div>
+
+  <!-- Top: BPE Principle & Compression Ratio -->
+  <div class="grid grid-cols-2 gap-4 my-1">
+    <!-- BPE Algorithm -->
+    <div class="card" style="border-top:3px solid #00E5FF;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(0,229,255,0.15); color:#00E5FF;">算法核心</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Byte Pair Encoding</span>
+      </div>
+      <div style="font-size:15px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">BPE 构建与 Merge Table 合并机理</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.55; margin-bottom:8px;">
+        1. <strong>初始词表：</strong>以 256 个基础字节（Bytes）为起点，保证任意二进制数据永远不会 OOV（Out-Of-Vocabulary）。<br>
+        2. <strong>统计频次：</strong>在海量预训练语料中统计相邻 Byte 对的共现频次。<br>
+        3. <strong>迭代合并：</strong>将最高频的字节对合并为新 Token（如 <code>'l' + 'o' ➔ 'lo'</code>，<code>'l' + 'o' + 'w' ➔ 'low'</code>），记录进合并表（Merge Table），直到词表达到预设容量（如 128K 或 150K）。
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:6px 10px; border-radius:3px; font-size:11px; color:#38BDF8; font-family:Consolas,monospace;">
+        Merge Rule: ('r', 'e') ➔ 're' | ('re', 'ad') ➔ 'read'
+      </div>
+    </div>
+
+    <!-- Compression Ratio -->
+    <div class="card" style="border-top:3px solid #38BDF8;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(56,189,248,0.15); color:#38BDF8;">性能指标</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Compression Ratio</span>
+      </div>
+      <div style="font-size:15px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">分词压缩比演进与多语言成本</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.55; margin-bottom:8px;">
+        压缩比定义：$R = \text{Bytes} / \text{Tokens}$。压缩比越高，相同上下文窗口内能容纳的信息密度越大，推理成本越低。
+      </div>
+      <div class="grid grid-cols-2 gap-2" style="font-size:11px;">
+        <div style="background:rgba(255,255,255,0.04); padding:8px; border-radius:3px;">
+          <strong style="color:#F59E0B;">早期英文优先分词器：</strong><br>
+          英文 1 word ≈ 1.3 tokens；<br>
+          中文 1 个汉字常被拆成 2~3 个 tokens，导致中文模型昂贵且变慢。
+        </div>
+        <div style="background:rgba(255,255,255,0.04); padding:8px; border-radius:3px;">
+          <strong style="color:#22C55E;">现代 2025–2026 分词器：</strong><br>
+          Qwen / DeepSeek 扩充中文词表；<br>
+          实现 1 个汉字仅消耗 0.6~0.8 token，上下文有效容量翻倍！
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom: 3 Critical Tokenizer Pitfalls -->
+  <div>
+    <div style="font-size:13px; font-weight:700; color:#FF6B35; margin-bottom:8px;">
+      <i class="fas fa-bug" style="margin-right:6px;"></i>架构师必须警惕的 3 大典型分词工程陷阱
+    </div>
+    <div class="grid grid-cols-3 gap-3">
+      <!-- Pitfall 1 -->
+      <div style="background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.22); border-radius:4px; padding:10px 12px;">
+        <div style="font-size:12px; font-weight:700; color:#FF6B35; margin-bottom:4px;">1. 中文多字节截断与碎片化</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.65); line-height:1.45;">
+          UTF-8 汉字占 3 个字节。若分词器词表不包含该生僻字，会被生硬打碎为 3 个独立字节 Token。模型无法建立整词语义关联，导致 RAG 检索截断与乱码。
+        </div>
+      </div>
+
+      <!-- Pitfall 2 -->
+      <div style="background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.22); border-radius:4px; padding:10px 12px;">
+        <div style="font-size:12px; font-weight:700; color:#FF6B35; margin-bottom:4px;">2. 数字未对齐导致算术失真</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.65); line-height:1.45;">
+          旧分词器常将 <code>12345</code> 随机切成 <code>['12', '345']</code>，而 <code>12346</code> 切成 <code>['123', '46']</code>。数位未对齐直接破坏了加减法进位规律，是模型算术差的隐形元凶。
+        </div>
+      </div>
+
+      <!-- Pitfall 3 -->
+      <div style="background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.22); border-radius:4px; padding:10px 12px;">
+        <div style="font-size:12px; font-weight:700; color:#FF6B35; margin-bottom:4px;">3. 代码缩进与空格不连续</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.65); line-height:1.45;">
+          连续 4 空格、2 空格与 Tab 在不同分词器中可能有不同 Token 组合。分词器若缺少专门的前缀空格合并规则，会导致 Python 代码缩进错位与语法报错。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

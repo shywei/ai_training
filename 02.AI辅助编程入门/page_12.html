@@ -3,107 +3,106 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>Rules与上下文管理</title>
+<title>支柱 ④ · Skills（渐进式按需技能包）原理与生态</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
 .slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-rule-item { display:flex; align-items:flex-start; gap:12px; margin-bottom:10px; padding:10px 14px; }
-.slide-rule-icon { width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
-.slide-rule-content { flex:1; }
-.slide-rule-name { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:2px; }
-.slide-rule-desc { font-size:12px; color:rgba(224,231,255,0.5); line-height:1.4; }
-.slide-ctx-diagram { padding:16px 20px; background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.1); }
-.slide-ctx-layer { padding:8px 14px; margin-bottom:4px; display:flex; align-items:center; gap:10px; }
-.slide-ctx-label { font-size:12px; font-weight:700; min-width:80px; text-align:right; }
-.slide-ctx-desc { font-size:12px; color:rgba(224,231,255,0.5); }
-.slide-ctx-bar { flex:1; height:16px; border-radius:3px; }
+.slide-container h1 { font-size:29px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; }
+.stage-box { padding:11px 14px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.16); margin-bottom:9px; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:32px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 04</div>
-  <h1 class="mb-2">Rules与上下文管理</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:20px;"></div>
+<div class="slide-container" style="padding:26px 65px;">
+  <div class="mb-1 slide-section-num">CHAPTER 04 · HARNESS 驾驭层“六件套”详解</div>
+  <h1 class="mb-2">支柱 ④ · `Skills`（渐进式按需技能包）原理与生态</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:12px;"></div>
 
-  <div class="flex" style="gap:30px;">
-    <div style="flex:1;">
-      <div style="font-size:16px; font-weight:700; color:#FF6B35; margin-bottom:12px;"><i class="fas fa-list-check" style="margin-right:6px;"></i>Rules — 项目级行为约束</div>
-      <div style="font-size:13px; color:rgba(224,231,255,0.5); margin-bottom:14px; line-height:1.5;">Rules是写在项目里的配置文件，告诉Agent在这个项目中应该遵循什么规范。不遵守Rules的Agent就像不遵守代码规范的新员工——会闯祸。</div>
+  <div class="flex" style="gap:24px;">
+    <!-- Left Column: Why Not Put Everything in AGENTS.md + Progressive Disclosure -->
+    <div style="flex:1.1;">
+      <div style="padding:10px 14px; background:rgba(255,60,60,0.05); border:1px solid rgba(255,60,60,0.2); margin-bottom:12px;">
+        <div style="font-size:13.5px; font-weight:700; color:#FF6B35; margin-bottom:4px;">
+          <i class="fas fa-circle-question" style="margin-right:6px;"></i>为什么不把团队所有 SOP 都塞进 `AGENTS.md`？
+        </div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.5;">
+          一个研发团队往往有 20+ 种专项作业流程（Flyway 数据库迁移、慢 SQL 索引诊断、安全漏洞修复、TDD 垂直切片、PR 审查清单）。如果全部写进 `AGENTS.md`，会话还没开始就白白吞掉 <strong style="color:#FF6B35;">40,000+ Tokens</strong>，不仅拖慢推理，还会稀释核心指令注意力！
+        </div>
+      </div>
 
-      <div class="slide-rule-item" style="background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.08);">
-        <div class="slide-rule-icon" style="background:rgba(0,229,255,0.15); color:#00E5FF;"><i class="fas fa-code"></i></div>
-        <div class="slide-rule-content">
-          <div class="slide-rule-name">代码风格Rules</div>
-          <div class="slide-rule-desc">"使用阿里巴巴Java开发手册规范"、"所有public方法必须有Javadoc"、"禁止使用var声明变量"</div>
+      <div style="font-size:14.5px; font-weight:700; color:#22C55E; margin-bottom:8px;">
+        <i class="fas fa-layer-group" style="margin-right:6px;"></i>核心机制：Progressive Disclosure（三级渐进式披露，省下 90% Token！）
+      </div>
+
+      <!-- Level 1 -->
+      <div class="stage-box" style="border-left:4px solid #00E5FF;">
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:13px; font-weight:700; color:#00E5FF;">Level 1 · 启动常驻层：仅加载 YAML 技能目录（~50 Tokens/每个）</span>
+          <span style="font-size:11px; font-family:monospace; color:#00E5FF;">常驻内存极轻量</span>
+        </div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.68); line-height:1.45;">
+          Agent 启动时只扫描各技能包头部的 `name` 与 `description`（一句话说明该技能干什么、何时触发）。哪怕装了 30 个 Skills，也仅占约 1,500 Tokens！
         </div>
       </div>
-      <div class="slide-rule-item" style="background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.08);">
-        <div class="slide-rule-icon" style="background:rgba(0,229,255,0.15); color:#00E5FF;"><i class="fas fa-ban"></i></div>
-        <div class="slide-rule-content">
-          <div class="slide-rule-name">禁止操作Rules</div>
-          <div class="slide-rule-desc">"禁止直接修改main分支"、"禁止删除数据库表"、"禁止在Controller层写业务逻辑"</div>
+
+      <!-- Level 2 -->
+      <div class="stage-box" style="border-left:4px solid #FF6B35;">
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:13px; font-weight:700; color:#FF6B35;">Level 2 · 任务触发层：按需读取 `SKILL.md` 正文（~1,500 Tokens）</span>
+          <span style="font-size:11px; font-family:monospace; color:#FF6B35;">匹配意图时动态挂载</span>
+        </div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.68); line-height:1.45;">
+          当用户提问“帮我给这张表加个字段并生成 Flyway 脚本”或显式输入 `/flyway-migration` 时，Agent 才调用 `Read` 将对应的 `SKILL.md` 完整 SOP 读入当前上下文。
         </div>
       </div>
-      <div class="slide-rule-item" style="background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.08);">
-        <div class="slide-rule-icon" style="background:rgba(0,229,255,0.15); color:#00E5FF;"><i class="fas fa-sitemap"></i></div>
-        <div class="slide-rule-content">
-          <div class="slide-rule-name">架构Rules</div>
-          <div class="slide-rule-desc">"新接口必须写在api模块"、"数据库操作只能在Repository层"、"跨服务调用用Feign"</div>
+
+      <!-- Level 3 -->
+      <div class="stage-box" style="border-left:4px solid #22C55E; margin-bottom:0;">
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:13px; font-weight:700; color:#22C55E;">Level 3 · 脚本与模板执行层：`scripts/` &amp; `templates/`（0 代码 Token 污染）</span>
+          <span style="font-size:11px; font-family:monospace; color:#22C55E;">黑盒执行脚本</span>
         </div>
-      </div>
-      <div class="slide-rule-item" style="background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.08);">
-        <div class="slide-rule-icon" style="background:rgba(0,229,255,0.15); color:#00E5FF;"><i class="fas fa-vial"></i></div>
-        <div class="slide-rule-content">
-          <div class="slide-rule-name">测试Rules</div>
-          <div class="slide-rule-desc">"新增Service必须有单元测试"、"测试覆盖率不低于80%"、"使用Mockito mock外部依赖"</div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.68); line-height:1.45;">
+          按照 `SKILL.md` 指引，Agent 直接调用技能包自带的校验脚本（如 `python scripts/check_ddl.py`）或读取代码模板，脚本源码本身无需塞进大模型上下文！
         </div>
       </div>
     </div>
 
-    <div style="flex:1;">
-      <div style="font-size:16px; font-weight:700; color:#00E5FF; margin-bottom:12px;"><i class="fas fa-brain" style="margin-right:6px;"></i>上下文管理 — Agent的"工作记忆"</div>
-      <div style="font-size:13px; color:rgba(224,231,255,0.5); margin-bottom:14px; line-height:1.5;">上下文窗口有限，Agent需要策略性地管理它能"看到"的信息。<strong style="color:#E0E7FF;">管理好坏直接决定Agent的表现。</strong></div>
+    <!-- Right Column: Skills Ecosystem & CLI Management -->
+    <div style="flex:0.9;">
+      <div style="font-size:14.5px; font-weight:700; color:#00E5FF; margin-bottom:8px;">
+        <i class="fas fa-globe" style="margin-right:6px;"></i>2026 开放 Skills 生态（一次编写，全 Agent 通用）
+      </div>
 
-      <div class="slide-ctx-diagram mb-4">
-        <div style="font-size:12px; font-weight:700; color:rgba(224,231,255,0.5); margin-bottom:10px;">上下文的组成（从高到低优先级）：</div>
-        <div class="slide-ctx-layer" style="background:rgba(255,107,53,0.08);">
-          <div class="slide-ctx-label" style="color:#FF6B35;">系统提示词</div>
-          <div class="slide-ctx-bar" style="background:rgba(255,107,53,0.3); width:15%;"></div>
-          <div class="slide-ctx-desc">Agent的人格和规则，始终保留</div>
-        </div>
-        <div class="slide-ctx-layer" style="background:rgba(0,229,255,0.06);">
-          <div class="slide-ctx-label" style="color:#00E5FF;">Skills/Rules</div>
-          <div class="slide-ctx-bar" style="background:rgba(0,229,255,0.3); width:20%;"></div>
-          <div class="slide-ctx-desc">项目规范和能力定义</div>
-        </div>
-        <div class="slide-ctx-layer" style="background:rgba(224,231,255,0.04);">
-          <div class="slide-ctx-label" style="color:#E0E7FF;">当前任务</div>
-          <div class="slide-ctx-bar" style="background:rgba(224,231,255,0.2); width:30%;"></div>
-          <div class="slide-ctx-desc">用户指令+相关代码文件</div>
-        </div>
-        <div class="slide-ctx-layer" style="background:rgba(224,231,255,0.02);">
-          <div class="slide-ctx-label" style="color:rgba(224,231,255,0.4);">对话历史</div>
-          <div class="slide-ctx-bar" style="background:rgba(224,231,255,0.1); width:25%;"></div>
-          <div class="slide-ctx-desc">之前的交互记录，可能被压缩或丢弃</div>
-        </div>
-        <div class="slide-ctx-layer" style="background:rgba(224,231,255,0.01);">
-          <div class="slide-ctx-label" style="color:rgba(224,231,255,0.3);">工具结果</div>
-          <div class="slide-ctx-bar" style="background:rgba(224,231,255,0.06); width:10%;"></div>
-          <div class="slide-ctx-desc">MCP工具返回的结果，可能被截断</div>
+      <div style="padding:12px 14px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.18); margin-bottom:10px;">
+        <div style="font-size:12.5px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">标准存放路径（各主流工具自动发现）：</div>
+        <div style="font-family:monospace; font-size:11px; color:rgba(224,231,255,0.8); line-height:1.6; background:rgba(0,0,0,0.4); padding:8px 10px;">
+          · Claude Code / 通用：<span style="color:#00E5FF;">.claude/skills/&lt;skill-name&gt;/SKILL.md</span><br>
+          · Cursor / Antigravity：<span style="color:#22C55E;">.agent/skills/&lt;skill-name&gt;/SKILL.md</span><br>
+          · OpenCode / Qoder：<span style="color:#FF6B35;">.opencode/skills/&lt;skill-name&gt;/SKILL.md</span>
         </div>
       </div>
 
-      <div style="padding:12px 16px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.12);">
-        <div style="font-size:13px; color:#FF6B35; font-weight:700; margin-bottom:6px;"><i class="fas fa-exclamation-triangle" style="margin-right:6px;"></i>上下文管理的常见问题</div>
-        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.6;">
-          <strong style="color:#E0E7FF;">上下文溢出：</strong>代码文件太大，装不进窗口 → Agent看不到完整代码<br>
-          <strong style="color:#E0E7FF;">信息丢失：</strong>对话太长，早期内容被截断 → Agent"忘记"之前的约定<br>
-          <strong style="color:#E0E7FF;">噪音干扰：</strong>无关信息太多，关键信息被淹没 → Agent做出错误决策<br>
-          <strong style="color:#FF6B35;">解决：拆分任务、精简上下文、使用文件而非对话传递信息</strong>
+      <div style="padding:12px 14px; background:rgba(34,197,94,0.04); border:1px solid rgba(34,197,94,0.22); margin-bottom:10px;">
+        <div style="font-size:12.5px; font-weight:700; color:#22C55E; margin-bottom:6px;">
+          <i class="fas fa-terminal" style="margin-right:5px;"></i>使用 `skills.sh` 一键安装社区顶尖技能包：
+        </div>
+        <div style="font-family:monospace; font-size:11px; color:#E0E7FF; line-height:1.55; background:rgba(0,0,0,0.45); padding:8px 10px;">
+          <span style="color:rgba(224,231,255,0.45);"># 安装 Anthropic 官方技能集</span><br>
+          $ npx skills add anthropics/skills --skill mcp-builder<br>
+          <span style="color:rgba(224,231,255,0.45);"># 安装 TDD 垂直切片测试驱动开发技能</span><br>
+          $ npx skills add mattpocock/skills --skill tdd
+        </div>
+      </div>
+
+      <div style="padding:12px 14px; background:rgba(168,85,247,0.06); border:1px solid rgba(168,85,247,0.25);">
+        <div style="font-size:12.5px; font-weight:700; color:#A855F7; margin-bottom:4px;">
+          <i class="fas fa-building-shield" style="margin-right:5px;"></i>对企业研发团队的核心价值：知识资产代码化
+        </div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.5;">
+          过去团队 Wiki 里的《接口安全自查表》《分库分表接入指南》没人看；现在将其封装成仓库里的 `skills/`，**资深架构师写好一套 Skill，全组初级开发和实习生的 Agent 瞬间获得同等专家作业水准！**
         </div>
       </div>
     </div>

@@ -19,16 +19,16 @@ Demo 实际采用统一模型——这个标注要强调。不能让学员以为
 
 ## Optional Extension
 **学员问：怎么实现分级模型路由？**
-答：在 AgentRuntime 的 callLLM() 方法里，根据调用场景选择不同的 model 参数。TaskPlanner 和 THINK 传 reasoning 模型，最终回复传 chat 模型。application.yml 里已经配了多个模型名——agent.model.reasoning、agent.model.chat。只需要在 callLLM() 里传不同的值就行。
+答：在 AgentRuntime 的 callLLM() 方法里，根据调用场景选择不同的 model 参数。TaskPlanner 和 THINK 传 reasoning 模型，最终回复传 chat 模型。application.yml 里已经配了多个模型名——agent.model.reasoning、agent.model.chat。只需要在 callLLM() 里传不同的值就行。**Demo 做法**：callLLM() 里统一传 reasoning 模型，分级路由只停留在 PPT。**生产做法**：callLLM(scene) 按场景传模型，再按"每步成本 × 调用频次"决定哪步值得用强模型——先量化再降级。
 
 **学员问：LangGraph 的条件编排是怎么做的？**
 答：LangGraph 用"状态图"——节点（Node）和边（Edge），边上可以加条件（Condition）。类似状态机，但更灵活——支持并行、子图、动态边。第十课会对比 LangGraph 和手搓 Workflow 的差异。
 
 ## Take Away
-不是所有步骤都用同一个模型。按任务类型选模型，是成本优化的关键。
+模型选择做成配置而不是写死，上线后按"每步成本 × 调用频次"决定哪步值得用强模型——先量化再降级。
 
 ## Why This Slide Matters
-如果跳过这页，学员不知道 Workflow 可以"分级"——模型分级、编排分级。这是从 Demo 到生产的认知升级。
+跳过这页，学员要么所有 LLM 调用都用最强模型（成本直接翻倍），要么误以为 Demo 已实现分级路由，扩展时方向跑偏。
 
 ## Transition
 接下来讲容错——工具调用失败怎么办。

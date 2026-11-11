@@ -1,11 +1,93 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280"><script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script><title>容错设计</title><style>*{margin:0;padding:0;box-sizing:border-box}.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}.code{font-size:10px;color:rgba(224,231,255,0.55);line-height:1.5;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace}</style></head><body><div class="s" style="padding:24px 50px;display:flex;flex-direction:column"><div class="mb-1 sn">CHAPTER 05</div><h1 class="mb-1">容错设计 — 生产环境的底线</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px"></div><div style="flex:1;display:flex;gap:14px"><div style="flex:1;display:flex;flex-direction:column;justify-content:center">
-<div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:10px">三级容错策略</div>
-<div style="display:flex;flex-direction:column;gap:8px">
-<div style="padding:14px;background:rgba(0,229,255,0.06);border:2px solid rgba(0,229,255,0.2);border-radius:8px"><div style="font-size:16px;color:#00E5FF;font-weight:700;margin-bottom:6px">① 重试（Retry）</div><div style="font-size:13px;color:rgba(224,231,255,0.65);line-height:1.8">最多重试 <strong style="color:#E0E7FF">3 次</strong>，指数退避 <strong style="color:#E0E7FF">1s → 2s → 4s</strong>。<br>适用：网络超时、MCP Server 暂时不可用。<br>原理：大多数临时故障在几秒后会恢复。</div></div>
-<div style="padding:14px;background:rgba(255,107,53,0.06);border:2px solid rgba(255,107,53,0.2);border-radius:8px"><div style="font-size:16px;color:#FF6B35;font-weight:700;margin-bottom:6px">② 熔断（Circuit Breaker）</div><div style="font-size:13px;color:rgba(224,231,255,0.65);line-height:1.8">同一工具连续失败 <strong style="color:#E0E7FF">5 次</strong> → 熔断，<strong style="color:#E0E7FF">60 秒</strong>内不再调用。<br>适用：下游服务宕机。<br>原理：继续重试只会加重下游负担。</div></div>
-<div style="padding:14px;background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.2);border-radius:8px"><div style="font-size:16px;color:#22C55E;font-weight:700;margin-bottom:6px">③ 降级（Graceful Degradation）</div><div style="font-size:13px;color:rgba(224,231,255,0.65);line-height:1.8">熔断后跳过工具，LLM 基于已有 context 回答。<br><strong style="color:#E0E7FF">有回答总比报错好。</strong></div></div></div></div>
-<div style="flex:1;display:flex;flex-direction:column;justify-content:center">
-<div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:10px">实际执行例子</div>
-<div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;margin-bottom:10px"><div style="font-size:13px;color:rgba(224,231,255,0.4);margin-bottom:6px">场景：MCP Server 临时超时</div><div style="font-size:12px;color:rgba(224,231,255,0.6);line-height:1.8"><span style="color:#FF6B35">第 1 次</span> 调用 → 超时<br><span style="color:rgba(224,231,255,0.3)">等待 1s...</span><br><span style="color:#FF6B35">第 2 次</span> 调用 → 超时<br><span style="color:rgba(224,231,255,0.3)">等待 2s...</span><br><span style="color:#FF6B35">第 3 次</span> 调用 → <span style="color:#22C55E">成功！</span></div></div>
-<div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;margin-bottom:10px"><div style="font-size:13px;color:rgba(224,231,255,0.4);margin-bottom:6px">场景：MCP Server 宕机</div><div style="font-size:12px;color:rgba(224,231,255,0.6);line-height:1.8"><span style="color:#FF6B35">连续 5 次失败</span> → 熔断触发<br><span style="color:#00E5FF">60 秒内</span> 跳过该工具<br><span style="color:#22C55E">降级</span> → LLM 基于已有知识回答</div></div>
-<div style="padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px"><div style="font-size:12px;color:rgba(224,231,255,0.45);line-height:1.7"><strong style="color:#E0E7FF">Demo 已覆盖</strong>：ErrorRecovery.java 三级容错。<br><strong style="color:#FF6B35">仅 PPT 讲解</strong>：分布式熔断、半开状态探测。</div></div></div></div></div></body></html>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280"><script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script><title>三级自动容错 + 错误重规划 + 人工接管协同防御体系</title><style>*{margin:0;padding:0;box-sizing:border-box}.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}.s h1{font-size:26px!important;color:#E0E7FF;font-weight:700}.sn{font-size:13px;color:#00E5FF;letter-spacing:4px}.tier-card{padding:5px 9px;border-radius:4px;display:flex;flex-direction:column;gap:1px}.tier-title{font-size:11.5px;font-weight:700;display:flex;justify-content:space-between;align-items:center}.tier-desc{font-size:11px;color:rgba(224,231,255,0.72);line-height:1.35}</style></head><body>
+<div class="s" style="padding:18px 44px;display:flex;flex-direction:column">
+<div class="mb-1 sn">CHAPTER 05 · 生产底线</div>
+<h1 class="mb-1">三级自动容错 + 错误重规划 + 人工接管协同防御体系</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:8px"></div>
+<div style="flex:1;display:flex;gap:14px">
+
+<!-- 左侧：纵深协同机制 -->
+<div style="flex:1.18;display:flex;flex-direction:column;gap:4px">
+<div style="font-size:12.5px;color:#E0E7FF;font-weight:700;">纵深协同防御分层架构（三级自动容错 + 重规划 + 人工接管）</div>
+
+<!-- Layer 1 -->
+<div class="tier-card" style="background:rgba(0,229,255,0.06);border:1.5px solid rgba(0,229,255,0.22)">
+  <div class="tier-title" style="color:#00E5FF">
+    <span>① 自动容错 1 · 重试机制（Retry）</span>
+    <span style="font-size:11px;color:#00E5FF;background:rgba(0,229,255,0.15);padding:1px 5px;border-radius:3px">处理瞬态网络故障</span>
+  </div>
+  <div class="tier-desc">
+    <strong>策略：</strong>最多重试 3 次，指数退避 1s → 2s → 4s + 随机抖动（Jitter）。严格限只读或带幂等键写操作。
+  </div>
+</div>
+
+<!-- Layer 2 -->
+<div class="tier-card" style="background:rgba(255,209,102,0.06);border:1.5px solid rgba(255,209,102,0.22)">
+  <div class="tier-title" style="color:#FFD166">
+    <span>② 自动容错 2 · 熔断机制（Circuit Breaker）</span>
+    <span style="font-size:11px;color:#FFD166;background:rgba(255,209,102,0.15);padding:1px 5px;border-radius:3px">防止故障持续扩散</span>
+  </div>
+  <div class="tier-desc">
+    <strong>策略：</strong>同一 Tool 连续失败 5 次触发熔断，60 秒内阻断物理请求，半开（Half-Open）探测，防级联雪崩。
+  </div>
+</div>
+
+<!-- Layer 3 -->
+<div class="tier-card" style="background:rgba(34,197,94,0.06);border:1.5px solid rgba(34,197,94,0.25)">
+  <div class="tier-title" style="color:#22C55E">
+    <span>③ 自动容错 3 · 服务降级（Fallback）</span>
+    <span style="font-size:11px;color:#22C55E;background:rgba(34,197,94,0.15);padding:1px 5px;border-radius:3px">提供替代结果或兜底</span>
+  </div>
+  <div class="tier-desc">
+    <strong>策略：</strong>熔断或不可用时，跳过宕机服务，使用备用轻量模型生成兜底说明或静态模板，保核心主干活着。
+  </div>
+</div>
+
+<!-- Layer 4 -->
+<div class="tier-card" style="background:rgba(168,85,247,0.06);border:1.5px solid rgba(168,85,247,0.25)">
+  <div class="tier-title" style="color:#A855F7">
+    <span>🔄 任务恢复策略 · 错误重规划（Error Replanning）</span>
+    <span style="font-size:11px;color:#A855F7;background:rgba(168,85,247,0.15);padding:1px 5px;border-radius:3px">重新规划失败任务路径</span>
+  </div>
+  <div class="tier-desc">
+    <strong>策略：</strong>面对“缺货/下架”等确定性业务阻断，单纯重试无效；将错误作为回执驱动 TaskPlanner 重排剩余路径。
+  </div>
+</div>
+
+<!-- Layer 5 -->
+<div class="tier-card" style="background:rgba(239,68,68,0.06);border:1.5px solid rgba(239,68,68,0.3)">
+  <div class="tier-title" style="color:#EF4444">
+    <span>🛡️ 人工接管 · 终极防线（Human-in-the-Loop）</span>
+    <span style="font-size:11px;color:#EF4444;background:rgba(239,68,68,0.15);padding:1px 5px;border-radius:3px">业务决策与人工授权</span>
+  </div>
+  <div class="tier-desc">
+    <strong>策略：</strong>自动容错耗尽、重规划死循环或命中高危下单扣款操作；状态机挂起为 <code>CONFIRMING</code> 待人工审批。
+  </div>
+</div>
+</div>
+
+<!-- 右侧：协同决策图谱与落地对照 -->
+<div style="flex:1;display:flex;flex-direction:column;gap:7px;justify-content:center">
+<div style="font-size:12.5px;color:#E0E7FF;font-weight:700;">五层协同决策图谱</div>
+
+<div style="padding:9px 12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:5px;display:flex;flex-direction:column;gap:5px">
+  <div style="font-size:11px;color:rgba(224,231,255,0.85);line-height:1.55">
+    <span style="color:#00E5FF;font-weight:700">步骤执行发生异常</span><br>
+    ├─ <strong>瞬态网络超时？</strong> ──是──→ <strong>① Retry</strong>（退避重试 3 次）<br>
+    ├─ <strong>故障持续扩散？</strong> ──是──→ <strong>② Circuit Breaker</strong>（熔断 60s 阻断雪崩）<br>
+    ├─ <strong>需要结果兜底？</strong> ──是──→ <strong>③ Fallback</strong>（备用模型/模板服务降级）<br>
+    ├─ <strong>业务不可用需换路？</strong> ──是──→ <strong>🔄 Error Replanning</strong>（模型重排剩余任务）<br>
+    └─ <strong>容错耗尽/高危操作？</strong> ──是──→ <strong>🛡️ Human Escalation</strong>（挂起转人工审批）
+  </div>
+</div>
+
+<div style="padding:9px 12px;background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.2);border-radius:5px">
+  <div style="font-size:11.5px;color:#00E5FF;font-weight:700;margin-bottom:3px">Demo 与生产协同映射</div>
+  <div style="font-size:11px;color:rgba(224,231,255,0.72);line-height:1.5">
+    • <strong>Demo 已覆盖：</strong><code>ErrorRecovery.java</code> 实现了 ① Retry、② Circuit Breaker 与 ③ Fallback，配合 <code>ConfirmationService</code> 实现人工介入雏形。<br>
+    • <strong>生产深化：</strong>补齐任务级 🔄 错误重规划（失败原因注入上下文重调 TaskPlanner）与 🛡️ 企业审批流对接。
+  </div>
+</div>
+</div>
+
+</div>
+</div></body></html>

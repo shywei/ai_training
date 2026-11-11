@@ -23,5 +23,20 @@ RAG = Retrieval-Augmented Generation，检索增强生成。名字很唬人，�
 ## Key Emphasis
 RAG 不是一个产品，是一套工程方案。后面每个章节都在拆解这个工程链路。学员应该理解"RAG 的本质是改输入，不是改模型"——这个认知很重要，决定了后续所有技术选型的方向。
 
+## Optional Extension
+**学员问：RAG 和 Memory 都是"查资料"，区别到底在哪？**
+答：一个记"人"，一个记"事"——接口、权限、评测都要分开。
+Demo 做法：问一句"根据我的偏好推荐笔记本"，在 `logs/llm-chat.log` 里同时看到"相关记忆"（pgvector `user_memory`，人维度）和"参考知识"（`vector_store`，事维度）两块注入，亲手分清两者。
+生产做法：记忆走记忆服务（人维度、带隐私与遗忘策略），知识走知识服务（事维度、带部门权限），两个服务分开部署、分开评测。取舍：混在一个库里省事，但权限和评测都说不清——用户数据和企业知识的合规要求完全不同。
+
+## Classroom Interaction
+让学员在日志里指认：哪段是 Memory、哪段是 Knowledge？指错的人回去大概率会把两者混库。
+
+## Take Away
+RAG 是改输入不是改模型——知识外置、更新知识不更新模型；Memory 管人、Knowledge 管事，分开建、分开管。
+
+## Why This Slide Matters
+跳过这页，学员分不清 Memory 和 Knowledge，把用户画像和商品知识混进一个库——权限过滤、隐私合规、评测归因全部做不了。
+
 ## Transition
 RAG 的思路清楚了。接下来的问题：企业知识从哪来？

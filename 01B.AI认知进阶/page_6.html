@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>Embedding 向量流形与 RoPE 旋转位置编码直觉</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.s { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.s h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
+.card { background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.15); border-radius:4px; padding:14px 18px; }
+.badge { font-size:11px; font-weight:700; padding:2px 8px; border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="s flex flex-col justify-between">
+  <!-- Header -->
+  <div>
+    <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; margin-bottom:4px;">CHAPTER 02 · 模型推理核心机理</div>
+    <h1 class="mb-2">Embedding 向量流形与 RoPE 旋转位置编码直觉</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:12px;"></div>
+    <div style="font-size:13px; color:rgba(224,231,255,0.7); line-height:1.5;">
+      将离散 ID 映射为连续高维向量流形，并通过复数旋转巧妙刻画相对位置，是大模型理解长程语义的数学基石。
+    </div>
+  </div>
+
+  <!-- Top Dual Cards: Embedding vs Absolute Positional Failure -->
+  <div class="grid grid-cols-2 gap-4 my-1">
+    <!-- Embedding Manifold -->
+    <div class="card" style="border-top:3px solid #00E5FF;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(0,229,255,0.15); color:#00E5FF;">语义空间</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Embedding Manifold</span>
+      </div>
+      <div style="font-size:15px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">高维连续语义流形与向量距离</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.55; margin-bottom:8px;">
+        每个离散 Token ID 映射到 $d_{model}$（如 4096 或 8192）维的高维空间。
+        语义相近的词在高维流形上具有更小的欧氏距离和相近的余弦夹角：
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:8px 12px; border-radius:3px; font-size:11px; color:rgba(224,231,255,0.75); line-height:1.5; font-family:Consolas,monospace;">
+        <span style="color:#00E5FF;">cos_sim(Embedding("Java"), Embedding("Python"))</span> ≈ 0.82<br>
+        <span style="color:#FF6B35;">cos_sim(Embedding("Java"), Embedding("香蕉"))</span> ≈ 0.12
+      </div>
+    </div>
+
+    <!-- APE Failure -->
+    <div class="card" style="border-top:3px solid #F59E0B;">
+      <div class="flex justify-between items-center mb-2">
+        <span class="badge" style="background:rgba(245,158,11,0.15); color:#F59E0B;">早期局限</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Absolute Positional Embedding</span>
+      </div>
+      <div style="font-size:15px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">为什么传统“绝对位置编码”彻底失效？</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.55; margin-bottom:8px;">
+        早期 Transformer（如 BERT、GPT-2）为每个绝对下标分配一个固定向量：$x_i = e_i + p_i$。
+      </div>
+      <div style="background:rgba(245,158,11,0.08); border-left:3px solid #F59E0B; padding:8px 10px; font-size:11px; color:rgba(224,231,255,0.75); line-height:1.5;">
+        <strong style="color:#F59E0B;">致命死穴：</strong><br>
+        1. <strong>无法泛化相对距离：</strong>位置 1 与位置 2 的关系，和位置 1001 与位置 1002 完全割裂；<br>
+        2. <strong>无法长文本外推：</strong>预训练只训了 4K 长度，遇到第 4097 个位置，位置向量根本不存在，直接崩溃！
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom: RoPE Deep Dive -->
+  <div style="background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.2); border-top:3px solid #00E5FF; border-radius:4px; padding:14px 18px;">
+    <div class="flex justify-between items-center mb-2">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-sync-alt" style="color:#00E5FF; font-size:14px;"></i>
+        <span style="font-size:14px; font-weight:700; color:#00E5FF;">RoPE（Rotary Position Embedding）旋转位置编码与长上下文外推</span>
+      </div>
+      <span class="badge" style="background:rgba(0,229,255,0.12); color:#00E5FF;">现代 LLM 标配 · LLaMA / Qwen / DeepSeek</span>
+    </div>
+    <div class="grid grid-cols-3 gap-4" style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.55;">
+      <div>
+        <strong style="color:#E0E7FF;">1. 复数二维旋转机制：</strong><br>
+        将 Query 与 Key 向量的每两个相邻维度视作复平面的二维向量，位置为 $m$ 的 Token 乘以旋转矩阵 $R_{\Theta, m}$（逆时针旋转 $m\theta$ 角度）。
+      </div>
+      <div>
+        <strong style="color:#E0E7FF;">2. 点积内积相对不变性：</strong><br>
+        在计算注意力点积时：$\langle R_m q, R_n k \rangle = q^T R_{n-m} k$。旋转使得两者的注意力只严格取决于<strong>相对位移 $(m - n)$</strong>，且距离越远内积自然衰减！
+      </div>
+      <div>
+        <strong style="color:#E0E7FF;">3. 128K~1M 超长外推（YaRN）：</strong><br>
+        利用频率插值（NTK-aware / YaRN），平滑压缩高频波长与低频旋转角，模型无需从头预训练，即可将上下文长度从 4K 无损扩展到 128K~1000K。
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

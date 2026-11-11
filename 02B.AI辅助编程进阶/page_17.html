@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>高阶提效 ① · 基于 git worktree 的多 Agent 并行研发工作流</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:22px 65px; display:flex; flex-direction:column; justify-content:space-between; }
+.slide-section-num { font-size:13px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:2px; }
+.slide-container h1 { font-size:28px !important; color:#E0E7FF; font-weight:700; line-height:1.25; margin-bottom:4px; }
+.slide-accent-line { width:50px; height:3px; background:#FF6B35; margin-bottom:8px; }
+.code-box { background:#060A12; border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:6px 10px; font-family:Consolas,monospace; font-size:10.5px; line-height:1.4; color:#E0E7FF; }
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <!-- Header -->
+  <div>
+    <div class="slide-section-num">CHAPTER 05 · GIT WORKTREE 并行与 CI/CD 无头 AGENT</div>
+    <h1>高阶提效 ① · 基于 git worktree 的多 Agent 并行研发工作流</h1>
+    <div class="slide-accent-line"></div>
+    <div style="padding:6px 12px; background:rgba(0,229,255,0.06); border-left:4px solid #00E5FF; font-size:11.5px; color:#E0E7FF; border-radius:3px;">
+      <i class="fas fa-bolt mr-1" style="color:#00E5FF;"></i><strong>痛点破局：</strong>同一目录开多个 Agent 改代码必然发生文件踩踏。<strong>方案：用 Git 原生 `git worktree` 秒级挂载共享 `.git` 的独立代码目录，一人指挥 3 个并发 Agent！</strong>
+    </div>
+  </div>
+
+  <!-- 3 Worktree Cards Grid -->
+  <div class="grid grid-cols-3 gap-3 my-1" style="height:235px;">
+    <!-- WT 1 -->
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(0,229,255,0.3); border-top:4px solid #00E5FF; border-radius:4px; padding:10px 12px; display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span style="font-size:13px; font-weight:700; color:#00E5FF;"><i class="fas fa-terminal mr-1"></i>Worktree 1：主线特性</span>
+          <span style="font-size:11px; background:rgba(0,229,255,0.15); color:#00E5FF; padding:1px 6px; border-radius:3px;">feat/pii</span>
+        </div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.65); margin-bottom:4px;">目录：`../wt-feat-pii` (分配端口 :3001)</div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.8); line-height:1.4;">
+          <strong>Agent #1 任务：</strong>根据 SDD tasks 实现 <code>PiiMaskUtils</code> 脱敏并跑单测。
+        </div>
+      </div>
+      <div style="font-size:11px; color:#22C55E;"><i class="fas fa-spinner fa-spin mr-1"></i>后台自主迭代 Task 2/4 中...</div>
+    </div>
+
+    <!-- WT 2 -->
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,107,53,0.3); border-top:4px solid #FF6B35; border-radius:4px; padding:10px 12px; display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span style="font-size:13px; font-weight:700; color:#FF6B35;"><i class="fas fa-fire-extinguisher mr-1"></i>Worktree 2：紧急 Bug</span>
+          <span style="font-size:11px; background:rgba(255,107,53,0.15); color:#FF6B35; padding:1px 6px; border-radius:3px;">hotfix/json</span>
+        </div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.65); margin-bottom:4px;">目录：`../wt-hotfix` (分配端口 :3002)</div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.8); line-height:1.4;">
+          <strong>Agent #2 任务：</strong>无需 <code>git stash</code> 打断主线！在独立目录复现线上 JSON 异常并微创修复。
+        </div>
+      </div>
+      <div style="font-size:11px; color:#FF6B35;"><i class="fas fa-check-circle mr-1"></i>零上下文污染，即修即提 PR</div>
+    </div>
+
+    <!-- WT 3 -->
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(168,85,247,0.3); border-top:4px solid #A855F7; border-radius:4px; padding:10px 12px; display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span style="font-size:13px; font-weight:700; color:#A855F7;"><i class="fas fa-trophy mr-1"></i>Worktree 3：方案竞标</span>
+          <span style="font-size:11px; background:rgba(168,85,247,0.15); color:#A855F7; padding:1px 6px; border-radius:3px;">exp/refactor</span>
+        </div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.65); margin-bottom:4px;">目录：`../wt-exp` (分配端口 :3003)</div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.8); line-height:1.4;">
+          <strong>Agent #3 任务：</strong>探索激进重构方案，跑基准 Benchmark 测试，择优合入主线。
+        </div>
+      </div>
+      <div style="font-size:11px; color:#A855F7;"><i class="fas fa-flask mr-1"></i>探索分支，随时安全丢弃</div>
+    </div>
+  </div>
+
+  <!-- Crucial Worktree Environment Boundary Correction Card -->
+  <div style="padding:9px 14px; background:rgba(15,23,42,0.85); border:1.5px solid rgba(255,107,53,0.35); border-radius:4px;">
+    <div class="flex items-center justify-between mb-1">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-shield-halved" style="color:#FF6B35; font-size:12px;"></i>
+        <span style="font-size:12px; font-weight:700; color:#FF6B35;">架构师警钟：Git Worktree 不等于独立的运行与网络环境！</span>
+      </div>
+      <span style="font-size:11px; color:#00E5FF; font-weight:700;">必须配合动态端口与测试沙箱</span>
+    </div>
+    <div class="grid grid-cols-4 gap-2.5" style="font-size:10.5px; color:rgba(224,231,255,0.75); line-height:1.4;">
+      <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px; border-left:3px solid #00E5FF;">
+        <strong style="color:#00E5FF;">工作区隔离：</strong>Worktree 仅隔离源码目录与工作分支，避免多 Agent 冲突。
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px; border-left:3px solid #FF6B35;">
+        <strong style="color:#FF6B35;">端口冲突防范：</strong>各分支单测需配置动态随机端口（如 <code>port=0</code>），防止本地端口冲突。
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px; border-left:3px solid #F59E0B;">
+        <strong style="color:#F59E0B;">数据库隔离：</strong>严禁多 Agent 共享同一物理测试库！使用 H2 内存库或 Testcontainers 容器隔离。
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:5px 8px; border-radius:3px; border-left:3px solid #22C55E;">
+        <strong style="color:#22C55E;">范式明确定位：</strong>此为<strong>研发态 Multi-Agent（代码任务并行）</strong>，绝非第 10 课生产运行时业务 Multi-Agent。
+      </div>
+    </div>
+  </div>
+
+  <!-- CLI Code -->
+  <div class="code-box">
+    <span style="color:#00E5FF;"># 30秒极速创建多 Worktree 并行研发环境:</span><br>
+    $ git worktree add ../wt-feat-pii -b feat/pii-guard &amp;&amp; cd ../wt-feat-pii &amp;&amp; opencode run "按 tasks.md 开发"<br>
+    $ git worktree remove ../wt-feat-pii <span style="color:#94A3B8;">// 任务完成安全卸载，.git 对象天然复用</span>
+  </div>
+</div>
+</body>
+</html>

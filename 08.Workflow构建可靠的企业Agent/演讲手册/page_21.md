@@ -1,40 +1,32 @@
 ## Slide Objective
-展示第八课的能力地图和 Agent 构建进度——导购 Agent 正式上线，以及 Multi-Agent 预告。
+展示 Demo 知识体系覆盖情况——哪些学员可以动手验证，哪些只需知道概念和方向。
 
 ## Suggested Presentation
-左边是第八课的能力地图，四个板块。
+左边是 Demo 已覆盖的 6 个核心能力。状态机——7 个状态 + 转换条件，WorkflowState.java。ReAct 循环引擎——THINK→ACT→OBSERVE，最多 10 轮，AgentRuntime.java。TaskPlanner——LLM 自动拆步骤，TaskPlanner.java。三级容错——重试 3 次指数退避 + 熔断 + 降级，ErrorRecovery.java。人在回路——高风险操作确认/取消，ConfirmationService.java。执行追踪——Trace + 链路回溯，TraceService.java。这 6 个能力学员都可以本地跑起来、验证、修改、扩展。
 
-第一个：为什么不能相信 LLM。不确定性、不可控、无限循环、无审计。这是第八课的"问题意识"——所有设计都从这里出发。
+右边是仅 PPT 讲解的 5 个能力。持久化 Checkpoint——状态存数据库，重启后恢复。Demo 只做了 CONFIRMING 暂停 + 确认后 Resume，没有序列化完整状态。分布式 Tracing——接 OpenTelemetry，支持多实例链路追踪。Demo 用内存 Map 存 Trace。条件编排——分支、并行、子 Workflow。Demo 只有顺序编排。Multi-Agent——多 Agent 协作。Demo 是单 Agent。分级模型路由——按任务类型选模型。Demo 用统一模型。
 
-第二个：状态机。Node/Edge/Condition、Checkpoint/Resume。状态机是 Workflow 的骨架——让 Agent 的行为可预测。
+底部是关键认知：知识体系不能有缺口。Demo 覆盖核心路径，PPT 讲清楚"如果要落地，大概怎么做"。学员学完后知道四件事：① 原理 ② 能看懂代码 ③ 知道差距 ④ 知道从哪里开始补。
 
-第三个：Agent Runtime。六大组件、TaskPlanner、THINK→ACT→OBSERVE。Runtime 是 Workflow 的肌肉——执行、调度、管理。
-
-第四个：容错 + 人在回路 + 可观测性。重试→熔断→降级、确认/取消、Trace。这三件事让 Agent 可靠、安全、透明。
-
-右边是 Agent 构建进度。Prompt（第四课）、Memory（第五课）、Knowledge（第六课）、Tool（第七课）、Workflow（第八课）——全部完成。第九课、第十课、第十一课待做。
-
-🎉 导购 Agent 正式上线！Prompt + Memory + Knowledge + Tool + Workflow——五个能力全部就位。这个 Agent 能理解用户意图、记住用户偏好、查询商品知识、调用企业系统、多步执行复杂任务。它不再是一个"聊天机器人"，而是一个真正的"购物助手"。
-
-底部是 Multi-Agent 协作预告。单 Agent 有三个天花板：上下文有限（token 限制）、无法并行（一次只能做一件事）、专业受限（一个 Agent 不能什么都懂）。四种协作模式：Orchestrator（编排者分配任务）、Pipeline（流水线上下游传递）、Specialist（各司其职）、Debate（辩论式讨论）。这是第十一课的核心内容。
+为什么要分"已覆盖"和"仅 PPT"？因为如果不分，学员会以为所有内容都在 Demo 里实现了——然后发现做不到，产生挫败感。分了之后，学员知道哪些可以动手验证，哪些只需要理解概念——学习目标更清晰。
 
 ## Key Emphasis
-"导购 Agent 正式上线"是一个里程碑——五个能力全部就位。这给学员一个清晰的进度感和成就感。
+"Demo 已覆盖"和"仅 PPT 讲解"的区分是本页的核心。不要让学员产生误解——以为所有内容都是可以跑的代码。
 
-Multi-Agent 是第十一课的内容——单 Agent 有天花板，但先让一个 Agent 可靠运行，再考虑多个 Agent 协作。
+底部四个学习目标要逐一讲清楚——学员需要知道自己学完后能达到什么水平。
 
 ## Optional Extension
-**学员问：Multi-Agent 和 Workflow 的关系是什么？**
-答：Workflow 管的是"一个 Agent 怎么可靠执行"，Multi-Agent 管的是"多个 Agent 怎么协作"。Workflow 是基础，Multi-Agent 是扩展。一个 Agent 都跑不稳，多个 Agent 只会更乱。
+**学员问：为什么 Multi-Agent 不做在 Demo 里？**
+答：Multi-Agent 需要多个 Agent 实例 + Agent 间通信 + 任务分配，工程量太大。第八课聚焦"单 Agent 可靠运行"，Multi-Agent 是第十课的内容。先让一个 Agent 可靠运行，再考虑多个 Agent 协作。
 
-**学员问：四种协作模式哪个最常用？**
-答：Orchestrator——一个"调度 Agent"把任务分配给多个"执行 Agent"。这是最自然的模式，也是最容易实现的。Pipeline 适合流水线任务（数据提取→分析→报告），Specialist 适合专业分工（客服 Agent + 技术 Agent + 销售 Agent），Debate 适合需要多角度讨论的场景（方案评审）。
+**学员问：条件编排自己实现难吗？**
+答：不难，但需要理解 Workflow Engine 的概念。**Demo 做法**：顺序编排——TaskPlanner 出步骤列表按序执行，没有分支。**生产做法**：在 WorkflowStep 里加 condition 字段（如 "stock > 0"），AgentRuntime 根据条件决定下一步走哪条 Edge；复杂的条件编排（并行、子图、动态边）建议用 LangGraph 或 Temporal，第十课会对比选型。
 
 ## Take Away
-Workflow 不是流程，而是让 AI 在企业中可控运行的机制。五个能力就位，导购 Agent 正式上线。
+把"仅 PPT 讲解"的 5 项（持久化 Checkpoint、分布式 Trace、条件编排、Multi-Agent、分级路由）当需求排期，不要当已完成功能验收。
 
 ## Why This Slide Matters
-如果跳过这页，学员不知道自己的"构建进度"——学到哪里了，还差什么。能力地图是学习的"进度条"。
+如果跳过这页，学员会把"仅 PPT 讲解"的内容也当成 Demo 可验证的内容——导致学习目标混乱。
 
 ## Transition
-最后一张——总结和第九课预告。
+接下来是项目架构和代码阅读路线图。

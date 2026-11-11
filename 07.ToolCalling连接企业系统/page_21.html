@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>context 演进</title>
+<title>数据分层</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
@@ -9,57 +9,42 @@
 </style></head><body>
 <div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
 <div class="mb-2 sn">CHAPTER 06</div>
-<h1 class="mb-2">context 演进 + Prompt 配套</h1>
+<h1 class="mb-2">数据分层 — 第六课 vs 第七课</h1>
 <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
 <div style="flex:1;display:flex;gap:20px;">
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:12px;">PromptManager.buildUserPrompt(message, context)</div>
-    <div style="display:flex;flex-direction:column;gap:6px;">
-      <div style="padding:10px 14px;background:rgba(224,231,255,0.02);border-left:3px solid rgba(224,231,255,0.1);border-radius:4px;">
-        <span style="font-size:13px;color:rgba(224,231,255,0.3);font-weight:600;">第四课</span>
-        <span style="font-size:12px;color:rgba(224,231,255,0.25);"> context = null</span>
-      </div>
-      <div style="padding:10px 14px;background:rgba(224,231,255,0.02);border-left:3px solid rgba(224,231,255,0.15);border-radius:4px;">
-        <span style="font-size:13px;color:rgba(224,231,255,0.4);font-weight:600;">第五课</span>
-        <span style="font-size:12px;color:rgba(224,231,255,0.3);"> + 对话历史 + 用户画像（MySQL）</span>
-      </div>
-      <div style="padding:10px 14px;background:rgba(224,231,255,0.02);border-left:3px solid rgba(224,231,255,0.2);border-radius:4px;">
-        <span style="font-size:13px;color:rgba(224,231,255,0.5);font-weight:600;">第六课</span>
-        <span style="font-size:12px;color:rgba(224,231,255,0.35);"> + 用户记忆（pgvector）+ RAG（pgvector）</span>
-      </div>
-      <div style="padding:10px 14px;background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:4px;">
-        <span style="font-size:13px;color:#00E5FF;font-weight:600;">第七课</span>
-        <span style="font-size:12px;color:rgba(224,231,255,0.5);"> 全部通过 MCP + 路由决定注入内容</span>
-      </div>
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:10px;">第六课：Agent 直连数据库</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+      <div style="padding:8px 12px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:12px;color:rgba(224,231,255,0.6);">商品知识 → RetrievalService → pgvector</div>
+      <div style="padding:8px 12px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:12px;color:rgba(224,231,255,0.6);">用户记忆 → UserMemoryMapper → pgvector</div>
+      <div style="padding:8px 12px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:12px;color:rgba(224,231,255,0.6);">用户画像 → UserProfileMapper → MySQL</div>
+      <div style="padding:8px 12px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:12px;color:rgba(224,231,255,0.4);">价格库存 → ❌ 第六课没有</div>
     </div>
-    <div style="margin-top:12px;padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px;">
+    <div style="padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px;">
       <div style="font-size:11px;color:rgba(224,231,255,0.4);">
-        第七课变化：context 不再自动拼接所有内容<br>
-        路由决定：KNOWLEDGE 注入 RAG，TOOL 注册 FunctionCallback
+        问题：Agent 和数据库耦合<br>
+        换数据库 → 代码要改<br>
+        其他 Agent 不能复用
       </div>
     </div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">PromptManager.java — 三段规则</div>
-    <div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;margin-bottom:12px;">
-      <pre style="font-size:10px;color:rgba(224,231,255,0.5);line-height:1.6;"># 行为规则
-- 购物问题 → 基于商品库推荐
-- 非购物问题 → 正常聊天
-
-# 知识使用规则
-- 有商品知识 → 优先基于知识回答
-- 没有 → 基于常识，不编造
-
-# 记忆使用规则 ← 第七课新增
-- 有用户记忆 → 结合记忆个性化推荐
-- 用户表达偏好 → 主动调用 save_memory</pre>
+    <div style="font-size:14px;color:#22C55E;font-weight:700;margin-bottom:10px;">第七课：全部通过 MCP</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+      <div style="padding:8px 12px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:12px;color:rgba(224,231,255,0.6);">商品知识 → MCP Tool → knowledge-server → pgvector</div>
+      <div style="padding:8px 12px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:12px;color:rgba(224,231,255,0.6);">用户记忆 → MCP Tool → knowledge-server → pgvector</div>
+      <div style="padding:8px 12px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:12px;color:rgba(224,231,255,0.6);">用户画像 → MCP Resource → knowledge-server → MySQL</div>
+      <div style="padding:8px 12px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:12px;color:rgba(224,231,255,0.6);">价格库存 → MCP Tool → product-server → MySQL</div>
     </div>
-    <div style="padding:10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
-      <div style="font-size:12px;color:#00E5FF;font-weight:600;">Prompt 的作用</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.45);margin-top:4px;">
-        不是把 Tool 暴露给 LLM 就够了<br>
-        Prompt 告诉 LLM <strong style="color:#E0E7FF;">什么时候用、怎么用</strong><br>
-        Tool + Prompt = 完整的 Agent 能力
+    <div style="padding:10px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:4px;">
+      <div style="font-size:12px;color:#22C55E;font-weight:600;">agent-runtime 不直接访问任何数据库</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-top:4px;">解耦 · 复用 · 标准化 · 独立部署</div>
+    </div>
+    <div style="margin-top:10px;padding:10px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;">
+      <div style="font-size:11px;color:#FF6B35;font-weight:600;">RAG 检索优化（Demo 未覆盖）</div>
+      <div style="font-size:10px;color:rgba(224,231,255,0.45);margin-top:4px;line-height:1.6;">
+        <strong>Metadata Filtering</strong>：metadata 字段存结构化标签（category/brand/price_range），查询时先过滤再向量搜索<br>
+        <strong>Query Rewrite</strong>：LLM 先抽取意图生成结构化 query，再做检索（不直接用用户原文）
       </div>
     </div>
   </div>

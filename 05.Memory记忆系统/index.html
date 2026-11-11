@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>05.Memory记忆系统 - 幻灯片演示系统</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body, html {
+    width:100%; height:100%; overflow:hidden;
+    background:#0B1120; font-family:"Microsoft YaHei", -apple-system, sans-serif;
+    color:#E2E8F0; user-select:none;
+  }
+  
+  /* 幻灯片全屏居中自适应容器 */
+  #viewport-wrapper {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    background: #0B1120;
+    overflow: hidden;
+  }
+  
+  /* 固定 16:9 画布容器 */
+  #slide-stage {
+    position: relative;
+    width: 1280px;
+    height: 720px;
+    background: #0B1120;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
+    transform-origin: center center;
+    transition: transform 0.08s ease-out;
+  }
+
+  /* 幻灯片 iframe */
+  #slide-frame {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    border: none;
+    background: #0B1120;
+  }
+
+  /* 焦点与交互屏蔽层（彻底解决 iframe 劫持键盘事件问题） */
+  #click-shield {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 10;
+    cursor: default;
+  }
+
+  /* 顶部进度条 */
+  #progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #38BDF8, #818CF8);
+    z-index: 1000;
+    transition: width 0.2s ease-out;
+  }
+
+  /* 悬浮控制工具栏 */
+  #control-bar {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 40px;
+    padding: 6px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 100;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+    opacity: 0.35;
+    transition: opacity 0.25s, transform 0.25s;
+  }
+  #control-bar:hover, #control-bar.active {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-2px);
+  }
+
+  .ctrl-btn {
+    background: none;
+    border: none;
+    color: #94A3B8;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    outline: none;
+    white-space: nowrap;
+  }
+  .ctrl-btn:hover {
+    color: #38BDF8;
+    background: rgba(56, 189, 248, 0.12);
+  }
+  .ctrl-btn:active {
+    transform: scale(0.96);
+  }
+  .ctrl-btn:disabled {
+    color: #475569;
+    cursor: not-allowed;
+    background: none;
+  }
+
+  #page-indicator {
+    font-size: 13px;
+    font-weight: 700;
+    color: #F1F5F9;
+    min-width: 65px;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+
+  /* 快捷键提示条 */
+  #kbd-hint {
+    font-size: 11px;
+    color: #64748B;
+    border-left: 1px solid rgba(255,255,255,0.12);
+    padding-left: 12px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    white-space: nowrap;
+  }
+  kbd {
+    background: rgba(255,255,255,0.12);
+    border-radius: 4px;
+    padding: 2px 6px;
+    color: #CBD5E1;
+    font-size: 11px;
+    font-family: inherit;
+  }
+
+  /* 通用侧边抽屉样式 (演讲备注 N / 扩展学习 E) */
+  .side-drawer {
+    position: fixed;
+    top: 0;
+    right: -540px;
+    width: 540px;
+    height: 100%;
+    background: rgba(11, 17, 32, 0.97);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(255,255,255,0.14);
+    z-index: 2000;
+    transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: -20px 0 40px rgba(0,0,0,0.75);
+    user-select: text;
+  }
+  .side-drawer.open {
+    right: 0;
+  }
+  .drawer-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.7);
+  }
+  .drawer-header h3 {
+    font-size: 15px;
+    color: #38BDF8;
+    font-weight: 600;
+  }
+  .drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    font-size: 13.5px;
+    line-height: 1.75;
+    color: #E2E8F0;
+    word-break: break-word;
+  }
+  .drawer-body.raw-text {
+    white-space: pre-wrap;
+  }
+  .drawer-body a {
+    color: #38BDF8;
+    text-decoration: underline;
+    word-break: break-all;
+  }
+  .drawer-body a:hover {
+    color: #7DD3FC;
+  }
+  .drawer-body h1, .drawer-body h2, .drawer-body h3, .drawer-body h4 {
+    color: #F8FAFC;
+    margin: 16px 0 8px 0;
+    line-height: 1.4;
+  }
+  .drawer-body h1 { font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
+  .drawer-body h2 { font-size: 16px; color: #38BDF8; }
+  .drawer-body h3 { font-size: 14.5px; color: #A5B4FC; }
+  .drawer-body p, .drawer-body li { margin-bottom: 8px; }
+  .drawer-body ul, .drawer-body ol { padding-left: 20px; margin-bottom: 12px; }
+  .drawer-body code {
+    background: rgba(255,255,255,0.1);
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-family: Consolas, monospace;
+    font-size: 12.5px;
+    color: #FCD34D;
+  }
+  .drawer-body blockquote {
+    border-left: 3px solid #38BDF8;
+    padding: 8px 14px;
+    background: rgba(56, 189, 248, 0.08);
+    margin: 10px 0;
+    border-radius: 0 6px 6px 0;
+  }
+</style>
+</head>
+<body tabindex="0">
+
+<div id="progress-bar"></div>
+
+<div id="viewport-wrapper">
+  <div id="slide-stage">
+    <iframe id="slide-frame" src="page_1.html" allowfullscreen></iframe>
+    <div id="click-shield" title="单击右侧下一页，单击左侧上一页，双击全屏"></div>
+  </div>
+</div>
+
+<!-- 底部悬浮控制栏 -->
+<div id="control-bar">
+  <button id="btn-prev" class="ctrl-btn" title="上一页 (← / PageUp / Backspace)">◀ 上一页</button>
+  <span id="page-indicator">1 / 19</span>
+  <button id="btn-next" class="ctrl-btn" title="下一页 (→ / Space / PageDown / Enter)">下一页 ▶</button>
+  <button id="btn-notes" class="ctrl-btn" title="演讲者备注 (N)">📝 演讲备注</button>
+  <button id="btn-ext" class="ctrl-btn" title="课后扩展学习指南 (E)">📚 扩展学习</button>
+  <button id="btn-fs" class="ctrl-btn" title="全屏演示 (F / F11)">⛶ 全屏</button>
+  <div id="kbd-hint">
+    <span><kbd>→</kbd>/<kbd>Space</kbd> 翻页</span>
+    <span><kbd>N</kbd> 备注</span>
+    <span><kbd>E</kbd> 扩展</span>
+    <span><kbd>F</kbd> 全屏</span>
+  </div>
+</div>
+
+<!-- 演讲者备注抽屉 -->
+<div id="notes-drawer" class="side-drawer">
+  <div class="drawer-header">
+    <h3 id="notes-title">演讲手册备注 (第 1 页)</h3>
+    <button id="btn-close-notes" class="ctrl-btn" style="padding:4px 8px; font-size:16px;">✕</button>
+  </div>
+  <div id="notes-body" class="drawer-body raw-text">正在载入备注...</div>
+</div>
+
+<!-- 课后扩展学习指南抽屉 -->
+<div id="ext-drawer" class="side-drawer">
+  <div class="drawer-header">
+    <h3>📚 课后扩展学习指南 (05.Memory记忆系统)</h3>
+    <button id="btn-close-ext" class="ctrl-btn" style="padding:4px 8px; font-size:16px;">✕</button>
+  </div>
+  <div id="ext-body" class="drawer-body"></div>
+</div>
+
+<script>
+  const pages = ["page_1.html","page_2.html","page_3.html","page_4.html","page_5.html","page_6.html","page_7.html","page_8.html","page_9.html","page_10.html","page_11.html","page_12.html","page_13.html","page_14.html","page_15.html","page_16.html","page_17.html","page_18.html","page_19.html"];
+  const notesMap = {"page_1.html":"# Page 1 — 封面：Memory 记忆系统（让 Agent 记住用户）\n\n## Slide Objective\n开场定调：从\"理解 AI\"进入\"让 AI 记住用户\"。\n\n## Suggested Presentation\n上节课完成了导购 Agent 第一版，但它每次对话都是陌生人。今天解决这个问题。\n\n今天的主题是 Memory——记忆系统。不是\"聊天记录\"，而是\"企业为 AI 建立的记忆系统\"。聊天记录只是存消息，Memory 是结构化的、可压缩的、跨 Session 生效的用户记忆体系。\n\n## Key Emphasis\n定调词要准：今天讲的是\"记忆系统\"，不是\"聊天记录怎么存\"。开场就点明本课（Tag `v1.2.1`）核心落地的是 `enterprise-ai-agent` 的 `memory/` 包和两个存储（Redis 会话缓冲与累积摘要、MySQL 用户画像），下一课（第六课）再引入第三个（pgvector 向量库）。不要在开场展开架构细节——本段只负责把问题立起来。\n\n## Optional Extension\n**学员问：记忆系统跟\"把历史塞进 messages 数组\"有什么本质区别？**\n答：区别在\"塞多少、塞什么、谁来选\"。\nDemo 做法：本课 Demo（`v1.2.1`）里，`SessionMemory`（Redis）存最近对话，`SummaryPipeline` 在消息超 8 条时将早期消息压缩为累积摘要，`MemoryManager.buildContext()` 负责把 MySQL 用户画像 + Redis 摘要与近期对话分块拼装。打开 `logs/llm-interactions.log`（或 `logs/llm-chat.log`）能看到每次真正注入了多少。\n生产做法：历史全量塞 messages 只适合短会话；长会话按 token 预算装配 context（系统提示 + 画像 + 摘要/检索记忆 + 最近消息），超预算先裁旧消息、再走后台压缩。第六课看 context 加入 RAG 结果后怎么继续扩展，第八课 Workflow 讲多轮任务的上下文预算。\n\n## Classroom Interaction\n开场 30 秒做个实验：让学员在前端新会话问一句\"我叫什么\"，然后打开 `logs/llm-interactions.log` 看这次请求的上下文——没有任何历史记忆。本课要解决的问题现场成立。\n\n## Take Away\nMemory 是服务端的、结构化的、跨 Session 的用户状态——它是你的代码和存储选型，不是模型自带的能力。\n\n## Why This Slide Matters\n跳过这页的定调，学员会把今天当成\"聊天记录存哪儿\"来听，最后把对话原文全塞 MySQL 或把長期画像全塞 Redis——三层各司其职的判断从第一页就丢了。\n\n## Transition\n在解决这个问题之前，我们先来看一下今天的学习地图（Page 2：目录）。\n","page_2.html":"# Page 2 — 目录\n\n## Slide Objective\n展示课程全景导航，让学员明确今天的学习路径、每个知识模块对应 Demo 的落地点，以及核心技术架构的升级点（六类记忆系统化分类、双库分层演进、全生命周期四大治理机制、Demo 教学简化与生产差异）。\n\n## Suggested Presentation\n带学员浏览 9 个章节的主线：\n- **01 大模型的失忆症 (P3)：** 为什么 LLM 天生无状态，为什么必须由服务端工程构建记忆；\n- **02 六类记忆分类与存储映射矩阵 (P4)：** 会话历史、工作记忆、短期、长期、画像、情景记忆六维全景；\n- **03 Session Memory (P5–P6)：** 方案全景 + Redis 滑动窗口 Demo 实现；\n- **04 上下文压缩 (P7–P8)：** 策略对比 + SummaryPipeline 滚动压缩 Demo 实现；\n- **05 用户画像 (P9–P10)：** 设计模式 + UserProfileExtractor 异步抽取 Demo 实现；\n- **06 context 注入演进 (P11)：** 从 v1.0 到 v4.0 的上下文装配演化；\n- **07 记忆安全与隐私 (P12)：** 数据保留、PII 脱敏、GDPR / 个保法合规；\n- **08 存储选型 + 分层演进 + 全生命周期治理 (P13–P16)：** 存储选型、结论/过程双库演进预告、写入/冲突/遗忘/并发全生命周期治理、五项生产差距；\n- **09 Demo 架构 + 业界视野 + 总结 (P17–P19)：** v1.2.1 组件与日志、业界记忆系统（Letta/Mem0/Zep）、第五课收官总结。\n\n## Key Emphasis\n强调课程不仅有单机 Demo 的基础实现，更覆盖了企业生产级记忆架构的完整治理生命周期。\n","page_3.html":"# Page 3 — 大模型的失忆症\n\n## Slide Objective\n让学员理解大模型失忆的本质原因，用 Demo 日志和实际操作建立直观认知。\n\n## Suggested Presentation\n看左边。LLM API 没有记忆功能。每次请求都是独立的 HTTP POST，模型不保留任何上一次的状态。\n\nDemo 里可以验证。打开前端登录后直接聊，先问\"我叫什么\"，模型说不知道。然后看 `logs/llm-interactions.log`（或 `logs/llm-chat.log`），找到这次请求。你会看到 System Prompt 里只有角色定义，没有任何用户信息。User Prompt 里只有一条当前消息。这就是\"失忆\"的证据——每次请求默认只有当前这一条问题，没有历史。\n\n看右边。有人可能会想：能不能把所有历史对话都塞进请求里？理论上可以，但有三个实际问题。第一，Context Window 有限——如果对话有 50 轮，加上 System Prompt 和 RAG 结果，很容易逼近上限。第二，历史越长，Token 成本越高——历史对话每次都会作为输入 token 重复计费。第三，用户换个浏览器或开启新会话就丢了——Session 是单次会话维度的，不是跨会话用户维度的。\n\n所以 Memory 必须在服务端实现。模型是无状态的，记忆是有状态的——这个矛盾必须由你的服务端代码来解决。\n\n## Key Emphasis\n用 `logs/llm-interactions.log` 展示\"无记忆\"的请求长什么样。让学员亲眼看到初始请求没有任何历史上下文。这比任何解释都直观。\n\n## Optional Extension\n**学员问：把所有历史都塞进 messages 不就行了？模型上下文不是越来越大吗？**\n答：能塞 ≠ 该塞，三个成本会先到：token 费用、上下文信噪比下降、首字响应延迟。\nDemo 做法：本课 Demo（`v1.2.1`）的 `SessionMemory` 设滑动窗口硬上限 20 条，`SummaryPipeline` 在消息超过 8 条时触发累积摘要压缩（保留最近 4 条原文 + 1 条累积摘要），`MemoryManager.buildContext()` 只注入画像 + 摘要与最近对话——打开日志文件能清楚看到每次注入的量。\n生产做法：按 token 预算装配 context（系统提示/画像/检索结果/历史各有配额），超预算先裁旧消息、再压摘要；超长历史在下一课引入向量库按需检索。第六课讲长上下文 vs RAG 的边界，第八课 Workflow 讲多轮上下文预算怎么控。\n\n## Classroom Interaction\n现场做三步：新会话问\"我叫什么\"→ 不知道；说\"我叫张三\"再问 → 同 Session 记得；清空会话再问 → 若未抽取画像又不知道了，抽取画像后跨会话依然记得。三个动作把\"无记忆 / Session 记忆 / 跨 Session 长期画像\"一次讲完。\n\n## Take Away\n记忆必须由服务端状态承担——模型每次调用都是无状态的 HTTP POST，指望模型自己记就是没做设计。\n\n## Why This Slide Matters\n跳过这页，学员会把记忆问题推给模型（\"换个长上下文模型就好了\"），不做服务端的存储、压缩与注入设计——长对话一来就 token 爆炸、成本失控。\n\n## Transition\n既然需要在服务端建 Memory，那怎么设计整体架构？我们进入第二章（Page 4：Memory Architecture — 三层记忆架构）。\n","page_4.html":"# Page 4 — 记忆系统双层解耦架构：逻辑记忆分类 vs 物理存储映射\n\n## Slide Objective\n打破“记忆分类与物理存储混为一谈”的严重概念误区，建立 **双层解耦架构**：\n- **第一层 · 逻辑记忆分类体系（Logical Memory Classification）：** 确立**课程定义的工程分类模型**，清晰区分作为**原始记录载体**的 **Conversation History**，与四大**认知记忆类型**（**Working Memory、Episodic Memory、Semantic Memory、Procedural Memory**）。\n- **第二层 · 物理存储与生命周期实现（Storage Implementation）：** 按读写频率、生命周期与检索模式映射至 **Redis、MySQL、pgvector、事件溯源、TTL 衰减与滚动摘要**。\n讲透两层之间不是一一对应关系，并清晰锚定当前 Demo（v2.0）的精准落地坐标。\n\n## Suggested Presentation\n\n### 一、打破认知误区：拒绝“概念浆糊”\n在不少工程师的认知里，往往把“工作记忆、短期记忆、Redis、pgvector”杂糅在同一张表里：\n- “工作记忆”和“短期记忆”是什么关系？\n- “用户画像”到底算不算长期记忆？\n- “pgvector”是一种记忆类型吗？\n\n**明确正本清源：**\npgvector 是物理存储引擎，不是记忆类型；Context Window 是模型运行态上下文空间，不是持久化数据库；用户画像是长期语义记忆的一种结构化表现。\n因此，必须在架构上明确划分为**两个独立的层次**：\n1. **第一层（逻辑层）：** 采用**课程定义的工程分类模型**，解决“大模型在认知层面记住了什么、起什么作用”；特别说明：会话历史更接近原始时序记录的载体，是抽取下述各类认知记忆的数据源泉，而非认知记忆本身；\n2. **第二层（工程物理层）：** 解决“数据存在哪里、生命周期多长、如何治理与并发控制”。\n\n---\n\n### 二、第一层：逻辑记忆体系解构（记录载体 + 四大认知类型）\n\n1. **会话历史 (Conversation History) — 原始时序流水载体：**\n   - **核心定义：** 用户与 Agent 交互产生的全部原始消息流水帧（User/Assistant/Tool），单调递增追加的记录载体。\n   - **核心价值：** 审计质检、法律合规、纠纷回溯，以及作为提取认知记忆（画像、反思）的数据源。\n   - **物理落点：** 活跃近景存 Redis List；历史归档全量持久化至 MySQL / ES。\n\n2. **工作记忆 (Working Memory) — 运行态动态草稿纸：**\n   - **核心定义：** Agent 在执行单次多步复杂任务（如 ReAct 循环、多工具协同、代码分析）时的临时状态、中间推理草稿（Scratchpad）与步骤变量。\n   - **核心价值：** 支撑模型多步推理与反思，任务结束或请求返回后即刻销毁。\n   - **物理落点：** 驻留在当前 LLM 的 Context Window 或 Java 进程内存（ThreadLocal / Memory Context）。\n\n3. **情景记忆 (Episodic Memory) — 时空经历与事件复盘：**\n   - **核心定义：** 包含明确时间、地点、因果背景与成败结局的具体经历事件记录（例如“上周为某 VIP 用户推荐轻薄本因未核对库存导致投诉事件”）。\n   - **核心价值：** 赋予 Agent “从历史教训或成功案例中复盘反思”的类人能力，在相似场景主动规避重蹈覆辙。\n   - **物理落点：** 事件记录（Event Sourcing）+ 向量时序索引与知识图谱。\n\n4. **语义事实与画像 (Semantic Memory) — 稳定事实与静态偏好：**\n   - **核心定义：** 跨越会话边界沉淀的结构化与非结构化客观事实，包括通用领域知识、规则，以及从历史对话中萃取的用户稳定属性画像（Profile）。\n   - **核心价值：** 结构化部分（Profile）信息密度极高，可每轮稳定注入 Prompt；非结构化事实通过向量检索按需唤醒。\n   - **物理落点：** 结构化画像落 MySQL `user_profile`；非结构化语义事实落 pgvector。\n\n5. **程序记忆 (Procedural Memory) — 操作技能与任务 SOP：**\n   - **核心定义：** 执行特定任务的经验策略、操作技能、最佳工具调用链路与工作流 SOP（“怎么做”的程序性知识）。\n   - **核心价值：** 固化最佳实践，提升 Agent 工具调用的准确率与执行效率。\n   - **物理落点：** Prompt 策略模板库、系统规则集或微调 LoRA 权重。\n\n---\n\n### 三、第二层：物理存储与生命周期映射\n\n引导学员理解：**逻辑记忆与存储引擎是“多对多”映射，绝非一一绑定！**\n- **Redis 内存缓存：** 专为高频读写设计，用于存放 Conversation History 的近期近景窗口（Sliding Window，如最近 20 条），配合 24h 滑动 TTL 衰减；\n- **MySQL 关系数据库：** 提供强 ACID 事务与行级更新，用于存放结构化用户画像（Semantic Memory 的结构化部分），支持大模型异步抽取与新旧结论合并；\n- **pgvector 向量检索：** 支撑非结构化语义记忆与情景经历的高维近似检索；\n- **生命周期治理组件：** `SummaryPipeline` 滚动摘要、Mem0 状态冲突消解（ADD/UPDATE/DELETE/NOOP）、遗忘衰减与并发版本控制。\n\n---\n\n### 四、Demo（v2.0）精准落地坐标\n- **当前 Demo 聚焦两项最关键的基础底座：**\n  1. **短期会话历史缓冲：** 基于 Redis List 维护最近 20 条消息窗口，配合 Summary 摘要压缩；\n  2. **静态画像沉淀：** 基于 MySQL `user_profile` 存储，异步触发大模型抽取与新旧偏好覆盖合并。\n- **演进路线：** 后续第六课引入 pgvector 向量检索拓展长期语义记忆，第八课引入状态机强化工作记忆管理。\n\n## Key Emphasis\n1. **两层严格分离：** 逻辑层回答“记什么”，物理层回答“存哪里”。严禁把 pgvector 称作“一种记忆类型”。\n2. **画像属于语义记忆：** 用户画像是 Semantic Memory 在企业中最典型的结构化表现形式。\n3. **Demo 边界明确：** v2.0 Demo 稳扎稳打实现 Redis 会话缓冲 + MySQL 画像抽取合并。\n","page_5.html":"# Page 5 — Session Memory — 方案全景\n\n## Slide Objective\n讲透 Session Memory 的方案全景——每种方案的原理、数据结构、适用场景、工程细节。\n\n## Suggested Presentation\nSession Memory 有三种主流存储方案，每种都有明确的适用场景。\n\n**方案一：内存存储（ConcurrentHashMap / Caffeine）**\n\n最简单。数据存在 JVM 堆里，读写零网络延迟。ConcurrentHashMap 是 JDK 自带的线程安全 Map，Caffeine 是高性能本地缓存库，支持过期策略与容量上限。\n\n但有两个致命问题。第一，重启丢失——JVM 一停，所有 Session 消失。第二，不支持多实例——部署 3 个实例时，用户的请求被负载均衡到不同实例，每个实例只存了部分对话。\n\n适用场景：原型开发、单机部署、对数据丢失不敏感的内部工具。\n\n**方案二：Redis（Demo 选择，主流方案）**\n\nRedis 是生产环境的主流选择。核心优势：List 结构天然适合消息队列——RPUSH 追加、LRANGE 读取、LPOP 裁剪。自带 EXPIRE 过期机制，不用自己写清理逻辑。支持集群部署，多实例共享同一个 Redis。\n\n踩坑经验：Redis 的 EXPIRE 是从最后一次写入开始计时的。如果设了 24 小时过期，用户每发一条消息，过期时间就重置为 24 小时后。这意味着只要用户持续对话，Session 永远不过期；只有停止对话 24 小时后才会自动清理。\n\n**方案三：数据库（MySQL / PostgreSQL）**\n\n读写慢但持久化、可查询。适合需要审计和合规的场景——比如金融行业的客服系统，每条对话都要留痕，监管机构随时可能要求调取。\n\n**Token 爆炸问题——所有方案都要面对**\n\n不管用哪种存储，对话越来越长都会导致 Token 成本越来越高。两种解决策略：滑动窗口（裁掉旧消息，简单但丢失信息）和后台压缩（旧消息变摘要，保留信息但需要调用 LLM）。\n\n**Memory 生命周期**\n\n企业必须回答的问题：Memory 会无限增长吗？答案是不能。必须有生命周期管理：Message（新消息）→ Session（当前对话）→ Summary（压缩后的摘要）→ Archive（归档到冷存储或向量库）→ Delete（最终删除）。本课 Demo（`v1.2.1`）实现了 Message → Session → Summary（`SummaryPipeline` 累积摘要），后续第六、七课将进一步演进出向量化归档沉淀。\n\n## Key Emphasis\n每种方案的\"为什么\"比\"是什么\"更重要。不是\"Redis 能存 Session\"，而是\"为什么选 Redis 而不是本地内存或关系型数据库\"。\n\n## Optional Extension\n**学员问：为什么 Demo 用 Redis List 不用 Stream 或 Hash？**\n答：看操作模式，不是看新旧。\nDemo 做法：`SessionMemory.java` 只需要三种操作——RPUSH 追加、LRANGE 全读、LPOP 裁剪，List 天然对应，几行代码搞定。\n生产做法：要消费者组、断线续传、多读者就上 Stream（Redis 5.0+）；要按消息 ID 删单条就用 Hash；并发写同一 Session 的顺序问题用 MULTI/EXEC 或分布式锁兜住。\n\n## Classroom Interaction\n让学员 `redis-cli LRANGE session:default:messages 0 -1` 和 `redis-cli TTL session:default:messages` 各跑一次——看到消息列表和 24 小时倒计时，方案全景就不是纸上谈兵了。\n\n## Take Away\nSession 存储按\"读写模式 + 生命周期\"选型；EXPIRE 是滑动的——活跃会话永不过期，容量必须另有兜底（滑动窗口 + 摘要压缩，以及 Page 16 第 2 项）。\n\n## Why This Slide Matters\n直接选 MySQL 存高频会话的，高并发下会撞延迟墙；直接用 JVM 内存的，一重启或多实例部署就丢会话——都是没做这页的方案对比就动手。\n\n## Transition\n看完了方案全景，Demo 选了 Redis。具体怎么实现的？请看下一页（Page 6：Session Memory — Demo 实现）。\n","page_6.html":"# Page 6 — Session Memory — Demo 实现\n\n## Slide Objective\n展示 Demo 的 Session Memory 实现（`SessionMemory.java`），讲解关键代码和踩坑经验。\n\n## Suggested Presentation\nDemo 选了 Redis 方案。看左边的 Redis 结构。Key 是 `session:{sessionId}:messages`，List 结构。每条消息格式是 `role|content`，用 `|` 分隔角色和内容。为什么用 `|` 分隔而不是存 JSON？因为 List 的每个元素是字符串，用 `|` 分隔最简单，读取时 `split(\"\\\\|\", 2)` 一下就行。踩坑经验：如果用户消息里包含 `|` 字符怎么办？`split(\"\\\\|\", 2)` 限制只按第一个 `|` 切分，但生产项目中还是应该用标准 JSON 或 Protobuf 序列化。\n\n看右边的 `SessionMemory.java` 代码。`addMessage` 方法做三件事：`rightPush`（RPUSH）追加、`expire`（EXPIRE）设 24 小时过期、超过 `MAX_MESSAGES = 20` 时 `leftPop`（LPOP）裁剪最旧的消息。\n\n这里的 `MAX_MESSAGES = 20` 是滑动窗口的**安全兜底硬上限**。而在正常对话中，当消息超过 8 条时，我们的 `SummaryPipeline`（Page 8 详讲）就会先把旧消息压缩为 1 条累积摘要 + 4 条最新原文，因此消息数平时会維持在 5–8 条之间；只有当摘要压缩异常未生效时，20 条硬上限才会触发 `leftPop` 强行裁剪，防止 Redis 内存失控。\n\n验证方法：用 `redis-cli LRANGE session:xxx:messages 0 -1` 或调用 `GET /api/agent/memory?sessionId=xxx` 可以直接查看当前对话内容。\n\n## Key Emphasis\n代码讲解要具体到方法名和参数。讲清楚 `SessionMemory` 的 20 条硬上限兜底与 `SummaryPipeline` 的 8 条摘要压缩阈值之间的配合关系。\n\n## Optional Extension\n**学员问：`role|content` 这种分隔符序列化，用户消息里带分隔符或换行怎么办？**\n答：Demo 用两层小技巧兜住，生产必须换结构化序列化。\nDemo 做法：`SessionMemory.addMessage` 把换行转义成 `\\n`，读取时 `split(\"\\\\|\", 2)` 只切第一个分隔符——用户内容里再出现 `|` 也不会误切。教学演示够用。\n生产做法：每条消息存 JSON（`role/content/timestamp/tokenCount`），或用 Redis Stream 的结构化字段；并发写同一 Session 用原子操作或分布式锁保证顺序。\n\n## Classroom Interaction\n让学员连发两条消息后跑 `redis-cli LRANGE`——看顺序、看 `role|content` 格式。\n\n## Take Away\n滑动窗口的 `MAX = 20` 是\"条数兜底上限\"而非\"token 上限\"——单纯靠滑动窗口丢弃旧消息会丢上下文，所以下一章必须引入上下文压缩。\n\n## Why This Slide Matters\n把简单分隔符序列化和\"无并发控制\"照搬到生产，会出消息错切、顺序错乱两类 bug——特征是偶发、难复现，排查成本极高。\n\n## Transition\n单纯靠滑动窗口裁剪会丢失早期关键信息。怎么在控制长度的同时保留历史信息？我们进入第四章（Page 7：上下文压缩 — 策略对比）。\n","page_7.html":"# Page 7 — 上下文压缩 — 策略对比\n\n## Slide Objective\n讲透上下文压缩的完整知识体系——四种策略的原理、实现细节，以及多轮工具调用 Agent 中的 **Observation Masking（历史工具大返回折叠裁剪）** 工程实践。\n\n## Suggested Presentation\n对话越来越长，Token 成本越来越高。需要压缩。但压缩有四种基础策略，外加一项针对 Tool-using Agent 的关键裁剪机制，各有取舍。\n\n**策略一：滑动窗口**\n\n最简单。保留最近 N 条消息，裁掉旧的。N 的选择很关键——太小会丢失重要上下文，太大失去了压缩的意义。Demo 的 `SessionMemory` 里设了 20 条安全上限，超过就 LPOP 最旧的。\n\n滑动窗口的问题：用户前面说过\"我预算 8000\"，被裁掉后 Agent 就忘了。这在短对话里不是问题，但在长对话里是致命的——用户聊了 15 轮，早期的关键信息全丢了。\n\n**策略二：累积摘要（本课 Demo 选择）**\n\n核心思想：不是直接丢弃旧消息，而是用 LLM 把旧消息压缩成摘要，摘要和最近的新消息共存。\n\n具体实现：在本课 Demo（`SummaryPipeline.java`）中，当消息数超过阈值（`COMPRESS_THRESHOLD = 8`），取出前 N-4 条（保留最近 `KEEP_RECENT = 4` 条原文），把这些旧消息（含之前的旧摘要）拼成一段文本，让快模型（`agent.model.fast`）压缩成 300 字以内的更新摘要，写回 Redis（`session:{sid}:summary` / `messages`），与最近 4 条原文共存。\n\n累积的关键：第二次压缩时，旧摘要也会被传给 LLM。Prompt 里明确告诉 LLM：\"之前已经有一份摘要，现在需要将旧摘要和新对话合并为一份更新的摘要\"。这样摘要 B 包含摘要 A 的信息，不会丢失历史。\n\n**策略三：关键词抽取**\n\n从对话中提取关键实体存入结构化字段。比如用户说\"我预算 8000，喜欢轻薄本\"，提取出 `preferences` 存入 MySQL。优点是精确、可查询；缺点是丢失上下文语境。通常和画像系统配合使用——我们第五章讲的 `UserProfileExtractor` 本质上就是结构化抽取。\n\n**策略四：Embedding 压缩（第六、七课演进方向）**\n\n把历史对话或片段摘要转为向量，存入向量数据库（如 pgvector）。需要时按用户当前问题做语义检索，召回最相关的 top-k 记忆片段。下一课（第六课）引入 pgvector 后，我们就会把累积摘要进一步升级为向量化记忆沉淀。\n\n**🛠️ 进阶工程实践：Observation Masking（历史工具大返回折叠裁剪）**\n\n这一点在后续第七、八课（Tool Calling 与 Workflow）至关重要：在带工具调用的 Agent 中，真正把 Context Window 撑爆的往往不是用户的寥寥几句提问，而是历史轮次中工具返回的几 KB 甚至几十 KB 的 JSON 原始报文（即 `role=tool` 的 Observation，如商品列表 JSON、订单详情 JSON）。\n生产级 Agent 的标准做法是 **Observation Masking**：保留最近 N 轮（如最近 1–2 轮）的完整工具返回，而对超过 N 轮之前的历史 `role=tool` 观测结果进行**折叠掩码或单行摘要替换**（例如替换为 `[Tool Observation Masked: search_products returned 15 items, see assistant reply for summary]`）。这样既保留了工具调用的轨迹（Agent 知道自己查过什么），又瞬间砍掉了 80% 以上的历史冗余 Token！\n\n## Key Emphasis\n四种基础策略的取舍 + **Observation Masking（裁历史 `role=tool` 大 JSON，保留近期轮次）** 是核心亮点。累积摘要的\"合并旧摘要\"机制为下一页 Demo 代码讲解做好铺垫。\n\n## Optional Extension\n**学员问：累积摘要压缩会不会把\"不要黑色\"这种关键约束在多轮缩写中压丢？**\n答：会，多轮有损压缩存在\"信息稀释效应\"，所以关键约束不能只活在摘要里。\nDemo 做法：本课 Demo 用双轨制兜底——`SummaryPipeline` 负责压缩对话过程摘要，而 `UserProfileExtractor` 将核心事实与约束（`facts / preferences / tasks / constraints`）独立抽取到 MySQL `user_profile` 表并全量注入。\n生产做法：核心约束走结构化画像（结论层），过程对话走摘要或向量检索（过程层），历史工具大返回走 Observation Masking。\n\n## Classroom Interaction\n提问学员：\"如果 Agent 连续调用了 5 次商品搜索接口，每次返回 20 个商品的 JSON（约 4000 tokens），第 6 轮对话时输入 token 会发生什么？用刚才讲的哪个技术解决最直接？\"（答案：输入暴涨 2 万 tokens；用 Observation Masking 折叠前 4 轮的 `role=tool` JSON 返回）。\n\n## Take Away\n上下文压缩是组合拳：**滑动窗口保近期 + 累积摘要保脉络 + 画像抽取保结论 + Observation Masking 砍工具大返回**。\n\n## Why This Slide Matters\n只懂压缩自然语言对话、不懂裁剪历史 `role=tool` 观测结果的工程师，到了第七、八课接入真实业务 API 时，3 轮工具调用就会把上下文窗口撑爆。\n\n## Transition\n看完了策略对比与 Observation Masking，本课 Demo 的 `SummaryPipeline` 累积压缩具体是怎么实现的？请看下一页（Page 8：上下文压缩 — Demo 实现）。\n","page_8.html":"# Page 8 — 上下文压缩 — Demo 实现\n\n## Slide Objective\n展示本课 Demo（`v1.2.1`）的上下文累积压缩实现（`SummaryPipeline.java`），讲解代码细节、双模选型踩坑经验与日志验证。\n\n## Suggested Presentation\n看左边的累积压缩流程（`SummaryPipeline.java`）。当 Redis 中的会话消息超过 8 条（`COMPRESS_THRESHOLD = 8`）时触发压缩：取出前 `N - 4` 条消息（包含可能已存在的旧摘要），调用快模型压缩为更新后的累积摘要，写回 Redis（`session:{sid}:summary` / `session:{sid}:messages`），并保留最近 4 条原文（`KEEP_RECENT = 4`）。\n\n关键设计：第二次触发压缩时，旧摘要也会被传给 LLM。看 `SummaryPipeline.java` 的 `summarizeSession` 方法：它会检查待压缩消息中是否包含之前的 `[对话摘要]`——如果有，Prompt 会明确指示 LLM：\"之前已经有一份摘要，现在需要将旧摘要和新对话合并为一份更新的摘要。保留所有关键信息，不超过300字。\"\n- 第一次满 8 条：前 5 条 → **累积摘要 A** + 保留最近 4 条原文\n- 第二次再满 8 条：累积摘要 A + 中间旧消息 → **累积摘要 B（含 A）** + 保留最新 4 条原文\n\n踩坑经验 1（旧摘要合并）：一开始 Prompt 只写了\"压缩以下对话\"，没有告诉 LLM 合并旧摘要，结果每次压缩都把更早期的背景丢了。加上\"合并旧摘要\"指令后，实现了真正的累积摘要。\n\n看左下角的避坑卡片：**🚨 压缩与抽取双模选型**。\n文本摘要压缩只做段落缩写，不需要复杂推理能力，使用快模型（`agent.model.fast`，如 Qwen2.5-7B，temperature 0.1）即可胜任，速度快、成本低；但下一页要讲的用户画像抽取涉及严格 JSON Schema 输出，快模型极易发生引号缺失、多余逗号等语法残缺报错，因此画像抽取必须强制路由至推理模型（`agent.model.reasoning`，如 Qwen3-8B）。\n\n看右边的关键设计：\n1. **阈值**：`COMPRESS_THRESHOLD = 8`、`KEEP_RECENT = 4`。Demo 设为 8 条触发是为了方便课堂现场演示（聊 4–5 轮就能看到效果），生产环境通常设为 30–50 条。\n2. **模型**：`agent.model.fast`（从 `application.yml` 读取，不硬编码）。\n3. **独立日志**：`logs/llm-summary.log`。每次触发压缩时，都会在 `logs/llm-summary.log` 打印 `SUMMARY REQUEST`（含策略、完整 Prompt、旧摘要）和 `SUMMARY RESPONSE`（耗时与新摘要）。\n4. **演进预告**：第六、七课引入 pgvector 与 MCP 后，这套累积摘要将进一步升级为满 20 条沉淀为 pgvector 向量化记忆。\n\n## Key Emphasis\n`SummaryPipeline` 的三个核心数字（阈值 `8`、保留 `4`、300 字以内累积合并）、双模选型（压缩用 `agent.model.fast`、画像 JSON 抽取用 `agent.model.reasoning`），以及用 `logs/llm-summary.log` 现场验证压缩前后对比。\n\n## Optional Extension\n**学员问：压缩用快模型（`agent.model.fast`）、画像抽取用推理模型（`agent.model.reasoning`），能不能统一用一个模型省事？**\n答：不建议，两个任务的质量要求与延迟敏感度完全不同。\nDemo 做法：在 `application.yml` 中按职责路由——摘要压缩走 `agent.model.fast`（Qwen2.5-7B），画像抽取走 `agent.model.reasoning`（Qwen3-8B）。打开 `logs/llm-summary.log` 和 `logs/llm-profile.log` 能直观看到两次调用使用了不同模型。\n生产做法：按任务分级选模——结构化 JSON 输出任务留足质量预算，纯文本缩写任务用高吞吐便宜模型。\n\n## Classroom Interaction\n现场连聊 5 轮（超过 8 条消息），让学员打开 `logs/llm-summary.log` 查看 `SUMMARY REQUEST` 和 `SUMMARY RESPONSE`，再跑一次 `redis-cli LRANGE session:default:messages 0 -1`（或调用 `GET /api/agent/memory?sessionId=...`），亲眼看到前几轮对话变成了 1 条 `[对话摘要]` 加最近 4 条原文。\n\n## Take Away\n累积摘要的核心是\"旧摘要 + 新对话 → 合并新摘要\"；模型按任务选型（压缩用 `agent.model.fast`，结构化 JSON 抽取用 `agent.model.reasoning`），并通过 `logs/llm-summary.log` 可观测。\n\n## Why This Slide Matters\n一刀切只用一个模型的项目，要么成本和延迟爆炸（全用推理模型压历史），要么结构化输出天天解析报错（全用小模型抽 JSON）——这是 Demo 真实踩过又总结出来的工程准则。\n\n## Transition\nSession Memory 和累积压缩解决了\"记住当前这轮对话\"。但还有一个更重要的问题：怎么跨会话记住用户是谁？我们进入第五章（Page 9：用户画像 — 设计模式）。\n","page_9.html":"# Page 9 — 用户画像 — 设计模式\n\n## Slide Objective\n讲透用户画像的完整知识体系——分类方式、触发机制、更新策略、存储格式、实际工程问题。\n\n## Suggested Presentation\n用户画像不是\"聊天记录的摘要\"，而是结构化的用户信息。这一页讲设计模式。\n\n**分类方式——四维度的设计逻辑**\n\n四维度不是随意设计的，每种维度的更新策略不同：\n- **Fact 事实**（姓名、职业、年龄）：客观信息，补充修正，一般不会频繁反转。\n- **Preference 偏好**（颜色、品牌、预算、风格）：主观喜好，新覆盖旧。用户先说\"预算 8000\"，后来说\"预算改成 10000\"，应该用新偏好覆盖旧偏好。\n- **Task 任务**（当前需求、待办事项）：短期信息，完成即删。用户说\"我在找一台写代码的笔记本\"，买完就应该清除。\n- **Constraint 约束**（禁区、限制、不要的东西）：长期保留。用户说\"不要游戏本\"，这个限制应该一直保留。\n\n**触发机制——不只是\"什么时候触发\"**\n\n1. **实时抽取（每轮对话后同步调）**：及时但成本高、拖慢响应。适合高价值低频场景。\n2. **异步 / 事件触发（Demo 选择）**：对话后通过 `@Async` 后台异步抽取，或显式调用 `/profile/extract` 接口触发，外加会话结束（`/memory/clear`）兜底。优点是不阻塞主对话流、成本可控。\n3. **批量抽取（定时任务）**：每天凌晨分析所有用户近期对话。成本最低，但有天级延迟。\n4. **混合方案（实际项目推荐）**：高置信度信息异步准实时抽取，复杂潜在偏好夜间批量分析。\n\n**更新策略——新信息和旧信息怎么合并**\n\n直接覆盖会丢失历史。正确做法是**合并更新**——把 MySQL 中的旧画像和 Redis 中的新对话一起传给推理模型，让 LLM 根据新对话生成合并后的 JSON 画像，且空值不覆盖已有字段。\n\n## Key Emphasis\n四维度的更新策略是核心——Fact 补充修正、Preference 新覆盖旧、Task 完成即删、Constraint 长期保留。这个设计逻辑比具体表结构更重要。\n\n## Optional Extension\n**学员问：四维度设计在实际表结构里怎么存？**\n答：本课 Demo（`v1.2.1`）在 MySQL `user_profile` 表中直接设计了 `facts`、`preferences`、`tasks`、`constraints` 四个字段（见 `UserProfile.java`），直观清晰；生产环境若维度需要动态扩展，可使用 PostgreSQL `JSONB` 或 MySQL `JSON` 列配合版本号字段。\n\n## Classroom Interaction\n让学员说三句话（\"我叫张三，是程序员\" / \"预算改成 1 万\" / \"不要游戏本\"），先预测各自落进四维度的哪个字段、用什么更新策略，再在下一页跑 Demo 对照 `logs/llm-profile.log` 的合并结果。\n\n## Take Away\n画像字段的更新策略（只增 / 覆盖 / 完成即删）比字段数量重要——设计字段前先想清楚\"这个字段以后怎么变\"。\n\n## Why This Slide Matters\n统一用\"全量覆盖\"更新画像的系统，会误删历史事实；统一用\"无脑追加\"的系统，会让新旧预算自相矛盾——更新策略必须在设计阶段定清。\n\n## Transition\n看完了用户画像的设计模式，本课 Demo 具体是怎么实现的？请看下一页（Page 10：用户画像 — Demo 实现）。\n","page_10.html":"# Page 10 — 用户画像 — Demo 实现\n\n## Slide Objective\n展示本课 Demo（`v1.2.1`）的用户画像抽取与合并实现（`UserProfileExtractor.java`）。\n\n## Suggested Presentation\n看左边的合并更新流程。这是 `UserProfileExtractor.java` 的核心设计：\n1. 从 MySQL `user_profile` 表查出当前用户的**旧画像**（`existing`）；\n2. 从 Redis `SessionMemory` 取出当前会话的**新对话**（`messages`）；\n3. 将旧画像 JSON 与新对话一起拼入 Prompt，交给**推理模型**（`agent.model.reasoning`），Prompt 明确规定：\"保留旧画像中仍然有效的信息；用新对话中的信息补充或修正；新信息优先级高于旧信息；没有新信息的字段保持原值；只输出更新后的 JSON\"；\n4. 解析返回的 JSON，非空字段更新至 `UserProfile` 实体，通过 MyBatis Plus（`UserProfileMapper`）写回 MySQL `user_profile` 表。\n\n为什么必须用推理模型（`agent.model.reasoning`）？因为画像抽取需要输出严格的四字段 JSON（`facts / preferences / tasks / constraints`）。小模型格式经常出错（漏双引号、多逗号），推理模型的 JSON 遵循度稳定得多。\n\n看右边的 Demo 验证方式：\n- **触发 1**：对话后通过 `@Async` 异步执行画像抽取，或调用 `POST /api/agent/profile/extract` 触发，不阻塞主对话响应；\n- **触发 2**：会话结束 / 清空会话（`/api/agent/memory/clear`）时兜底触发一次画像抽取；\n- **跨 Session 验证**：清空会话或重新登录，问\"根据我的偏好推荐一台笔记本\"，Agent 依然能从 MySQL 读取画像并精准推荐；\n- **独立日志**：打开 `logs/llm-profile.log`，可以完整看到 `PROFILE EXTRACT REQUEST`（含旧画像 JSON 与新对话）和 `PROFILE EXTRACT RESPONSE`（LLM 返回的合并后 JSON）。\n\n## Key Emphasis\n合并更新是本页核心——旧画像 + 新对话一起交给推理模型（`agent.model.reasoning`），新信息修正旧结论、空值不覆盖。验证路径讲全：触发抽取 → 查看 `logs/llm-profile.log` 的合并过程 → 查 MySQL `user_profile` 表结果 → 清空会话验证跨 Session 生效。\n\n## Optional Extension\n**学员问：LLM 把画像抽错了怎么办？比如用户说\"我在帮朋友看轻薄本\"被记成用户本人的偏好。**\n答：抽取错误不可避免，生产系统要设计\"高置信度过滤 + 用户可更正\"的路径。\nDemo 做法：Demo 直接合并落库，靠 `logs/llm-profile.log` 观察核对——教学演示直观清晰。\n生产做法：Prompt 中增加置信度判断（排除帮亲友代看等临时语境），并在前端提供\"我的画像标签\"管理界面，允许用户查看、修改或删除标签（同时满足 Page 12 的合规要求）。\n\n## Classroom Interaction\n现场走一遍闭环：发送包含职业、预算、偏好的对话（或调 `/profile/extract`）→ 打开 `logs/llm-profile.log` 看合并前后的 JSON → 查 MySQL `SELECT * FROM user_profile WHERE user_id='zhangsan'` → 点击清空会话再问\"根据我的偏好推荐笔记本\"。四个动作 2 分钟，本课长期记忆核心机制全部验完。\n\n## Take Away\n画像是\"合并演进的结构化结论\"，不是一次性抽取的文本——合并规则（新信息优先、空值不覆盖）写进抽取 Prompt，并通过 `logs/llm-profile.log` 全程可观测。\n\n## Why This Slide Matters\n用覆盖式写画像（每次只抽当前对话、不传旧画像）的系统会不断丢失历史结论；不看 `logs/llm-profile.log` 的人出了 JSON 解析失败也无法定位。\n\n## Transition\nSession 短期记忆和 MySQL 长期画像都讲完了。这两部分数据是怎么拼进 Prompt 传给大模型的？我们进入第六章（Page 11：context 注入 — 贯穿后续课程的主线）。\n","page_11.html":"# Page 11 — context 注入 — 贯穿后续课程的主线\n\n## Slide Objective\n展示 `context` 参数的演进——贯穿后续所有课程的主线（`MemoryManager.buildContext()`）。\n\n## Suggested Presentation\n这一页既是架构主线也是 Demo 核验页。看左边的 `context` 演进路线：\n- **v1.0 第四课**：`context = null`（只有 System Prompt + 用户当前问题）\n- **v2.0 第五课（本课 `v1.2.1`）**：`context = 用户画像（MySQL）+ 对话历史与累积摘要（Redis）`\n- **v3.0 第六课**：`context = 画像 + 对话 + RAG 知识检索结果`\n- **v4.0 第七课**：`context = 画像 + 对话 + RAG + Tool 调用结果（MCP）`\n\n关键设计决策：`PromptManager.buildUserPrompt(message, context)` 的方法签名始终不变，变化的只是 `context` 字符串的装配内容！这就是为什么第四课要把 Prompt 构建独立成组件并预留 `context` 参数——为后续每一课的能力叠加留好扩展点。\n\n看右边本课 v2.0（`MemoryManager.buildContext`）实际生成的 `context` 内容：\n第一块是来自 MySQL `user_profile` 的 `## 用户画像`（事实、偏好、任务、约束）；\n第二块是来自 Redis `SessionMemory` 与 `SummaryPipeline` 的 `## 对话历史`（含累积摘要与最近对话）；\n最后在 `PromptManager` 中拼上 `## 用户问题`。\n\n验证方法：打开 `logs/llm-interactions.log`（或 `logs/llm-chat.log`），查看 `[Memory Injection]` 和 `[User Prompt]`，能直观看到 `context` 是怎么一步步装配并注入给 LLM 的。\n\n## Key Emphasis\n一个设计点讲透：`PromptManager.buildUserPrompt(message, context)` 接口不变，变的只是 `context` 的内容——v1.0 `null` → v2.0 `画像+对话` → v3.0 `+RAG` → v4.0 `+Tool`。右边的 `context` 实物和 `logs/llm-interactions.log` 要对照着讲。\n\n## Optional Extension\n**学员问：`context` 一直往里加东西，早晚塞爆，怎么办？**\n答：分块 + 配额，不是无脑拼接。\nDemo 做法：本课 Demo 每块都有天然边界——用户画像是合并后的四行结构化字段，对话历史有 `SummaryPipeline`（满 8 条压成 300 字内累积摘要 + 保留 4 条原文）和 `SessionMemory`（MAX 20）双重限流。\n生产做法：给 `context` 做显式 token 预算分配（系统提示 / 画像 / 知识检索 / 对话历史各有配额），超预算按优先级裁剪（用户当前问题 > 画像结论 > 检索结果 > 早期历史）。\n\n## Classroom Interaction\n打开 `logs/llm-interactions.log`，让学员在请求日志里圈出 `## 用户画像`、`## 对话历史`、`用户问题` 三块——亲眼看到 `context` 是分块装配出来的。\n\n## Take Away\n把 `context` 写成分块装配器（`MemoryManager.buildContext`）：每块有明确存储来源与长度上限——接口不变，Agent 能力随课程渐进叠加。\n\n## Why This Slide Matters\n把 Prompt 拼接硬编码在 Controller 里的项目，到了第六课加 RAG、第七课加 Tool 时就要推倒重写——预留 `context` 分块装配接口是 Agent 工程化的基本功。\n\n## Transition\n`context` 注入把短期记忆和长期画像串联起来了。但在把这套系统推向企业生产之前，有一个红线问题必须先回答：记忆安全与隐私。请看第七章（Page 12）。\n","page_12.html":"# Page 12 — 记忆安全与隐私 — 企业必须回答的问题\n\n## Slide Objective\n讲透记忆系统的安全与隐私——不只是\"有哪些问题\"，而是\"企业落地怎么解决\"。\n\n## Suggested Presentation\n这一页是企业架构必修课。Demo 为了教学聚焦没有实现复杂的脱敏与审计，但企业落地时，安全和隐私是第一优先级。\n\n**1. 数据保留策略——Memory 不能无限增长**\n\n企业必须回答四个问题：\n- Session 数据保留多久？通常 24 小时到 7 天。本课 Demo 在 `SessionMemory` 中设了 24 小时 `EXPIRE`。\n- 用户画像保留多久？通常长期保留，但应记录 `updated_at`（最后更新时间），超过半年未更新的偏好应降权或标记过时。\n- 用户要求\"忘记我\"怎么办？GDPR 和《个人信息保护法》都要求提供被遗忘权（删除权）。需要同时清理 Redis 会话缓冲和 MySQL `user_profile` 画像。Demo 的\"清空会话\"按钮只清了 Redis，生产项目必须提供级联删除接口。\n- 谁有权删除？只有用户本人和授权管理员，且删除操作必须留存审计日志。\n\n**2. PII 脱敏——存入数据库与发送给 LLM 前必须处理**\n\n用户说\"我叫张三，手机号 13800138000\"，画像和日志里绝不能存明文敏感 PII（手机号、身份证号、银行卡号、详细家庭住址）。\n脱敏方法：在写入 MySQL 和拼接 Prompt 发送给第三方大模型 API 之前，通过独立的正则/NER 脱敏过滤器（如手机号打码为 `138****8000`、身份证与银行卡号直接拦截不落库）。\n\n**3. 上下文泄露风险与合规要求**\n\n画像和对话注入到 LLM 请求里，如果调用的是公有云大模型 API，数据就离开了企业边界。\n解决方案：金融/政务/医疗等高敏场景采用私有化部署大模型，或严格执行\"入库前 + 调用前\"双层 PII 脱敏过滤。同时提供画像查询、更正、删除接口，满足 GDPR / 个保法合规要求。\n\n## Key Emphasis\n安全和隐私不是\"附加功能\"，而是\"上线红线\"。重点讲清：**PII 脱敏过滤防线**（落库前 + 调 LLM 前）和**被遗忘权级联删除**（Redis + MySQL 都得删）。\n\n## Optional Extension\n**学员问：用户要求\"删掉我的数据\"，到底要删哪儿？**\n答：先画数据地图，再做级联删除。\nDemo 做法：课堂上明确指出本课 Demo（`v1.2.1`）的缺口——`/api/agent/memory/clear` 只清了 Redis 的 `session:{sid}:messages`，MySQL 的 `user_profile` 表和 `logs/` 下的日志文件都没有清理。\n生产做法：按 `userId` 执行级联删除（MySQL `user_profile` + Redis 会话 + 后续课程引入的向量库）+ 写入删除审计记录；入库前做 PII 脱敏。这套方案会在 Page 16 第 4 项（隐私合规差距）给出完整三格落地法。\n\n## Classroom Interaction\n让学员现场盘点本课 Demo 中\"一个用户的数据散落在哪几个存储、哪几个日志文件\"（答案：Redis `session:{sid}:messages`、MySQL `user_profile`、以及 `llm-interactions.log` / `llm-summary.log` / `llm-profile.log`）——盘点完立刻理解为什么\"删除权是数据架构问题\"。\n\n## Take Away\n隐私合规必须第一天进数据模型：入库前 PII 脱敏，删除时按用户数据地图级联清理。\n\n## Why This Slide Matters\n没有删除通道和脱敏过滤的系统上线后无法低成本整改——PII 明文一旦散落到数据库和日志各处，事后补救等于推倒重建。\n\n## Transition\n安全合规红线明确了。接下来进入第八章（Page 13：存储选型 — 什么时候用什么），梳理三种存储各自的职责边界。\n","page_13.html":"# Page 13 — 存储选型 — 什么时候用什么\n\n## Slide Objective\n讲清楚三种存储（Redis / MySQL / Vector DB）的适用场景与选型边界。\n\n## Suggested Presentation\nRedis、MySQL、Vector DB——三种存储解决三种不同维度的问题：\n\n1. **Redis 存临时的（Session 短期记忆与累积摘要）**：因为当前对话历史需要毫秒级高频读写、自动过期（24h TTL）。Redis 的 List 结构天然适合消息队列。验证：`redis-cli LRANGE session:xxx:messages 0 -1`。\n2. **MySQL 存持久的（用户画像结论层）**：用户画像需要跨 Session 永久生效、需要结构化字段级更新与精确主键查询。建表脚本在 `docs/schema.sql`，由 MyBatis Plus 操作。\n3. **Vector DB 存语义检索的（企业知识库 & 下一课演进的过程记忆）**：企业文档与海量历史片段需要按语义相似度召回，将在下一课（第六课）正式引入 pgvector。\n\n记住底线原则：**不要把长期画像存 Redis（易失），不要把高频会话缓冲存 MySQL（读写慢、无自动滑窗过期）。**\n\n## Key Emphasis\n三种存储对应三种读写模式，一句话锚定：Redis 存临时的、MySQL 存持久结构化的、Vector DB 存语义检索的。下一页我们将在此基础上进一步预演：当下一课引入 Vector DB 后，长期记忆内部如何分化为\"结论层（MySQL）\"与\"过程层（pgvector）\"。\n\n## Optional Extension\n**学员问：一段\"半结构化\"的用户数据（既有明确偏好标签，又有长段聊天背景）该放哪？**\n答：拆成\"结论\"与\"过程\"分层存放，别硬塞进一张表。\nDemo 做法：本课 Demo（`v1.2.1`）先把结构化结论（`facts / preferences / tasks / constraints`）抽进 MySQL `user_profile` 表；从下一课（`v1.3`）开始，再把自然语言历史过程沉淀进 pgvector。\n生产做法：判断标准就两条——要不要按字段精确读写/合并更新？要不要按问题做语义检索？前者进关系库，后者进向量库。\n\n## Classroom Interaction\n给五条数据让学员现场贴到三个存储上：当前第 3 轮对话原文（Redis）、用户预算与职业画像（MySQL）、退换货政策文档（Vector DB）、商品实时库存价格（MySQL）、商品长篇评测描述（Vector DB）。当场对答案。\n\n## Take Away\n存储选型按\"读写模式 + 生命周期\"决定，而不是按数据量大小；拿不准时先问一句\"它是要按主键全量读改，还是要按语义相似度检索\"。\n\n## Why This Slide Matters\n把所有用户数据混在一个存储里的人，要么在关系库里做不出语义检索，要么在向量库里做不了画像字段更新——选型一步错，后面全是返工。\n\n## Transition\n存储选型的大原则讲完了。既然下一课（第六课）就要引入 pgvector 向量库，很多同学会问：到时候能不能干脆把 MySQL 画像也搬进 pgvector，只维护一个库？下一页（Page 14）我们通过\"架构演进预告\"，讲透为什么记忆必须分为结论层（MySQL）和过程层（pgvector）。\n","page_14.html":"# Page 14 — 记忆分层演进 — 从结论层(MySQL)到过程层(pgvector)\n\n## Slide Objective\n作为**架构演进预告（v2.0 → v3.0）**，讲透记忆分层的核心设计判断：**画像=结论（MySQL `user_profile`）/ 对话历史片段=过程（pgvector `user_memory`）**，明确区分本课已落地的部分与下节课即将演进的部分，讲清为什么必须分两个库；**重点向学员声明 Demo 中“满 8 条压缩或固定 5 轮刷入向量库”属于教学简化（Educational Simplification）**，生产应采用 Token 预算阈值与语义任务边界触发。\n\n## Suggested Presentation\n注意看左上角的标签：**CHAPTER 08 · 架构演进预告（v2.0 → v3.0）**。这一页帮大家把今天第五课（v2.0）和下一课第六课（v3.0）、第七课（v4.0）的演进脉络彻底打通。\n\n### 一、本课已落地 vs 下一课演进目标\n先看左边三张卡片，搞清楚**本课已经落地了什么、下一课要演进什么**：\n1. **蓝卡：结论层（本课 v2.0 已落地）· MySQL `user_profile` —— 画像存\"结论\"**\n   存的是 `UserProfileExtractor.extract()` 用推理模型合并出来的结构化结论（`facts / preferences / tasks / constraints`）。读的时候由 `MemoryManager.buildContext()` 按主键查出，**全量注入**到 `context` 的 `## 用户画像`（到了第七课 v4.0 会进一步封装成标准 MCP Resource）。特点是每用户几行、有界、可展示给用户更正。\n2. **绿卡：工作缓冲区（本课 v2.0 已落地）· Redis `session:{sid}:messages & summary`**\n   本课 v2.0 中，`SessionMemory` 存最近对话，`SummaryPipeline` 在满 8 条时把旧消息压缩为累积摘要留在 Redis。但留个思考题：如果一个老用户聊了半年、几百轮对话，Redis 里的累积摘要越压越厚，一旦 Redis 过期或重启就全丢了，而且也没法按当前问题去搜索\"三个月前聊过的某款具体型号\"——怎么办？\n3. **橙卡：过程层（下节课 v3.0 演进目标）· pgvector `user_memory` —— 对话存\"过程\"**\n   这就是下一课（第六课引入 pgvector）和第七课（MCP 化）要正式落地的**过程层**：把旧对话提要后通过 Embedding 写入 pgvector 的 `user_memory` 表；对话时按用户当前问题做**按需语义检索**（召回 top3 注入 `## 相关记忆`）。这样 Redis 就回归纯粹的短期工作缓冲区，长期过程记忆交给 pgvector。\n\n---\n\n### 二、为什么必须分两个库？（五大工程理由）\n到了下节课引入 pgvector 后，为什么不能把 MySQL 画像也塞进向量库，而是必须分两个库？\n1. **读取模式不同**：结论层是**全量注入**（几行字直接拼进 Prompt），过程层是**按需语义检索**（按当前问题查 top3）。\n2. **更新语义不同**：结论**会被修正**（预算 8000 → 10000，新覆盖旧），过程**只增不改**（客观历史记录不能篡改）。\n3. **生命周期不同**：结论有界（每用户一行记录），过程无界（随对话持续增长，靠向量索引 + top-k 截流）。\n4. **合规与可解释不同**：结论要给用户看、让用户改；过程含对话细节，需脱敏、定留存期、级联删除。\n5. **查询与索引不同**：画像按 `user_id` 主键一行查走；过程记忆按 `user_id + 向量余弦相似度（HNSW 索引）` 检索。\n\n看右下角紫色卡片：**这个判断在第六课直接复用**——到了第六课做企业知识库（Knowledge）时，商品评测描述进 pgvector（语义检索），商品价格库存进 MySQL `product` 表（精确查询、频繁更新），底层逻辑一模一样！\n\n---\n\n### 三、⚠️ 教学演示简化（Educational Simplification）声明\n看幻灯片底部的黄色横幅，向学员郑重指出：\n- **Demo 的简化设计：** \n  Demo 中为了教学演示直观、便于断点和日志跟踪，使用了“固定满 8 条触发摘要压缩”或“5 轮对话后从 Redis 刷入持久库”。这种**固定条数/轮数切分属于教学简化（Educational Simplification）**。\n- **生产实践的工业级触发机制：**\n  在企业生产环境中，条数不等于 Token 开销（一段包含代码的提问可能高达 3000 Token，而闲聊一句仅 10 Token）。因此生产级系统通常采用：\n  1. **Token 预算动态阈值触发：** 实时累加上下文中的 Token 数量，当达到设定阈值（如 Context Window 的 65%~75%）时，自动触发滑动窗口裁剪与记忆沉淀；\n  2. **基于语义完整性的任务边界触发：** 利用小模型或分类规则检测用户话题切换点（如“订票任务已完成”、“好的明白了，下一个问题”），在语义自然闭合处进行记忆提取与入库；\n  3. **周期性异步归档：** 结合前述的异步消息队列削峰，在空闲周期执行批量清洗。\n\n## Key Emphasis\n1. 必须讲清的边界：本课 Demo 落地 MySQL 结论层 + Redis 缓冲摘要；pgvector 过程层是下一课（第六课）演进目标。\n2. 结论层 vs 过程层的区分标准：全量注入 vs 按需检索；合并修正 vs 只增不改。\n3. 讲透教学简化与生产差异：固定轮数条数是教学脚手架，生产依托 Token 预算与任务语义边界。\n\n## Optional Extension\n**学员问：下节课引入 pgvector 后，为什么不把画像也存进 pgvector 一张表搞定？**\n答：结论层要做\"读旧画像 → LLM 合并 → 字段级更新（`updateById`）\"，还要展示给用户看和修改；向量库擅长的是 append-only 文本的语义相似度检索，不适合做结构化字段的原地合并更新。\n\n## Classroom Interaction\n让学员现场判断三类数据分别归哪个层：\"用户的职业和当前预算结论\"（结论层 MySQL `user_profile`）、\"上个月聊过的三次比价细节记录\"（过程层 pgvector `user_memory`，下节课落地）、\"刚才前两句对话\"（工作缓冲区 Redis `SessionMemory`）。\n\n## Take Away\n本课立住\"MySQL 结论层 + Redis 工作缓冲\"，并为下一课立下架构判断：**会被修正、全量注入的结论进关系库；只增不改、按需语义检索的过程进向量库**。教学演示固定轮数，生产系统紧盯 Token 预算与任务边界。\n\n## Why This Slide Matters\n提前在第五课讲清\"结论层 vs 过程层\"的演进蓝图与触发机制差异，学员既明白本课 Redis 累积摘要的适用边界，又能在第六课引入 pgvector 时无缝衔接，不会犯\"有了向量库就把关系库废掉\"的常见架构错误。\n\n## Transition\n理解了从 v2.0 到 v3.0 的记忆分层演进方向后，我们进入第 15 页，看记忆的全生命周期治理体系（写入、冲突、遗忘与并发）。\n","page_15.html":"# Page 15 — 记忆全生命周期治理 — 写入、冲突、遗忘与并发控制\n\n## Slide Objective\n系统化讲透企业级记忆系统的 **全生命周期治理机制（Lifecycle Governance）**，涵盖写入策略与准入门槛、冲突消解与事实覆写（Mem0 四态机）、艾宾浩斯遗忘曲线与合规清理（GDPR 被遗忘权）、多实例并发写入控制（分布式锁与乐观锁）；同时**严正声明 Demo 教学简化与生产级触发机制的本质差异**。\n\n## Suggested Presentation\n\n### 一、打破静态思维：记忆是一个动态治理的生命周期\n前面几页我们讲了记忆如何存储、如何抽取、如何拼装注入。很多同学以为记忆存进数据库就高枕无忧了，但记忆不是静态死档案，它是一个动态生长的生命体：\n- 用户每天都在说话，什么内容值得记？\n- 用户的偏好反悔了，旧记忆怎么清理？\n- 数据越积越多，如何优雅遗忘和防 OOM？\n- 微服务多实例并发写，怎么防数据覆盖？\n\n这就是企业级架构师必须掌握的**记忆全生命周期治理四大支柱**。\n\n---\n\n### 二、记忆全生命周期治理四大支柱\n\n#### 1. 写入策略与入库门槛（Write Strategies & Gating）\n- **写入机制的三种模式：**\n  - **同步写入：** 仅用于强一致性场景（如用户在界面上明确勾选“修改我的常住城市为上海”），必须立即生效；\n  - **异步缓冲写入（生产主流）：** 用户对话流经会话时，由网关投递一条消息到 MQ（Kafka / RabbitMQ），后台消费服务异步调用大模型进行画像分析与事实提取。**绝不能阻塞主对话流的响应延迟！**\n  - **定时批处理：** 在业务低峰期（如凌晨），对全天产生的大量非结构化会话进行跨会话聚类合并与去重。\n- **入库准入门槛（Memory Admission）：**\n  - 并非所有信息都配进入记忆系统！严禁将临时密码、短信验证码、手机热点密码、或者“我今天中午吃了一碗面”这类瞬时无价值的闲聊写入长期库；\n  - 核心画像的更新，必要时应向用户发起交互式确认（“检测到您的预算调整为 15000 元，是否更新偏好？”）。\n\n#### 2. 冲突消解与事实覆写（Conflict Resolution）\n- **核心痛点：** 用户偏好反转。比如用户上个月说“我只买 5000 元以内的轻薄本”，今天升职加薪了，改口说“给我推荐 15000 元以上的高端旗舰本”。如果新旧记忆并存，Agent 就会自相矛盾、胡言乱语。\n- **借鉴 Mem0 的记忆处理思想（ADD/UPDATE/DELETE/NOOP）：**\n  > **注：** 这里是借鉴业界开源项目 Mem0 在处理长记忆时的四种处理动作哲学，并非 Mem0 官方规范定义了此名称的状态机。在工程落地中可设计为状态转移机制：\n  当提取出候选新记忆时，先去已有记忆库计算向量余弦相似度，检索出同维度的旧记忆，送交模型执行判定：\n  - **ADD（新增）：** 全新领域事实（如用户首次提到“我有一只猫”），直接入库；\n  - **UPDATE（更新）：** 发现偏好反转或参数升级，以新时间戳的新事实强行覆写旧事实；\n  - **DELETE（删除）：** 用户明确表示“我不再需要这个功能”或“帮我删掉这条偏好”；\n  - **NOOP（无视）：** 表达意思与已有记忆完全一致（如反复强调“喜欢银色”），忽略不重复记录。\n\n#### 3. 遗忘曲线与数据清理（Forgetting Curve & TTL）\n- **模拟艾宾浩斯遗忘曲线（Recency Decay）：**\n  - 长期语义记忆在检索时，不能单纯看余弦相似度。一年半以前的一句无心闲聊，即使语义匹配度高，也不该排在昨天刚确认的核心偏好前面。\n  - **工业级打分公式：**\n    $$\\text{FinalScore} = \\alpha \\cdot \\text{Relevance} + \\beta \\cdot e^{-\\lambda \\Delta t} + \\gamma \\cdot \\text{Importance}$$\n    其中 $e^{-\\lambda \\Delta t}$ 为时间衰减因子。久未被访问、时间跨度大的记忆，其打分自然衰减沉降。\n- **TTL 淘汰与 GDPR 被遗忘权：**\n  - Redis 空间设空闲 TTL（如 24 小时）与绝对 TTL（如 7 天），配合 `volatile-lru` 策略防止内存击穿；\n  - 满足个保法与 GDPR 合规底线：当用户注销或请求注销数据时，必须提供**级联硬删除通道**（一键联动清除 Redis 会话、MySQL 画像表以及向量数据库中的历史记忆）。\n\n#### 4. 并发控制方案矩阵（Concurrency Control Matrix）\n- **丢失更新痛点（Lost Update）：**\n  在企业容器化/微服务架构中，后端通常部署多个 Pod。当用户快速连续发送两条消息时，请求被负载均衡分发给不同 Pod。两个 Pod 同时读到旧画像，各自合并后写回 MySQL，后写完的直接把先写完的偏好无情覆盖！\n- **方案权衡矩阵（拒绝盲目加分布式锁）：**\n  - **MySQL 乐观锁（首选）：** 在 `user_profile` 表中增加 `version` 整数列，更新时执行 `UPDATE user_profile SET ..., version = version + 1 WHERE id = ? AND version = ?`；冲突时重试，无死锁开销，高吞吐；\n  - **原子更新/追加：** 利用 Redis `RPUSH` 或数据库字段行级原子更新（如累加/追加 JSONB 字段），避免“全量读出-改动-全量覆写”的竞态条件；\n  - **幂等写入机制：** 基于消息 `msgId / traceId` 建立唯一索引与判重缓存，过滤网络抖动引发的重复请求；\n  - **分布式互斥锁（按需慎用）：** 仅在涉及跨系统强一致性、不可逆资源扣减等重量级场景，才使用 Redisson / SETNX 加 `(userId, sessionId)` 互斥锁。绝不要让学员误以为所有记忆写入都应该加分布式锁。\n\n---\n\n### 三、⚠️ 严正声明：Demo 教学简化与生产实践差异\n看幻灯片底部的黄色警示横幅，向学员郑重说明：\n- **Demo 的教学简化（Educational Simplification）：**\n  为了让学员在课堂上能快速看到效果，Demo 采用了极简的固定规则——“满 8 条消息触发 Summary 压缩”、“每 5 轮从 Redis 刷入持久库”。这是一种教学简化，便于单机验证和断点调试；\n- **生产实践的真实触发机制：**\n  1. **Token 预算阈值触发：** 生产系统不数消息条数（因为 8 条短消息可能只有 200 Token，而 2 条长代码可能就 4000 Token）。生产系统实时监控当前 Context Window 占用率，一旦突破预算阈值（如超过可用窗口的 65%~75%），立即触发压缩沉淀；\n  2. **基于语义完整性的任务边界触发：** 通过轻量意图识别，检测到用户完成了一个明确阶段性子任务（如“好的，退货流程已走完，谢谢你”），在话题切换的语义边界点触发沉淀；\n  3. **异步周期事实归纳：** 结合前述的异步消息队列，后台定时按会话状态批处理，不打扰前端用户会话。\n\n## Key Emphasis\n1. 记忆必须全生命周期治理：写入有门槛、冲突能消解、旧忆能遗忘、并发加锁防覆盖。\n2. 借鉴 Mem0 的记忆处理思想：ADD / UPDATE / DELETE / NOOP 四种动作是处理事实冲突的经典工程范式。\n3. 讲清 Demo 的教学简化：明确指出条数/轮数是教学简化，生产依托 Token 预算与语义边界。\n\n## Optional Extension\n**学员问：如果遗忘曲线把某些重要记忆给淡化了，之后用户又突然提到了，怎么把它重新激活？**\n答：这正是打分公式中 $\\gamma \\cdot \\text{Importance}$（重要度权重）和反馈机制的作用。\n1. **重要度打标：** 用户带有强烈情感色彩或关键约束的记忆（如“对某些药物过敏”），其 Importance 被标记为最高档（1.0），衰减速度 $\\lambda$ 设为极低甚至不衰减；\n2. **反思激活机制（Reinforcement）：** 当用户再次提及某条沉降的旧记忆时，系统将其访问计数器加一，重新刷新其时间戳 $\\Delta t = 0$，实现类似人脑的“温故而知新”。\n\n## Classroom Interaction\n让学员思考：“如果用户对 Agent 说‘我刚才手抖打错了，我预算其实是 3000 不是 30000’，如果系统没有冲突覆写机制，下一轮推荐会发生什么灾难？”\n引导学员说出：Agent 会同时推荐 3000 元的低端本和 30000 元的工作站，精神分裂。这就是为什么必须有 UPDATE 覆写。\n\n## Take Away\n记忆治理四重奏：入库有门槛，偏好可覆写，遗忘抗衰减，并发锁版本。\n\n## Transition\n理解了记忆的全生命周期治理理论后，我们翻到下一页（Page 16），看对照生产要求，我们的 v2.0 Demo 具体还存在哪些工程差距。\n","page_16.html":"# Page 16 — Demo vs 生产 — 记忆系统的五项差距\n\n## Slide Objective\n把本课 Demo（`v1.2.1`）与生产级记忆系统的五项工程差距一次讲到三格粒度（**问题（Demo 现状）/ 不解决会怎样 / 怎么解决 + 取舍**）：Redis 集群与持久化、Session TTL 与淘汰、异步抽取可靠性与失败重试、隐私合规（用户可遗忘权）、跨实例记忆并发与共享。对应 Demo 的 `SessionMemory.java`、`SummaryPipeline.java`、`MemoryManager.java`、`UserProfileExtractor.java`。\n\n## Suggested Presentation\n逐项讲，每项都精准对照本课 `v1.2.1` Demo 的真实代码现状，告诉学员生产上该怎么补齐：\n\n**1 · Redis 集群与持久化**\n- **问题（Demo 现状）**：本地或单容器单实例 Redis，无主从/Cluster、无 AOF/RDB 持久化配置；`SessionMemory` 的近期消息（`session:{sid}:messages`）与 `SummaryPipeline` 的累积摘要（`summary`）全部存在单点内存中。\n- **不解决会怎样**：Redis 一旦宕机或重启，所有活跃会话的近期对话与累积摘要瞬间清零，Agent 对当前正在进行的对话直接失忆；单实例内存成為并发会话容量的硬上限。\n- **怎么解决**：生产使用 Redis Cluster 或云原生主从+哨兵自动切换；开启 `AOF everysec` 将故障丢失窗口控制在 1 秒内；同一会话的多 Key 操作使用 Hash Tag `{sid}` 保证落在同一分片。\n\n**2 · Session TTL 与动态触发淘汰**\n- **问题（Demo 现状）**：`SessionMemory.addMessage` 只有 24h `EXPIRE`（每次写入刷新 → 活跃会话永不过期）+ 按固定条数滑窗（`MAX = 20`）与满 8 条触发 `SummaryPipeline` 压缩；**明确指出：这种固定条数/轮数切分属于教学演示简化（Educational Simplification）**；Redis 缺乏 `maxmemory` 淘汰策略，且不按 Token 预算动态裁剪。\n- **不解决会怎样**：高并发下内存增长触顶导致 OOM 或无差别淘汰活跃会话；\"条数 ≠ Token 数\"，8 条超长报文照样把上下文窗口撑爆。\n- **怎么解决**：配置 `maxmemory` + `volatile-lru`；设置\"空闲 TTL + 绝对最大生命周期 TTL\"双上限；**生产实践中必须摒弃固定条数，改由 Token 预算阈值（例如占用窗口达到 65%~75%）或任务语义完整性边界（识别用户一个完整话题收尾）动态触发压缩沉淀**。\n\n**3 · 异步抽取可靠性与失败重试**\n- **问题（Demo 现状）**：本课 Demo 中 `UserProfileExtractor` 虽然支持 `@Async` 异步抽取（或通过 `/profile/extract` 触发），但仅依赖 JVM 内存线程池执行；且 `extract()` 中一旦遇到网络超时或 LLM 返回非法 JSON，只打印日志并返回 `null`，**无重试机制、无死信队列（DLQ）**。\n- **不解决会怎样**：应用重启时内存队列中尚未执行的抽取任务直接丢失；偶发解析失败导致用户画像静默缺失——用户以为偏好被记住了，下次来发现没记住，极难排查。\n- **怎么解决**：用持久化消息队列（Redis Stream / RabbitMQ / Kafka）或本地事务任务表替代纯内存 `@Async`；对超时或 JSON 格式错误做 2–3 次指数退避重试（或触发 Self-Correction），仍失败则落入死信队列（DLQ）告警并支持定时重放；按 `(userId + sessionId + messageOffset)` 做幂等防重。\n\n**4 · 隐私合规（用户可遗忘权）**\n- **问题（Demo 现状）**：`/api/agent/memory/clear` 接口只清理了 Redis 中的当前会话；MySQL `user_profile` 表以及 `logs/` 目录下的日志文件没有任何级联删除接口；入库前也没有做 PII 脱敏。\n- **不解决会怎样**：无法履行 GDPR /《个人信息保护法》要求的\"被遗忘权/删除权\"——用户要求注销或删除记忆，MySQL 画像与日志原文依然保留；手机号、身份证等敏感 PII 明文入库，合规风险极高。\n- **怎么解决**：提供按 `userId` 的级联删除接口（同时清理 MySQL `user_profile` + Redis 会话 + 后续向量库）并留存删除审计记录；支持 30 天宽限期逻辑删后物理清理；在写入 MySQL 和发往 LLM 前加装 PII 正则/NER 脱敏过滤器。\n\n**5 · 跨实例记忆并发与共享**\n- **问题（Demo 现状）**：代码隐含单实例假设——`SummaryPipeline`（满 8 条读出、压缩、清空重写 Redis）和 `UserProfileExtractor`（读 MySQL 旧画像 → LLM 合并 → `updateById` 写回）均无分布式锁和乐观锁版本控制。\n- **不解决会怎样**：多实例水平扩展后，同一用户并发请求会导致 `SummaryPipeline` 重写 Redis 时覆盖刚写入的新消息；画像合并出现经典的\"读-改-写\"并发覆盖（Lost Update），丢失画像更新。\n- **怎么解决**：按 `(userId, sessionId)` 加 Redis 分布式锁（SETNX + TTL）或按 sessionId 哈希分区队列串行处理；MySQL `user_profile` 表增加乐观锁（基于 `version` 或 `updated_at` CAS 更新），冲突时重读重合并。\n\n## Key Emphasis\n五项差距精准对应 `v1.2.1` Demo 的真实代码：单点 Redis、条数滑窗、内存 `@Async` 无重试无 DLQ、无级联删除、无分布式锁与乐观锁。生产三件套 = **高可用存储 + 可靠异步队列(含重试/DLQ) + 级联删除与并发锁闭环**。\n\n## Optional Extension\n**学员问：这五项差距如果团队人力有限，先补哪几项？**\n答：第一优先级补 **4（PII 脱敏与级联删除闭环）**——合规红线事后无法补救；第二优先级补 **1 & 2（Redis 高可用与 Token 预算淘汰）**；第三优先级补 **3 & 5（可靠异步重试与乐观锁）**。\n\n## Classroom Interaction\n让学员对照这五项差距给自己正在做的项目打分（已具备 / 半成品 / 完全缺失），写下最紧迫要补的一项作为课后行动项。\n\n## Take Away\nDemo 解决\"从 0 到 1 跑通记忆机制\"，生产工程解决\"不丢数据、不卡请求、并发不乱、删得干净\"。\n\n## Why This Slide Matters\n把 Demo 原封不动搬上生产的团队，一定会在高并发或合规审计时踩中这五颗雷——提前把三格解决方案给齐，学员回公司就能直接作为架构评审清单。\n\n## Transition\n五项生产差距拆解完毕，接下来我们进入第九章（Page 17：Demo 架构 — 组件与日志），看看本课 `v1.2.1` 代码按什么顺序读、哪 6 个核心验证点可以亲手跑通。\n","page_17.html":"# Page 17 — Demo 架构 — 组件与日志\n\n## Slide Objective\n展示本课 Demo（Git Tag `v1.2.1`）的完整文件结构、三大日志文件、模型配置与 6 个课堂/课后可验证点，帮学员建立清晰的源码阅读路线图。\n\n## Suggested Presentation\n这是第五课（v2.0 记忆系统，对应仓库 Git Tag `v1.2.1`）的完整新增组件。\n\n**第一步：读代码的五步路线图**\n1. 先看 `core/ShoppingAgentController.java`：所有请求的入口。重点看 `/chat`（调用 `memoryManager.buildContext` 拼装上下文）、`/memory`（查询会话缓冲）、`/profile/extract`（触发画像抽取）、`/memory/clear`（清空会话并兜底抽取）。\n2. 再看 `memory/MemoryManager.java`：记忆系统的总装枢纽。`buildContext(sessionId, userId)` 从 MySQL 查用户画像（`UserProfileMapper`），从 Redis 查会话历史与累积摘要（`SessionMemory`），拼成 `context` 字符串；并在消息超阈值时调用 `SummaryPipeline`。\n3. 第三步看 `memory/SessionMemory.java`：封装 Redis List 操作（`session:{sid}:messages`，`MAX_MESSAGES = 20`，24h TTL，`role|content` 格式）。\n4. 第四步看 `memory/SummaryPipeline.java`：累积摘要压缩流水线（`COMPRESS_THRESHOLD = 8`，`KEEP_RECENT = 4`，合并旧摘要与新对话，使用 `agent.model.fast`，日志写入 `logs/llm-summary.log`）。\n5. 第五步看 `memory/UserProfileExtractor.java`：`@Async` 异步用户画像抽取器（读取 MySQL 旧画像 + Redis 新对话，调用 `agent.model.reasoning` 输出严格 JSON 并更新 `user_profile` 表，日志写入 `logs/llm-profile.log`）。\n\n**第二步：三个独立日志文件（调试与演示的核心工具）**\n- `logs/llm-interactions.log`（或 `logs/llm-chat.log`）：记录每次对话请求/响应以及 `[Memory Injection]` 实际注入的 `context` 内容。\n- `logs/llm-summary.log`：独立记录 `SummaryPipeline` 的 `SUMMARY REQUEST`（含旧摘要）与 `SUMMARY RESPONSE`（新累积摘要）。\n- `logs/llm-profile.log`：独立记录 `UserProfileExtractor` 的 `PROFILE EXTRACT REQUEST`（旧画像 JSON + 新对话）与 `PROFILE EXTRACT RESPONSE`（合并后的 JSON）。\n\n**第三步：模型配置（`application.yml`）**\n- `agent.model.fast`：快模型（如 `Qwen/Qwen2.5-7B-Instruct`），用于日常对话路由与 `SummaryPipeline` 摘要压缩；\n- `agent.model.reasoning`：推理模型（如 `Qwen/Qwen3-8B`），用于复杂问题推理与 `UserProfileExtractor` 严格 JSON 画像抽取。\n\n**第四步：可在 Demo (`v1.2.1`) 亲手验证的 6 个检查点**\n1. **① 失忆基线**：新会话未注入历史时问\"我叫什么\" → 不知道；查看 `logs/llm-interactions.log` 确认初始 `context=null`。\n2. **② Redis 缓冲验证**：发几条消息后执行 `redis-cli LRANGE session:{sid}:messages 0 -1`，查看 `role|content` 消息列表。\n3. **③ TTL 滑动刷新**：执行 `redis-cli TTL session:{sid}:messages` 观察 86400 秒倒计时；再发一条新消息，TTL 重新刷新回接近 86400。\n4. **④ 满 8 条触发累积摘要压缩**：连续对话超过 8 条消息（4 轮以上）→ 触发 `SummaryPipeline`，打开 `logs/llm-summary.log` 查看压缩 Prompt 与新摘要，再查 Redis 确认变成 `1 条累积摘要 + 4 条最新原文`。\n5. **⑤ 画像抽取合并**：在对话中输入包含“记住/记一下”关键词的个人事实与偏好（或点击“清空会话”）→ 打开 `logs/llm-profile.log` 查看旧画像 JSON、新对话与推理模型合并后的 JSON。\n6. **⑥ 画像落库与跨 Session 生效**：查 MySQL `SELECT * FROM user_profile WHERE user_id='zhangsan'`；点击\"清空会话\"或重新登录，问\"根据我的偏好推荐笔记本\" → 验证长期画像跨 Session 生效！\n\n## Key Emphasis\n\"怎么按调用链读代码 + 怎么对照三大日志文件验证\"是本页核心。务必提醒学员切到 `v1.2.1` 标签做实验，6 个验证点一步步走通。\n\n## Optional Extension\n**学员问：怎么最快读懂一个陌生的 Agent 记忆模块？**\n答：不要按字母顺序读文件，要**按一次请求的数据流向读**，并且边跑边看 `logs/llm-interactions.log`、`llm-summary.log`、`llm-profile.log` 三个日志文件——日志里打印的 Prompt 就是代码逻辑最直观的投影。\n\n## Classroom Interaction\n带着学员现场核对一次 `logs/` 目录下的三个日志文件，指出哪个看 `context` 注入、哪个看 8 条摘要压缩、哪个看画像 JSON 抽取。\n\n## Take Away\n读 Demo 按调用链走：`ShoppingAgentController` → `MemoryManager` → `SessionMemory` / `SummaryPipeline` / `UserProfileExtractor`，每一步都在三个日志文件和 Redis/MySQL 里有迹可循。\n\n## Why This Slide Matters\n给清代码阅读路线和 6 个具体验证点，学员课后自己动手才不会迷路，也为第六课叠加 RAG 知识检索打下坚实的代码底座。\n\n## Transition\nDemo 的代码结构与 6 个验证点理清了。在全课收尾总结之前，我们抬眼看看 2026 年业界主流的记忆系统都在怎么做，给我们的三层记忆找准行业坐标系。请看下一页（Page 18：业界记忆系统一览）。\n","page_18.html":"# Page 18 — 业界记忆系统一览 — 本课三层记忆的坐标系\n\n## Slide Objective\n给学员建立 2026 年业界主流记忆系统的全景坐标系：左边剖析四大代表性方案（**MemGPT/Letta、Mem0、Zep/Graphiti、A-MEM**），右边给出学界 **forms / functions / dynamics** 三分法以及 **2026 记忆工程两大核心算子（记忆冲突消解四态机 `ADD/UPDATE/DELETE/NOOP` + 三维记忆检索打分公式）**，并与我们课程的三层记忆（`Redis 短期缓冲 + MySQL user_profile 本课 v2.0 结论层 + pgvector user_memory 下节课 v3.0 过程层`）一一对齐。\n\n## Suggested Presentation\n前面讲完了我们自己的三层记忆架构与 Demo 实现。这一页我们抬眼看业界：2026 年开源界与学术界最火的记忆系统都在做什么？我们的设计与它们是什么关系？\n\n**看左边：四大业界代表性记忆系统**\n1. **MemGPT / Letta —— 把 LLM 当操作系统，上下文当内存**：\n   核心思路是**虚拟内存分页（Paging）**——Context Window 是有限的\"核心内存（Core Memory）\"，装不下的历史放\"外部存储（Archival/Recall Storage）\"，由 Agent 通过函数调用换入换出。\n   **对照本课**：它的\"核心内存\"就对应我们本课 v2.0 全量注入 Prompt 的 `MySQL user_profile`；它的\"外部存储按需换入\"就对应我们下节课 v3.0 引入的 `pgvector user_memory` 语义检索。\n2. **Mem0 —— 生产级长期记忆抽取与冲突消解流水线**：\n   社区落地最广的长期记忆组件。核心是**抽取-比对-更新流水线**。\n   **对照本课**：我们本课 v2.0 的 `UserProfileExtractor`（读旧画像 + 新对话 → 推理模型合并更新）正是 Mem0 合并思想在用户画像层的最小精简实现。\n3. **Zep（Graphiti 引擎）—— 时序知识图谱（Temporal Knowledge Graph）**：\n   专门解决\"用户偏好随时间变化、旧事实何时失效\"的时序一致性问题——每条事实边上都带有生效时间与失效时间（双时态建模）。\n   **对照本课**：我们用 `user_profile` 的\"新信息覆盖旧信息 + `updated_at`\"配合下节课 `user_memory` 的\"只增不改\"，实现了轻量化时序语义。\n4. **A-MEM —— Agentic 记忆自演化（学界前沿）**：\n   受卢曼卡片盒（Zettelkasten）启发，新记忆写入时自动与旧记忆建立双向链接并重写历史摘要，让记忆网络自我演化。生产上目前仍以可控性优先，演化方向留作高阶探索。\n\n**看右边：学界三分法 + 2026 记忆工程两大核心算子**\n1. **学界 `forms / functions / dynamics` 三分法**：\n   评价任何记忆系统先问三句话：**forms（形态：存在参数、上下文还是外部库？）**、**functions（功能：短期工作缓冲还是长期沉淀？）**、**dynamics（动态：怎么写入、检索、更新、遗忘？）**。\n   用三问定位我们课程的三层记忆：\n   - `Redis (短期缓冲)` = 上下文内 / 短期工作（暂存、满 8 条累积摘要、24h TTL 淘汰）；\n   - `MySQL user_profile (本课 v2.0 结论层)` = 外部长期存储（推理模型合并更新、可更正）；\n   - `pgvector user_memory (下节课 v3.0 过程层)` = 外部长期存储（按需语义检索）。\n2. **2026 记忆工程两大核心算子（面试与架构设计高频考点）**：\n   - **① 记忆冲突消解四态机（Mem0 范式：`ADD / UPDATE / DELETE / NOOP`）**：\n     当新对话抽取出候选记忆（如\"预算从 5000 提高到 15000\"或\"不再考虑游戏本\"）时，不能无脑 `INSERT` 到库里（否则下次检索会同时召回\"预算 5000\"和\"预算 15000\"，导致大模型精神分裂）。工程标准做法是将候选记忆与已召回的旧记忆一起送入 LLM 判定状态机：新增事实走 `ADD`、偏好变更走 `UPDATE`（原地更新或标记旧条目失效）、显式否定走 `DELETE`、重复废话走 `NOOP`。\n   - **② 三维记忆检索打分公式**：\n     单纯按向量相似度（Relevance）检索记忆，容易把三年前的过期偏好排在昨天刚说的话前面。生产级记忆检索采用三维加权打分（源自 Generative Agents 并成为 2026 工业界标配）：\n     `Score = α · Relevance(语义相关度) + β · Recency(时间衰减，如指数衰减) + γ · Importance(重要度权重)`\n     让\"语义相关 + 最近发生 + 重要度高\"的记忆优先进入 Context Window！\n\n## Key Emphasis\n讲清四个系统的核心范式（Letta 分页 / Mem0 抽取更新 / Zep 时序图谱 / A-MEM 卡片盒演化）+ **两大工程算子（`ADD/UPDATE/DELETE/NOOP` 冲突消解四态机 + `Relevance + Recency + Importance` 三维打分公式）**，并明确我们课程的三层定位（`Redis 短期缓冲 + MySQL 本课 v2.0 结论层 + pgvector 下节课 v3.0 过程层`）。\n\n## Optional Extension\n**学员问：既然有 Mem0、Zep 这些开源项目，企业该自建三层还是直接引入现成框架？**\n答：先懂原理与三层边界，再做选型。\nDemo 做法：课程手写 `SessionMemory + SummaryPipeline + UserProfileExtractor + MemoryManager`，每个 Prompt 和 SQL 都透明可调，让你把\"累积压缩、合并消解、分层注入\"吃透。\n生产做法：如果业务偏好简单、合规要求高（需严格掌控级联删除与脱敏），自建三层最可控；如果需要细粒度自由文本记忆与图谱时序推理，可以复用 Mem0 的冲突消解四态机或接入 Zep。\n\n## Classroom Interaction\n提问学员：\"用户上周说'我买电脑预算 5000 元'，今天说'我年终奖发了，预算提到 15000 元'。如果放到 Mem0 的四态机里，今天这句话应该触发 `ADD / UPDATE / DELETE / NOOP` 中的哪一个动作？如果不做冲突消解直接 `ADD` 会有什么后果？\"（答案：触发 `UPDATE`；如果直接 `ADD`，检索时会同时召回 5000 和 15000 两条矛盾记忆）。\n\n## Take Away\n掌握 `forms / functions / dynamics` 评价框架与两大核心算子（`ADD/UPDATE/DELETE/NOOP` 冲突消解 + `Relevance/Recency/Importance` 三维打分），无论自建还是选型业界框架都能一眼看穿本质。\n\n## Why This Slide Matters\n没有业界视野的工程师容易闭门造车（比如只做纯向量相似度检索而忽略时间衰减 Recency 和冲突消解 UPDATE），有了这张坐标图，就能站在 2026 工业界最佳实践的肩膀上迭代自己的记忆系统。\n\n## Transition\n业界坐标系和核心算子都装进脑子里了。下面进入最后一页（Page 19：第五课总结），为我们今天的 Memory 记忆系统收官。\n","page_19.html":"# Page 19 — 第五课总结\n\n## Slide Objective\n总结全课，明确学员应该带走的核心认知、代码实践与下一课预告。\n\n## Suggested Presentation\n今天的一句话核心总结：**Memory 不是聊天记录，而是企业为 AI 建立的记忆系统。**\n\n看左边的 Agent 构建进度图。导购 Agent 的五大核心能力，继第四课完成 Prompt 之后，今天我们点亮了第二块拼图——**Memory**。现在我们的导购 Agent 终于不再是\"聊完就忘的陌生人\"，它能记住当前会话的脉络，也能跨会话记住用户的长期画像了。\n\n看右边的第五课能力地图：\n1. **Memory Architecture**：从大模型的无状态失忆症出发，确立了 Session（短期）/ Long-term（长期画像）/ Knowledge（企业知识）三层架构；\n2. **Session Memory + 上下文压缩**：用 Redis List 实现滑动窗口（`SessionMemory`），用 `SummaryPipeline`（满 8 条压缩为累积摘要 + 保留 4 条原文，快模型 `agent.model.fast`）解决长对话 Token 爆炸，并掌握了多轮工具调用下的 **Observation Masking**；\n3. **用户画像 + context 注入**：用 `@Async UserProfileExtractor`（推理模型 `agent.model.reasoning`）合并旧画像与新对话落库 MySQL `user_profile`，通过 `MemoryManager.buildContext()` 分块注入 Prompt；\n4. **安全隐私 + 存储选型 + 生产差距 + 业界视野**：梳理了 PII 脱敏与被遗忘权、结论层（MySQL）向过程层（pgvector）的分层演进、Demo 与生产的五项工程差距，以及 Mem0 冲突消解四态机与三维检索打分公式。\n\n**课后实操练习建议（基于 Git Tag `v1.2.1`）：**\n1. 登录后连续对话超过 8 条消息，打开 `logs/llm-summary.log` 观察 `SummaryPipeline` 如何将旧摘要与新对话合并为更新后的累积摘要；\n2. 发送包含职业、预算、偏好的消息（或调用 `/api/agent/profile/extract`），打开 `logs/llm-profile.log` 观察 `UserProfileExtractor` 的 JSON 合并过程，并查询 MySQL `user_profile` 表；\n3. 点击\"清空会话\"后重新提问，打开 `logs/llm-interactions.log` 验证跨 Session 画像注入生效；\n4. 通读一遍 `MemoryManager.java` 的 `buildContext` 方法，体会 `context` 分块装配的设计。\n\n## Key Emphasis\n学员带走的不只是\"怎么用 Redis 和 MySQL 存记忆\"，更是\"如何分层设计、如何选型双模型、如何用三大日志调试观测、以及如何补齐生产环境的五项差距\"。\n\n## Optional Extension\n**学员问：回到公司落地企业级 Agent 记忆系统，第一步先做什么？**\n答：先按本课 `v1.2.1` 的结构跑通\"Redis 短期缓冲/摘要 + MySQL 结论画像\"最小闭环，同时在建表第一天就把 **PII 脱敏过滤器** 和 **按 `userId` 级联删除接口** 加上，然后再按业务规模逐步迭代异步队列重试与向量化过程记忆。\n\n## Classroom Interaction\n请每位学员用一句话复述今天印象最深的一个工程设计点（如双模选型、累积摘要合并旧摘要、Observation Masking、或冲突消解四态机）。\n\n## Take Away\n企业级记忆系统的成色不在\"能存下聊天记录\"，而在**分层清晰、压缩有道、合并准确、删得干净、全程可观测**。\n\n## Why This Slide Matters\n收束全课知识闭环，并自然引出下一课（第六课 Knowledge 企业知识库与 pgvector 向量检索）。\n\n## Transition\n感谢大家！今天导购 Agent 记住了用户；下一课（第六课：Knowledge 知识库与 RAG），我们将正式引入 pgvector，让 Agent 不仅认识用户，还能精通企业的海量商品与业务知识！\n\n## 课后扩展学习引导（Post-Class Deep Dive Guide）\n各位同学与架构师同仁，在完成第五课打通“Redis 短期滑动窗口 + MySQL 用户画像”的基础记忆链路后，如果您希望将企业级 Agent 的记忆能力扩展至具有终身学习、时序演进与严苛合规的高可用生产级别，请务必精读本课根目录下的**《扩展学习指南.md》**！\n\n这份指南遵循 3W 原则（Why-Where-What），从系统工程视角为您精选了四大深水区主题：\n1. **MemGPT / Letta 虚拟内存分层启发架构**：解读经典论文 `arXiv:2310.08560`，看计算机操作系统的主存分页置换与缺页中断思想，如何被巧妙映射为 Agent 的 In-Context RAM 与 Out-of-Context 外部存储；\n2. **Mem0 细粒度记忆管理与四态消解机**：深入剖析原子事实提取流水线，看系统如何通过 `ADD / UPDATE / DELETE / NOOP` 四态状态机优雅解决新旧记忆冲突与偏好覆盖；\n3. **Zep 与 Graphiti 时序知识图谱（论文 arXiv:2501.13956）**：攻克传统向量检索“不识时序、静态扁平”的死穴，利用双时态图谱（Bi-temporal Modeling）精准跟踪用户偏好随时间的动态流转；\n4. **高并发状态一致性与 GDPR 合规硬防线**：掌握 Redis Lua 原子截断脚本防止并发脏覆盖、Kafka 分区键异步削峰沉淀画像，以及覆盖关系型、向量与图数据库的被遗忘权级联物理销毁方案。\n\n指南末尾同样配置了 3 道直击生产隐患的架构自测题（滚动摘要信息衰减、异步并发乱序覆盖、向量索引删除碎片与性能权衡），建议作为团队技术分享与攻关专题的深入研读指南！\n"};
+  const extGuideMarkdown = "# 《Memory 记忆系统》课后扩展学习指南\n\n> **定位**：面向深入智能体上下文治理与记忆工程的 Java 后端架构师与数据工程师，从“简单的 Redis 列表存对话”跃迁至“分层分页、细粒度状态机、时序图谱与高并发合规一致性”。精选四大深水区主题，严格遵循 **3W（Why-Where-What）精选导读法则**，杜绝无脑堆砌链接，攻坚构建具备人类般长效持久记忆的企业级 Agent。\n\n---\n\n## 目录\n- [主题一：操作系统虚拟内存启发式架构（MemGPT / Letta 的分层与置换设计）](#主题一操作系统虚拟内存启发式架构memgpt--letta-的分层与置换设计)\n- [主题二：生产级细粒度记忆管理（Mem0 冲突消解四态机与混合存储）](#主题二生产级细粒度记忆管理mem0-冲突消解四态机与混合存储)\n- [主题三：时序知识图谱记忆（Zep 与 Graphiti 动态演进与时间冲突解决）](#主题三时序知识图谱记忆zep-与-graphiti-动态演进与时间冲突解决)\n- [主题四：高并发场景下的状态一致性与合规安全（Redis Lua、异步削峰与 GDPR 级联删除）](#主题四高并发场景下的状态一致性与合规安全redis-lua异步削峰与-gdpr-级联删除)\n- [课后架构自测与思考题（Self-Check）](#课后架构自测与思考题self-check)\n\n---\n\n## 主题一：操作系统虚拟内存启发式架构（MemGPT / Letta 的分层与置换设计）\n\n### 1. 为什么值得深潜（Why - 生产触发场景）\n很多团队在面临长期记忆需求时，第一反应是直接把上百轮历史对话全部塞进当前请求的 Prompt 中，结果导致两大恶果：\n1. **Token 账单指数级爆炸**；\n2. **“大海捞针”失忆（Lost in the Middle）**：模型在超长上下文中反而忽略了中间关键事实。\n正如计算机系统不可能把几百 GB 的数据全装进 CPU 高速 L1/L2 缓存，智能体也不能把所有历史都装在当前 Context 中。**MemGPT** 从传统操作系统的虚拟内存分页与中断机制中汲取灵感，将 LLM 运行机制与分层存储完美映射，是构建终身学习智能体的理论基石。\n\n### 2. 权威一手资料（Where - 核心信源与链接）\n- **奠基论文**：Charles Packer, Sarah Wooders, Kevin Lin, Vivian Fang, Shishir G. Patil, Ion Stoica, Joseph E. Gonzalez. *“MemGPT: Towards LLMs as Operating Systems”*, 2023.\n  - 论文地址：[arXiv:2310.08560](https://arxiv.org/abs/2310.08560)\n- **官方开源项目与演进库**：\n  - [Letta (原 MemGPT 官方演进框架，github.com/letta-ai/letta)](https://github.com/letta-ai/letta)\n  - [Letta 官方架构文档](https://docs.letta.com/)\n\n### 3. 高效阅读指引（What - 核心看点与避坑）\n- **重点掌握系统分层映射模型（论文 Figure 1 与 Figure 2）**：\n  | 计算机操作系统组件 | MemGPT 智能体组件 | 物理介质与工程属性 |\n  | :--- | :--- | :--- |\n  | **CPU Registers / SRAM** | 当前正在生成的 Token 缓冲区 | GPU 显存，瞬时计算 |\n  | **主内存（Main Memory / RAM）** | **In-Context Working Memory**（当前 Prompt 内包含的 Core Persona、Human Profile） | 有限（几千 Token）、高昂、即时可见 |\n  | **硬盘虚拟内存（Disk / Swap 分区）** | **Out-of-Context Storage**（Archival Memory 向量知识库、Recall Memory 完整历史事件表） | 海量、持久化、需主动检索换入 |\n  | **中断与缺页异常（Page Fault）** | 上下文超限中断信号与函数回调（Function Calling） | 触发模型自主调用 `archival_memory_search` 换入上下文 |\n- **核心机制看点**：\n  - 重点阅读其 **Memory Editing Functions**：模型拥有自主修改自己核心记忆的工具集（`core_memory_append`, `core_memory_replace`），当感知到用户信息更新时，主动发起对 RAM 区域的原子更新。\n- **省时避坑**：\n  - 略读早期关于 Discord 聊天机器人的交互实验部分，重点学习其如何在有限的 8k 上下文窗口中通过“分页换入换出”模拟无限记忆的架构控制流。\n\n---\n\n## 主题二：生产级细粒度记忆管理（Mem0 冲突消解四态机与混合存储）\n\n### 1. 为什么值得深潜（Why - 生产触发场景）\n在电商导购与企业客服生产中，用户的陈述往往是琐碎、非结构化且充满变动的。\n如果只做粗暴的“全文追加向量库”，系统将沉淀海量冗余垃圾。更致命的是出现**事实冲突**：用户前天说“我预算是 3000 元”，今天说“提升预算到 5000 元”。如果两次都存入向量库，相似度检索将同时召回 3000 和 5000，模型就会陷入精神分裂。\n**Mem0** 提出了一套生产级、端到端的原子事实提取与四态冲突消解机制，是目前工业界解决记忆精确度的标杆范式。\n\n### 2. 权威一手资料（Where - 核心信源与链接）\n- **官方开源仓库与文档**：\n  - [Mem0 GitHub 仓库](https://github.com/mem0ai/mem0)\n  - [Mem0 官方技术架构文档](https://docs.mem0.ai/)\n- **工业界应用与分析**：\n  - Mem0 团队关于多模态记忆提炼的工程博客与多租户用户数据隔离规范。\n\n### 3. 高效阅读指引（What - 核心看点与避坑）\n- **四态机冲突消解流水线（Conflict Resolution Pipeline）**：\n  ```\n  新对话产生\n      │\n      ▼\n  [1. 原子事实提取 (Fact Extraction)] ──例如: \"用户提升预算至 5000 元\"\n      │\n      ▼\n  [2. 候选记忆检索 (Candidate Search)] ──基于向量召回同类记忆: \"用户预算 3000 元\"\n      │\n      ▼\n  [3. 冲突判决与四态转换 (LLM Evaluator)]\n      ├── ADD (新增): 无旧事实关联，全新信息，直接插入\n      ├── UPDATE (更新): 发现新旧事实冲突，废弃旧记录，更新为最新事实\n      ├── DELETE (删除): 用户明确声明失效（如\"我不再养猫了\"），标记软删除\n      └── NOOP (忽略): 与已有记忆完全重复或毫无有效价值，直接丢弃\n      │\n      ▼\n  [4. 混合存储落库 (Hybrid Storage)] ──同时更新 pgvector (语义) 与 关系/图数据库\n  ```\n- **Java 架构师看点**：\n  - 重点看源码中 `mem0/memory/main.py` 的 `_add_to_vector_store` 方法，看其如何利用 JSON Schema 引导推理模型直接输出包含 `ADD/UPDATE/DELETE/NOOP` 动作标签的指令集。\n  - **避坑提示**：冲突检测如果全量依赖大模型判断，延迟极高。工程上必须分两步：**第一步用轻量 Embedding 检索召回 Top-3 候选历史；第二步仅将这 3 条与新陈述送入小模型做四态决策**。\n\n---\n\n## 主题三：时序知识图谱记忆（Zep 与 Graphiti 动态演进与时间冲突解决）\n\n### 1. 为什么值得深潜（Why - 生产触发场景）\n向量检索（Vector Search）本质上是无时序概念的纯静态语义相似度计算。\n但在真实商业世界中，**“时间”是所有事实的核心维度**。\n例如：\n- 2024 年 3 月：“用户张三是极氪汽车车主”；\n- 2026 年 5 月：“张三卖掉了极氪，换购了蔚来 ES8”。\n如果仅靠向量距离，两条记录的语义相似度几乎一模一样，传统 RAG 极易给出“张三目前同时开极氪和蔚来”的错误结论。\n**时序知识图谱（Temporal Knowledge Graph）** 为记忆引入了“时间有效性区间（Temporal Edge）”，是解决长周期偏好漂移的终极利器。\n\n### 2. 权威一手资料（Where - 核心信源与链接）\n- **奠基论文与仓库**：\n  - Zep 团队论文：*“Graphiti: A Temporal Knowledge Graph for Dynamic Agent Memory”*, 2025/2026.\n    - 论文地址：[arXiv:2501.13956](https://arxiv.org/abs/2501.13956)\n  - [Graphiti GitHub 开源仓库 (github.com/getzep/graphiti)](https://github.com/getzep/graphiti)\n  - [Zep 官方文档与长程对话记忆评测](https://help.getzep.com/)\n\n### 3. 高效阅读指引（What - 核心看点与避坑）\n- **核心概念：双时态建模（Bi-temporal Modeling）**：\n  1. **Valid Time（有效时间）**：该事实在现实世界中成立的时间区间（如 `[2024-03, 2026-05]`）。\n  2. **Transaction Time（事务时间）**：该记忆被系统摄取记录的系统时间戳。\n- **动态图演进机制（Dynamic Graph Evolution）**：\n  - 实体（Entities）：如“张三”、“极氪”、“蔚来”；\n  - 关系边（Edges）：拥有生命周期属性。当新事件产生时，系统并不抹除旧节点，而是将旧边打上 `expired_at: 2026-05-10`，并建立新边 `drives -> 蔚来 (valid_from: 2026-05-10)`。\n  - **查询优势**：不仅能精准回答“张三现在开什么车”，还能回答“张三在 2025 年时开什么车”，实现完整时空回溯。\n- **省时避坑**：\n  - 图神经网络（GNN）的理论复杂数学证明可以跳过，重点关注论文中的 **Episode Ingestion Pipeline**（如何从对话提取实体、解析时序边、将非结构化文本映射为图节点）。\n\n---\n\n## 主题四：高并发场景下的状态一致性与合规安全（Redis Lua、异步削峰与 GDPR 级联删除）\n\n### 1. 为什么值得深潜（Why - 生产触发场景）\n在课堂上，我们的 Demo 是单线程顺序运行的。然而，在真实生产高并发场景下，同一个用户可能在移动端和网页端同时快速发消息；或者用户正在飞速打字，上一个请求的异步画像提取还没完成，下一个请求已经读取了旧的画像。\n同时，随着《个人信息保护法（PIPL）》与欧盟 GDPR 的严格实施，企业必须支持**“被遗忘权（Right to be Forgotten）”**。如果用户注销账号，企业必须在规定时间内将该用户分散在 Redis 会话列表、MySQL 画像表、向量数据库、图数据库以及日志系统中的所有个人数据**物理级联彻底清除**，任何残留都会招致合规罚单。\n\n### 2. 权威一手资料（Where - 核心信源与链接）\n- **高并发数据一致性规范**：\n  - [Redis 官方文档：EVAL Lua Scripts 与原子操作保证](https://redis.io/docs/interact/programmability/eval-intro/)\n  - [Apache Kafka 与 RabbitMQ 削峰异步流水线设计模式](https://kafka.apache.org/documentation/)\n- **数据隐私与合规标准**：\n  - [GDPR Article 17: Right to erasure ('right to be forgotten') 官方条款](https://gdpr-info.eu/art-17-gdpr/)\n  - 中国《个人信息保护法》第四十七条关于个人信息处理者删除个人信息的法定情形与实施标准。\n\n### 3. 高效阅读指引（What - 核心看点与避坑）\n- **Redis Lua 原子滑动窗口（防并发脏读写）**：\n  - 痛点：传统的 `LRANGE` 读取 $\\to$ Java 内存追加 $\\to$ `LTRIM` 截断在多并发下存在经典的 Check-Then-Act 竞态漏洞。\n  - 解法：编写原子 Lua 脚本一次性完成“压入新消息 + 获取长度 + 超长自动从左侧滑出 + 返回最新窗口”：\n    ```lua\n    -- 伪代码示意：KEYS[1] 为 session_key, ARGV[1] 为新消息 JSON, ARGV[2] 为最大窗口容量 (如 20)\n    redis.call('RPUSH', KEYS[1], ARGV[1])\n    local len = redis.call('LLEN', KEYS[1])\n    if len > tonumber(ARGV[2]) then\n        redis.call('LPOP', KEYS[1])\n    end\n    redis.call('EXPIRE', KEYS[1], 86400) -- 重置滑动过期时间\n    return redis.call('LRANGE', KEYS[1], 0, -1)\n    ```\n- **异步削峰与读写分离架构**：\n  - 前端请求到达后，**只读最新 MySQL 画像与 Redis 短期会话并组装 Context**（保证首字响应毫秒级返回）；\n  - 对话结束后，将完整的用户输入与响应以事件形式抛入 MQ（如 Kafka / RabbitMQ），由后端的 `@Async` 消费者集群慢慢执行昂贵的原子事实提取与四态消解，实现高并发削峰。\n- **GDPR 被遗忘权级联删除设计**：\n  - 在微服务中暴露标准的统一数据销毁服务 `UserDataShredderService`：\n    1. **Redis**：`DEL user:{userId}:*` 清空所有缓存与临时会话；\n    2. **MySQL**：软删除或加密物理抹除 `user_profile`；\n    3. **Vector DB (pgvector / Milvus)**：根据元数据 `filter={\"user_id\": userId}` 执行强制物理删除；\n    4. **Knowledge Graph**：级联移除以 `userId` 为头实体的全部时序关联边与私有节点。\n\n---\n\n## 课后架构自测与思考题（Self-Check）\n\n完成上述研读后，请尝试在架构层面回答以下三道进阶思考题：\n\n### 思考题 1：滑动窗口与累积摘要的“信息衰减”悖论\n> **问题**：某团队采用了“保留最近 5 条对话原文，超过部分由快模型压缩成累积摘要（Rolling Summary）并不断与旧摘要合并”的策略。在连续对话 50 轮后，测试人员发现用户在第 3 轮提到的“我对海鲜过敏”的关键信息在最新的摘要中完全丢失了。从信息论与语言模型特性的角度，分析该现象的原因，并提出生产级改进方案。\n> \n> **参考思路**：\n> 1. **原因分析（信息熵递减与模型压缩偏差）**：累积摘要本质是一个“有损压缩管道”（Lossy Compression）。当经历多轮“旧摘要 + 新 5 条 $\\to$ 新摘要”的递归迭代时，语言模型倾向于优先保留最近讨论的热点话题；经过 10 次递归压缩后，早期出现的非核心属性会像“传话游戏”一样被逐步稀释、泛化甚至遗漏。\n> 2. **改进方案（分离长期事实与短期会话流）**：\n>    - **建立双通路存储**：彻底将“会话上下文压缩”与“用户事实沉淀”解耦。\n>    - 对话中一旦识别到过敏原、禁忌等关键画像属性，立即通过原子事实提取机制沉淀至独立的持久化结构化表（如 MySQL `user_profile` 的 JSON 字段或向量库），打上 `permanent_preference` 标签；\n>    - Rolling Summary 仅负责总结“本次会话探讨了哪些商品，对比了哪些价格”等易失性脉络；持久化事实永远由独立的画像管理器强制注入 Prompt，不受会话轮次滚动影响。\n\n### 思考题 2：高并发下异步画像合并的脏覆盖隐患\n> **问题**：在电商大促期间，用户在 5 秒内连续发送了三条消息：“我想要一款降噪耳机” $\\to$ “预算大概 1500 左右” $\\to$ “等等，降噪不要入耳式的，我耳朵疼”。后端若采用异步消息队列并发调用大模型进行画像更新，可能会出现什么并发数据一致性问题？如何从架构上进行防范？\n> \n> **参考思路**：\n> 1. **隐患分析（Out-of-Order Execution 导致的脏覆盖）**：由于三条消息被并发分发到不同的 MQ 消费者处理，而大模型提取画像的推理耗时具有随机性（1~3秒不等）。如果第 3 条消息先执行完毕将 `preferred_type: \"头戴/非入耳\"` 写入数据库，而较慢的第 1 条消息随后执行完毕并覆盖写入了旧的默认偏好，导致最终落库的画像变成旧状态。\n> 2. **架构防范手段**：\n>    - **Kafka 分区键绑定（Partition Key by `userId`）**：确保同一个用户的所有消息被严格分发至同一个 MQ 分区，由单一消费者按严格的 FIFO 顺序拉取执行；\n>    - **基于版本号的乐观锁（Optimistic Locking）**：在 `user_profile` 表增加 `version` 字段与事件时间戳。画像更新时比对 `WHERE user_id = ? AND event_timestamp > last_updated_timestamp`，若时间戳已过时则拒绝写入；\n>    - **会话防抖合并（Debouncing Window）**：在消息到达后，设置 5 秒的短时防抖窗口，将用户连珠炮式的多条短消息聚合成一个批次（Batch）后再发起单次大模型画像提取。\n\n### 思考题 3：GDPR 极速删除与向量数据库索引特性的冲突\n> **问题**：在生产级向量数据库（如基于 HNSW 索引的向量库）中，执行大量的物理 `DELETE` 操作不仅耗时极长，而且会导致图索引结构破碎、检索性能急剧恶化。如何在既满足合规“被遗忘权”的前提下，又保障高并发检索系统的吞吐与健康度？\n> \n> **参考思路**：\n> 1. **分级数据销毁策略（Soft Masking + Async Vacuuming）**：\n>    - **第一步：毫秒级元数据逻辑阻断（Instant Masking）**：在元数据索引层将该 `userId` 标记为 `status = \"FORGOTTEN\"`，并在所有全局向量检索查询前强制追加前置过滤条件 `filter={\"status\": {\"$ne\": \"FORGOTTEN\"}}`。从业务与用户视角看，该数据在点击注销的瞬间已实现“不可被检索与再使用”；\n>    - **第二步：独立分区隔离（Partition / Namespace per Tenant）**：如果是企业租户级删除，在建索引时采用按租户分 Collection 或 Partition 存储，删除时直接 Drop Partition，瞬间释放物理存储且不影响全局 HNSW 图结构；\n>    - **第三步：夜间低峰期异步合并压缩（Compaction / Vacuum）**：在系统业务低峰期触发向量库的后台重建或 Index Rebuild，批量清理 tombstone 墓碑标记，重铸图连通性。\n";
+  let currentIndex = 0;
+
+  const stage = document.getElementById('slide-stage');
+  const frame = document.getElementById('slide-frame');
+  const shield = document.getElementById('click-shield');
+  const progressBar = document.getElementById('progress-bar');
+  const indicator = document.getElementById('page-indicator');
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+  const btnNotes = document.getElementById('btn-notes');
+  const btnCloseNotes = document.getElementById('btn-close-notes');
+  const btnExt = document.getElementById('btn-ext');
+  const btnCloseExt = document.getElementById('btn-close-ext');
+  const btnFs = document.getElementById('btn-fs');
+  const controlBar = document.getElementById('control-bar');
+  const notesDrawer = document.getElementById('notes-drawer');
+  const notesTitle = document.getElementById('notes-title');
+  const notesBody = document.getElementById('notes-body');
+  const extDrawer = document.getElementById('ext-drawer');
+  const extBody = document.getElementById('ext-body');
+
+  // 轻量级 Markdown 渲染器（支持标题、粗体、行内代码、可点击超链接与列表）
+  function renderSimpleMarkdown(md) {
+    if (!md) return '<p>（本课暂无扩展学习指南文件）</p>';
+    const escaped = md
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    const lines = escaped.split(/\r?\n/);
+    let html = '';
+    for (let line of lines) {
+      // 处理超链接与行内格式
+      line = line
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+      if (/^####\s+(.*)/.test(line)) {
+        html += '<h4>' + RegExp.$1 + '</h4>';
+      } else if (/^###\s+(.*)/.test(line)) {
+        html += '<h3>' + RegExp.$1 + '</h3>';
+      } else if (/^##\s+(.*)/.test(line)) {
+        html += '<h2>' + RegExp.$1 + '</h2>';
+      } else if (/^#\s+(.*)/.test(line)) {
+        html += '<h1>' + RegExp.$1 + '</h1>';
+      } else if (/^&gt;\s*(.*)/.test(line)) {
+        html += '<blockquote>' + RegExp.$1 + '</blockquote>';
+      } else if (/^[-*]\s+(.*)/.test(line)) {
+        html += '<ul><li>' + RegExp.$1 + '</li></ul>';
+      } else if (line.trim() === '---') {
+        html += '<hr style="border:none; border-top:1px solid rgba(255,255,255,0.1); margin:14px 0;">';
+      } else if (line.trim() !== '') {
+        html += '<p>' + line + '</p>';
+      }
+    }
+    return html;
+  }
+
+  extBody.innerHTML = renderSimpleMarkdown(extGuideMarkdown);
+
+  // 1. 16:9 动态缩放居中计算
+  function updateScale() {
+    const sw = 1280;
+    const sh = 720;
+    const scale = Math.min(window.innerWidth / sw, window.innerHeight / sh);
+    stage.style.transform = 'scale(' + scale + ')';
+  }
+  window.addEventListener('resize', updateScale);
+  updateScale();
+
+  // 2. 页面切换核心函数
+  function updateSlide(index) {
+    if (index < 0 || index >= pages.length) return;
+    currentIndex = index;
+    frame.setAttribute('src', pages[currentIndex]);
+    indicator.textContent = (currentIndex + 1) + ' / ' + pages.length;
+    btnPrev.disabled = (currentIndex === 0);
+    btnNext.disabled = (currentIndex === pages.length - 1);
+    progressBar.style.width = (((currentIndex + 1) / pages.length) * 100) + '%';
+
+    // 更新演讲手册备注
+    const pageFile = pages[currentIndex];
+    notesTitle.textContent = '演讲手册备注 (第 ' + (currentIndex + 1) + ' 页 - ' + pageFile + ')';
+    notesBody.textContent = notesMap[pageFile] || '（本页暂无专属演讲手册内容）';
+
+    // 唤醒底部控制条 1 秒后淡出
+    controlBar.classList.add('active');
+    clearTimeout(controlBar._timer);
+    controlBar._timer = setTimeout(() => controlBar.classList.remove('active'), 1200);
+
+    // 强行保持主窗口焦点
+    window.focus();
+    document.body.focus();
+  }
+
+  // 3. 统一键盘事件处理器（无论焦点在何处均生效）
+  function handleKeyDown(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+      case 'PageDown':
+      case ' ':
+      case 'Enter':
+        e.preventDefault();
+        e.stopPropagation();
+        updateSlide(currentIndex + 1);
+        break;
+      case 'ArrowLeft':
+      case 'ArrowUp':
+      case 'PageUp':
+      case 'Backspace':
+        e.preventDefault();
+        e.stopPropagation();
+        updateSlide(currentIndex - 1);
+        break;
+      case 'Home':
+        e.preventDefault();
+        e.stopPropagation();
+        updateSlide(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        e.stopPropagation();
+        updateSlide(pages.length - 1);
+        break;
+      case 'f':
+      case 'F':
+        e.preventDefault();
+        e.stopPropagation();
+        btnFs.click();
+        break;
+      case 'n':
+      case 'N':
+        e.preventDefault();
+        e.stopPropagation();
+        btnNotes.click();
+        break;
+      case 'e':
+      case 'E':
+        e.preventDefault();
+        e.stopPropagation();
+        btnExt.click();
+        break;
+      case 'Escape':
+        if (notesDrawer.classList.contains('open') || extDrawer.classList.contains('open')) {
+          e.preventDefault();
+          notesDrawer.classList.remove('open');
+          extDrawer.classList.remove('open');
+        }
+        break;
+    }
+  }
+
+  // 双重监听：捕获阶段挂载到 window 与 document
+  window.addEventListener('keydown', handleKeyDown, true);
+  document.addEventListener('keydown', handleKeyDown, true);
+
+  // 当 iframe 内部加载完毕时，注入键盘穿透监听（作为跨级兜底保护）
+  frame.addEventListener('load', () => {
+    try {
+      const doc = frame.contentDocument || frame.contentWindow.document;
+      if (doc) {
+        doc.addEventListener('keydown', handleKeyDown, true);
+        doc.addEventListener('click', () => {
+          window.focus();
+          document.body.focus();
+        });
+      }
+    } catch (err) {}
+    window.focus();
+    document.body.focus();
+  });
+
+  // 4. 点击屏蔽层 (click-shield) 交互：
+  // 单击右半侧下一页，单击左半侧上一页，双击全屏
+  let clickTimer = null;
+  shield.addEventListener('click', (e) => {
+    window.focus();
+    document.body.focus();
+
+    if (clickTimer) {
+      clearTimeout(clickTimer);
+      clickTimer = null;
+      btnFs.click(); // 双击切换全屏
+      return;
+    }
+
+    clickTimer = setTimeout(() => {
+      clickTimer = null;
+      const rect = shield.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      if (clickX > rect.width * 0.4) {
+        updateSlide(currentIndex + 1);
+      } else {
+        updateSlide(currentIndex - 1);
+      }
+    }, 220);
+  });
+
+  // 5. 鼠标滚轮翻页 (节流防抖 250ms)
+  let wheelLock = false;
+  window.addEventListener('wheel', (e) => {
+    if ((notesDrawer.classList.contains('open') || extDrawer.classList.contains('open')) && e.clientX > window.innerWidth - 540) {
+      return; // 抽屉内部滚动时不拦截
+    }
+    if (wheelLock) return;
+    if (Math.abs(e.deltaY) > 20) {
+      wheelLock = true;
+      if (e.deltaY > 0) updateSlide(currentIndex + 1);
+      else updateSlide(currentIndex - 1);
+      setTimeout(() => { wheelLock = false; }, 260);
+    }
+  }, { passive: true });
+
+  // 6. 控制栏按钮交互（点击后自动释放焦点，防止空格键重触发按钮）
+  btnPrev.addEventListener('click', (e) => {
+    e.target.blur();
+    updateSlide(currentIndex - 1);
+  });
+  btnNext.addEventListener('click', (e) => {
+    e.target.blur();
+    updateSlide(currentIndex + 1);
+  });
+  btnNotes.addEventListener('click', (e) => {
+    e.target.blur();
+    extDrawer.classList.remove('open');
+    notesDrawer.classList.toggle('open');
+    window.focus();
+    document.body.focus();
+  });
+  btnCloseNotes.addEventListener('click', () => {
+    notesDrawer.classList.remove('open');
+    window.focus();
+    document.body.focus();
+  });
+  btnExt.addEventListener('click', (e) => {
+    e.target.blur();
+    notesDrawer.classList.remove('open');
+    extDrawer.classList.toggle('open');
+    window.focus();
+    document.body.focus();
+  });
+  btnCloseExt.addEventListener('click', () => {
+    extDrawer.classList.remove('open');
+    window.focus();
+    document.body.focus();
+  });
+  btnFs.addEventListener('click', (e) => {
+    e.target.blur();
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+    window.focus();
+    document.body.focus();
+  });
+
+  // 初始化首屏
+  updateSlide(0);
+</script>
+</body>
+</html>

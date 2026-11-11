@@ -1,61 +1,93 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>核心概念：从神经网络到强化学习</title>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>程序员角色重塑：从 Code Writer 到 Spec & Harness 架构师</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
-*{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
-.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-</style></head><body>
-<div class="s" style="padding:38px 70px;">
-<div style="font-size:14px;color:#00E5FF;letter-spacing:4px;margin-bottom:8px;">CHAPTER 05</div>
-<h1 class="mb-2">核心概念：从神经网络到强化学习</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <div style="font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:6px;">CHAPTER 04 · 软件工程的范式革命与角色重塑</div>
+  <h1 class="mb-2">程序员角色重塑：从 Code Writer 到 Spec & Harness 架构师</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
 
-<div style="display:flex;gap:16px;margin-bottom:16px;">
-<div style="flex:1;padding:18px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);">
-<div style="font-size:28px;text-align:center;margin-bottom:8px;">&#x1F9E0;</div>
-<div style="font-size:16px;font-weight:700;color:#00E5FF;text-align:center;margin-bottom:8px;">神经网络</div>
-<div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.7;">
-模仿大脑神经元连接方式的计算模型。输入层→隐藏层→输出层，通过调整连接权重来学习。<br><br>
-通过成千上万个连接权重的调整来学习输入和输出之间的关系。
-</div>
-</div>
-<div style="flex:1;padding:18px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);">
-<div style="font-size:28px;text-align:center;margin-bottom:8px;">&#x1F4CA;</div>
-<div style="font-size:16px;font-weight:700;color:#FF6B35;text-align:center;margin-bottom:8px;">机器学习</div>
-<div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.7;">
-让机器从数据中自动学习规律，而不是人手写规则。<br>
-包括：监督学习（有标注）、无监督学习（无标注）、强化学习（试错反馈）。<br><br>
-<strong style="color:#E0E7FF;">类比：</strong>不是教机器"怎么做"，而是给它大量例子让它自己总结。
-</div>
-</div>
-<div style="flex:1;padding:18px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);">
-<div style="font-size:28px;text-align:center;margin-bottom:8px;">&#x1F525;</div>
-<div style="font-size:16px;font-weight:700;color:#00E5FF;text-align:center;margin-bottom:8px;">深度学习</div>
-<div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.7;">
-用很多层的神经网络来学习。"深"指的是层数多。<br>
-能自动提取特征——不需要人告诉模型"看什么"。<br><br>
-<strong style="color:#E0E7FF;">类比：</strong>机器学习是"自己总结规律"，深度学习是"自己找重点"。
-</div>
-</div>
-<div style="flex:1;padding:18px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);">
-<div style="font-size:28px;text-align:center;margin-bottom:8px;">&#x1F3AE;</div>
-<div style="font-size:16px;font-weight:700;color:#FF6B35;text-align:center;margin-bottom:8px;">强化学习</div>
-<div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.7;">
-通过"试错+奖励"来学习。做对了给奖励，做错了给惩罚，逐步优化策略。<br>
-AlphaGo就是通过自我对弈的强化学习训练出来的。<br><br>
-<strong style="color:#E0E7FF;">类比：</strong>像训练小狗——做对了给零食，做错了不给。
-</div>
-</div>
-</div>
+  <div style="font-size:14px; color:rgba(224,231,255,0.6); margin-bottom:16px;">
+    AI 原生编程时代的人机全新协作契约：人类退出低效的手工打字实现，全面跃升为意图规格的定义者与工程护栏的裁判长。
+  </div>
 
-<div style="padding:16px 20px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);text-align:center;">
-<div style="font-size:14px;color:#E0E7FF;line-height:1.8;">
-<strong style="color:#00E5FF;">神经网络</strong>是基础结构 → <strong style="color:#FF6B35;">机器学习</strong>是学习方法 → <strong style="color:#00E5FF;">深度学习</strong>是机器学习的深层版本 → <strong style="color:#FF6B35;">强化学习</strong>是另一种学习方式<br>
-大模型 = 深度学习 + Transformer + 大规模数据 + 强化学习（RLHF）
-</div>
-</div>
+  <!-- Dual Core Roles -->
+  <div class="flex gap-5 mb-4">
+    <!-- Left Role: Spec Designer -->
+    <div style="flex:1; padding:16px 20px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.18);">
+      <div class="flex justify-between items-center mb-3">
+        <div style="font-size:16px; font-weight:700; color:#00E5FF;"><i class="fas fa-file-contract" style="margin-right:8px;"></i>角色一 · Spec 架构师（意图规格定义者）</div>
+        <span style="font-size:11px; padding:2px 8px; background:rgba(0,229,255,0.15); color:#00E5FF; font-weight:600;">输入端精准度</span>
+      </div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.65; margin-bottom:10px;">
+        <strong style="color:#E0E7FF;">告别随意随性的 Prompt：</strong>AI 输出平庸，90% 是因为人类下达了模糊模棱两可的需求。Spec 架构师的职责是用工程语言定义严密契约：
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px; font-size:12px; color:rgba(224,231,255,0.65);">
+        <div><i class="fas fa-angle-right" style="color:#00E5FF; margin-right:6px;"></i><strong style="color:#E0E7FF;">接口与类型契约：</strong>精确定义 OpenAPI / Protobuf 协议与状态转移机；</div>
+        <div><i class="fas fa-angle-right" style="color:#00E5FF; margin-right:6px;"></i><strong style="color:#E0E7FF;">业务边界与不变式（Invariants）：</strong>明确列出禁止操作的数据边界与异常回滚要求；</div>
+        <div><i class="fas fa-angle-right" style="color:#00E5FF; margin-right:6px;"></i><strong style="color:#E0E7FF;">分步执行目标：</strong>将宏大系统拆解为可单步自动化验证的阶段性交付物。</div>
+      </div>
+    </div>
 
-</div></body></html>
+    <!-- Right Role: Harness Architect -->
+    <div style="flex:1; padding:16px 20px; background:rgba(255,107,53,0.05); border:1px solid rgba(255,107,53,0.22);">
+      <div class="flex justify-between items-center mb-3">
+        <div style="font-size:16px; font-weight:700; color:#FF6B35;"><i class="fas fa-shield-alt" style="margin-right:8px;"></i>角色二 · Harness 架构师（工程护栏搭建者）</div>
+        <span style="font-size:11px; padding:2px 8px; background:rgba(255,107,53,0.15); color:#FF6B35; font-weight:600;">输出端质检官</span>
+      </div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.65; margin-bottom:10px;">
+        <strong style="color:#E0E7FF;">为烈马套上马具（Harness）：</strong>不能靠人脑肉眼去一行行排查 AI 的逻辑 Bug，必须靠完备的工程护栏进行自动化客观裁决：
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px; font-size:12px; color:rgba(224,231,255,0.65);">
+        <div><i class="fas fa-angle-right" style="color:#FF6B35; margin-right:6px;"></i><strong style="color:#E0E7FF;">测试用例先行（TDD 进阶）：</strong>在让 AI 编码前，先定义或让其生成严密的断言套件；</div>
+        <div><i class="fas fa-angle-right" style="color:#FF6B35; margin-right:6px;"></i><strong style="color:#E0E7FF;">静态代码分析与安全沙箱：</strong>集成 Linter、SonarQube，限制危险系统调用；</div>
+        <div><i class="fas fa-angle-right" style="color:#FF6B35; margin-right:6px;"></i><strong style="color:#E0E7FF;">自愈回环（Self-Healing Loop）：</strong>将测试报错自动转换为提示词，驱动 Agent 自主修复。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Closed Loop Architecture Diagram -->
+  <div style="padding:12px 18px; background:rgba(0,0,0,0.35); border:1px solid rgba(0,229,255,0.15); margin-bottom:12px;">
+    <div style="display:flex; align-items:center; justify-content:space-around; text-align:center;">
+      <div style="font-size:12px; color:#00E5FF; font-weight:700;">
+        <i class="fas fa-user-tie" style="margin-right:4px;"></i>人类架构师<br>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">定义精确 Spec</span>
+      </div>
+      <div style="color:rgba(0,229,255,0.4);">&rarr;</div>
+      <div style="font-size:12px; color:#FF6B35; font-weight:700;">
+        <i class="fas fa-robot" style="margin-right:4px;"></i>AI Coding Agent<br>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">生成实现代码</span>
+      </div>
+      <div style="color:rgba(255,107,53,0.4);">&rarr;</div>
+      <div style="font-size:12px; color:#22C55E; font-weight:700;">
+        <i class="fas fa-vial" style="margin-right:4px;"></i>Harness 护栏系统<br>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">编译与回归断言</span>
+      </div>
+      <div style="color:rgba(34,197,94,0.4);">&rarr;</div>
+      <div style="font-size:12px; color:#E0E7FF; font-weight:700;">
+        <i class="fas fa-check-circle" style="margin-right:4px;"></i>架构师审查确认<br>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">合并发版入库</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Engineer Takeaway -->
+  <div style="padding:12px 18px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.2); display:flex; align-items:center;">
+    <div style="font-size:12px; color:#E0E7FF; line-height:1.6;">
+      <i class="fas fa-compass" style="color:#00E5FF; margin-right:8px;"></i><strong style="color:#00E5FF;">新时代职业座右铭：</strong>你负责严谨思考，AI 负责狂暴执行；你负责搭建笼子，AI 负责在笼子中冲锋。成为掌握 Spec 与 Harness 的高级架构师，你就是 AI 时代最有价值的技术指挥官！
+    </div>
+  </div>
+</div>
+</body>
+</html>

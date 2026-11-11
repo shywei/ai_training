@@ -8,27 +8,48 @@
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
 .code{font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace}
 </style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="s" style="padding:24px 60px;display:flex;flex-direction:column;">
 <div class="mb-2 sn">CHAPTER 02</div>
 <h1 class="mb-2">Function Calling 协议 — OpenAI API 格式</h1>
 <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
 <div style="flex:1;display:flex;gap:16px;">
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:13px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">请求：functions 参数定义可用工具</div>
-    <div class="code" style="margin-bottom:12px;">{<br>&nbsp;&nbsp;"model": "Qwen2.5-7B",<br>&nbsp;&nbsp;"messages": [...],<br>&nbsp;&nbsp;"functions": [<br>&nbsp;&nbsp;&nbsp;&nbsp;{<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "queryProductInfo",<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"description": "查询商品价格和库存",<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"parameters": {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "object",<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"properties": {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"productId": {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "string",<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"description": "商品ID"<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"required": ["productId"]<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>&nbsp;&nbsp;]<br>}</div>
-    <div style="font-size:11px;color:rgba(224,231,255,0.4);">
-      Spring AI 的 FunctionCallbackWrapper 自动生成这段 JSON<br>
-      <strong style="color:#E0E7FF;">Demo 已覆盖</strong>（自动封装，开发者不直接写）
+    <div style="font-size:13px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">请求：tools 参数定义可用工具（替代已废弃的 functions）</div>
+    <div class="code" style="margin-bottom:10px;">{<br>&nbsp;&nbsp;"model": "Qwen2.5-7B",<br>&nbsp;&nbsp;"messages": [...],<br>&nbsp;&nbsp;"parallel_tool_calls": true,<br>&nbsp;&nbsp;"tools": [{<br>&nbsp;&nbsp;&nbsp;&nbsp;"type": "function",<br>&nbsp;&nbsp;&nbsp;&nbsp;"function": {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "queryProductInfo",<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"description": "查询商品价格和库存",<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"strict": true,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"parameters": {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "object",<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"properties": {"productId": {"type": "string", "description": "商品ID"}},<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"required": ["productId"], "additionalProperties": false<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>&nbsp;&nbsp;}]<br>}</div>
+    <div style="font-size:11.5px;color:rgba(224,231,255,0.7);line-height:1.5;">
+      • <strong style="color:#00E5FF;">tools + tool_calls</strong> 是现行标准，支持 <code>parallel_tool_calls</code> 并发调用与 <code>strict: true</code> 约束解码保证参数合规<br>
+      • <strong style="color:#E0E7FF;">权力边界清晰</strong>：LLM 仅依据 Schema 生成调用意图，绝不直接执行物理代码；由 Host 运行时校验后代为执行
     </div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:13px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">响应：tool_call 指令</div>
-    <div class="code" style="margin-bottom:12px;">{<br>&nbsp;&nbsp;"choices": [{<br>&nbsp;&nbsp;&nbsp;&nbsp;"message": {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"role": "assistant",<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"content": null,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"tool_calls": [{<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"id": "call_abc123",<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "function",<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"function": {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "queryProductInfo",<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"arguments": "{\"productId\":\"NB001\"}"<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}]<br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>&nbsp;&nbsp;}]<br>}</div>
-    <!-- 避坑卡片 -->
-    <div style="margin-top:8px;padding:8px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.25);border-radius:4px;overflow:auto;">
-      <div style="font-size:11px;color:#FF6B35;font-weight:700;margin-bottom:2px;">🚨 调试识伪：正常调用非报错</div>
-      <div style="font-size:10px;color:rgba(224,231,255,0.5);line-height:1.4;">在调试日志中，当看到响应包 choices[0].message.content 字段为 null，且含有 tool_calls 指令时，这是正常的协议流而非模型异常或故障。必须通过 SDK 注册的 Callback 执行本地服务后再次发送回执才能继续生成。</div>
+    <div style="font-size:13px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">响应：tool_calls 决策指令（无代码执行权）</div>
+    <div class="code" style="margin-bottom:10px;">{<br>&nbsp;&nbsp;"choices": [{<br>&nbsp;&nbsp;&nbsp;&nbsp;"message": {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"role": "assistant",<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"content": null,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"tool_calls": [{<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"id": "call_abc123",<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "function",<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"function": {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "queryProductInfo",<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"arguments": "{\"productId\":\"NB001\"}"<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}]<br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>&nbsp;&nbsp;}]<br>}</div>
+    <!-- 避坑与权力边界卡片 -->
+    <div style="padding:8px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.25);border-radius:4px;">
+      <div style="font-size:12px;color:#FF6B35;font-weight:700;margin-bottom:2px;">🚨 权力边界与调试识伪</div>
+      <div style="font-size:11px;color:rgba(224,231,255,0.7);line-height:1.45;"><code>content: null</code> 携带 <code>tool_calls</code> 是正常的协议决策流而非报错。大模型绝无物理执行权，<strong>实际执行权、入参白名单校验、沙箱运行与异常捕获完全归属于 Agent Runtime</strong>。执行后需由 Runtime 回传 <code>role: tool</code> 回执才能继续生成。</div>
     </div>
+  </div>
+</div>
+<!-- 结构化输出三方案辨析 -->
+<div style="margin-top:8px;padding:8px 12px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:4px;">
+  <div style="font-size:12px;color:#A855F7;font-weight:700;margin-bottom:4px;">结构化输出三方案 — 互补不是竞争，按场景分层选</div>
+  <div style="display:flex;gap:12px;">
+    <div style="flex:1;">
+      <span style="font-size:11px;color:#00E5FF;font-weight:700;">① Native Structured Output</span>
+      <div style="font-size:11px;color:rgba(224,231,255,0.65);line-height:1.45;">response_format + json_schema 约束解码，输出必合 schema。适合：抽取、分类、报表等纯数据产物。</div>
+    </div>
+    <div style="flex:1;">
+      <span style="font-size:11px;color:#FF6B35;font-weight:700;">② Function Calling</span>
+      <div style="font-size:11px;color:rgba(224,231,255,0.65);line-height:1.45;">tool schema 约束调用决策，物理动作交给 Agent Runtime。适合：触发 Tool / MCP，一个管决策一个管执行。</div>
+    </div>
+    <div style="flex:1;">
+      <span style="font-size:11px;color:#22C55E;font-weight:700;">③ JSON mode + Parser</span>
+      <div style="font-size:11px;color:rgba(224,231,255,0.65);line-height:1.45;">保证合法 JSON，不合 schema 靠 Parser 校验 + 重试修复兜底。适合：旧版模型或自由动态结构。</div>
+    </div>
+  </div>
+  <div style="margin-top:4px;font-size:11px;color:rgba(224,231,255,0.65);line-height:1.45;">
+    <strong style="color:#E0E7FF;">选型铁律：</strong>结构化产出选①｜触发外部动作选②（开启 <code>strict: true</code> 零幻觉）｜弱模型兜底选③。
   </div>
 </div>
 </div></body></html>

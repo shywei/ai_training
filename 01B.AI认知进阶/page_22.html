@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>01B. AI认知进阶（可选深潜）：全课总结与架构跃迁</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.s { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:24px 65px; }
+.s h1 { font-size:28px !important; color:#E0E7FF; font-weight:700; }
+.card { background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.15); border-radius:4px; padding:11px 13px; }
+.badge { font-size:11px; font-weight:700; padding:2px 6px; border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="s flex flex-col justify-between">
+  <!-- Header -->
+  <div>
+    <div class="flex items-center justify-between mb-1">
+      <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; font-weight:700;">COURSE 01B · 总结与后续路线</div>
+      <span style="font-size:11px; color:#FF6B35; background:rgba(255,107,53,0.15); border:1px solid rgba(255,107,53,0.3); padding:2px 8px; border-radius:3px; font-weight:700;">可选深潜收官</span>
+    </div>
+    <h1 class="mb-2">01B. AI认知进阶（可选深潜）：全课总结与架构跃迁</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:10px;"></div>
+    <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.5;">
+      专为项目 Leader 与高级开发打造的底层深潜之旅：从微观张量流转到显存池化调度，彻底打开大模型黑盒，构筑坚不可摧的底层工程心智。
+    </div>
+  </div>
+
+  <!-- 5 Pillars Review Grid -->
+  <div class="grid grid-cols-5 gap-2 my-1">
+    <!-- Pillar 1 -->
+    <div class="card" style="border-top:3px solid #00E5FF;">
+      <span class="badge" style="background:rgba(0,229,255,0.15); color:#00E5FF; margin-bottom:5px; display:inline-block;">01 · 扩展前沿</span>
+      <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">双引擎 Scaling</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.65); line-height:1.45;">
+        • 预训练数据墙瓶颈<br>
+        • 推理慢思考扩展<br>
+        • 端到端张量计算拓扑<br>
+        • Prefill 与 Decode 分立
+      </div>
+    </div>
+
+    <!-- Pillar 2 -->
+    <div class="card" style="border-top:3px solid #38BDF8;">
+      <span class="badge" style="background:rgba(56,189,248,0.15); color:#38BDF8; margin-bottom:5px; display:inline-block;">02 · 推理机理</span>
+      <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">核心计算齿轮</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.65); line-height:1.45;">
+        • BPE 分词与多字节陷阱<br>
+        • RoPE 相对复数旋转<br>
+        • GQA 分组注意力降维<br>
+        • KV Cache 显存膨胀公式
+      </div>
+    </div>
+
+    <!-- Pillar 3 -->
+    <div class="card" style="border-top:3px solid #FF6B35;">
+      <span class="badge" style="background:rgba(255,107,53,0.15); color:#FF6B35; margin-bottom:5px; display:inline-block;">03 · 训练范式</span>
+      <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">四阶段与架构</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.65); line-height:1.45;">
+        • 预训练 ➔ SFT ➔ DPO<br>
+        • RLVR 可验证真理驱动<br>
+        • MoE 稀疏门控路由<br>
+        • Native Omni 全模态
+      </div>
+    </div>
+
+    <!-- Pillar 4 -->
+    <div class="card" style="border-top:3px solid #22C55E;">
+      <span class="badge" style="background:rgba(34,197,94,0.15); color:#22C55E; margin-bottom:5px; display:inline-block;">04 · 算力底座</span>
+      <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">量化与显存调度</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.65); line-height:1.45;">
+        • Safetensors vs GGUF<br>
+        • AWQ INT4 激活感知量化<br>
+        • 显存速算黄金模型<br>
+        • PagedAttention 虚拟分页
+      </div>
+    </div>
+
+    <!-- Pillar 5 -->
+    <div class="card" style="border-top:3px solid #A855F7;">
+      <span class="badge" style="background:rgba(168,85,247,0.15); color:#A855F7; margin-bottom:5px; display:inline-block;">05 · 架构反哺</span>
+      <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">物理边界与选型</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.65); line-height:1.45;">
+        • 四大物理客观边界<br>
+        • Token/GQA 反哺 RAG/Agent<br>
+        • 快慢思考路由降本 80%<br>
+        • 三大路线科学决策树
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom: Vision & Next Step Transition -->
+  <div class="flex gap-3">
+    <!-- Left: Architectural Vision -->
+    <div style="flex:1.1; background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.22); border-radius:4px; padding:12px 16px;">
+      <div class="flex items-center gap-2 mb-2">
+        <i class="fas fa-rocket" style="color:#00E5FF; font-size:14px;"></i>
+        <span style="font-size:13px; font-weight:700; color:#00E5FF;">软件架构师的新格局：做驾驭底层算力的系统总指挥</span>
+      </div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.8); line-height:1.55;">
+        AI 时代最稀缺的，是<strong>既深刻洞察大模型微观矩阵计算、显存带宽墙与物理边界，又具备深厚现代软件工程底蕴</strong>，能够用严密系统驯服不确定大模型的复合型架构领军人才！
+      </div>
+    </div>
+
+    <!-- Right: Next Step Smooth Transition -->
+    <div style="flex:0.9; background:rgba(255,107,53,0.06); border:1.5px solid rgba(255,107,53,0.35); border-radius:4px; padding:12px 16px; display:flex; flex-direction:column; justify-content:center;">
+      <div class="flex items-center gap-2 mb-1.5">
+        <i class="fas fa-compass" style="color:#FF6B35; font-size:14px;"></i>
+        <span style="font-size:13px; font-weight:700; color:#FF6B35;">后续实战进阶路线</span>
+      </div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.8); line-height:1.5;">
+        • <strong style="color:#E0E7FF;">标准开发主线：</strong>直接进入<strong>《第 02 课：AI辅助编程入门》</strong>，实操现代化 Coding 工具链<br>
+        • <strong style="color:#E0E7FF;">团队架构进阶：</strong>并轨选修<strong>《02B. AI辅助编程进阶》</strong>，落地企业工程规范与 Harness 评测护栏
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

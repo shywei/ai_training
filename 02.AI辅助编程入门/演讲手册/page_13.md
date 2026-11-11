@@ -1,32 +1,21 @@
-# Context Engineering — Agent真正看到的世界
-
 ## Slide Objective
-从宏观视角总结上下文工程，彻底转变学员“只关注提示词”的旧观念，树立“管理好全部上下文才能驾驭 Agent”的核心认知。
+手把手解剖一个生产级 Java SKILL.md 文件，掌握 YAML 元数据、触发条件、执行 SOP 与避坑清单的标准结构。
 
 ## Suggested Presentation
-我们把前面讲的所有东西拼在一张图上。
-大家看，从上到下，一共 8 层信息，这就是 Agent 真正看到的“世界”。
-很多开发者在用 AI 编程时，眼睛只盯着第 6 层——“用户 Prompt”，也就是你打进去的那句话。你以为你是在跟它聊天，但其实系统在背后偷偷给它塞了另外 7 层信息。
-这就是为什么我们要提出 Context Engineering（上下文工程）这个概念。
-Prompt 只是冰山一角。决定 Agent 输出质量的，80% 取决于前 5 层它能看到多少规范和项目信息，只有 20% 取决于你那句话怎么问。
-网页对话只能看到最下面两层，而 Agent 编程能看到全部 8 层，这就是它们能力差距的根本来源。
-所以，各位，大家未来的工作不是每天去抠那一句提示词怎么写，而是要把 AGENTS.md、Rules 和 Skills 写好。只要这几个文件写好了，你哪怕只对 Agent 说一句“修一下这个 bug”，它也能干得非常漂亮。
+请看第 13 页：支柱 ④ 实战 · 手把手剖析一个企业级 Java SKILL.md。
+大家看屏幕上这段标准 YAML + Markdown 代码，一个标准的技能文件必须具备三大解剖学结构：
+1. **头部 YAML Frontmatter**：
+   - `name: java-concurrency-audit`：技能唯一命名；
+   - `description`：极其关键！这是 Agent 判断“何时该加载我”的唯一索引。必须写明适用场景（如并发编程、ThreadLocal 泄漏排查、锁升级）；
+2. **Standard Operating Procedure（标准化执行 SOP）**：
+   - 规定 Agent 必须按步推进：第一步，扫描代码中的 `synchronized`、`ReentrantLock` 与线程池配置；第二步，检查是否在异步任务中使用了 `RequestContextHolder`；第三步，运行并发压测单测；
+3. **Common Pitfalls（避坑红线指南）**：
+   - 明文列出高频暗坑，比如“严禁使用 `Executors.newFixedThreadPool`，必须手写 `ThreadPoolExecutor` 并指定有界阻塞队列”。
+有了这样一份 Skill，即使是一个普通的实习生或新加入团队的 AI Agent，也能瞬间拥有十年资深架构师的并发审查功底！
 
-## Key Emphasis
-重点对比“Prompt 只是冰山一角”，强调构建 Context 才是真正的核心工作。
-说明编写配置文件（AGENTS.md、Rules 等）比斟酌对话用词更有价值。
-
-## Optional Extension
-如果有学员担心写这 8 层配置太繁琐，可以提醒：这些配置文件是“一次编写，整个项目复用”的，收益远大于每次聊天时反复交代背景。
-
-## Classroom Interaction
-(无强交互，留出时间让学员消化这张全景图)
-
-## Take Away
-Prompt 优化你的一句话，而 Context 优化 Agent 看到的整个世界；写好配置文件比写好聊天指令重要 10 倍。
-
-## Why This Slide Matters
-这是前置理论的集大成页，彻底完成学员从“聊天驱动”到“系统配置驱动”的思想转变。
+## Key Q&A / Clarifications
+**Q：如何让团队共享这套 Skills 资产？**
+A：将通用 Skills 提交到团队的代码规范仓库，或者放在项目根目录的 `.skills/` 目录下，随 Git 仓库全团队统一分发生效。
 
 ## Transition
-明白了 Agent 看到的信息有多庞大之后，我们还要搞清楚一个极易混淆的概念：Agent 和大模型（LLM）到底是不是同一个东西？
+当 Agent 需要访问外部的企业内部系统（如 Jira、数据库、内部 Wiki）时，我们该如何连接？看支柱五：MCP 与 CLI。

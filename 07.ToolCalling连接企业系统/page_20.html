@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>数据分层</title>
+<title>记忆系统设计</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
@@ -9,44 +9,51 @@
 </style></head><body>
 <div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
 <div class="mb-2 sn">CHAPTER 06</div>
-<h1 class="mb-2">数据分层 — 第六课 vs 第七课</h1>
+<h1 class="mb-2">记忆系统设计 — 系统行为 vs LLM 行为</h1>
 <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
 <div style="flex:1;display:flex;gap:20px;">
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:10px;">第六课：Agent 直连数据库</div>
-    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
-      <div style="padding:8px 12px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:12px;color:rgba(224,231,255,0.6);">商品知识 → RetrievalService → pgvector</div>
-      <div style="padding:8px 12px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:12px;color:rgba(224,231,255,0.6);">用户记忆 → UserMemoryMapper → pgvector</div>
-      <div style="padding:8px 12px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:12px;color:rgba(224,231,255,0.6);">用户画像 → UserProfileMapper → MySQL</div>
-      <div style="padding:8px 12px;background:rgba(255,107,53,0.04);border-left:2px solid #FF6B35;font-size:12px;color:rgba(224,231,255,0.4);">价格库存 → ❌ 第六课没有</div>
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:12px;">记忆保存 — 系统行为</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+      <div style="padding:12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+        <div style="font-size:13px;color:#FF6B35;font-weight:600;">自动沉淀</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.55);">对话满 20 条触发（提取前 10 条、保留后 10 条）<br>MemoryManager → LLM 提取摘要 → MCP → pgvector</div>
+      </div>
+      <div style="padding:12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;">
+        <div style="font-size:13px;color:#FF6B35;font-weight:600;">清空会话</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.55);">用户点击清空时触发<br>提取剩余消息 → MCP → pgvector</div>
+      </div>
     </div>
     <div style="padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px;">
-      <div style="font-size:11px;color:rgba(224,231,255,0.4);">
-        问题：Agent 和数据库耦合<br>
-        换数据库 → 代码要改<br>
-        其他 Agent 不能复用
+      <div style="font-size:12px;color:rgba(224,231,255,0.5);text-align:center;">
+        save_memory 不暴露给 LLM，由系统内部控制时机
       </div>
     </div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#22C55E;font-weight:700;margin-bottom:10px;">第七课：全部通过 MCP</div>
-    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
-      <div style="padding:8px 12px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:12px;color:rgba(224,231,255,0.6);">商品知识 → MCP Tool → knowledge-server → pgvector</div>
-      <div style="padding:8px 12px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:12px;color:rgba(224,231,255,0.6);">用户记忆 → MCP Tool → knowledge-server → pgvector</div>
-      <div style="padding:8px 12px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:12px;color:rgba(224,231,255,0.6);">用户画像 → MCP Resource → knowledge-server → MySQL</div>
-      <div style="padding:8px 12px;background:rgba(34,197,94,0.04);border-left:2px solid #22C55E;font-size:12px;color:rgba(224,231,255,0.6);">价格库存 → MCP Tool → product-server → MySQL</div>
-    </div>
-    <div style="padding:10px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);border-radius:4px;">
-      <div style="font-size:12px;color:#22C55E;font-weight:600;">agent-runtime 不直接访问任何数据库</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.4);margin-top:4px;">解耦 · 复用 · 标准化 · 独立部署</div>
-    </div>
-    <div style="margin-top:10px;padding:10px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;">
-      <div style="font-size:11px;color:#FF6B35;font-weight:600;">RAG 检索优化（Demo 未覆盖）</div>
-      <div style="font-size:10px;color:rgba(224,231,255,0.45);margin-top:4px;line-height:1.6;">
-        <strong>Metadata Filtering</strong>：metadata 字段存结构化标签（category/brand/price_range），查询时先过滤再向量搜索<br>
-        <strong>Query Rewrite</strong>：LLM 先抽取意图生成结构化 query，再做检索（不直接用用户原文）
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:12px;">记忆使用 — LLM 行为</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+      <div style="padding:12px;background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:4px;">
+        <div style="font-size:13px;color:#00E5FF;font-weight:600;">context 注入</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.55);">每次对话自动从 pgvector 语义检索相关记忆<br>注入到 context 的「相关记忆」段</div>
+      </div>
+      <div style="padding:12px;background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:4px;">
+        <div style="font-size:13px;color:#00E5FF;font-weight:600;">系统提示词引导</div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.55);">「参考信息」中的用户记忆，记录了用户之前的需求和决策<br>推荐商品时，结合记忆了解用户的真实需求</div>
       </div>
     </div>
+    <div style="padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px;">
+      <div style="font-size:12px;color:rgba(224,231,255,0.5);text-align:center;">
+        LLM 只负责「用」记忆，不负责「存」记忆
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:12px;padding:8px 14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.25);border-radius:5px;">
+  <div style="font-size:11.5px;color:rgba(224,231,255,0.85);line-height:1.45;">
+    <strong style="color:#FF6B35;">⚖️ 工具结果可信度治理：</strong>
+    工具调用结果作为带数据源、时间戳和执行上下文的<strong>事实证据记录</strong>；严禁将外部 API 返回结果天然视作不可篡改事实直接写入长期画像，必须经过业务校验、有效性判断与第 05 课记忆生命周期准入治理后方可沉淀。
   </div>
 </div>
 </div></body></html>

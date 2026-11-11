@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>实战演练（一）：基于 OpenCode 配置分层 `AGENTS.md` 与防作弊 Hook</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:4px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; line-height:1.25; margin-bottom:8px; }
+.slide-accent-line { width:50px; height:3px; background:#FF6B35; margin-bottom:14px; }
+.slide-card { padding:12px 15px; margin-bottom:9px; display:flex; align-items:flex-start; gap:12px; border-radius:6px; }
+.slide-icon { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.slide-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
+.slide-desc { font-size:12px; color:rgba(224,231,255,0.65); line-height:1.45; }
+.code-box { background:#060A12; border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:10px 12px; font-family:Consolas,monospace; font-size:11.5px; line-height:1.5; color:#E0E7FF; }
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <div class="slide-section-num">CHAPTER 06 · 基于 OPENCODE 的企业靶场实战演练</div>
+  <h1>实战演练（一）：基于 OpenCode 配置分层 `AGENTS.md` 与防作弊 Hook</h1>
+  <div class="slide-accent-line"></div>
+<div class="flex items-center justify-between mb-2">
+    <div style="font-size:13px; color:#00E5FF; font-weight:700;"><i class="fas fa-terminal mr-2"></i>独立企业级 Java 17 + Spring Boot 3 演练靶场</div>
+    <span style="font-size:12px; color:#22C55E; font-weight:700;"><i class="fas fa-file-code mr-1"></i>对应实操指南：《Demo演示步骤.md》演示 1</span>
+  </div>
+
+  <div class="flex gap-4" style="height:510px;">
+    <div style="flex:1.05; display:flex; flex-direction:column;">
+      <div class="flex items-center justify-between mb-2">
+        <span style="font-size:14px; font-weight:700; color:#00E5FF;"><i class="fas fa-file-shield mr-1"></i>工件 1：工程根目录 `/AGENTS.md`（精简高信噪比模板）</span>
+        <span style="font-size:11px; background:rgba(0,229,255,0.15); color:#00E5FF; padding:2px 6px; border-radius:3px;">可直接落地</span>
+      </div>
+      <div class="code-box flex-1" style="font-size:11px; border-color:rgba(0,229,255,0.3);">
+        <div style="color:#00E5FF; font-weight:700;"># 企业全局宪法 (AGENTS.md · OpenCode 原生支持)</div>
+        <div style="color:#22C55E; margin-top:3px;">## 1. 快速编译与秒级单测命令</div>
+        <div>- 编译检查: `mvn test-compile -T 1C -q`</div>
+        <div>- 单个测试类: `mvn test -Dtest=PiiMaskUtilsTest`</div>
+        <div>- 单个测试方法: `mvn test -Dtest=ClassName#methodName`</div>
+
+        <div style="color:#22C55E; margin-top:5px;">## 2. 模块职责与依赖方向</div>
+        <div>- `core-service`: 通用业务逻辑与工具类</div>
+        <div>- `order-service`: 订单交易处理与库存预占</div>
+        <div>- `test-suite`: 业务回归用例与黄金断言集</div>
+
+        <div style="color:#22C55E; margin-top:5px;">## 3. 企业研发四大铁律 (Red Lines)</div>
+        <div>1. <strong>[Spec 先行]</strong> 跨方法特性必须先在 `.specs/&lt;feat&gt;/` 生成 EARS requirements 与 design，人工确认后再编码。</div>
+        <div>2. <strong>[防作弊红线]</strong> 编码阶段绝对禁止修改、删除或 @Disabled 任何 `src/test/` 下已锁定测试断言！</div>
+        <div>3. <strong>[异常与安全]</strong> 严禁空 catch 吞异常或返回 TODO 假桩；日志禁止打印明文手机号与密钥。</div>
+        <div>4. <strong>[依赖锁死]</strong> 未经人工审批禁止修改 pom.xml 引入外部包。</div>
+      </div>
+    </div>
+
+    <div style="flex:0.95; display:flex; flex-direction:column;">
+      <div class="flex items-center justify-between mb-2">
+        <span style="font-size:14px; font-weight:700; color:#FF6B35;"><i class="fas fa-lock mr-1"></i>工件 2：物理防篡改 Hook (`.opencode/hooks/protect-tests.sh`)</span>
+        <span style="font-size:11px; background:rgba(255,107,53,0.15); color:#FF6B35; padding:2px 6px; border-radius:3px;">PreToolUse 拦截</span>
+      </div>
+      <div class="code-box flex-1" style="font-size:11px; border-color:rgba(255,107,53,0.3);">
+        <div style="color:#FF6B35; font-weight:700;">#!/usr/bin/env bash</div>
+        <div style="color:#94A3B8;"># 监听 Edit / Write 工具调用</div>
+        <div>TOOL_NAME="$1"; FILE_PATH="$2"</div>
+        <div>if [[ "$TOOL_NAME" =~ ^(Edit|Write)$ ]]; then</div>
+        <div>&nbsp;&nbsp;<span style="color:#FCA5A5;"># 拦截 1: 锁死测试目录，防止篡改断言</span></div>
+        <div>&nbsp;&nbsp;if [[ "$LOCK_TESTS" == "1" &amp;&amp; "$FILE_PATH" =~ src/test/.*Test\\.java ]]; then</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;echo "🚨 [HOOK BLOCKED] 当前处于实现阶段，严禁篡改测试断言！" &gt;&amp;2</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;exit 2</div>
+        <div>&nbsp;&nbsp;fi</div>
+        <div>&nbsp;&nbsp;<span style="color:#FCA5A5;"># 拦截 2: 锁死 pom.xml 杜绝包幻觉</span></div>
+        <div>&nbsp;&nbsp;if [[ "$FILE_PATH" =~ pom\\.xml$ ]]; then</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;echo "🚨 [HOOK BLOCKED] 严禁私自修改 pom.xml 引入外部依赖！" &gt;&amp;2</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;exit 2</div>
+        <div>&nbsp;&nbsp;fi</div>
+        <div>fi</div>
+        <div style="color:#86EFAC; margin-top:4px;">exit 0 # 校验通过放行</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

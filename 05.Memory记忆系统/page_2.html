@@ -6,10 +6,10 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.toc{display:flex;align-items:center;padding:11px 0;border-bottom:1px solid rgba(0,229,255,0.08)}
-.toc-num{font-size:22px;font-weight:700;color:#00E5FF;min-width:40px}
+.toc{display:flex;align-items:center;padding:9px 0;border-bottom:1px solid rgba(0,229,255,0.08)}
+.toc-num{font-size:20px;font-weight:700;color:#00E5FF;min-width:38px}
 .toc-title{font-size:14px;color:#E0E7FF;font-weight:600}
-.toc-desc{font-size:10px;color:rgba(224,231,255,0.4);margin-top:1px}
+.toc-desc{font-size:11px;color:rgba(224,231,255,0.5);margin-top:2px}
 </style></head><body>
 <div class="s flex">
   <div style="width:280px;padding:80px 40px;display:flex;flex-direction:column;justify-content:center;">
@@ -18,14 +18,14 @@
     <p style="font-size:12px;color:rgba(224,231,255,0.4);margin-top:14px;line-height:1.8;">从失忆到记忆<br>构建企业级记忆系统</p>
   </div>
   <div class="flex flex-col justify-center flex-1" style="padding:20px 60px 20px 20px;">
-    <div class="toc"><div class="toc-num">01</div><div><div class="toc-title">大模型的失忆症</div><div class="toc-desc">为什么 LLM 不记得历史</div></div></div>
-    <div class="toc"><div class="toc-num">02</div><div><div class="toc-title">Memory Architecture</div><div class="toc-desc">Session / Long-term / Knowledge 三层架构</div></div></div>
-    <div class="toc"><div class="toc-num">03</div><div><div class="toc-title">Session Memory</div><div class="toc-desc">方案全景 + Demo 实现</div></div></div>
-    <div class="toc"><div class="toc-num">04</div><div><div class="toc-title">上下文压缩</div><div class="toc-desc">策略对比 + Demo 实现</div></div></div>
-    <div class="toc"><div class="toc-num">05</div><div><div class="toc-title">用户画像</div><div class="toc-desc">设计模式 + Demo 实现</div></div></div>
-    <div class="toc"><div class="toc-num">06</div><div><div class="toc-title">context 注入演进</div><div class="toc-desc">v1.0 → v2.0 → v3.0 → v4.0</div></div></div>
-    <div class="toc"><div class="toc-num">07</div><div><div class="toc-title">记忆安全与隐私</div><div class="toc-desc">数据保留、PII、合规</div></div></div>
-    <div class="toc"><div class="toc-num">08</div><div><div class="toc-title">存储选型 + 生产环境</div><div class="toc-desc">Redis / MySQL / Vector DB + 多用户隔离</div></div></div>
-    <div class="toc"><div class="toc-num">09</div><div><div class="toc-title">Demo 架构 + 总结</div><div class="toc-desc">项目结构 + 能力地图</div></div></div>
+    <div class="toc"><div class="toc-num">01</div><div><div class="toc-title">大模型的失忆症 <span style="font-size:11px;color:#00E5FF;font-weight:400;">(P3)</span></div><div class="toc-desc">为什么 LLM 不记得历史 · 无状态 HTTP POST 与服务端记忆</div></div></div>
+    <div class="toc"><div class="toc-num">02</div><div><div class="toc-title">六类记忆分类与存储映射矩阵 <span style="font-size:11px;color:#00E5FF;font-weight:400;">(P4)</span></div><div class="toc-desc">会话历史 / 工作记忆 / 短期 / 长期 / 画像 / 情景记忆 六维全景</div></div></div>
+    <div class="toc"><div class="toc-num">03</div><div><div class="toc-title">Session Memory <span style="font-size:11px;color:#00E5FF;font-weight:400;">(P5–P6)</span></div><div class="toc-desc">方案全景 + Redis 滑动窗口 Demo 实现</div></div></div>
+    <div class="toc"><div class="toc-num">04</div><div><div class="toc-title">上下文压缩 <span style="font-size:11px;color:#00E5FF;font-weight:400;">(P7–P8)</span></div><div class="toc-desc">策略对比 + Observation Masking + SummaryPipeline 累积摘要 Demo 实现</div></div></div>
+    <div class="toc"><div class="toc-num">05</div><div><div class="toc-title">用户画像 <span style="font-size:11px;color:#00E5FF;font-weight:400;">(P9–P10)</span></div><div class="toc-desc">设计模式 + UserProfileExtractor 异步抽取 Demo 实现</div></div></div>
+    <div class="toc"><div class="toc-num">06</div><div><div class="toc-title">context 注入演进 <span style="font-size:11px;color:#00E5FF;font-weight:400;">(P11)</span></div><div class="toc-desc">v1.0 → v2.0 → v3.0 → v4.0</div></div></div>
+    <div class="toc"><div class="toc-num">07</div><div><div class="toc-title">记忆安全与隐私 <span style="font-size:11px;color:#00E5FF;font-weight:400;">(P12)</span></div><div class="toc-desc">数据保留、PII 脱敏、GDPR / 个保法合规</div></div></div>
+    <div class="toc"><div class="toc-num">08</div><div><div class="toc-title">存储选型 + 分层演进 + 全生命周期治理 <span style="font-size:11px;color:#00E5FF;font-weight:400;">(P13–P16)</span></div><div class="toc-desc">存储选型 + 结论/过程双库演进 + 写入/冲突/遗忘/并发治理 + 五项差距</div></div></div>
+    <div class="toc"><div class="toc-num">09</div><div><div class="toc-title">Demo 架构 + 业界视野 + 总结 <span style="font-size:11px;color:#00E5FF;font-weight:400;">(P17–P19)</span></div><div class="toc-desc">v1.2.1 组件与日志 + 业界记忆系统一览（Letta/Mem0/Zep）+ 第五课总结</div></div></div>
   </div>
 </div></body></html>

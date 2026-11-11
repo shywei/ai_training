@@ -1,46 +1,137 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>能力边界与组件混淆</title>
+<title>企业级非功能底座：可观测性（Tracing）、多维评估（Evals）与安全防线</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
-.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
-.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
-.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
-.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden;padding:24px 52px;display:flex;flex-direction:column;justify-content:space-between}
+.s h1{font-size:27px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px;font-weight:700}
+.pillar-col{padding:12px 14px;border-radius:6px;display:flex;flex-direction:column;justify-content:space-between}
+.sub-box{padding:6px 9px;background:#070B14;border-radius:4px;margin-bottom:5px;font-size:11px;line-height:1.45}
+.eval-grid-item{background:rgba(0,0,0,0.35);padding:5px 8px;border-radius:3px;font-size:10.5px;line-height:1.4}
 </style></head><body>
-<div class="s" style="padding:36px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 08</div><h1 class="mb-2">能力边界与组件混淆</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+<div class="s">
+  <!-- Header -->
+  <div>
+    <div class="mb-1 sn">CHAPTER 05 · 2026 技术生态与非功能底座</div>
+    <h1 class="mb-1">生产级非功能底座：可观测性（Tracing）、六维评估（Evals）与安全防线</h1>
+    <div style="width:56px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+    <div style="font-size:12px;color:rgba(224,231,255,0.65);line-height:1.45;">
+      跑通 Demo 只完成 20%；在企业真实生产中，必须建立<strong>全链路 Tracing、六维自动化评估体系与纵深安全防护</strong>。
+    </div>
+  </div>
 
-<div style="flex:1;display:flex;flex-direction:column;">
-<div style="margin-bottom:10px;">
-    <div style="font-size:13px;color:rgba(224,231,255,0.4);margin-top:6px;">建立"组件级认知"，分清每个能力的边界</div>
+  <!-- 3 Pillars Grid -->
+  <div class="grid grid-cols-12 gap-3 my-1" style="flex:1; min-height:0;">
+    <!-- Column 1: Tracing (width: 3.5 cols) -->
+    <div class="pillar-col col-span-3" style="background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.22); border-top:3px solid #00E5FF;">
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <span style="font-size:13.5px; font-weight:700; color:#00E5FF;"><i class="fas fa-route mr-1"></i>① 全链路 Tracing</span>
+          <span style="font-size:11px; padding:1px 5px; background:rgba(0,229,255,0.15); color:#00E5FF; border-radius:3px;">OTel 规范</span>
+        </div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.65); margin-bottom:6px;">
+          当用户投诉“响应慢且答非所问”，秒级定位根因：
+        </div>
+
+        <div class="sub-box" style="border-left:3px solid #00E5FF;">
+          <div style="color:#00E5FF; font-weight:700;">• 树状调用轨迹（Trace ➔ Span）</div>
+          <div style="color:rgba(224,231,255,0.72);">一次请求分配一个全局 TraceId，每个步骤（Memory、RAG、LLM、MCP）作为子 Span。</div>
+        </div>
+        <div class="sub-box" style="border-left:3px solid #00E5FF;">
+          <div style="color:#00E5FF; font-weight:700;">• 关键指标采集</div>
+          <div style="color:rgba(224,231,255,0.72);">记录单步耗时、Token 消耗（含缓存命中率）、完整 Prompt 快照与工具原始返回值。</div>
+        </div>
+        <div class="sub-box" style="border-left:3px solid #00E5FF; margin-bottom:0;">
+          <div style="color:#00E5FF; font-weight:700;">• 秒级故障定界</div>
+          <div style="color:rgba(224,231,255,0.72);">一眼分清是 RAG 召回差、外部 MCP 接口超时还是模型选错工具。</div>
+        </div>
+      </div>
+      <div style="font-size:11px; color:#00E5FF; padding-top:4px; border-top:1px dashed rgba(0,229,255,0.25);">
+        <b>实践：</b>TraceService + 调用链时间轴
+      </div>
+    </div>
+
+    <!-- Column 2: Enhanced 6-Dimensional Agent Evals (width: 6 cols) -->
+    <div class="pillar-col col-span-6" style="background:rgba(168,85,247,0.03); border:1px solid rgba(168,85,247,0.25); border-top:3px solid #A855F7;">
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <span style="font-size:13.5px; font-weight:700; color:#A855F7;"><i class="fas fa-check-double mr-1"></i>② 六维自动化评估体系（Agent Evals）</span>
+          <span style="font-size:11px; padding:1px 5px; background:rgba(168,85,247,0.15); color:#A855F7; border-radius:3px;">拒绝单凭直觉</span>
+        </div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.65); margin-bottom:6px;">
+          评估绝不仅是“回答文字好不好看”！必须覆盖智能体运行全生命周期的六大正交维度：
+        </div>
+
+        <!-- 6-Grid Dimensions -->
+        <div class="grid grid-cols-2 gap-2">
+          <div class="eval-grid-item" style="border-left:2.5px solid #A855F7;">
+            <strong style="color:#A855F7;">1. 模型输出质量 (Output Quality)</strong><br>
+            <span style="color:rgba(224,231,255,0.7);">事实忠实度（Faithfulness）、答案相关度、幻觉发生率与指令格式遵循度。</span>
+          </div>
+          <div class="eval-grid-item" style="border-left:2.5px solid #00E5FF;">
+            <strong style="color:#00E5FF;">2. 工具调用准确率 (Tool Accuracy)</strong><br>
+            <span style="color:rgba(224,231,255,0.7);">工具名称选择正确率、参数 Schema 符合率、参数完整提取率与无多余无用调用。</span>
+          </div>
+          <div class="eval-grid-item" style="border-left:2.5px solid #22C55E;">
+            <strong style="color:#22C55E;">3. 任务最终完成率 (Task Success)</strong><br>
+            <span style="color:rgba(224,231,255,0.7);">端到端业务目标达成率（Pass@k）、交付工件（Artifact/订单/代码）正确可用性。</span>
+          </div>
+          <div class="eval-grid-item" style="border-left:2.5px solid #F59E0B;">
+            <strong style="color:#F59E0B;">4. Workflow 执行可靠性 (Workflow Reliability)</strong><br>
+            <span style="color:rgba(224,231,255,0.7);">状态机合法迁移率、重试与异常自愈成功率、规避无意义死循环步骤效率。</span>
+          </div>
+          <div class="eval-grid-item" style="border-left:2.5px solid #FF6B35;">
+            <strong style="color:#FF6B35;">5. 安全与权限违规率 (Safety &amp; Policy)</strong><br>
+            <span style="color:rgba(224,231,255,0.7);">越权工具调用发生率、提示词注入（Prompt Injection）拦截率、敏感 PII 泄露率。</span>
+          </div>
+          <div class="eval-grid-item" style="border-left:2.5px solid #38BDF8;">
+            <strong style="color:#38BDF8;">6. 成本与响应延迟 (Cost &amp; Latency)</strong><br>
+            <span style="color:rgba(224,231,255,0.7);">首字延迟（TTFT）、端到端 P95 响应耗时、平均任务 Token 吞吐开销与缓存命中率。</span>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:11px; color:#A855F7; padding-top:4px; border-top:1px dashed rgba(168,85,247,0.25);">
+        <b>工程铁律：</b>建立黄金评测基准集（Golden Benchmark），改 Prompt 必须全量回归！
+      </div>
+    </div>
+
+    <!-- Column 3: Security (width: 3 cols) -->
+    <div class="pillar-col col-span-3" style="background:rgba(255,107,53,0.03); border:1px solid rgba(255,107,53,0.28); border-top:3px solid #FF6B35;">
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <span style="font-size:13.5px; font-weight:700; color:#FF6B35;"><i class="fas fa-shield-alt mr-1"></i>③ 纵深安全防线</span>
+          <span style="font-size:11px; padding:1px 5px; background:rgba(255,107,53,0.15); color:#FF6B35; border-radius:3px;">防御提权</span>
+        </div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.65); margin-bottom:6px;">
+          Agent 拥有 API 调用权，一旦被利用危害极大：
+        </div>
+
+        <div class="sub-box" style="border-left:3px solid #FF6B35;">
+          <div style="color:#FF6B35; font-weight:700;">1. 防御间接注入 (Indirect Injection)</div>
+          <div style="color:rgba(224,231,255,0.72);">不仅用户输入不可信，外部检索网页也可能含带毒指令。用 XML 标签严格物理隔离数据区。</div>
+        </div>
+        <div class="sub-box" style="border-left:3px solid #FF6B35;">
+          <div style="color:#FF6B35; font-weight:700;">2. 敏感数据双向脱敏</div>
+          <div style="color:rgba(224,231,255,0.72);">发往大模型前，敏感手机号、身份证由 GuardrailsService 自动掩码，返回前再次反脱敏。</div>
+        </div>
+        <div class="sub-box" style="border-left:3px solid #22C55E; margin-bottom:0;">
+          <div style="color:#22C55E; font-weight:700;">3. 最小权限 + 人工审批 (HITL)</div>
+          <div style="color:rgba(224,231,255,0.72);">高危接口调用必须暂停并弹窗触发人工审批确认。</div>
+        </div>
+      </div>
+      <div style="font-size:11px; color:#FF6B35; padding-top:4px; border-top:1px dashed rgba(255,107,53,0.25);">
+        <b>防线：</b>输入过滤 + 输出审计 + 沙箱兜底
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Banner -->
+  <div style="padding:6px 14px; background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.2); border-radius:4px; font-size:11.5px; color:#E0E7FF; line-height:1.4;">
+    <strong style="color:#00E5FF;"><i class="fas fa-compass mr-1.5"></i>架构师非功能军规：</strong>
+    传统软件测接口可用性，Agent 系统测<strong>六维综合得分</strong>。没有自动化评测集和全链路可观测性，任何对 Prompt 和 Workflow 的重构都是蒙眼狂奔！
+  </div>
 </div>
-<div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:16px;flex:1;align-content:stretch;">
-  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❶ Memory、RAG、Knowledge有什么区别？</div>
-    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">Memory记"人"（用户偏好、对话历史），Knowledge记"事"（企业文档、产品信息）。RAG是Knowledge的实现方式。Memory存Redis，Knowledge存VectorDB。</div>
-  </div>
-  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❷ RAG一定需要向量数据库吗？</div>
-    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">不一定。向量数据库是最优解，但小规模场景可以用关键词检索、全文搜索。向量数据库解决的是"语义相似"问题，关键词检索解决的是"精确匹配"问题。</div>
-  </div>
-  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❸ Tool、MCP、Workflow分别解决什么问题？</div>
-    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">Tool = 单个动作（调API）。MCP = 工具协议标准（统一接口）。Workflow = 流程编排（多步骤）。三者是不同层次，不是同一层次的不同选择。</div>
-  </div>
-  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❹ Workflow是不是等于Prompt写复杂一点？</div>
-    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">不是。Prompt是单次LLM调用的指令。Workflow是多次调用的编排——有状态、有条件、有循环、有人工审批。Prompt解决"做什么"，Workflow解决"怎么做流程"。</div>
-  </div>
-  <div style="flex:1;min-width:0;padding:18px 20px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:18px;color:#FF6B35;font-weight:700;margin-bottom:8px;">❺ Multi-Agent和Workflow有什么本质区别？</div>
-    <div style="font-size:14px;color:rgba(224,231,255,0.6);line-height:1.7;">Workflow管"怎么做"（步骤编排），Multi-Agent管"谁来做"（角色分工）。Workflow是单Agent内部的流程控制，Multi-Agent是多个Agent之间的协作。</div>
-  </div>
-</div>
-</div>
-</div></body></html>
+</body></html>

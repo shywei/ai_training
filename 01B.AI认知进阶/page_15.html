@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>概念解耦：Safetensors（序列化） vs GGUF（生态格式） vs 量化维度</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.s { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:26px 65px; display:flex; flex-direction:column; justify-content:space-between; }
+.s h1 { font-size:28px !important; color:#E0E7FF; font-weight:700; }
+.card { background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.15); border-radius:4px; padding:12px 16px; }
+.badge { font-size:11px; font-weight:700; padding:1px 6px; border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="s">
+  <!-- Header -->
+  <div>
+    <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; margin-bottom:4px;">CHAPTER 04 · 模型文件、量化与算力底座</div>
+    <h1 class="mb-1">概念彻底解耦：序列化格式（Safetensors）vs 推理生态格式（GGUF）</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:10px;"></div>
+    <div style="font-size:12.5px; color:rgba(224,231,255,0.7); line-height:1.45;">
+      工业界常将文件格式、量化算法与位宽混为一谈。必须从系统工程四层正交维度彻底厘清概念边界：
+    </div>
+  </div>
+
+  <!-- Top: 4 Orthogonal Dimensions Grid -->
+  <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(0,229,255,0.22); border-radius:4px; padding:9px 14px;">
+    <div style="font-size:12px; font-weight:700; color:#00E5FF; margin-bottom:6px;">
+      <i class="fas fa-sitemap mr-1.5"></i>拒绝概念浆糊：大模型存储与计算的四大正交解耦维度
+    </div>
+    <div class="grid grid-cols-4 gap-2.5" style="font-size:11px; line-height:1.4;">
+      <div style="background:rgba(0,229,255,0.05); padding:6px 8px; border-radius:3px; border-left:3px solid #00E5FF;">
+        <strong style="color:#00E5FF;">维度 1 · 安全张量序列化格式</strong><br>
+        <span style="color:#E0E7FF; font-weight:600;">Safetensors (HuggingFace)</span><br>
+        <span style="color:rgba(224,231,255,0.6);">解决张量二进制存储、纯数据安全校验（杜绝 pickle 任意代码注入）与零拷贝加载。</span>
+      </div>
+      <div style="background:rgba(34,197,94,0.05); padding:6px 8px; border-radius:3px; border-left:3px solid #22C55E;">
+        <strong style="color:#22C55E;">维度 2 · 推理生态模型文件格式</strong><br>
+        <span style="color:#E0E7FF; font-weight:600;">GGUF 与 GGML 计算库</span><br>
+        <span style="color:rgba(224,231,255,0.6);">GGUF 是生态文件格式（打包超参/词表/张量）；GGML 是底层纯 C/C++ 张量计算库。</span>
+      </div>
+      <div style="background:rgba(255,107,53,0.05); padding:6px 8px; border-radius:3px; border-left:3px solid #FF6B35;">
+        <strong style="color:#FF6B35;">维度 3 · 量化优化算法</strong><br>
+        <span style="color:#E0E7FF; font-weight:600;">AWQ / GPTQ / SmoothQuant</span><br>
+        <span style="color:rgba(224,231,255,0.6);">浮点压缩为整数时，保护重要权重通道，最小化模型精度折损。</span>
+      </div>
+      <div style="background:rgba(245,158,11,0.05); padding:6px 8px; border-radius:3px; border-left:3px solid #F59E0B;">
+        <strong style="color:#F59E0B;">维度 4 · 量化精度与位宽</strong><br>
+        <span style="color:#E0E7FF; font-weight:600;">BF16 / INT8 / INT4 / FP4</span><br>
+        <span style="color:rgba(224,231,255,0.6);">度量每个权重占用的物理比特数，直接决定显存占用与访存带宽瓶颈。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom: Safetensors vs GGUF Dual Comparison -->
+  <div class="grid grid-cols-2 gap-4 my-1">
+    <!-- Safetensors -->
+    <div class="card" style="border-top:3px solid #00E5FF;">
+      <div class="flex justify-between items-center mb-1.5">
+        <span class="badge" style="background:rgba(0,229,255,0.15); color:#00E5FF;">云端与集群标准</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Safetensors (HuggingFace)</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">纯粹张量二进制容器与零拷贝加载</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.5; margin-bottom:6px;">
+        • <strong>弃用 PyTorch <code>.bin</code> 历史死穴：</strong>传统 <code>pickle</code> 反序列化可执行任意黑客系统命令；Safetensors 彻底杜绝任意代码执行风险。<br>
+        • <strong>纯粹张量存储：</strong>文件头为一段只读 JSON 元数据（记录各张量名称、形状与偏移量），其后紧跟连续的原始张量二进制 Buffer。
+      </div>
+      <div style="background:rgba(0,229,255,0.06); padding:6px 10px; border-radius:3px; font-size:11px; color:#00E5FF; line-height:1.45;">
+        <i class="fas fa-server mr-1"></i><strong>生产定位：</strong>服务器与多卡 GPU 集群（vLLM、TensorRT-LLM、SGLang）首选，支持零拷贝（Zero-copy）多卡跨进程独立内存映射。
+      </div>
+    </div>
+
+    <!-- GGUF -->
+    <div class="card" style="border-top:3px solid #22C55E;">
+      <div class="flex justify-between items-center mb-1.5">
+        <span class="badge" style="background:rgba(34,197,94,0.15); color:#22C55E;">端侧与单机本地标准</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">GGUF 格式 + GGML 计算库</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">单文件自包含与跨设备混合卸载</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.5; margin-bottom:6px;">
+        • <strong>GGUF（模型文件格式）：</strong>单文件封装模型超参、分词器词表（150K Token）与已量化权重，专供 GGML 生态使用。<br>
+        • <strong>GGML（张量计算库）与 mmap：</strong>纯 C/C++ 可移植张量计算库；借助操作系统 <strong>mmap 内存映射</strong>，极速启动并支持 CPU/GPU 混合分层卸载。
+      </div>
+      <div style="background:rgba(34,197,94,0.06); padding:6px 10px; border-radius:3px; font-size:11px; color:#22C55E; line-height:1.45;">
+        <i class="fas fa-laptop mr-1"></i><strong>生产定位：</strong>Ollama / llama.cpp 标配生态，端侧 8GB 内存设备也能流畅运行量化模型。
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Clarification -->
+  <div style="padding:8px 14px; background:rgba(255,107,53,0.05); border:1px solid rgba(255,107,53,0.22); border-radius:4px; font-size:11px; color:#E0E7FF; line-height:1.45;">
+    <strong style="color:#FF6B35;"><i class="fas fa-exclamation-triangle mr-1"></i>架构师避坑辨析：</strong>
+    切勿在技术方案中写出“我们采用了 GGUF 量化算法”这种病句！<strong>GGUF 是生态文件包装格式，不是量化算法</strong>。实际工程中，你是在云端将 Safetensors 格式的 BF16 权重，通过 AWQ 算法量化为 INT4 精度，或者转换为 GGUF 文件在端侧 Ollama 运行。
+  </div>
+</div>
+</body>
+</html>

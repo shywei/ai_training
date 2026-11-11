@@ -1,84 +1,109 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>结构化输出</title>
+<title>多维模型路由矩阵 — 成本、延迟、能力、窗口与可用性</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
-.key{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)} .bad{color:#ff6b6b} .good{color:#67C23A}
-</style></head><body>
-<div class="s" style="padding:26px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 05</div>
-<h1 class="mb-2">结构化输出 — 为什么 LLM 必须返回 JSON？</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:14px;"></div>
+.s h1{font-size:30px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px}
+.mb-2{margin-bottom:6px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.45;color:rgba(224,231,255,0.75)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.35)} .fn{color:#E0E7FF}
+.card{padding:9px 12px;border-radius:5px}
+.dim{display:flex;align-items:flex-start;gap:8px;padding:7px 10px;border-radius:4px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12)}
+.dim .dt{font-size:12px;color:#00E5FF;font-weight:700;min-width:76px}
+.dim .dd{font-size:11px;color:rgba(224,231,255,0.65);line-height:1.45}
+</style></head>
+<body>
+<div class="s" style="padding:22px 50px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 04 · 治理核心</div>
+  <h1 class="mb-2">多维模型路由矩阵 — 成本、延迟、能力、窗口与可用性</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:10px;"></div>
 
-<div style="flex:1;display:flex;gap:18px;">
-  <!-- 左：问题 -->
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="padding:12px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;">
-      <div style="font-size:14px;color:#FF6B35;font-weight:700;">核心问题：LLM 的输出是给人看的，还是给代码用的？</div>
-      <div style="font-size:12px;color:rgba(224,231,255,0.5);margin-top:4px;">聊天场景 → 人能读就行<br>API 场景 → Java 代码需要结构化数据</div>
+  <div style="flex:1;display:flex;gap:18px;">
+    <!-- 左：五维路由矩阵 -->
+    <div style="flex:1.15;display:flex;flex-direction:column;justify-content:space-between;">
+      <div style="padding:8px 12px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;border-radius:3px;">
+        <div style="font-size:13.5px;color:#FF6B35;font-weight:700;">为什么不能只靠单一规则（如字数或成本）路由？</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.6);margin-top:2px;line-height:1.5;">
+          字数长不等于逻辑复杂，关键词匹配极易漏判；企业生产需综合考量性能、预算与 SLA 韧性，构建五维决策矩阵。
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div class="dim">
+          <div class="dt">💰 成本维度</div>
+          <div class="dd"><strong style="color:#E0E7FF;">Token 单价梯度与预算：</strong>大模型与小模型价差 10~50x；优先命中 Prompt Caching，对廉价高频任务（分类/实体抽取）坚决走快模型。</div>
+        </div>
+        <div class="dim">
+          <div class="dt">⚡ 延迟吞吐</div>
+          <div class="dd"><strong style="color:#E0E7FF;">首 Token 延迟 (TTFT) 与 TPS：</strong>C 端客服要求 TTFT &lt; 800ms（选快模型）；后台异步批处理与报表生成优先保质量（可容忍 30s+ 推理）。</div>
+        </div>
+        <div class="dim">
+          <div class="dt">🧠 能力专精</div>
+          <div class="dd"><strong style="color:#E0E7FF;">领域专精匹配：</strong>代码/重构走 Coding 专精模型；复杂逻辑/多步反思走 Reasoning（DeepSeek-R1/o3）；日常闲聊走通用轻量模型。</div>
+        </div>
+        <div class="dim">
+          <div class="dt">📏 上下文窗口</div>
+          <div class="dd"><strong style="color:#E0E7FF;">有效窗口与注意力损耗：</strong>长文档分析（&gt;64K）路由至原生超长窗口模型（如 Kimi / Gemini）；常规短问答截留小上下文模型以防注意力退化。</div>
+        </div>
+        <div class="dim" style="border-color:rgba(255,107,53,0.3);background:rgba(255,107,53,0.05);">
+          <div class="dt" style="color:#FF6B35;">🛡️ 可用性韧性</div>
+          <div class="dd"><strong style="color:#E0E7FF;">健康探活与故障熔断：</strong>网关实时监控上游 429 / 5xx / 延时毛刺；触发熔断时自动降级：推理模型 → 通用主模型 → 备选供应商兜底。</div>
+        </div>
+      </div>
+
+      <div style="padding:6px 10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:4px;">
+        <div style="font-size:11px;color:rgba(224,231,255,0.65);line-height:1.5;">
+          <strong style="color:#00E5FF;">决策公式：</strong>$\text{RouteScore} = w_1 \cdot \text{Capability} - w_2 \cdot \text{Cost} - w_3 \cdot \text{Latency} + w_4 \cdot \text{HealthState}$
+        </div>
+      </div>
     </div>
 
-    <div style="padding:12px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);border-radius:6px;margin-bottom:12px;">
-      <div style="font-size:12px;color:#ff6b6b;font-weight:700;margin-bottom:4px;">❌ 自然语言 → Java 无法可靠解析</div>
-      <pre style="font-size:10px;color:rgba(224,231,255,0.5);">"推荐联想小新Pro，大概6000到8000，适合写代码"</pre>
-      <div style="font-size:10px;color:rgba(224,231,255,0.35);margin-top:4px;">→ Java 怎么提取商品名？价格？用正则？格式一变就崩。</div>
-    </div>
+    <!-- 右：Demo 代码与生产级演进对比 -->
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;">
+      <div style="font-size:13.5px;color:#FF6B35;font-weight:700;display:flex;justify-content:space-between;align-items:center;">
+        <span>💻 Demo 实现：ModelRouter.java</span>
+        <span style="font-size:11px;color:#22C55E;font-weight:400;">(架构解耦教学起点)</span>
+      </div>
 
-    <div style="padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;margin-bottom:12px;">
-      <div style="font-size:12px;color:#67C23A;font-weight:700;margin-bottom:4px;">✅ JSON → Jackson 直接映射为 Java 对象</div>
-      <pre style="font-size:10px;color:rgba(224,231,255,0.5);">{"products":[{"name":"联想小新Pro","price":"6000-8000"}]}</pre>
-      <div style="font-size:10px;color:rgba(224,231,255,0.35);margin-top:4px;">→ objectMapper.readValue(json, RecommendResult.class)</div>
-    </div>
+      <div style="padding:10px;background:rgba(0,0,0,0.45);border:1px solid rgba(0,229,255,0.18);border-radius:6px;flex:1;display:flex;flex-direction:column;justify-content:center;">
+        <pre><span class="kw">@Component</span>
+<span class="kw">public class</span> <span class="fn">ModelRouter</span> {
+  <span class="kw">@Value</span>(<span class="str">"${agent.model.fast}"</span>) <span class="kw">private</span> String fastModel;
+  <span class="kw">@Value</span>(<span class="str">"${agent.model.reasoning}"</span>) <span class="kw">private</span> String reasoningModel;
 
-    <div style="padding:10px 14px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:5px;">
-      <div style="font-size:12px;color:#E0E7FF;font-weight:700;">结构化输出的真正价值</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.5);margin-top:4px;">不是"展示给用户看"，而是<strong style="color:#00E5FF;">让 Java 代码能程序化处理 LLM 的输出</strong>：存数据库、传给订单系统、渲染成商品卡片。</div>
+  <span class="kw">public</span> String <span class="fn">selectModel</span>(String msg) {
+    <span class="cm">// 规则快路径：长度阈值 + 关键词匹配</span>
+    <span class="kw">if</span> (needsReasoning(msg)) {
+      <span class="kw">return</span> reasoningModel;  <span class="cm">// 复杂任务 → 慢思考推理模型</span>
+    }
+    <span class="kw">return</span> fastModel;         <span class="cm">// 简单问答 → 毫秒级快模型</span>
+  }
+
+  <span class="kw">private boolean</span> <span class="fn">needsReasoning</span>(String msg) {
+    <span class="kw">if</span> (msg.length() > <span class="str">500</span>) <span class="kw">return true</span>;
+    String[] kw = {<span class="str">"架构"</span>, <span class="str">"重构"</span>, <span class="str">"分析"</span>, <span class="str">"对比"</span>, <span class="str">"为什么"</span>};
+    <span class="kw">for</span> (String k : kw) <span class="kw">if</span> (msg.contains(k)) <span class="kw">return true</span>;
+    <span class="kw">return false</span>;
+  }
+}</pre>
+      </div>
+
+      <div style="margin-top:8px;padding:9px 12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.12);border-radius:5px;">
+        <div style="font-size:11.5px;color:#E0E7FF;font-weight:700;margin-bottom:3px;">🛠️ Demo vs 生产级演进对比</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.55;">
+          <strong style="color:#00E5FF;">Demo 教学简化：</strong>消息长度 + 静态关键词。核心价值是让学员掌握“路由与业务 Controller 严格解耦”，建立独立 Bean 思想。<br>
+          <strong style="color:#FF6B35;">生产级落地：</strong>① 规则快路径 + 轻量小模型意图分类（Semantic Router）兜底；② 路由规则接入配置中心动态热更新；③ 挂载健康检查与熔断降级链。
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- 右：两种方案 + 代码兜底 -->
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">两种让 LLM 返回 JSON 的方案</div>
-    <div style="display:flex;gap:12px;margin-bottom:12px;">
-      <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-        <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:4px;">方案一：提示词约束</div>
-        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">Prompt 里要求"只输出 JSON"<br>✅ 所有模型支持<br>⚠️ 不保证 100% 合规</div>
-      </div>
-      <div style="flex:1;padding:12px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);border-radius:6px;">
-        <div style="font-size:13px;color:#FF6B35;font-weight:700;margin-bottom:4px;">方案二：API 原生</div>
-        <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">response_format 强制 Schema<br>✅ 合规率接近 100%<br>⚠️ 部分模型支持</div>
-      </div>
-    </div>
-
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">代码层兜底（必须有）</div>
-    <div style="padding:12px;background:rgba(0,0,0,0.3);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
-      <pre style="font-size:11px;"><span class="cm">// LLM 可能返回: "好的，推荐如下：{...} 希望有帮助"</span>
-
-<span class="cm">// 1. 提取 JSON（从废话中提取）</span>
-String json = extractJson(llmOutput);
-<span class="cm">// → {"products":[{"name":"联想小新Pro",...}]}</span>
-
-<span class="cm">// 2. Bean Mapping: JSON → Java 对象</span>
-RecommendResult result = objectMapper
-    .readValue(json, RecommendResult.class);
-
-<span class="cm">// 3. Java 代码用对象做具体的事</span>
-result.getProducts().get(0).getName();
-<span class="cm">// → "联想小新Pro"（可靠、类型安全）</span>
-
-<span class="cm">// 实际用途：</span>
-<span class="cm">// · 存数据库: repository.save(result)</span>
-<span class="cm">// · 传订单系统: orderService.create(result)</span>
-<span class="cm">// · 渲染卡片: productCardView(result)</span></pre>
+  <div style="margin-top:8px;padding:6px 14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:5px;text-align:center;">
+    <div style="font-size:11.5px;color:rgba(224,231,255,0.7);">
+      <strong style="color:#FF6B35;">核心准则：</strong>业务代码永远面向“逻辑能力”编程，路由网关负责将逻辑能力映射为具体的物理模型与最优供应商。
     </div>
   </div>
 </div>
-
-<div style="margin-top:8px;padding:8px 14px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:5px;text-align:center;">
-  <div style="font-size:12px;color:rgba(224,231,255,0.5);"><strong style="color:#FF6B35;">Demo 可验证：</strong>后端日志会打印 LLM 原始输出 → 提取出的 JSON → 映射后的 Java 对象字段。三个步骤一目了然。</div>
-</div>
-</div></body></html>
+</body></html>

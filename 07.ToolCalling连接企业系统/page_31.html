@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>可在 Demo 验证哪些点</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.mb-2{margin-bottom:8px}
+.v{padding:8px 10px;background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:4px}
+.v .t{font-size:11.5px;color:#00E5FF;font-weight:700;margin-bottom:3px}
+.v .b{font-size:10px;color:rgba(224,231,255,0.72);line-height:1.55}
+.code{font-family:Consolas,Monaco,monospace;color:rgba(224,231,255,0.85)}
+</style></head>
+<body>
+<div class="s" style="padding:28px 56px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 08</div>
+  <h1 class="mb-2">🧪 可在 Demo（v1.4）验证哪些点 — 动手确认，不是听完就过</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px;"></div>
+
+  <div style="flex:1;display:flex;gap:14px;">
+    <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+      <div class="v"><div class="t">① Tool 发现与握手</div>
+        <div class="b">按知识 → 商品 → agent-runtime 顺序启动三个服务，看 agent-runtime 控制台：
+          <span class="code">[MCP] 发现 3 个 Tool</span> / <span class="code">[MCP] 已包装 3 个 FunctionCallback</span>；
+          knowledge-server 侧 4 Tool + 1 Resource（<span class="code">user://{userId}</span>）。验证"Tool 是自动发现的，不用改 Client"。</div></div>
+      <div class="v"><div class="t">② 实时数据真的来自 MySQL</div>
+        <div class="b">问"拯救者 Y9000P 多少钱"→ 8999 元/库存 12 件；直接改 <span class="code">product</span> 表的 price 再问一遍——答案跟着变。
+          证明走的是 <span class="code">ProductRepository</span> 参数化查询，不是模型记忆。</div></div>
+      <div class="v"><div class="t">③ 数据分层</div>
+        <div class="b">问"推荐一台写代码的笔记本"（走 <span class="code">search_knowledge</span> → pgvector 描述）和
+          "NB001 多少钱"（走 <span class="code">queryProductInfo</span> → MySQL 实时数据），对照两段回答的来源差异。</div></div>
+      <div class="v"><div class="t">④ 路由判定是确定性的</div>
+        <div class="b"><span class="code">POST /api/agent/recommend</span>（<span class="code">LlmRouter.route()</span> 的入口）发同样内容两次，
+          <span class="code">logs/llm-route.log</span> 的 ROUTE REQUEST/RESPONSE 里 Route 与 Selected Model 完全一致（temperature=0）。</div></div>
+    </div>
+
+    <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+      <div class="v"><div class="t">⑤ 记忆自动沉淀（系统行为）</div>
+        <div class="b">聊满 <strong style="color:#E0E7FF;">20 条消息</strong>触发：<span class="code">[Memory] 消息数 20 达到阈值 20，触发自动沉淀</span>（见 <span class="code">logs/llm-extract.log</span>）；
+          <span class="code">psql</span> 查 <span class="code">user_memory</span> 能看到摘要。验证 <span class="code">save_memory</span> 不暴露给 LLM、由系统控制时机。</div></div>
+      <div class="v"><div class="t">⑥ MCP Resource 读取验证（user://{userId}）</div>
+        <div class="b">发起 <span class="code">GET /api/agent/chat</span> 对话时，观察 <span class="code">MemoryManager.buildContext()</span> 调用
+          <span class="code">McpKnowledgeClient.readUserProfile(userId)</span> 通过 MCP Resource URI <span class="code">user://U001</span> 读取 MySQL 用户画像并注入 <span class="code">context</span>，无需 LLM 发起 tool_call。</div></div>
+      <div class="v"><div class="t">⑦ MCP 断线重连与冷却保护验证（ensureConnected）</div>
+        <div class="b">停掉 <span class="code">mcp-product-server</span> 后提问价格，观察报错提示与 10 秒冷却重连保护（<span class="code">RECONNECT_COOLDOWN_MS = 10_000</span>，防止每次请求卡死重连）；
+          重新启动 <span class="code">mcp-product-server</span> 等待 10 秒后再提问，验证自动恢复连接并重新发现 Tool。</div></div>
+      <div class="v"><div class="t">⑧ v1.4 治理缺口现场观察（直指第八课演进目标）</div>
+        <div class="b">在 <span class="code">v1.4</span> 现场观察四个缺口：<strong style="color:#FF6B35;">① 单次 Function Calling 无法分步规划对比多商品</strong>；<strong style="color:#FF6B35;">② 超时/报错无指数退避重试与熔断</strong>；<strong style="color:#FF6B35;">③ 写操作（如 save_memory）无幂等键去重</strong>；<strong style="color:#FF6B35;">④ 高危操作无人工确认拦截与步骤级 Trace</strong>——直指第八课 <span class="code">AgentRuntime</span> 的演进目标！</div></div>
+    </div>
+  </div>
+</div>
+</body></html>

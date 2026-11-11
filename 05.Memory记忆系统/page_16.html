@@ -1,48 +1,50 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>第五课总结</title>
-<style>*{margin:0;padding:0;box-sizing:border-box}
+<title>Demo vs 生产 — 记忆系统五项差距</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
 .s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
-.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)}</style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;position:relative;">
-<div class="sn">SUMMARY</div>
-<h1 class="mb-2">第五课总结</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+.mb-2{margin-bottom:8px}
+.gap{padding:8px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px}
+.gap .t{font-size:13px;color:#FF6B35;font-weight:700;margin-bottom:3px}
+.gap .b{font-size:11px;color:rgba(224,231,255,0.68);line-height:1.55}
+</style></head>
+<body>
+<div class="s" style="padding:26px 56px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 08 · DEMO vs 生产</div>
+  <h1 class="mb-2">Demo vs 生产 — 记忆系统的五项差距</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px;"></div>
+  <div style="flex:1;display:flex;gap:16px;">
 
-<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-  <div style="padding:14px 24px;background:rgba(255,107,53,0.08);border:2px solid #FF6B35;border-radius:8px;text-align:center;margin-bottom:16px;">
-    <div style="font-size:18px;color:#FF6B35;font-weight:700;">Memory 不是聊天记录，而是企业为 AI 建立的记忆系统。</div>
-  </div>
-  <div style="display:flex;gap:16px;margin-bottom:14px;">
-    <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-      <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:8px;">Agent 构建进度</div>
-      <div style="display:flex;flex-direction:column;gap:4px;">
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;"><div style="width:18px;height:18px;background:#00E5FF;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#0B1120;">✓</div><span style="color:#E0E7FF;">Prompt</span></div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;"><div style="width:18px;height:18px;background:#00E5FF;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#0B1120;">✓</div><span style="color:#E0E7FF;">Memory</span></div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;"><div style="width:18px;height:18px;border:2px solid rgba(224,231,255,0.2);border-radius:3px;"></div><span style="color:rgba(224,231,255,0.3);">Knowledge</span></div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;"><div style="width:18px;height:18px;border:2px solid rgba(224,231,255,0.2);border-radius:3px;"></div><span style="color:rgba(224,231,255,0.3);">Tool</span></div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;"><div style="width:18px;height:18px;border:2px solid rgba(224,231,255,0.2);border-radius:3px;"></div><span style="color:rgba(224,231,255,0.3);">Workflow</span></div>
-      </div>
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:8px;">
+      <div class="gap"><div class="t">1 · Redis 集群与持久化</div><div class="b">
+        <strong style="color:#E0E7FF">问题（Demo 现状）：</strong>单实例 Redis，无主从/Cluster、无 AOF/RDB 持久化配置；SessionMemory 与 SummaryPipeline 的近期对话（messages）及累积摘要（summary）全存在单点内存中。<br>
+        <strong style="color:#FF6B35">不解决：</strong>Redis 一挂，所有活跃会话的最近对话与累积摘要瞬间丢失，Agent 对当前对话直接失忆；单实例内存 = 会话容量上限；故障全靠人工恢复。<br>
+        <strong style="color:#22C55E">怎么解决：</strong>Redis Cluster / 云 Redis 主从 + 哨兵自动切换；AOF everysec 把丢失窗口压到 1 秒；多 key 操作（messages 与 summary）用 hash tag <code style="color:#00E5FF">{sid}</code> 保证落同分片。<strong>取舍：</strong>Cluster 运维翻倍；后续（v3.0）将长期过程记忆沉淀至持久库后，可降低 Redis 可靠性要求。</div></div>
+      <div class="gap"><div class="t">2 · Session TTL 与动态触发淘汰</div><div class="b">
+        <strong style="color:#E0E7FF">问题（Demo 现状）：</strong>Demo 按固定条数滑窗（MAX 20）与满 8 条压缩属于<strong style="color:#FFC832">教学演示简化（Educational Simplification）</strong>；无 maxmemory 策略，也不按 Token 预算动态裁剪。<br>
+        <strong style="color:#FF6B35">不解决：</strong>内存无界增长触顶导致 OOM 或乱淘汰；条数不等于 Token，几条长代码就会撑爆 Context Window。<br>
+        <strong style="color:#22C55E">怎么解决：</strong>maxmemory + volatile-lru；空闲 TTL + 绝对 TTL 双上限；生产必须改由 <strong style="color:#E0E7FF">Token 预算阈值（达窗口 65%）</strong> 或 <strong style="color:#E0E7FF">任务语义边界</strong> 触发动态压缩沉淀。<strong>取舍：</strong>Token 动态计算消耗微量 CPU，换来上下文绝对安全。</div></div>
+      <div class="gap"><div class="t">3 · 异步抽取可靠性与失败重试</div><div class="b">
+        <strong style="color:#E0E7FF">问题（Demo 现状）：</strong>Demo 虽用 <code style="color:#00E5FF">@Async</code>（UserProfileExtractor）异步触发画像抽取（或经 <code style="color:#00E5FF">/profile/extract</code> 触发），但仅靠内存线程池执行，JSON 解析或 LLM 调用失败只打印日志返回 null，无重试、无死信队列（DLQ）。<br>
+        <strong style="color:#FF6B35">不解决：</strong>进程重启时排队中的异步任务直接丢失；抽取失败画像静默缺失——用户以为偏好被记住了其实没有，极难排查。<br>
+        <strong style="color:#22C55E">怎么解决：</strong>持久化消息队列（Redis Stream / RabbitMQ / Kafka）替代纯内存 <code style="color:#00E5FF">@Async</code>；失败指数退避重试 2-3 次，仍失败入死信队列（DLQ）+ 定时重放；幂等键（userId + sessionId + offset）防重复合并。<strong>取舍：</strong>异步队列引入最终一致性，需配合前端状态提示。</div></div>
     </div>
-    <div style="flex:1;padding:12px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
-      <div style="font-size:13px;color:#00E5FF;font-weight:700;margin-bottom:8px;">第五课能力地图</div>
-      <div style="display:flex;flex-direction:column;gap:3px;font-size:10px;color:rgba(224,231,255,0.5);">
-        <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">Memory Architecture</div>
-        <div style="text-align:center;color:rgba(0,229,255,0.3);">↓</div>
-        <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">Session Memory + 上下文压缩</div>
-        <div style="text-align:center;color:rgba(0,229,255,0.3);">↓</div>
-        <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">用户画像 + context 注入</div>
-        <div style="text-align:center;color:rgba(0,229,255,0.3);">↓</div>
-        <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;">安全隐私 + 存储选型 + 生产环境</div>
-      </div>
+
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:8px;">
+      <div class="gap"><div class="t">4 · 隐私合规（用户可遗忘权）</div><div class="b">
+        <strong style="color:#E0E7FF">问题（Demo 现状）：</strong><code style="color:#00E5FF">/api/agent/memory/clear</code> 只清理 Redis 会话缓冲；MySQL <code style="color:#00E5FF">user_profile</code> 表与日志文件（llm-interactions.log / llm-profile.log）没有任何级联删除通道；无入库 PII 脱敏、无删除审计。<br>
+        <strong style="color:#FF6B35">不解决：</strong>GDPR / 个保法的被遗忘权无法履行——用户要求删数据，MySQL 画像与日志原文仍在；PII 明文入库又明文进日志，合规风险极高。<br>
+        <strong style="color:#22C55E">怎么解决：</strong>按 userId 的级联删除（MySQL user_profile + Redis session + 后续向量库）+ 删除审计记录；30 天宽限期后物理删除；入库前 PII 正则/NER 脱敏（手机号前 3 后 4、证件/卡号不落库）；画像可查可导出。<strong>取舍：</strong>脱敏损失少量细粒度信息换取合规安全。</div></div>
+      <div class="gap"><div class="t">5 · 跨实例记忆并发与共享</div><div class="b">
+        <strong style="color:#E0E7FF">问题（Demo 现状）：</strong>单实例假设：SummaryPipeline（满 8 条压缩重写 Redis）与 UserProfileExtractor（读旧画像 → LLM 合并 → 写回 MySQL）均无分布式锁与版本控制。<br>
+        <strong style="color:#FF6B35">不解决：</strong>多实例并发处理同一用户时，SummaryPipeline 会重复触发并覆盖新消息；画像合并发生经典"读-改-写"并发覆盖（Lost Update），丢失用户偏好更新。<br>
+        <strong style="color:#22C55E">怎么解决：</strong>按 (userId, sessionId) 加 Redis 分布式锁（SETNX + TTL）或按 session 分区队列串行消费；MySQL <code style="color:#00E5FF">user_profile</code> 增加乐观锁（version / updated_at），冲突时重读重合并。<strong>取舍：</strong>同一用户操作串行化，换取多实例下的数据强一致。</div></div>
+      <div class="gap" style="background:rgba(168,85,247,0.08);border-left:3px solid #A855F7;"><div class="t" style="color:#A855F7;">五项的共同点 · 平台化去向</div><div class="b">
+        Demo（v1.2.1）用"单点 Redis + 内存异步无重试 + 无级联删除"换取教学演示清晰；生产三件套 = <strong style="color:#E0E7FF">高可用存储 + 可靠异步队列(含重试/DLQ) + 级联删除与并发锁闭环</strong>。隐私合规与跨 Agent 记忆共享将在第十一课平台化落地，第九课框架重构时对比框架接管边界。</div></div>
     </div>
-  </div>
-  <div style="padding:10px 16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;text-align:center;">
-    <div style="font-size:13px;color:#E0E7FF;">导购 Agent 记住了用户。下一课：Knowledge — 让 Agent 了解企业知识。</div>
   </div>
 </div>
-<div style="position:absolute;bottom:14px;right:60px;padding:4px 12px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:12px;font-size:10px;color:#00E5FF;">Demo 可验证</div>
-</div></body></html>
+</body></html>

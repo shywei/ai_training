@@ -1,37 +1,23 @@
 ## Slide Objective
-解释Memory的存在意义，区分短期记忆和长期记忆，让学员了解当前行业主流的Memory实现方案。
+深入解剖 Context Engineering（上下文工程动态组装全景图），打通 Prompt、Memory、RAG、Tool 定义在底层 Token 窗口中的装配机制。
 
 ## Suggested Presentation
-你的Agent知道自己是谁了，但它遇到了一个问题：它记性很差。大模型本身是无状态的，它不会记得你上一句说了什么。没有Memory，每次用户来，Agent都觉得是陌生人。
+请大家看第 7 页，这是**智能体系统工程最核心、含金量最高的一张图：Context Engineering 上下文工程动态组装全景图！**
+很多人学了 Memory、学了 RAG、学了 Tool Calling，却不知道它们在底层代码里到底是怎么协同工作的。
+请看这张解剖图：在每一次把请求发送给大模型 API 的毫秒瞬间，后端的 Agent 运行时其实在做一件极其精密的拼装手术！
+系统把一个原本空白的 Context Window，严格按照依赖顺序动态拼接成七大模块：
+1. **System Prompt（系统角色基底）**：声明 Agent 身份、核心职责与安全防线；
+2. **User Profile（用户画像/长期记忆）**：从 MySQL 异步读取的用户消费偏好、历史特征；
+3. **Retrieved Context（RAG 检索知识块）**：从 pgvector 向量库查出的最新商品信息，用 `<retrieved_context>` 隔离标签包裹；
+4. **Relevant Memory（动态语义短期记忆）**：从 Redis 窗口与记忆库召回的与当前话题相关的历史事实；
+5. **Session History（滑动会话历史）**：用户与 Assistant 最近几轮真实的交互上下文；
+6. **Tool Definitions（工具定义/JSON Schema）**：通过 API 参数注入的当前可用工具白名单；
+7. **Current User Input（用户当前最新输入）**：本次对话触发点。
+**架构师的顿悟：所谓的 Agent 开发，本质上就是一套高并发、低延迟、精准组装高质量 Context 的管道工程（Pipeline Engineering）！**
 
-Memory就是把聊天历史、用户偏好存下来，下次用户再来时，悄悄塞给大模型。
-
-这里有一个关键区分：Memory记"人"——这个用户买了什么、偏好什么；Knowledge记"事"——公司有什么产品、政策怎么规定。两者配合，Agent才能既懂用户又懂业务。
-
-那Memory在工程上怎么做？目前行业里有两种主流架构。
-第一种是短期记忆，也叫Session Memory。它保存的是当前这轮对话的上下文，通常用Redis实现。快，但用户关掉窗口就没了。
-第二种是长期记忆，也叫Long-term Memory。它把用户的历史偏好、重要决策持久化存储，下次对话时自动检索注入。通常用向量数据库（比如PgVector）或者专门的记忆框架实现。
-
-目前行业里做长期记忆比较成熟的开源方案有Mem0和Zep。Mem0的核心思路是把对话中的关键信息自动提取出来，存成结构化的记忆条目，下次按语义检索。Zep的做法类似，但更侧重于企业级场景，支持多用户隔离和记忆衰减。
-
-在Spring AI生态里，Memory的实现方式是把历史对话存储和检索集成到框架里，开发者不需要自己写存储逻辑。
-
-## Key Emphasis
-必须清晰界定Memory和Knowledge的边界（记人 vs 记事）。
-重点展开短期记忆（Session/Redis）和长期记忆（Mem0/Zep/向量DB）两种架构。
-让学员知道实际开发中有哪些工具可以用。
-
-## Optional Extension
-如果学员问Memory和Context Window的关系，回答：Context Window是模型一次能读的容量上限，Memory是需要塞进这个容量里的内容。Memory太多会挤占其他信息，所以需要策略性地保留关键记忆、压缩或丢弃旧记忆。
-
-## Classroom Interaction
-无。
-
-## Take Away
-Memory让Agent记住用户。短期记忆用Session/Redis，长期记忆用Mem0/Zep/向量DB。
-
-## Why This Slide Matters
-很多开发者容易把Memory和RAG混淆。这页划清界限，同时给出具体的技术方案，让学员知道回去怎么落地。
+## Key Q&A / Clarifications
+**Q：为什么要把 RAG 检索出来的内容用 <retrieved_context> 标签包裹？**
+A：这是为了防止“间接提示词注入（Indirect Prompt Injection）”！外部检索的数据是不可信的，用明确的数据标签隔离，能向大模型明确声明：这是供你参考的事实数据，绝非可执行的系统指令。这是构建工业级防御体系必不可少的标准范式。
 
 ## Transition
-有了Memory，Agent记住了你是谁。但如果用户问"你们新款路由器怎么配置？"，大模型不知道，因为训练数据里没有。这就需要第三个能力：Knowledge与RAG。
+弄清楚了上下文组装全貌，我们来看第 8 页：企业级 Agent 的核心数学公式与能力分级演进。

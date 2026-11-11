@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>高阶提效 ② · Headless Agent 融入 CI/CD 研发流水线</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:4px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; line-height:1.25; margin-bottom:8px; }
+.slide-accent-line { width:50px; height:3px; background:#FF6B35; margin-bottom:14px; }
+.slide-card { padding:12px 15px; margin-bottom:9px; display:flex; align-items:flex-start; gap:12px; border-radius:6px; }
+.slide-icon { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.slide-title { font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
+.slide-desc { font-size:12px; color:rgba(224,231,255,0.65); line-height:1.45; }
+.code-box { background:#060A12; border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:10px 12px; font-family:Consolas,monospace; font-size:11.5px; line-height:1.5; color:#E0E7FF; }
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <div class="slide-section-num">CHAPTER 05 · GIT WORKTREE 并行与 CI/CD 无头 AGENT</div>
+  <h1>高阶提效 ② · Headless Agent 融入 CI/CD 研发流水线</h1>
+  <div class="slide-accent-line"></div>
+<div style="padding:9px 15px; background:rgba(34,197,94,0.06); border-left:4px solid #22C55E; font-size:12.5px; color:#E0E7FF; margin-bottom:14px;">
+    <i class="fas fa-gears mr-2" style="color:#22C55E;"></i><strong>从“个人桌面交互工具”升级为“7&times;24 小时流水线数字员工”：</strong>
+    通过无头 CLI（如 `opencode run "..."` 或 `agy run "..."`）将智能体嵌入 GitLab CI / GitHub Actions，在自动化流水线中承担 PR 预检、单测修复与安全扫描。
+  </div>
+
+  <div class="grid grid-cols-3 gap-4 mb-4" style="height:310px;">
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(0,229,255,0.25); border-top:4px solid #00E5FF; border-radius:6px; padding:15px; display:flex; flex-direction:column;">
+      <div class="flex items-center justify-between mb-2">
+        <span style="font-size:14px; font-weight:700; color:#00E5FF;">流水线 1：PR 自动初审员</span>
+        <span style="font-size:11px; background:rgba(0,229,255,0.15); color:#00E5FF; padding:2px 6px; border-radius:3px;">PR Review</span>
+      </div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.5; margin-bottom:10px;">
+        在开发者提 PR 时自动触发，分析 Diff 是否违反团队 `AGENTS.md` 规约，对潜在安全漏洞直接在 GitHub/GitLab 评论区指出。
+      </div>
+      <div class="code-box mt-auto" style="font-size:11px;">
+        <span style="color:#00E5FF;"># CI Step:</span><br>
+        opencode run "审查本 PR 的 git diff，根据根目录 AGENTS.md 输出安全建议"
+      </div>
+    </div>
+
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,107,53,0.25); border-top:4px solid #FF6B35; border-radius:6px; padding:15px; display:flex; flex-direction:column;">
+      <div class="flex items-center justify-between mb-2">
+        <span style="font-size:14px; font-weight:700; color:#FF6B35;">流水线 2：编译红线自动自愈</span>
+        <span style="font-size:11px; background:rgba(255,107,53,0.15); color:#FF6B35; padding:2px 6px; border-radius:3px;">Auto Fix</span>
+      </div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.5; margin-bottom:10px;">
+        当 CI 编译或单测挂掉时，自动捕获报错日志并拉起无头 Agent。若在安全阈值内（如单纯 import 遗漏/类型转换），自动生成 fix 分支！
+      </div>
+      <div class="code-box mt-auto" style="font-size:11px;">
+        <span style="color:#FF6B35;"># CI Step:</span><br>
+        opencode run "读取 maven-error.log，修复 compilation error 并重跑单测"
+      </div>
+    </div>
+
+    <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(168,85,247,0.25); border-top:4px solid #A855F7; border-radius:6px; padding:15px; display:flex; flex-direction:column;">
+      <div class="flex items-center justify-between mb-2">
+        <span style="font-size:14px; font-weight:700; color:#A855F7;">流水线 3：夜间自动化巡检</span>
+        <span style="font-size:11px; background:rgba(168,85,247,0.15); color:#A855F7; padding:2px 6px; border-radius:3px;">Cron Patrol</span>
+      </div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.5; margin-bottom:10px;">
+        夜间定时扫描过时依赖版本、死代码与低覆盖率模块，自动按 SDD 格式生成 `.specs/maintenance/` 改进 PR 供工程师早晨审批。
+      </div>
+      <div class="code-box mt-auto" style="font-size:11px;">
+        <span style="color:#A855F7;"># CI Step:</span><br>
+        opencode run "扫描存量中圈复杂度大于15的类，生成黄金特征测试"
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:10px 16px; background:rgba(255,255,255,0.02); border:1px solid rgba(0,229,255,0.22); border-radius:6px; font-size:12.5px; color:#E0E7FF;">
+    <i class="fas fa-robot mr-2" style="color:#00E5FF;"></i><strong>未来研发愿景：</strong>人类工程师聚焦需求架构与审批，无头 Agent 在流水线上打辅助，实现 7&times;24 小时不间断的工程质量巡航。
+  </div>
+</div>
+</body>
+</html>

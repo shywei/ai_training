@@ -3,80 +3,119 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>Harness概念体系</title>
+<title>Harness 驾驭层全景架构：六大支柱与三大安全执行基石</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
-.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-harness-item { padding:16px 18px; background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.1); margin-bottom:10px; display:flex; align-items:flex-start; gap:14px; }
-.slide-harness-icon { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
-.slide-harness-content { flex:1; }
-.slide-harness-name { font-size:15px; font-weight:700; color:#E0E7FF; margin-bottom:3px; }
-.slide-harness-desc { font-size:12px; color:rgba(224,231,255,0.55); line-height:1.5; }
-.slide-harness-analogy { font-size:11px; color:#FF6B35; margin-top:3px; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:22px 65px; display:flex; flex-direction:column; justify-content:space-between; }
+.slide-container h1 { font-size:28px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:13px; color:#00E5FF; letter-spacing:4px; font-weight:700; }
+.pillar-box { padding:10px 12px; background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.15); border-radius:4px; display:flex; align-items:flex-start; gap:10px; }
+.pillar-icon { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.pillar-name { font-size:13.5px; font-weight:700; color:#E0E7FF; margin-bottom:2px; display:flex; align-items:center; gap:6px; }
+.pillar-desc { font-size:11px; color:rgba(224,231,255,0.65); line-height:1.4; }
+.sec-card { flex:1; padding:9px 12px; border-radius:4px; background:rgba(15,23,42,0.8); border:1px solid rgba(255,107,53,0.3); }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:32px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 04 · Skills实战</div>
-  <h1 class="mb-2">Harness概念体系</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:8px;"></div>
-  <div style="font-size:13px; color:rgba(224,231,255,0.4); margin-bottom:18px;">Harness（驾驭层）= 让大模型从"聊天机器人"变成"干活的Agent"的那套机制</div>
+<div class="slide-container">
+  <!-- Header -->
+  <div>
+    <div class="mb-1 slide-section-num">CHAPTER 04 · HARNESS 驾驭层体系详解</div>
+    <h1 class="mb-1">Harness 驾驭层全景架构：六大支柱与三大安全执行基石</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:8px;"></div>
+    <div style="font-size:12px; color:rgba(224,231,255,0.65); line-height:1.45;">
+      Coding Agent 绝非裸模型聊天，而是<strong>“认知推理大脑 + Harness 驾驭层 + 安全执行基石”</strong>构建的可控研发闭环。
+    </div>
+  </div>
 
-  <div class="flex" style="gap:24px;">
-    <div style="flex:1;">
-      <div class="slide-harness-item">
-        <div class="slide-harness-icon" style="background:rgba(0,229,255,0.15); color:#00E5FF;"><i class="fas fa-puzzle-piece"></i></div>
-        <div class="slide-harness-content">
-          <div class="slide-harness-name">Skills（技能）</div>
-          <div class="slide-harness-desc">预定义的能力模块。每个Skill包含一组指令和工具，让Agent能完成特定任务。比如"生成PPT"、"操作数据库"。</div>
-          <div class="slide-harness-analogy">类比：Spring的Starter——引入一个依赖就获得一组能力</div>
-        </div>
+  <!-- Top Three Security Foundations Banner (NEW 2026 Core Focus) -->
+  <div style="padding:10px 14px; background:rgba(255,107,53,0.06); border:1.5px solid rgba(255,107,53,0.35); border-radius:4px;">
+    <div class="flex items-center justify-between mb-1.5">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-shield-halved" style="color:#FF6B35; font-size:13px;"></i>
+        <span style="font-size:13px; font-weight:700; color:#FF6B35;">核心底座：Coding Agent 三大安全执行基石（严禁裸奔执行）</span>
       </div>
-      <div class="slide-harness-item">
-        <div class="slide-harness-icon" style="background:rgba(255,107,53,0.15); color:#FF6B35;"><i class="fas fa-plug"></i></div>
-        <div class="slide-harness-content">
-          <div class="slide-harness-name">MCP（Model Context Protocol）</div>
-          <div class="slide-harness-desc">标准化的工具连接协议。让AI能调用外部工具——数据库、API、文件系统、浏览器等。一次接入，所有支持MCP的Agent都能用。</div>
-          <div class="slide-harness-analogy">类比：USB接口——一个标准，所有设备通用</div>
-        </div>
+      <span style="font-size:11px; color:rgba(224,231,255,0.5);">没有安全护栏的 Agent 等同于拥有 rm -rf 权限的高危脚本</span>
+    </div>
+    <div class="grid grid-cols-3 gap-3" style="font-size:11px; line-height:1.45;">
+      <div class="sec-card" style="border-top:3px solid #00E5FF;">
+        <strong style="color:#00E5FF;"><i class="fas fa-key mr-1"></i>1. Tool Permission（授权策略）</strong><br>
+        <span style="color:rgba(224,231,255,0.7);">明确工具与命令白名单。只读工具（Read/Grep）自动放行；写与系统命令分级授权，默认禁止高危提权。</span>
       </div>
-      <div class="slide-harness-item">
-        <div class="slide-harness-icon" style="background:rgba(224,231,255,0.1); color:#E0E7FF;"><i class="fas fa-list-check"></i></div>
-        <div class="slide-harness-content">
-          <div class="slide-harness-name">Rules（规则）</div>
-          <div class="slide-harness-desc">项目级别的行为约束。定义Agent在特定项目中应该遵循的规范——代码风格、禁止操作、分支策略等。</div>
-          <div class="slide-harness-analogy">类比：.eslintrc / checkstyle.xml——项目级的规范配置</div>
-        </div>
+      <div class="sec-card" style="border-top:3px solid #FF6B35;">
+        <strong style="color:#FF6B35;"><i class="fas fa-user-check mr-1"></i>2. Approval Policy（人工审批）</strong><br>
+        <span style="color:rgba(224,231,255,0.7);">高危动作必须阻断并弹窗审批（HITL）：涉及 <code>git push</code>、修改 <code>.env</code> 密钥、跑迁移脚本必须人类一键确认。</span>
+      </div>
+      <div class="sec-card" style="border-top:3px solid #22C55E;">
+        <strong style="color:#22C55E;"><i class="fas fa-box-archive mr-1"></i>3. Sandbox（多维沙箱隔离）</strong><br>
+        <span style="color:rgba(224,231,255,0.7);">文件系统受限在工作区 Workspace；非特权 Shell 隔离执行；出向网络（Egress）严格白名单拦截外联泄密。</span>
       </div>
     </div>
-    <div style="flex:1;">
-      <div class="slide-harness-item">
-        <div class="slide-harness-icon" style="background:rgba(0,229,255,0.15); color:#00E5FF;"><i class="fas fa-scroll"></i></div>
-        <div class="slide-harness-content">
-          <div class="slide-harness-name">System Prompt（系统提示词）</div>
-          <div class="slide-harness-desc">Agent的"人格"和"行为准则"。在对话开始前设定，所有后续行为都受其约束。定义了Agent是什么、能做什么、不能做什么。</div>
-          <div class="slide-harness-analogy">类比：员工入职培训手册——先立规矩再干活</div>
-        </div>
-      </div>
-      <div class="slide-harness-item">
-        <div class="slide-harness-icon" style="background:rgba(255,107,53,0.15); color:#FF6B35;"><i class="fas fa-brain"></i></div>
-        <div class="slide-harness-content">
-          <div class="slide-harness-name">上下文管理</div>
-          <div class="slide-harness-desc">Agent如何管理它能"看到"的信息。包括对话历史、代码文件、工具结果等。<strong style="color:#E0E7FF;">上下文窗口有限，管理策略直接影响Agent的表现。</strong></div>
-          <div class="slide-harness-analogy">类比：工作记忆——信息太多会"忘"，需要策略性地保留关键信息</div>
-        </div>
-      </div>
-      <div style="padding:14px 16px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.12); margin-top:6px;">
-        <div style="font-size:13px; color:#00E5FF; font-weight:700; margin-bottom:6px;"><i class="fas fa-diagram-project" style="margin-right:6px;"></i>它们如何协作</div>
-        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.6;">
-          System Prompt定义Agent的"人格" → Rules约束行为边界 → Skills提供具体能力 → MCP连接外部工具 → 上下文管理决定Agent能"看到"什么 → <strong style="color:#E0E7FF;">模型做决策</strong>
-        </div>
+  </div>
+
+  <!-- 2x3 Grid: The 6 Pillars of Harness -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+    <!-- Pillar 1 -->
+    <div class="pillar-box">
+      <div class="pillar-icon" style="background:rgba(0,229,255,0.15); color:#00E5FF;"><i class="fas fa-microchip"></i></div>
+      <div>
+        <div class="pillar-name">① System Prompt（出厂系统底座）</div>
+        <div class="pillar-desc">厂商固化的底层行为规范、内置工具调用协议与基础安全边界。类似 OS 内核。</div>
       </div>
     </div>
+
+    <!-- Pillar 2 -->
+    <div class="pillar-box">
+      <div class="pillar-icon" style="background:rgba(0,229,255,0.15); color:#00E5FF;"><i class="fas fa-book-bookmark"></i></div>
+      <div>
+        <div class="pillar-name">② Rules / `AGENTS.md`（项目常驻规范）</div>
+        <div class="pillar-desc">随代码库版本提交的工程宪法（构建命令、分层架构与代码红线），概率性约束行为。</div>
+      </div>
+    </div>
+
+    <!-- Pillar 3 -->
+    <div class="pillar-box" style="border-color:rgba(255,107,53,0.35); background:rgba(255,107,53,0.04);">
+      <div class="pillar-icon" style="background:rgba(255,107,53,0.2); color:#FF6B35;"><i class="fas fa-bolt"></i></div>
+      <div>
+        <div class="pillar-name" style="color:#FF6B35;">③ `Hooks`（生命周期确定性护栏）</div>
+        <div class="pillar-desc">在 PreToolUse/PostToolUse 触发的强制脚本，自动拦截高危命令、格式化与跑单测门禁。</div>
+      </div>
+    </div>
+
+    <!-- Pillar 4 -->
+    <div class="pillar-box">
+      <div class="pillar-icon" style="background:rgba(34,197,94,0.15); color:#22C55E;"><i class="fas fa-toolbox"></i></div>
+      <div>
+        <div class="pillar-name" style="color:#22C55E;">④ `Skills`（按需加载专业工作流）</div>
+        <div class="pillar-desc">封装特定 SOP（TDD、慢 SQL 诊断）的按需指令包，采用渐进式披露省下 90% 上下文。</div>
+      </div>
+    </div>
+
+    <!-- Pillar 5 -->
+    <div class="pillar-box">
+      <div class="pillar-icon" style="background:rgba(245,158,11,0.15); color:#F59E0B;"><i class="fas fa-plug"></i></div>
+      <div>
+        <div class="pillar-name" style="color:#F59E0B;">⑤ `MCP &amp; CLI`（外部系统与工具连接）</div>
+        <div class="pillar-desc">用 CLI 操作本地 Git/Maven，用 MCP 标准协议接入企业飞书、Jira 需求单与测试库。</div>
+      </div>
+    </div>
+
+    <!-- Pillar 6 -->
+    <div class="pillar-box">
+      <div class="pillar-icon" style="background:rgba(168,85,247,0.15); color:#A855F7;"><i class="fas fa-users-viewfinder"></i></div>
+      <div>
+        <div class="pillar-name" style="color:#A855F7;">⑥ `Subagents &amp; Context`（子智能体隔离）</div>
+        <div class="pillar-desc">主 Agent 派发只读探索子智能体在独立窗口查资料，带回高浓度结论，杜绝主窗口污染。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Architecture Loop Summary -->
+  <div style="padding:7px 14px; background:rgba(0,0,0,0.35); border:1px solid rgba(0,229,255,0.2); border-radius:4px; font-size:11.5px; color:#E0E7FF; line-height:1.45;">
+    <strong style="color:#00E5FF;">闭环执行流：</strong>
+    [用户任务与项目 Context] &rarr; [Prompt/Rules 规划装配] &rarr; [LLM 决策意图] &rarr; <strong style="color:#FF6B35;">[三大基石+Hooks 校验拦截]</strong> &rarr; [沙箱落地执行] &rarr; [测试结果反馈迭代]
   </div>
 </div>
 </body>

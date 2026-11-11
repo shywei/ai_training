@@ -1,42 +1,20 @@
 ## Slide Objective
-解释Tool与MCP的存在意义，让学员了解Function Calling机制和MCP协议的工程实现。
+精讲认知层组件 ①：Prompt 工程、模型路由与结构化输出，建立确定性输出的心智。
 
 ## Suggested Presentation
-前面讲了，Agent通过RAG查文档。但如果用户要查今天北京的天气，或者查他在京东的快递到哪了，查文档有用吗？没用。这些是实时数据，存在外部系统里。
+我们来到第三章：核心组件精讲。首先看第 9 页：认知层组件 ① · Prompt 工程、模型路由与结构化输出。
+在企业级生产系统里，直接面向 LLM 交互的第一道大门由三大技术支撑：
+1. **模型路由（Model Router）**：
+   面对用户的海量请求，绝不能不论问题大小全部扔给最贵的旗舰模型！
+   系统必须有一套轻量级的模型路由器：当用户输入“你好/在吗/开发票流程是什么”这类高频简单请求时，秒级路由给低成本快模型（如轻量模型或私有小模型）；当遇到跨多商品对比、复杂多意图理解时，动态路由给慢思考旗舰大模型。在工业落地中，通常由独立的模型路由器（Model Router）实现这一高低分流架构；
+2. **结构化输出（Structured Outputs / JSON Schema）**：
+   在企业系统中，前端和下游 RPC 接口无法解析自由排版的散文。大模型必须 100% 遵守强类型 DTO 契约！通过工具调用约束或模型原生的 JSON Schema 语法引导，确保每一次返回都能反序列化为标准的 Java POJO；
+3. **Prefix Caching 优化**：
+   在架构实践中，需要严格遵循“上静下动”原则设计上下文前缀对齐，最大化复用 KV Cache，降低首字延迟与计算成本。
 
-这时候就需要Tool——给Agent一双"手"，让它能调用外部API。
-
-Tool的核心机制叫Function Calling。开发者先告诉大模型"你有这些工具可以用"，并描述每个工具的功能和参数。大模型根据用户的意图，自己决定该调哪个工具、传什么参数。调完之后，把结果拿回来继续推理。
-
-这个过程对用户是透明的——用户只看到Agent"帮他查了快递"，不知道中间调了几次API。
-
-但这里有一个工程痛点。你们公司可能有几十个微服务，每个都有API。难道要为每个API写一套对接代码？如果明天换了一个Agent框架，是不是全部重写？
-
-为了解决这个问题，Anthropic在2024年推出了MCP——模型上下文协议。MCP的思路很像Type-C接口：你的后端系统实现一个MCP Server，暴露标准格式的工具描述；任何支持MCP的Agent框架都能直接调用。一次开发，处处可用。
-
-目前行业里的实现方案：
-Function Calling方面，OpenAI、Claude、DeepSeek都原生支持，Spring AI通过@Tool注解可以直接把Java方法暴露为可调用工具。
-MCP Server方面，官方提供了Python和TypeScript的SDK，Spring AI也集成了MCP支持。
-MCP Client方面，Claude Code、Cursor、Claude Desktop都内置了MCP客户端。
-
-实际选型建议：如果工具少于3个，直接用Function Calling就够了，简单直接。工具多了、或者需要跨框架复用时，再引入MCP。
-
-## Key Emphasis
-讲清楚Tool和Knowledge的区别：Tool调API拿结构化动态数据，Knowledge查向量DB拿文本段落。
-重点展开Function Calling机制和MCP协议，给出具体的技术方案（Spring AI @Tool、MCP SDK）。
-给出选型建议：少于3个工具用Function Calling，多了用MCP。
-
-## Optional Extension
-如果学员问MCP和传统的微服务API有什么区别，回答：MCP在API之上加了一层"语义描述"，让大模型能理解每个工具是干什么的、需要什么参数。传统API是给人看文档调的，MCP是给AI理解调的。
-
-## Classroom Interaction
-无。
-
-## Take Away
-Tool让Agent能调外部系统。Function Calling是机制，MCP是标准。工具少用Function Calling，工具多用MCP。
-
-## Why This Slide Matters
-MCP是当前Agent工程化落地的关键标准。理解它能帮企业避免大量重复开发，也是后续Workflow和Multi-Agent的基础。
+## Key Q&A / Clarifications
+**Q：用 JSON 模式强制大模型输出，会影响模型的思考质量吗？**
+A：如果强制模型一上来直接吐 JSON，由于缺少自由思考空间，复杂的逻辑推断能力会下降约 15%~20%。因此 2026 年的标准做法是：先允许模型在思维链中自由推理，最后一步再格式化为严谨的 JSON 结构。
 
 ## Transition
-有了Tool，Agent可以做单步动作了。但如果一个任务涉及多个步骤——查订单、查政策、人工审批、发起退款——一次工具调用搞不定。需要把这些步骤串成流水线，这就是Workflow。
+解决了基础交互，我们看第二大认知层组件：如何彻底根治模型的失忆症？看第 10 页 Memory。

@@ -1,121 +1,118 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>导购Agent：系统架构</title>
+<title>执行层组件 ① · Tool Calling 与三大协议垂直分层定位（MCP / A2A / AG-UI）</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
-.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
-.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
-.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
-.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden;padding:24px 52px;display:flex;flex-direction:column;justify-content:space-between}
+.s h1{font-size:27px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px;font-weight:700}
+.proto-card{flex:1;padding:11px 13px;border-radius:6px;display:flex;flex-direction:column;justify-content:space-between}
+.gov-pill{flex:1;padding:6px 8px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.18);border-radius:4px}
 </style></head><body>
-<div class="s" style="padding:36px 60px;">
-<div class="mb-2 sn">CHAPTER 05</div><h1 class="mb-2">导购Agent：系统架构</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
-
-<div style="margin-bottom:8px;">
-  </div>
-<div style="font-size:11px;color:rgba(224,231,255,0.5);margin-bottom:10px;">Agent不是替代已有系统，而是在已有系统之上加了一层"智能"。两块系统通过四个连接点协作。</div>
-
-<div style="display:flex;gap:20px;align-items:stretch;">
-  <!-- 左：电商平台（已有） -->
-  <div style="flex:1;padding:10px 12px;background:rgba(224,231,255,0.02);border:1px solid rgba(224,231,255,0.08);border-radius:6px;">
-    <div style="font-size:12px;color:rgba(224,231,255,0.6);font-weight:700;text-align:center;margin-bottom:8px;">电商平台（已有系统）</div>
-
-    <div style="padding:5px 8px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:4px;margin-bottom:6px;">
-      <div style="font-size:10px;color:rgba(224,231,255,0.5);font-weight:600;margin-bottom:3px;">前端</div>
-      <div style="display:flex;gap:4px;">
-        <div style="flex:1;padding:3px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);text-align:center;">商品页</div>
-        <div style="flex:1;padding:3px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);text-align:center;">购物车</div>
-        <div style="flex:1;padding:3px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);text-align:center;">订单页</div>
-      </div>
-    </div>
-
-    <div style="padding:5px 8px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:4px;margin-bottom:6px;">
-      <div style="font-size:10px;color:rgba(224,231,255,0.5);font-weight:600;margin-bottom:3px;">后端服务</div>
-      <div style="display:flex;gap:3px;flex-wrap:wrap;">
-        <div style="padding:2px 5px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);">商品服务</div>
-        <div style="padding:2px 5px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);">库存服务</div>
-        <div style="padding:2px 5px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);">订单服务</div>
-        <div style="padding:2px 5px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);">用户服务</div>
-        <div style="padding:2px 5px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);">支付服务</div>
-      </div>
-    </div>
-
-    <div style="padding:5px 8px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:4px;">
-      <div style="font-size:10px;color:rgba(224,231,255,0.5);font-weight:600;margin-bottom:3px;">数据库</div>
-      <div style="display:flex;gap:4px;">
-        <div style="flex:1;padding:3px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);text-align:center;">商品DB</div>
-        <div style="flex:1;padding:3px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);text-align:center;">订单DB</div>
-        <div style="flex:1;padding:3px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.06);border-radius:2px;font-size:10px;color:rgba(224,231,255,0.4);text-align:center;">ERP</div>
-      </div>
+<div class="s">
+  <!-- Header -->
+  <div>
+    <div class="mb-1 sn">CHAPTER 03 · 认知层与执行层组件拆解 · 工具调用 (TOOL CALLING)</div>
+    <h1 class="mb-1">执行层组件 ① · Tool Calling 原理与三大协议垂直分层定位</h1>
+    <div style="width:56px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+    <div style="font-size:12px;color:rgba(224,231,255,0.65);line-height:1.45;">
+      纠偏三大协议混淆：<strong>MCP、A2A 与 AG-UI 属于不同维度的垂直架构分层，并非同级替代关系</strong>。
     </div>
   </div>
 
-  <!-- 中间：连接线 -->
-  <div style="display:flex;flex-direction:column;justify-content:center;gap:12px;min-width:120px;">
-    <div style="text-align:center;padding:4px 6px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:3px;">
-      <div style="font-size:10px;color:#00E5FF;font-weight:600;">💬 聊天入口</div>
-      <div style="font-size:10px;color:rgba(224,231,255,0.35);">前端嵌入聊天组件</div>
-    </div>
-    <div style="text-align:center;padding:4px 6px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:3px;">
-      <div style="font-size:10px;color:#00E5FF;font-weight:600;">🔌 HTTP API</div>
-      <div style="font-size:10px;color:rgba(224,231,255,0.35);">后端调Agent Runtime</div>
-    </div>
-    <div style="text-align:center;padding:4px 6px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:3px;">
-      <div style="font-size:10px;color:#00E5FF;font-weight:600;">🔧 MCP</div>
-      <div style="font-size:10px;color:rgba(224,231,255,0.35);">Agent调后端服务</div>
-    </div>
-    <div style="text-align:center;padding:4px 6px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);border-radius:3px;">
-      <div style="font-size:10px;color:#00E5FF;font-weight:600;">📦 商品数据</div>
-      <div style="font-size:10px;color:rgba(224,231,255,0.35);">导入Milvus做向量</div>
+  <!-- First Principle Banner -->
+  <div style="padding:8px 14px; background:rgba(255,107,53,0.05); border:1px solid rgba(255,107,53,0.25); border-radius:4px; display:flex; align-items:center; justify-content:space-between;">
+    <div style="font-size:11.5px; color:#E0E7FF; line-height:1.45;">
+      <b style="color:#FF6B35;"><i class="fas fa-bolt mr-1"></i> Tool Calling 第一性原理（意图与执行分离）：</b>
+      大模型<strong>自己绝不会直接发 HTTP 请求或连数据库</strong>！它只负责输出结构化意图（如 <code style="color:#00E5FF;">tool_calls: [{name: "get_product", arguments: {"id": 101}}]</code>），由 <strong>Agent 运行时宿主</strong>拦截并执行后，将结果喂回模型上下文。
     </div>
   </div>
 
-  <!-- 右：导购Agent（新增） -->
-  <div style="flex:1;padding:10px 12px;background:rgba(255,107,53,0.04);border:2px solid rgba(255,107,53,0.15);border-radius:6px;">
-    <div style="font-size:12px;color:#FF6B35;font-weight:700;text-align:center;margin-bottom:8px;">导购Agent（新增部分）</div>
-
-    <div style="padding:5px 8px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;margin-bottom:6px;">
-      <div style="font-size:10px;color:#00E5FF;font-weight:600;margin-bottom:3px;">Agent Runtime（Spring Boot + Spring AI）</div>
-      <div style="display:flex;gap:3px;flex-wrap:wrap;">
-        <div style="padding:2px 5px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:10px;color:#00E5FF;">Prompt</div>
-        <div style="padding:2px 5px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:10px;color:#00E5FF;">Memory</div>
-        <div style="padding:2px 5px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:10px;color:#00E5FF;">Knowledge</div>
-        <div style="padding:2px 5px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:10px;color:#00E5FF;">Tool</div>
-        <div style="padding:2px 5px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:10px;color:#00E5FF;">Workflow</div>
+  <!-- Three Vertical Tiers Comparison (Not Equal Competitors!) -->
+  <div class="flex gap-3 my-1" style="flex:1; min-height:0;">
+    <!-- 1. MCP (Downward Tier) -->
+    <div class="proto-card" style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.28); border-top:3px solid #00E5FF;">
+      <div>
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:14px; font-weight:700; color:#00E5FF;">① 下行层 · MCP 协议</span>
+          <span style="font-size:11px; padding:1px 6px; background:rgba(0,229,255,0.15); color:#00E5FF; border-radius:3px;">Agent ➔ Tools / Data</span>
+        </div>
+        <div style="font-size:11.5px; color:#E0E7FF; font-weight:600; margin-bottom:4px;">工具与上下文互操作标准（Anthropic 主导）</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.72); line-height:1.5;">
+          • <b style="color:#00E5FF;">垂直定位：</b>向下连接<strong>确定性外部工具、数据资源与环境上下文</strong>。<br>
+          • <b style="color:#00E5FF;">核心原语：</b><code style="color:#E0E7FF;">Tools</code>（可执行接口）、<code style="color:#E0E7FF;">Resources</code>（只读数据源）、<code style="color:#E0E7FF;">Prompts</code>（标准提示词）。<br>
+          • <b style="color:#00E5FF;">解决问题：</b>解耦 N 个模型宿主与 M 个企业系统的集成复杂度，从 O(N×M) 降为 O(N+M)。
+        </div>
+      </div>
+      <div style="font-size:11px; color:#00E5FF; padding-top:4px; border-top:1px dashed rgba(0,229,255,0.25);">
+        <b>角色比喻：</b>给 Agent 配备各种规格标准化的“精密扳手与探针”。
       </div>
     </div>
 
-    <div style="padding:5px 8px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;margin-bottom:6px;">
-      <div style="font-size:10px;color:#00E5FF;font-weight:600;margin-bottom:3px;">LLM</div>
-      <div style="font-size:10px;color:rgba(224,231,255,0.5);">GPT / Claude / Qwen</div>
+    <!-- 2. A2A (Horizontal Tier) -->
+    <div class="proto-card" style="background:rgba(168,85,247,0.04); border:1px solid rgba(168,85,247,0.28); border-top:3px solid #A855F7;">
+      <div>
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:14px; font-weight:700; color:#A855F7;">② 横向层 · A2A 协议</span>
+          <span style="font-size:11px; padding:1px 6px; background:rgba(168,85,247,0.15); color:#A855F7; border-radius:3px;">Agent ➔ Agent</span>
+        </div>
+        <div style="font-size:11.5px; color:#E0E7FF; font-weight:600; margin-bottom:4px;">智能体间分布式协作标准（Linux 基金会托管）</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.72); line-height:1.5;">
+          • <b style="color:#A855F7;">垂直定位：</b>横向连接<strong>跨组织、跨微服务、具备自主决策力的不同智能体</strong>。<br>
+          • <b style="color:#A855F7;">核心原语：</b><code style="color:#E0E7FF;">Agent Card</code>（能力名片发现）、<code style="color:#E0E7FF;">Task</code>（长任务生命周期与状态机）、<code style="color:#E0E7FF;">Artifact</code>（交付工件）。<br>
+          • <b style="color:#A855F7;">解决问题：</b>实现跨业务系统多智能体协商，而不是简单当作从属工具调用。
+        </div>
+      </div>
+      <div style="font-size:11px; color:#A855F7; padding-top:4px; border-top:1px dashed rgba(168,85,247,0.25);">
+        <b>角色比喻：</b>智能体之间平等对话、协同推进任务的“职业队友”。
+      </div>
     </div>
 
-    <div style="padding:5px 8px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:4px;">
-      <div style="font-size:10px;color:#00E5FF;font-weight:600;margin-bottom:3px;">Agent专属存储</div>
-      <div style="display:flex;gap:4px;">
-        <div style="flex:1;padding:3px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:10px;color:#00E5FF;text-align:center;">Redis</div>
-        <div style="flex:1;padding:3px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:2px;font-size:10px;color:#00E5FF;text-align:center;">Milvus</div>
+    <!-- 3. AG-UI (Upward Tier) -->
+    <div class="proto-card" style="background:rgba(34,197,94,0.04); border:1px solid rgba(34,197,94,0.28); border-top:3px solid #22C55E;">
+      <div>
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:14px; font-weight:700; color:#22C55E;">③ 上行层 · AG-UI 协议</span>
+          <span style="font-size:11px; padding:1px 6px; background:rgba(34,197,94,0.15); color:#22C55E; border-radius:3px;">Agent ➔ Frontend UI</span>
+        </div>
+        <div style="font-size:11.5px; color:#E0E7FF; font-weight:600; margin-bottom:4px;">人机流式交互事件标准（前端界面协议）</div>
+        <div style="font-size:11px; color:rgba(224,231,255,0.72); line-height:1.5;">
+          • <b style="color:#22C55E;">垂直定位：</b>向上连接<strong>人类工程师与前端 Web/App 界面</strong>。<br>
+          • <b style="color:#22C55E;">核心原语：</b>流式正文 <code style="color:#E0E7FF;">TEXT_CHUNK</code>、思考流 <code style="color:#22C55E;">THINKING_STEP</code>、工具执行卡片 <code style="color:#22C55E;">TOOL_STATUS</code> 与人工确认弹窗 <code style="color:#FF6B35;">HITL_CARD</code>。<br>
+          • <b style="color:#22C55E;">解决问题：</b>标准化多模态富交互界面，告别单调文本打字机。
+        </div>
+      </div>
+      <div style="font-size:11px; color:#22C55E; padding-top:4px; border-top:1px dashed rgba(34,197,94,0.25);">
+        <b>角色比喻：</b>智能体向人类汇报工作与索取授权的“可视化大屏看板”。
+      </div>
+    </div>
+  </div>
+
+  <!-- Enterprise Governance 5-Pillar Strip -->
+  <div style="padding:8px 12px; background:rgba(15,23,42,0.8); border:1px solid rgba(0,229,255,0.2); border-radius:4px;">
+    <div style="font-size:11.5px; font-weight:700; color:#FF6B35; margin-bottom:4px;">
+      <i class="fas fa-shield-alt mr-1"></i> 企业级 Tool / MCP 生产治理五道防线（绝不能裸奔上线）：
+    </div>
+    <div class="flex gap-2">
+      <div class="gov-pill">
+        <div style="font-size:11px; font-weight:700; color:#00E5FF;">1. 读写分级鉴权</div>
+        <div style="font-size:10.5px; color:rgba(224,231,255,0.65);">查询只读放行；改价/建单等写操作严格校验调用方权限。</div>
+      </div>
+      <div class="gov-pill">
+        <div style="font-size:11px; font-weight:700; color:#FF6B35;">2. 幂等性保障 (Idempotency)</div>
+        <div style="font-size:10.5px; color:rgba(224,231,255,0.65);">带全局 requestId，防止模型超时重试导致重复扣款。</div>
+      </div>
+      <div class="gov-pill">
+        <div style="font-size:11px; font-weight:700; color:#22C55E;">3. 熔断降级与超时</div>
+        <div style="font-size:10.5px; color:rgba(224,231,255,0.65);">下游微服务卡死时秒级 Fallback，防 Agent 阻塞耗尽线程池。</div>
+      </div>
+      <div class="gov-pill">
+        <div style="font-size:11px; font-weight:700; color:#A855F7;">4. 参数防注入校验</div>
+        <div style="font-size:10.5px; color:rgba(224,231,255,0.65);">对模型生成的入参做严格正则表达式与类型断言校验。</div>
       </div>
     </div>
   </div>
 </div>
-
-<div style="margin-top:8px;padding:5px 10px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.1);border-radius:4px;font-size:10px;color:rgba(224,231,255,0.5);text-align:center;">
-  四个连接点：💬 聊天入口（前端嵌入） · 🔌 HTTP API（后端调Agent） · 🔧 MCP（Agent调后端服务） · 📦 商品数据（导入Milvus做向量检索）
-</div>
-<div style="margin-top:6px;padding:8px 10px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.08);border-radius:5px;">
-  <div style="font-size:11px;color:#00E5FF;font-weight:700;margin-bottom:4px;">导购Agent组件拆解</div>
-  <div style="display:flex;gap:6px;flex-wrap:wrap;">
-    <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;font-size:10px;color:#00E5FF;"><b>Prompt</b>：限定为导购角色</div>
-    <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;font-size:10px;color:#00E5FF;"><b>Memory</b>：用户偏好（Redis）</div>
-    <div style="padding:4px 8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.12);border-radius:3px;font-size:10px;color:#00E5FF;"><b>RAG</b>：商品知识（Milvus）</div>
-    <div style="padding:4px 8px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.12);border-radius:3px;font-size:10px;color:#FF6B35;"><b>Tool</b>：库存/下单API（MCP）</div>
-    <div style="padding:4px 8px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.12);border-radius:3px;font-size:10px;color:#FF6B35;"><b>Workflow</b>：下单→扣库存→支付</div>
-  </div>
-</div>
-</div></body></html>
+</body></html>

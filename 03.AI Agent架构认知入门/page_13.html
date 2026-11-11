@@ -1,60 +1,111 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>导购Agent：请求流转详解</title>
+<title>执行层组件 ② · Workflow 状态机运行时与 Multi-Agent 协作</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
-.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
-.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
-.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
-.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden;padding:30px 52px;display:flex;flex-direction:column}
+.s h1{font-size:27px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px;font-weight:700}
+.state-node{flex:1;padding:5px 6px;border-radius:5px;font-size:11px;font-weight:700;text-align:center;line-height:1.3}
 </style></head><body>
-<div class="s" style="padding:36px 60px;">
-<div class="mb-2 sn">CHAPTER 05</div><h1 class="mb-2">导购Agent：请求流转详解</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+<div class="s">
+  <div class="mb-1 sn">CHAPTER 03 · 认知层与执行层组件拆解 · 编排与工作流 (Workflow)</div>
+  <h1 class="mb-2">执行层组件 ② · Workflow 状态机运行时与 Multi-Agent 协作拓扑</h1>
+  <div style="width:56px;height:3px;background:#FF6B35;margin-bottom:12px;"></div>
 
-<div style="margin-bottom:8px;">
-  </div>
-<div style="font-size:11px;color:#FF6B35;font-weight:700;margin-bottom:6px;">用户问："我想买一台笔记本，预算8000，之前买过你们的鼠标"</div>
-<div style="display:flex;flex-direction:column;gap:4px;">
-  <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 8px;background:rgba(0,229,255,0.04);border-left:3px solid #00E5FF;border-radius:0 4px 4px 0;">
-    <div style="font-size:11px;color:#00E5FF;font-weight:700;min-width:16px;">❶</div>
-    <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;"><b style="color:#E0E7FF;">聊天入口</b>：用户在商品页点击"智能导购"，输入问题。前端把消息发给<b style="color:#00E5FF;">电商后端</b>。</div>
-  </div>
-  <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 8px;background:rgba(0,229,255,0.04);border-left:3px solid #00E5FF;border-radius:0 4px 4px 0;">
-    <div style="font-size:11px;color:#00E5FF;font-weight:700;min-width:16px;">❷</div>
-    <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;"><b style="color:#E0E7FF;">后端转发</b>：电商后端通过<b style="color:#00E5FF;">HTTP API</b>把请求转发给Agent Runtime（Spring Boot的一个Controller）。</div>
-  </div>
-  <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 8px;background:rgba(0,229,255,0.04);border-left:3px solid #00E5FF;border-radius:0 4px 4px 0;">
-    <div style="font-size:11px;color:#00E5FF;font-weight:700;min-width:16px;">❸</div>
-    <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;"><b style="color:#E0E7FF;">Prompt识别意图</b>：Agent把用户消息 + System Prompt（"你是导购助手，帮用户推荐商品"）一起发给<b style="color:#00E5FF;">LLM</b>。LLM理解意图：要推荐笔记本、预算8000、关联历史购买。</div>
-  </div>
-  <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 8px;background:rgba(0,229,255,0.04);border-left:3px solid #00E5FF;border-radius:0 4px 4px 0;">
-    <div style="font-size:11px;color:#00E5FF;font-weight:700;min-width:16px;">❹</div>
-    <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;"><b style="color:#E0E7FF;">Memory查历史</b>：Agent Runtime用Memory组件从<b style="color:#00E5FF;">Redis</b>查用户历史——找到"买过MX Master鼠标，偏好办公场景"。拼进LLM的Context。</div>
-  </div>
-  <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 8px;background:rgba(0,229,255,0.04);border-left:3px solid #00E5FF;border-radius:0 4px 4px 0;">
-    <div style="font-size:11px;color:#00E5FF;font-weight:700;min-width:16px;">❺</div>
-    <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;"><b style="color:#E0E7FF;">RAG查商品</b>：Knowledge组件把问题做Embedding，去<b style="color:#00E5FF;">Milvus</b>检索——找到8000价位笔记本的商品信息。知识来源是<b style="color:#E0E7FF;">商品文档</b>（提前导入并Embedding过的）。</div>
-  </div>
-  <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 8px;background:rgba(0,229,255,0.04);border-left:3px solid #FF6B35;border-radius:0 4px 4px 0;">
-    <div style="font-size:11px;color:#FF6B35;font-weight:700;min-width:16px;">❻</div>
-    <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;"><b style="color:#E0E7FF;">Tool查库存</b>：LLM判断需要查库存，生成Function Call。Agent通过<b style="color:#00E5FF;">MCP</b>调用库存服务API（Tool是<b style="color:#E0E7FF;">开发者写好注册到MCP Server的</b>），返回"这3款有货"。</div>
-  </div>
-  <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 8px;background:rgba(255,107,53,0.04);border-left:3px solid #FF6B35;border-radius:0 4px 4px 0;">
-    <div style="font-size:11px;color:#FF6B35;font-weight:700;min-width:16px;">❼</div>
-    <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;"><b style="color:#E0E7FF;">LLM生成推荐</b>：Context里有——意图+历史+商品+库存。LLM综合所有信息生成推荐："考虑到您用过MX Master，推荐ThinkPad X1..."</div>
-  </div>
-  <div style="display:flex;align-items:flex-start;gap:8px;padding:5px 8px;background:rgba(255,107,53,0.04);border-left:3px solid #FF6B35;border-radius:0 4px 4px 0;">
-    <div style="font-size:11px;color:#FF6B35;font-weight:700;min-width:16px;">❽</div>
-    <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.5;"><b style="color:#E0E7FF;">用户确认下单</b>：用户说"就买这个"。<b style="color:#00E5FF;">Workflow</b>接管——编排：生成订单→扣库存→调支付→通知物流→更新CRM。每一步通过<b style="color:#00E5FF;">MCP</b>调用电商后端服务。</div>
+  <div class="flex gap-5 flex-1" style="min-height:0;">
+    <!-- 左栏：单 Agent 内部的状态机与生产级治理 -->
+    <div style="width:660px;display:flex;flex-direction:column;justify-content:space-between;padding:14px 16px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.22);border-radius:8px;">
+      <div>
+        <div class="flex justify-between items-center mb-2">
+          <span style="font-size:15px;font-weight:700;color:#00E5FF;">① 单 Agent 内部控制：有限状态机（FSM / StateGraph）</span>
+          <span style="font-size:11px;padding:2px 8px;background:rgba(0,229,255,0.12);color:#00E5FF;border-radius:4px;">受控状态引擎</span>
+        </div>
+        <div style="font-size:11.5px;color:rgba(224,231,255,0.68);margin-bottom:10px;">
+          为什么纯 `while(true)` 的 ReAct 循环在生产环境不可控？因为缺乏<b style="color:#FF6B35;">显式状态迁移、高危拦截与故障降级</b>。工业级方案引入受控有限状态机：
+        </div>
+
+        <!-- 状态流转图 -->
+        <div style="padding:10px 12px;background:#070B14;border:1px solid rgba(0,229,255,0.25);border-radius:6px;margin-bottom:10px;">
+          <div style="font-size:11px;color:rgba(224,231,255,0.5);margin-bottom:6px;">AGENT RUNTIME FINITE STATE MACHINE (FSM) · 状态流转主干：</div>
+          <div class="flex items-center justify-between gap-1">
+            <div class="state-node" style="background:rgba(0,229,255,0.12);border:1px solid #00E5FF;color:#00E5FF;">INIT<br><span style="font-size:11px;font-weight:400;color:rgba(224,231,255,0.75);">护栏/记忆</span></div>
+            <span style="color:#00E5FF;font-size:11px;">→</span>
+            <div class="state-node" style="background:rgba(168,85,247,0.12);border:1px solid #A855F7;color:#A855F7;">PLANNING<br><span style="font-size:11px;font-weight:400;color:rgba(224,231,255,0.75);">任务拆解</span></div>
+            <span style="color:#00E5FF;font-size:11px;">→</span>
+            <div class="state-node" style="background:rgba(0,229,255,0.15);border:1px solid #00E5FF;color:#E0E7FF;">EXECUTING<br><span style="font-size:11px;font-weight:400;color:rgba(224,231,255,0.75);">受控循环(≤5步)</span></div>
+            <span style="color:#FF6B35;font-size:11px;">→</span>
+            <div class="state-node" style="background:rgba(255,107,53,0.15);border:1px solid #FF6B35;color:#FF6B35;">WAIT_CONFIRM<br><span style="font-size:11px;font-weight:400;color:rgba(224,231,255,0.75);">人工确认挂起</span></div>
+            <span style="color:#22C55E;font-size:11px;">→</span>
+            <div class="state-node" style="background:rgba(34,197,94,0.15);border:1px solid #22C55E;color:#22C55E;">COMPLETED<br><span style="font-size:11px;font-weight:400;color:rgba(224,231,255,0.75);">写回/上报</span></div>
+          </div>
+        </div>
+
+        <!-- 两大核心护航机制 -->
+        <div class="grid grid-cols-2 gap-3">
+          <div style="padding:10px 12px;background:rgba(255,107,53,0.05);border:1px solid rgba(255,107,53,0.22);border-radius:6px;">
+            <div style="font-size:12.5px;font-weight:700;color:#FF6B35;margin-bottom:4px;"><i class="fas fa-user-check mr-1"></i> Human-in-the-Loop（人在回路）</div>
+            <div style="font-size:11px;color:rgba(224,231,255,0.72);line-height:1.55;">
+              当模型意图调用 <code style="color:#FF6B35;">create_order</code> 等高危写工具时，<code style="color:#FF6B35;">ConfirmationService</code> 立即拦截并冻结现场快照存入 Redis，向前端推送确认卡片；用户点击“确认下单”后才恢复执行。
+            </div>
+          </div>
+          <div style="padding:10px 12px;background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.22);border-radius:6px;">
+            <div style="font-size:12.5px;font-weight:700;color:#22C55E;margin-bottom:4px;"><i class="fas fa-life-ring mr-1"></i> ErrorRecovery 三级容错体系</div>
+            <div style="font-size:11px;color:rgba(224,231,255,0.72);line-height:1.55;">
+              • <b style="color:#E0E7FF;">L1 指数退避重试</b>：网络抖动/429限流自动重试<br>
+              • <b style="color:#E0E7FF;">L2 模型/工具降级</b>：主模型挂切备用模型；向量检索挂切关键词检索<br>
+              • <b style="color:#E0E7FF;">L3 友好兜底响应</b>：返回安全话术并转人工客服
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="font-size:11.5px;color:#00E5FF;padding-top:6px;border-top:1px dashed rgba(0,229,255,0.2);">
+        <b>关键结论：</b>Workflow 管的是<b>“怎么做（控制流与可靠性）”</b>，让单 Agent 达到生产级 SLA。
+      </div>
+    </div>
+
+    <!-- 右栏：多智能体协作拓扑 -->
+    <div class="flex-1 flex flex-col justify-between" style="padding:14px 16px;background:rgba(168,85,247,0.03);border:1px solid rgba(168,85,247,0.25);border-radius:8px;">
+      <div>
+        <div class="flex justify-between items-center mb-2">
+          <span style="font-size:15px;font-weight:700;color:#A855F7;">② Multi-Agent 多智能体协作</span>
+          <span style="font-size:11px;padding:2px 8px;background:rgba(168,85,247,0.15);color:#A855F7;border-radius:4px;">角色分工与协作</span>
+        </div>
+        <div style="font-size:11.5px;color:rgba(224,231,255,0.68);margin-bottom:10px;">
+          当一个 Agent 挂载超过 <b style="color:#FF6B35;">15~20 个工具</b>、System Prompt 塞满多个领域的冲突规则时，选错工具率急剧上升。此时需按职责拆分为<b style="color:#A855F7;">多智能体协作拓扑</b>：
+        </div>
+
+        <div class="flex flex-col gap-2.5">
+          <div style="padding:9px 12px;background:#070B14;border-left:3px solid #00E5FF;border-radius:4px;">
+            <div style="font-size:12.5px;font-weight:700;color:#00E5FF;">模式 A：Router / Triage（前台路由分诊）</div>
+            <div style="font-size:11px;color:rgba(224,231,255,0.7);line-height:1.5;">
+              入口轻量 Triage Agent 识别意图，一把将请求分发给<b>导购专家 Agent</b>、<b>售后退换货 Agent</b> 或<b>物流查询 Agent</b>（单跳高效）。
+            </div>
+          </div>
+
+          <div style="padding:9px 12px;background:#070B14;border-left:3px solid #A855F7;border-radius:4px;">
+            <div style="font-size:12.5px;font-weight:700;color:#A855F7;">模式 B：Supervisor-Workers（主管-专家协同）</div>
+            <div style="font-size:11px;color:rgba(224,231,255,0.7);line-height:1.5;">
+              中央 Supervisor 拆解跨领域复杂任务（如“帮我配齐一套川西徒步装备并核算凑单满减”），先后调度<b>穿搭知识 Agent</b> 与<b>价格库存 Agent</b>，最终汇总回复。
+            </div>
+          </div>
+
+          <div style="padding:9px 12px;background:#070B14;border-left:3px solid #FF6B35;border-radius:4px;">
+            <div style="font-size:12.5px;font-weight:700;color:#FF6B35;">模式 C：Handoff（状态接力移交）</div>
+            <div style="font-size:11px;color:rgba(224,231,255,0.7);line-height:1.5;">
+              导购 Agent 聊到用户抱怨旧订单质量问题时，携带浓缩会话摘要（Context Handoff）平滑移交给售后专员 Agent，无需用户重述。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="font-size:11.5px;color:#A855F7;padding-top:6px;border-top:1px dashed rgba(168,85,247,0.25);">
+        <b>架构原则：</b>先用单 Agent + Workflow 跑通业务；只有当工具集膨胀或职责冲突时，才拆分为 Multi-Agent。
+      </div>
+    </div>
   </div>
 </div>
-<div style="margin-top:6px;display:flex;gap:8px;">
-  <div style="flex:1;padding:4px 8px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.08);border-radius:3px;font-size:11px;color:rgba(224,231,255,0.45);text-align:center;"><b style="color:#00E5FF;">❶-❺</b> 思考阶段：Prompt+Memory+Knowledge+Tool为LLM准备上下文</div>
-  <div style="flex:1;padding:4px 8px;background:rgba(255,107,53,0.03);border:1px solid rgba(255,107,53,0.08);border-radius:3px;font-size:11px;color:rgba(224,231,255,0.45);text-align:center;"><b style="color:#FF6B35;">❻-❽</b> 执行阶段：LLM决策+Workflow编排+MCP连接后端</div>
-</div>
-</div></body></html>
+</body></html>

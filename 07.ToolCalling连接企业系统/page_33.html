@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>课后练习</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.mb-2{margin-bottom:8px}
+.ex{padding:9px 11px;background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:4px}
+.ex .t{font-size:11.5px;color:#00E5FF;font-weight:700;margin-bottom:3px}
+.ex .b{font-size:10.5px;color:rgba(224,231,255,0.72);line-height:1.6}
+.k{display:inline-block;font-size:9px;color:#FF6B35;background:rgba(255,107,53,0.12);border:1px solid rgba(255,107,53,0.3);border-radius:3px;padding:1px 5px;margin-left:5px;vertical-align:1px}
+</style></head>
+<body>
+<div class="s" style="padding:28px 56px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 08</div>
+  <h1 class="mb-2">课后练习 — 每题对应一个核心知识点，动手才有结论</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px;"></div>
+
+  <div style="flex:1;display:flex;gap:14px;">
+    <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+      <div class="ex"><div class="t">练习 1 · 手写 function definition<span class="k">Function Calling 协议</span></div>
+        <div class="b">不看课件，给 <code>queryStock</code> 手写一份 function definition JSON（name / description / parameters，含 productId 的 JSON Schema）。
+          写完对照 <code>mcp-product-server</code> 的 <code>McpServerConfig.java</code> 里 <code>productIdSchema</code> 与 Tool 注册，逐字段说清对应关系。</div></div>
+      <div class="ex"><div class="t">练习 2 · 加一个 Tool，验证自动发现<span class="k">MCP Tool 发现</span></div>
+        <div class="b">在 product-server 加 <code>queryCategory</code>（按商品 ID 查类别，改 <code>McpServerConfig</code> + <code>ProductRepository</code>），
+          重启后在 agent-runtime 控制台确认它被自动发现并包装——<strong style="color:#E0E7FF;">验证"加 Tool 不用改 Client"</strong>，并说明 Schema 写错时 LLM 会怎么传错参数。</div></div>
+      <div class="ex"><div class="t">练习 3 · 路由扩一类<span class="k">LLM 路由</span></div>
+        <div class="b">给 <code>LlmRouter</code> 的三分类加一类（如 LOGISTICS 查物流），改分类 Prompt 与 <code>Route</code> 枚举，
+          用 <code>POST /api/agent/recommend</code> 验证，看 <code>logs/llm-route.log</code>；回答：为什么 temperature 必须是 0？</div></div>
+      <div class="ex"><div class="t">练习 4 · 给写操作设计幂等键<span class="k">幂等</span></div>
+        <div class="b">对照 <code>mcp-knowledge-server</code> 的 <code>save_memory</code>（<code>MemoryService.save()</code> 裸 INSERT）或假设在 <code>mcp-product-server</code> 新增一个 <code>place_order</code> 下单 Tool，设计完整幂等方案：幂等键的构成、去重表 DDL（或唯一索引）、重复请求返回什么，并写出"超时后重试"的完整时序。</div></div>
+    </div>
+
+    <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+      <div class="ex"><div class="t">练习 5 · 给 queryProductInfo 上限流<span class="k">限流</span></div>
+        <div class="b">用 Guava RateLimiter（或 Redis+Lua）给 <code>queryProductInfo</code> 配 10 次/分钟，写一段循环调用的测试，
+          观察第 11 次返回什么。三选一（排队 / 降级 / 429+Retry-After）里你选哪个，写清理由与取舍。</div></div>
+      <div class="ex"><div class="t">练习 6 · 超时重连实验与补偿设计<span class="k">超时 · 补偿</span></div>
+        <div class="b">把 <code>McpProductClient</code> 的 <code>requestTimeout</code> 改成 1 秒并停掉 product-server，观察调用报错与 <code>ensureConnected()</code> 10 秒冷却重连日志；
+          再为"下单 → 扣库存 → 发通知"三步设计补偿链：哪些有反向操作、哪些转人工、对账比什么。</div></div>
+      <div class="ex"><div class="t">练习 7 · 从现有日志拼出一条审计记录<span class="k">审计</span></div>
+        <div class="b">执行一次商品价格查询后，从控制台 <code>[MCP] 调用 Tool</code> 日志与 <code>logs/llm-chat.log</code> 拼出一条审计记录
+          （谁 / 何时 / 调了什么 / 参数 / 结果 / 耗时），对照审计表字段清单，指出 <code>v1.4</code> 现有日志还缺什么、为什么不能用文本日志代替审计表。</div></div>
+      <div class="ex" style="background:rgba(255,107,53,0.08);border-left:3px solid #FF6B35;">
+        <div class="t" style="color:#FF6B35;">练习 8 · 综合大作业（课后一周内交）<span class="k">五件套综合</span></div>
+        <div class="b">选一个你企业里真实的 API（订单、审批、工单都行），按<strong style="color:#E0E7FF;">企业治理五件套</strong>写一份治理设计：
+          限流配额（粒度+算法+超限策略）、幂等键（构成+判重点）、超时档位、补偿（正向/补偿 Tool 对+对账）、审计字段。
+          要求每项写"不做的后果"——这门课的重点不是怎么调 Tool，是怎么管 Tool。</div></div>
+    </div>
+  </div>
+</div>
+</body></html>

@@ -1,62 +1,148 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>企业优化</title>
+<title>完整 10 步企业级 RAG Pipeline — 离线加工与在线服务双链路</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-</style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 05</div>
-<h1 class="mb-2">企业优化 — 生产环境必须做的四件事</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+.s h1{font-size:28px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px}
+.mb-2{margin-bottom:5px}
+.step{flex:1;display:flex;flex-direction:column;padding:7px 9px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.15);border-radius:5px;justify-content:space-between}
+.step .n{font-size:11px;color:#00E5FF;font-weight:700;letter-spacing:0.5px}
+.step .t{font-size:12px;color:#E0E7FF;font-weight:700;margin:1px 0 2px}
+.step .b{font-size:11px;color:rgba(224,231,255,0.65);line-height:1.45}
+.tag{display:inline-block;font-size:11px;padding:1px 5px;border-radius:3px;margin-top:2px}
+</style></head>
+<body>
+<div class="s" style="padding:18px 46px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 05 · 流水线全景</div>
+  <h1 class="mb-2">完整 10 步企业级 RAG Pipeline — 离线加工与在线服务双链路</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
 
-<div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-  <div style="display:flex;gap:14px;margin-bottom:14px;">
-    <div style="flex:1;padding:14px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:6px;">
-      <div style="font-size:14px;color:#A855F7;font-weight:700;margin-bottom:6px;">🔍 Hybrid Search</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
-        <strong style="color:#E0E7FF;">问题：</strong>向量检索对型号/SKU 不敏感<br>
-        <strong style="color:#E0E7FF;">方案：</strong>向量 + BM25 关键词融合<br>
-        <strong style="color:#E0E7FF;">实现：</strong>pgvector + PostgreSQL tsvector<br>
-        <strong style="color:#A855F7;">优先级：第2个做</strong>
+  <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+    <!-- 第一行：离线数据加工链路 (Steps 01~05) -->
+    <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+      <div style="font-size:12.5px;color:#00E5FF;font-weight:700;display:flex;align-items:center;gap:6px;">
+        <span>📦 离线数据加工链路 (Offline Ingestion Pipeline, 01~05)</span>
+      </div>
+      <div style="display:flex;gap:8px;flex:1;">
+        <!-- 01 -->
+        <div class="step">
+          <div>
+            <div class="n">STEP 01</div>
+            <div class="t">数据接入 (Ingestion)</div>
+            <div class="b">多源采集：MySQL CDC 增量、文档上传、对象存储 S3 监听与 API 抓取。</div>
+          </div>
+          <div class="tag" style="background:rgba(34,197,94,0.15);color:#22C55E;">Demo ✓ JSON 导入</div>
+        </div>
+        <!-- 02 -->
+        <div class="step">
+          <div>
+            <div class="n">STEP 02</div>
+            <div class="t">解析清洗 (Parsing)</div>
+            <div class="b">版面感知解析（Docling / MinerU 保留多栏与表格结构）、OCR 图像提取、去噪清洗。</div>
+          </div>
+          <div class="tag" style="background:rgba(234,179,8,0.15);color:#EAB308;">生产必须版面感知</div>
+        </div>
+        <!-- 03 -->
+        <div class="step">
+          <div>
+            <div class="n">STEP 03</div>
+            <div class="t">分块切分 (Chunking)</div>
+            <div class="b">父子块切分（Parent-Child）、递归语义分块、Anthropic Contextual 篇章背景注入。</div>
+          </div>
+          <div class="tag" style="background:rgba(34,197,94,0.15);color:#22C55E;">Demo ✓ 单商品单Chunk</div>
+        </div>
+        <!-- 04 -->
+        <div class="step">
+          <div>
+            <div class="n">STEP 04</div>
+            <div class="t">元数据提取 (Metadata)</div>
+            <div class="b">抽取文档层级、租户 ID、时间戳、权限标签，生成 JSONB metadata 供后续硬约束。</div>
+          </div>
+          <div class="tag" style="background:rgba(34,197,94,0.15);color:#22C55E;">Demo ✓ 类别/品牌</div>
+        </div>
+        <!-- 05 -->
+        <div class="step">
+          <div>
+            <div class="n">STEP 05</div>
+            <div class="t">向量化与索引 (Indexing)</div>
+            <div class="b">调用 BGE-M3 嵌入 1024 维；构建 pgvector HNSW 向量索引 + PG tsvector BM25 倒排索引。</div>
+          </div>
+          <div class="tag" style="background:rgba(34,197,94,0.15);color:#22C55E;">Demo ✓ pgvector 索引</div>
+        </div>
       </div>
     </div>
-    <div style="flex:1;padding:14px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:6px;">
-      <div style="font-size:14px;color:#A855F7;font-weight:700;margin-bottom:6px;">📊 Rerank 精排</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
-        <strong style="color:#E0E7FF;">问题：</strong>向量检索排序不够精确<br>
-        <strong style="color:#E0E7FF;">方案：</strong>交叉编码器重新打分<br>
-        <strong style="color:#E0E7FF;">实现：</strong>BGE-Reranker 或 Cohere API<br>
-        <strong style="color:#A855F7;">优先级：第3个做</strong>
+
+    <!-- 第二行：在线检索服务链路 (Steps 06~10) -->
+    <div style="flex:1.15;display:flex;flex-direction:column;gap:4px;">
+      <div style="font-size:12.5px;color:#FF6B35;font-weight:700;display:flex;align-items:center;gap:6px;">
+        <span>🔍 在线检索生成链路 (Online Serving Pipeline, 06~10)</span>
+      </div>
+      <div style="display:flex;gap:8px;flex:1;">
+        <!-- 06 -->
+        <div class="step" style="border-color:rgba(255,107,53,0.25);">
+          <div>
+            <div class="n" style="color:#FF6B35;">STEP 06</div>
+            <div class="t">查询改写与门控 (Rewrite)</div>
+            <div class="b">前置意图门控（Demo 白名单）、多轮指代消解、HyDE 假设生成、Multi-Query 扩写。</div>
+          </div>
+          <div class="tag" style="background:rgba(34,197,94,0.15);color:#22C55E;">Demo ✓ 白名单门控</div>
+        </div>
+        <!-- 07 -->
+        <div class="step" style="border-color:rgba(255,107,53,0.25);">
+          <div>
+            <div class="n" style="color:#FF6B35;">STEP 07</div>
+            <div class="t">真正混合检索 (Hybrid)</div>
+            <div class="b"><strong style="color:#00E5FF;">Dense 向量</strong> + <strong style="color:#22C55E;">Sparse BM25</strong> 双路召回 Top-20 $\to$ <strong style="color:#FF6B35;">RRF 融合</strong>，辅以 Metadata 过滤。</div>
+          </div>
+          <div class="tag" style="background:rgba(234,179,8,0.15);color:#EAB308;">Demo 单路 $\to$ 生产双路</div>
+        </div>
+        <!-- 08 -->
+        <div class="step" style="border-color:rgba(255,107,53,0.25);">
+          <div>
+            <div class="n" style="color:#FF6B35;">STEP 08</div>
+            <div class="t">交叉精排 (Reranking)</div>
+            <div class="b">Cross-Encoder 模型（bge-reranker-v2-m3）深度打分重排，取高相关 Top-3~5。</div>
+          </div>
+          <div class="tag" style="background:rgba(168,85,247,0.15);color:#A855F7;">生产必备精排</div>
+        </div>
+        <!-- 09 (重点强化) -->
+        <div class="step" style="border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.06);flex:1.35;">
+          <div>
+            <div class="n" style="color:#EF4444;">STEP 09 · 核心强化</div>
+            <div class="t" style="color:#EF4444;">上下文组装与压缩 (Assemble)</div>
+            <div class="b" style="font-size:11px;line-height:1.45;">
+              ① <strong style="color:#E0E7FF;">去重压缩：</strong>剔除跨片段重复文本；<br>
+              ② <strong style="color:#E0E7FF;">Token 预算配额：</strong>知识(40%)、历史(30%)超限截断；<br>
+              ③ <strong style="color:#22C55E;">防“迷失在中间”排序：</strong>最强证据置顶首与尾，弱证据放中间；<br>
+              ④ <strong style="color:#FF6B35;">低置信度拒答兜底：</strong>最高相似度 &lt; 0.4 直接拒答防幻觉！
+            </div>
+          </div>
+          <div class="tag" style="background:rgba(34,197,94,0.15);color:#22C55E;">Demo ✓ buildContext()</div>
+        </div>
+        <!-- 10 -->
+        <div class="step" style="border-color:rgba(255,107,53,0.25);">
+          <div>
+            <div class="n" style="color:#FF6B35;">STEP 10</div>
+            <div class="t">受控生成与溯源 (Generate)</div>
+            <div class="b">严格基于证据回答，角标溯源引用（Citation <code style="color:#00E5FF;">[1]</code>），防注入隔离，RAG 评测闭环。</div>
+          </div>
+          <div class="tag" style="background:rgba(34,197,94,0.15);color:#22C55E;">Demo ✓ 隔离标签约束</div>
+        </div>
       </div>
     </div>
   </div>
-  <div style="display:flex;gap:14px;margin-bottom:14px;">
-    <div style="flex:1;padding:14px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:6px;">
-      <div style="font-size:14px;color:#A855F7;font-weight:700;margin-bottom:6px;">📊 RAG Evaluation</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
-        <strong style="color:#E0E7FF;">问题：</strong>"为什么检索不到？"没有量化依据<br>
-        <strong style="color:#E0E7FF;">方案：</strong>Recall / Precision / Answer Relevancy<br>
-        <strong style="color:#E0E7FF;">实现：</strong>评测集 + 自动计算指标<br>
-        <strong style="color:#A855F7;">优先级：第4个做</strong>
-      </div>
-    </div>
-    <div style="flex:1;padding:14px;background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.2);border-radius:6px;">
-      <div style="font-size:14px;color:#22C55E;font-weight:700;margin-bottom:6px;">⚡ Cache 缓存</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.6;">
-        <strong style="color:#E0E7FF;">问题：</strong>相同问题反复检索+生成<br>
-        <strong style="color:#E0E7FF;">方案：</strong>语义缓存（相似问题共用结果）<br>
-        <strong style="color:#E0E7FF;">实现：</strong>Redis 存问题 Embedding + 结果<br>
-        <strong style="color:#22C55E;">优先级：第1个做（最简单最有效）</strong>
-      </div>
-    </div>
-  </div>
 
-  <div style="padding:12px 16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;">
-    <div style="font-size:14px;color:#00E5FF;font-weight:600;text-align:center;">生产落地优先级：Cache → Hybrid Search → Rerank → Evaluation</div>
-    <div style="font-size:12px;color:rgba(224,231,255,0.5);text-align:center;margin-top:4px;">改动最小、效果最明显的先做。每个都可以在现有 Demo 代码上扩展。</div>
+  <!-- 底部：端到端质量反馈闭环与排障指南 -->
+  <div style="margin-top:6px;padding:5px 12px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.22);border-radius:4px;display:flex;justify-content:space-between;align-items:center;">
+    <div style="font-size:11px;color:rgba(224,231,255,0.85);line-height:1.45;">
+      <strong style="color:#A855F7;">🔄 端到端质量反馈闭环：</strong>
+      ① 检索评估（Recall@K/MRR/nDCG） $\to$ ② 生成评估（忠实度/相关性） $\to$ ③ 线上 Bad Case 收集回流 $\to$ ④ 索引与切分配置持续优化。
+    </div>
+    <div style="font-size:11px;color:#FF6B35;font-weight:700;">
+      排障：漏召回查07双路 ｜ 粗排不准查08精排 ｜ 幻觉查09组装与10受控生成
+    </div>
   </div>
 </div>
-</div></body></html>
+</body></html>

@@ -17,5 +17,17 @@ Demo 中有两个 MCP Server：mcp-product-server（端口 8081）提供商品�
 ## Key Emphasis
 MCP 的核心价值不是"技术先进"，而是"标准化"。标准化意味着：Tool 可以复用、可以独立部署、可以被任何支持 MCP 的 Agent 调用。这是企业架构的基本原则。
 
+## Optional Extension
+**学员问：我们只有一个 Agent、两三个 Tool，值得上 MCP 吗？**
+答：按消费方数量判断，不按技术新旧。MCP 摊薄的是集成成本，只有一个消费方时它摊不薄。
+Demo 做法：两个 MCP Server（8081 商品、8082 知识）+ agent-runtime 作 Client，`McpKnowledgeClient` / `McpProductClient` 只走协议不碰数据库——双 Server 是为了演示复用与独立部署这两个收益点。
+生产做法：一个消费方 → 直连 + 治理三件（超时/幂等/审计）即可；两个以上消费方（多个 Agent、外部系统、低代码平台）或需要独立扩缩容/独立权限边界 → 上 MCP；工具规模化后由 MCP Gateway 统一注册/鉴权/限流/审计（第十一课支柱一）。取舍：MCP 多一跳网络，换来的是换库不改消费方、Server 独立扩缩容。
+
+## Take Away
+上不上 MCP 的判据是"这个能力有几个消费方"——单消费方直连最省，两个以上（或多 Agent、多端）才用协议摊薄集成与治理成本。
+
+## Why This Slide Matters
+跳过这页，学员会走向两个极端：给单 Agent 单工具也搭 MCP 全家桶（多一层网络和运维没有复用收益），或把该共享的工具焊死在 Agent 进程里、第二个消费方来时被迫重构。
+
 ## Transition
 MCP 协议定义了四大能力：Tool、Resource、Prompt、Sampling。每个能力解决不同的问题。

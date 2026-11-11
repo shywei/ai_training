@@ -1,77 +1,83 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>v3.0 Demo 全貌</title>
+<title>企业优化 — 生产环境必须做的四件事</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.s h1{font-size:30px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px}
+.mb-2{margin-bottom:6px}
+.card{flex:1;padding:12px 14px;border-radius:6px;display:flex;flex-direction:column;justify-content:space-between}
+.card .t{font-size:13.5px;font-weight:700;margin-bottom:4px}
+.card .b{font-size:11px;color:rgba(224,231,255,0.68);line-height:1.6}
 </style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
-<div class="mb-2 sn">CHAPTER 06</div>
-<h1 class="mb-2">v3.0 Demo 全貌 — 做成了什么</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+<div class="s" style="padding:22px 50px;display:flex;flex-direction:column;">
+  <div class="mb-2 sn">CHAPTER 05 · 生产优化</div>
+  <h1 class="mb-2">企业优化 — 生产环境必须做的四件事</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px;"></div>
 
-<div style="flex:1;display:flex;gap:20px;">
-  <!-- 左：功能清单 + v2.0 对比 -->
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">v3.0 vs v2.0 新增能力</div>
-    <div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px;margin-bottom:10px;">
-      <div style="display:flex;gap:8px;margin-bottom:6px;">
-        <div style="flex:1;font-size:11px;color:rgba(224,231,255,0.4);text-align:center;padding:4px;background:rgba(255,255,255,0.02);border-radius:3px;">v2.0</div>
-        <div style="flex:1;font-size:11px;color:#22C55E;text-align:center;padding:4px;background:rgba(34,197,94,0.06);border-radius:3px;">v3.0 新增</div>
+  <div style="flex:1;display:flex;flex-direction:column;gap:12px;">
+    <!-- 第一行：缓存与混合检索 -->
+    <div style="flex:1;display:flex;gap:14px;">
+      <!-- Cache 语义缓存 -->
+      <div class="card" style="background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.25);">
+        <div>
+          <div class="t" style="color:#22C55E;">⚡ 1 · Cache 语义缓存（性价比最高）</div>
+          <div class="b">
+            <strong style="color:#E0E7FF;">痛点：</strong>高频相似问题（如“推荐轻薄本”）反复重复检索与生成，白烧 Token 与延迟。<br>
+            <strong style="color:#E0E7FF;">方案：</strong>Redis 缓存高频问题 Embedding 向量与回答，相似度 &gt; 0.92 直接秒级命中返回。<br>
+            <strong style="color:#22C55E;">落地优先级：第 1 个做（改动最小、见效最快，延迟从 3s 降至 30ms）</strong>
+          </div>
+        </div>
       </div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:2;">
-        <span style="color:rgba(224,231,255,0.3);">对话 + 记忆 + 画像</span> → <span style="color:#22C55E;">+ 商品知识检索</span><br>
-        <span style="color:rgba(224,231,255,0.3);">MySQL 精确查画像</span> → <span style="color:#22C55E;">+ pgvector 语义检索记忆</span><br>
-        <span style="color:rgba(224,231,255,0.3);">Redis 只存会话</span> → <span style="color:#22C55E;">+ 自动沉淀到 pgvector</span><br>
-        <span style="color:rgba(224,231,255,0.3);">上下文 = 画像 + 历史</span> → <span style="color:#22C55E;">+ 记忆 + 知识</span>
-      </div>
-    </div>
 
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">端到端数据流</div>
-    <div style="padding:12px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.12);border-radius:6px;margin-bottom:10px;">
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:2.2;">
-        <span style="color:#00E5FF;">用户提问</span> → "推荐一台写代码的笔记本"<br>
-        &nbsp;&nbsp;↓ <span style="color:rgba(224,231,255,0.35);">MemoryManager.buildContext()</span><br>
-        <span style="color:#00E5FF;">① MySQL</span> → 用户画像（偏好、事实）<br>
-        <span style="color:#A855F7;">② pgvector</span> → 语义检索用户记忆（历史对话）<br>
-        <span style="color:#EAB308;">③ Redis</span> → 当前会话历史（沉淀后为空）<br>
-        <span style="color:#22C55E;">④ pgvector</span> → 关键词过滤 → 语义检索商品知识<br>
-        &nbsp;&nbsp;↓ <span style="color:rgba(224,231,255,0.35);">组装 context → LLM 生成</span><br>
-        <span style="color:#FF6B35;">输出</span> → 推荐 ThinkPad X1 Carbon，配置...，适合...
+      <!-- 真正混合检索 -->
+      <div class="card" style="background:rgba(0,229,255,0.06);border:2px solid rgba(0,229,255,0.25);">
+        <div>
+          <div class="t" style="color:#00E5FF;">🔍 2 · 真正的 Hybrid Search（稠密+稀疏+RRF）</div>
+          <div class="b">
+            <strong style="color:#E0E7FF;">痛点：</strong>纯向量检索对型号（ThinkPad X1）、SKU、错误码极不敏感。<br>
+            <strong style="color:#E0E7FF;">标准范式：</strong><strong style="color:#00E5FF;">pgvector 稠密向量</strong> + <strong style="color:#22C55E;">PostgreSQL tsvector BM25</strong> 双路召回 $\to$ <strong style="color:#FF6B35;">RRF 融合</strong>。<br>
+            <strong style="color:#EF4444;">P0 澄清：</strong>元数据过滤（WHERE 约束）不是混合检索！必须是双路打分与 RRF 融合。<br>
+            <strong style="color:#00E5FF;">落地优先级：第 2 个做（彻底解决型号搜不准硬伤）</strong>
+          </div>
+        </div>
       </div>
     </div>
 
+    <!-- 第二行：Query Rewrite 与评测 -->
+    <div style="flex:1;display:flex;gap:14px;">
+      <!-- Query Rewrite 与多查询扩展 -->
+      <div class="card" style="background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.2);">
+        <div>
+          <div class="t" style="color:#A855F7;">🔄 3 · Query Rewrite 与多查询扩展（解决口语不对齐）</div>
+          <div class="b">
+            <strong style="color:#E0E7FF;">痛点：</strong>用户口语表达模糊、含代词指代（“那个商务本”）或多意图，直接检索严重失准。<br>
+            <strong style="color:#E0E7FF;">方案：</strong>快模型消解指代补齐实体、Multi-Query 并发扩展 3 个子查询、HyDE 假设性文档检索。<br>
+            <strong style="color:#A855F7;">落地优先级：第 3 个做（多轮与复杂表达场景首选，召回率提升 30%+；Rerank 已在 P12/P15 落地）</strong>
+          </div>
+        </div>
+      </div>
 
+      <!-- RAG Evaluation 量化评测 -->
+      <div class="card" style="background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.15);">
+        <div>
+          <div class="t" style="color:#E0E7FF;">📈 4 · RAG Evaluation 量化评测（度量衡闭环）</div>
+          <div class="b">
+            <strong style="color:#E0E7FF;">痛点：</strong>调切块大小、换 Embedding、调阈值全凭个人主观感觉，改动是否导致退化无人知晓。<br>
+            <strong style="color:#E0E7FF;">方案：</strong>建立黄金评测集，自动跑通检索标准指标（Recall/MRR）与 Ragas 端到端诊断指标。<br>
+            <strong style="color:#E0E7FF;">落地优先级：第 4 个做（但基线测试集越早建越好，保障调优不退化）</strong>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- 右：关键设计 + 演示步骤 -->
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:10px;">关键设计决策</div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
-      <div style="padding:10px 12px;background:rgba(34,197,94,0.06);border-left:3px solid #22C55E;border-radius:0 5px 5px 0;">
-        <div style="font-size:12px;color:#22C55E;font-weight:600;">数据分层</div>
-        <div style="font-size:10px;color:rgba(224,231,255,0.45);">商品描述 → pgvector（语义检索）| 价格库存 → MySQL（第七课 Tool）</div>
-      </div>
-      <div style="padding:10px 12px;background:rgba(168,85,247,0.06);border-left:3px solid #A855F7;border-radius:0 5px 5px 0;">
-        <div style="font-size:12px;color:#A855F7;font-weight:600;">手动索引</div>
-        <div style="font-size:10px;color:rgba(224,231,255,0.45);">不自动加载，前端按钮触发 POST /api/knowledge/index</div>
-      </div>
-      <div style="padding:10px 12px;background:rgba(234,179,8,0.06);border-left:3px solid #EAB308;border-radius:0 5px 5px 0;">
-        <div style="font-size:12px;color:#EAB308;font-weight:600;">自动沉淀</div>
-        <div style="font-size:10px;color:rgba(224,231,255,0.45);">每 10 条消息（5 轮）→ Redis 消息沉淀到 pgvector → 清空 Redis</div>
-      </div>
-      <div style="padding:10px 12px;background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:0 5px 5px 0;">
-        <div style="font-size:12px;color:#00E5FF;font-weight:600;">记忆不重叠</div>
-        <div style="font-size:10px;color:rgba(224,231,255,0.45);">MySQL 存结构化画像（结论）| pgvector 存对话片段（原始记忆）</div>
-      </div>
+  <div style="margin-top:10px;padding:7px 16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:5px;display:flex;justify-content:space-between;align-items:center;">
+    <div style="font-size:11.5px;color:rgba(224,231,255,0.75);">
+      <strong style="color:#00E5FF;">生产落地路径：</strong>Cache 降成本延时 $\to$ 真正 Hybrid Search 保型号 $\to$ Query Rewrite 拓召回 $\to$ Evaluation 护航回归。
     </div>
-
-    <div style="padding:12px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);border-radius:6px;">
-      <div style="font-size:12px;color:#FF6B35;font-weight:700;margin-bottom:4px;">v3.0 完整能力</div>
-      <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.8;">✅ 商品知识加载（手动触发，Embedding 过程可见）<br>✅ 语义检索商品（关键词过滤 + pgvector 向量搜索）<br>✅ 用户记忆语义检索（pgvector 替代 MySQL 精确查询）<br>✅ 自动沉淀（Redis → pgvector，每 5 轮触发）<br>✅ 数据分层（描述放向量库，价格放 MySQL）<br>✅ context 四部分组装（画像+记忆+对话+知识）</div>
-    </div>
+    <div style="font-size:11px;color:#FF6B35;font-weight:700;">均可在现有 Demo RetrievalService 上平滑扩展</div>
   </div>
 </div>
-</div></body></html>
+</body></html>

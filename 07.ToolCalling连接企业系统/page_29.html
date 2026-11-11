@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>Demo vs 生产</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+.mb-2{margin-bottom:8px}
+.g{padding:6px 10px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px}
+.g .t{font-size:11.5px;color:#FF6B35;font-weight:700;margin-bottom:2px}
+.g .b{font-size:11px;color:rgba(224,231,255,0.78);line-height:1.4}
+.g .b b{color:#E0E7FF}
+.g.ok{background:rgba(34,197,94,0.06);border-left:3px solid #22C55E}
+.g.ok .t{color:#22C55E}
+</style></head><body>
+<div class="s" style="padding:20px 48px;display:flex;flex-direction:column;">
+<div class="mb-2 sn">CHAPTER 07 · 生产落地</div>
+<h1 class="mb-2" style="font-size:28px!important;">Demo vs 生产 — 十二项差距对照（问题 / 风险 / 落地标准）</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+<div style="flex:1;display:flex;gap:12px;">
+  <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+    <div class="g"><div class="t">1 协议与认证</div>
+      <div class="b"><b>问题：</b>明文密码，且沿用早期有状态 SSE 会话，多实例网关难扩展。</div>
+      <div class="b"><b>怎么办：</b>升级 <b>MCP 2026 无状态请求模型</b> + <b>OAuth 2.1</b> 标准鉴权与 JWT 令牌。</div></div>
+    <div class="g"><div class="t">2 权限与危险分级</div>
+      <div class="b"><b>问题：</b>任何 Agent 能调所有 Tool，高危操作无审批拦截。</div>
+      <div class="b"><b>怎么办：</b><b>工具三级安全矩阵（Read/Write/Destructive）</b>，高危强制挂起走人机协同审批（HITL）。</div></div>
+    <div class="g"><div class="t">3 幂等</div>
+      <div class="b"><b>问题：</b>无幂等键：<code>save_memory</code> 重复 INSERT，重试产生重复订单。</div>
+      <div class="b"><b>怎么办：</b>强制绑定 idempotency-key（requestId+参数哈希）+ Redis/DB 唯一去重表。</div></div>
+    <div class="g"><div class="t">4 超时与容错</div>
+      <div class="b"><b>问题：</b>写死 10s/15s，超时无退避重试与熔断（第八课手写补齐）。</div>
+      <div class="b"><b>怎么办：</b>分级超时（读 3s/写 10s）+ 指数退避抖动重试 + 熔断降级。</div></div>
+    <div class="g"><div class="t">5 审计留痕</div>
+      <div class="b"><b>问题：</b>仅控制台文本日志，无全链路分布式 Trace 与持久化审计。</div>
+      <div class="b"><b>怎么办：</b>审计表（traceId/租户/参数结果哈希/耗时/状态）+ 敏感字段脱敏存储。</div></div>
+    <div class="g"><div class="t">6 限流与防雪崩</div>
+      <div class="b"><b>问题：</b>无速率限制，模型死循环批量调用可瞬间击垮下游 ERP。</div>
+      <div class="b"><b>怎么办：</b>按 Tool 配置分布式令牌桶/滑动窗口限流，超限触发 429 降级保护。</div></div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+    <div class="g"><div class="t">7 事务与补偿</div>
+      <div class="b"><b>问题：</b>跨系统写操作失败即终止，无反向冲正与对账。</div>
+      <div class="b"><b>怎么办：</b>正向/补偿 Tool 成对设计，结合 Saga 事务与定时对账补偿。</div></div>
+    <div class="g"><div class="t">8 缓存优化</div>
+      <div class="b"><b>问题：</b>无语义缓存，相同问题每次都触发高延迟检索与模型生成。</div>
+      <div class="b"><b>怎么办：</b>语义缓存（Embedding 向量匹配命中 + TTL），价格库存等强一致场景禁用。</div></div>
+    <div class="g"><div class="t">9 观测与指标</div>
+      <div class="b"><b>问题：</b>缺少 Tool 成功率、延迟 P99、Token 消耗与成本归因。</div>
+      <div class="b"><b>怎么办：</b>接入 Prometheus + Grafana 指标看板，与 OpenTelemetry Trace 联动。</div></div>
+    <div class="g"><div class="t">10 运行时安全纵深</div>
+      <div class="b"><b>问题：</b>Tool 入参无白名单校验，未防范间接提示词注入。</div>
+      <div class="b"><b>怎么办：</b><b>入参正则白名单严格校验</b> + 多租户上下文隔离 + 外部返回清洗隔离。</div></div>
+    <div class="g"><div class="t">11 Query 改写与 RAG</div>
+      <div class="b"><b>问题：</b>直接拿用户简短原文搜索，多轮追问上下文缺失导致召回失败。</div>
+      <div class="b"><b>怎么办：</b>检索前执行语义 Query Rewrite，补齐商品实体与意图约束。</div></div>
+    <div class="g ok"><div class="t">落地判断红线</div>
+      <div class="b">Demo 侧重验证协议连通与功能原型；生产落地必须守住<b>安全授权矩阵</b>与<b>治理五件套</b>两条底线。</div></div>
+  </div>
+</div>
+</div></body></html>

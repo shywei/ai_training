@@ -31,8 +31,12 @@ pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.
       <div style="font-size:11px;color:rgba(224,231,255,0.55);line-height:1.5;">对话转为向量，语义检索<br>✅ 语义级别<br>❌ 需要向量 DB<br><strong style="color:#E0E7FF;">适用：</strong>超长对话、企业级</div>
     </div>
   </div>
-  <div style="padding:10px 14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
+  <div style="padding:10px 14px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;margin-bottom:12px;">
     <div style="font-size:13px;color:#E0E7FF;text-align:center;"><strong style="color:#FF6B35;">滑动窗口 + 累积摘要</strong>组合使用最常见。关键词抽取和 Embedding 作为补充。</div>
+  </div>
+  <div style="padding:10px 14px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.22);border-left:3px solid #A855F7;border-radius:5px;">
+    <div style="font-size:12px;color:#A855F7;font-weight:700;margin-bottom:3px;">🛠️ 进阶工程实践：Observation Masking（历史工具大返回折叠裁剪）</div>
+    <div style="font-size:11px;color:rgba(224,231,255,0.65);line-height:1.55;">在引入 Tool Calling 的 Agent 中（第七、八课），真正撑爆 Context Window 的往往不是用户对话，而是历史轮次中动辄数 KB 的 JSON 工具返回结果（<code style="color:#00E5FF;">role=tool</code> Observation）。生产系统通常对超过 N 轮之前的历史 <code style="color:#00E5FF;">role=tool</code> 大返回做<strong>折叠掩码（Masking）或单行摘要替换</strong>（如替换为 <code style="color:#FF6B35;">[Tool output masked: 15 items returned]</code>），仅保留最近 N 轮完整工具输出。</div>
   </div>
 </div>
 <div style="position:absolute;bottom:14px;right:60px;padding:4px 12px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.2);border-radius:12px;font-size:10px;color:#FF6B35;">知识体系</div>

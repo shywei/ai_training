@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>调度机制：PagedAttention、Continuous Batching 与性能权衡</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.s { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:26px 65px; display:flex; flex-direction:column; justify-content:space-between; }
+.s h1 { font-size:28px !important; color:#E0E7FF; font-weight:700; }
+.card { background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.15); border-radius:4px; padding:11px 14px; }
+.badge { font-size:11px; font-weight:700; padding:1px 6px; border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="s">
+  <!-- Header -->
+  <div>
+    <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; margin-bottom:4px;">CHAPTER 04 · 模型文件、量化与算力底座</div>
+    <h1 class="mb-1">调度革命：PagedAttention、Continuous Batching 与推理性能权衡</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:10px;"></div>
+    <div style="font-size:12.5px; color:rgba(224,231,255,0.7); line-height:1.45;">
+      现代推理引擎（vLLM/SGLang）的核心突破：通过<strong>内存分页与迭代级调度打碎气泡</strong>，并在并发、吞吐与延迟之间进行精准权衡。
+    </div>
+  </div>
+
+  <!-- Dual Columns: PagedAttention vs Continuous Batching -->
+  <div class="grid grid-cols-2 gap-4 my-1">
+    <!-- Left: PagedAttention -->
+    <div class="card" style="border-top:3px solid #00E5FF;">
+      <div class="flex justify-between items-center mb-1.5">
+        <span class="badge" style="background:rgba(0,229,255,0.15); color:#00E5FF;">显存池化</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">PagedAttention (vLLM)</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">OS 虚拟内存分页哲学的完美复刻</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.45; margin-bottom:6px;">
+        • <strong>打破连续物理预分配：</strong>传统必须为每个请求预留 8K 连续显存，碎片率高达 80%！<br>
+        • <strong>Block / Page 离散分页：</strong>以 16/32 Token 为一页，显存按需分配，通过逻辑页表（Block Table）在物理离散显存中动态缝合序列。
+      </div>
+      <div style="background:rgba(0,229,255,0.06); padding:6px 10px; border-radius:3px; font-size:11px; color:#00E5FF;">
+        <i class="fas fa-check-double mr-1"></i><strong>收益：</strong>内部碎片从 80% 降至 <strong>&lt; 4%</strong>，同硬件显存并发直接提升 2~4 倍！
+      </div>
+    </div>
+
+    <!-- Right: Continuous Batching -->
+    <div class="card" style="border-top:3px solid #22C55E;">
+      <div class="flex justify-between items-center mb-1.5">
+        <span class="badge" style="background:rgba(34,197,94,0.15); color:#22C55E;">算力调度</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Continuous Batching (Orca)</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">Iteration 级别微调度，彻底消除气泡</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.45; margin-bottom:6px;">
+        • <strong>告别传统静态批处理（Static Batching）：</strong>以前必须等整批中最慢的请求生成完才能接新批次；<br>
+        • <strong>步长级别动态插拔：</strong>每个生成 Token 步长检查状态，短请求一旦结束立刻释放显存槽位，新排队请求毫秒级填补空缺。
+      </div>
+      <div style="background:rgba(34,197,94,0.06); padding:6px 10px; border-radius:3px; font-size:11px; color:#22C55E;">
+        <i class="fas fa-bolt mr-1"></i><strong>收益：</strong>消除 GPU 闲置等待“气泡（Bubbles）”，服务吞吐量再暴增 <strong>3 ~ 5 倍</strong>！
+      </div>
+    </div>
+  </div>
+
+  <!-- Performance Trade-off Matrix -->
+  <div style="background:rgba(15,23,42,0.75); border:1px solid rgba(255,107,53,0.25); border-radius:4px; padding:10px 16px;">
+    <div class="flex justify-between items-center mb-1.5">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-scale-balanced" style="color:#FF6B35; font-size:12px;"></i>
+        <span style="font-size:12.5px; font-weight:700; color:#FF6B35;">架构师必须掌握的推理性能四大指标权衡矩阵（Trade-off Matrix）</span>
+      </div>
+      <span style="font-size:11px; color:rgba(224,231,255,0.5);">高吞吐 vs 低延迟的永恒博弈</span>
+    </div>
+    <div class="grid grid-cols-4 gap-2.5" style="font-size:11px; line-height:1.4;">
+      <div style="background:rgba(0,0,0,0.3); padding:6px 8px; border-radius:3px; border-left:3px solid #00E5FF;">
+        <strong style="color:#00E5FF;">并发数 (Concurrency C)</strong><br>
+        <span style="color:rgba(224,231,255,0.65);">系统同时处理的请求量。受总显存容量与 KV Cache 池制约。</span>
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:6px 8px; border-radius:3px; border-left:3px solid #22C55E;">
+        <strong style="color:#22C55E;">总吞吐量 (Throughput)</strong><br>
+        <span style="color:rgba(224,231,255,0.65);">Tokens/s。随 Batch 增大而显著上升，衡量硬件整体产出效率。</span>
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:6px 8px; border-radius:3px; border-left:3px solid #FF6B35;">
+        <strong style="color:#FF6B35;">首字延迟 (TTFT)</strong><br>
+        <span style="color:rgba(224,231,255,0.65);">Time to First Token。取决于 Prefill 计算速度，算力受限（Compute-Bound）。</span>
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:6px 8px; border-radius:3px; border-left:3px solid #F59E0B;">
+        <strong style="color:#F59E0B;">字间延迟 (TPOT)</strong><br>
+        <span style="color:rgba(224,231,255,0.65);">Time per Output Token。Decode 每吐一字的耗时，访存带宽受限（Memory-Bound）。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Advanced Engine Capabilities -->
+  <div class="grid grid-cols-2 gap-3" style="font-size:11px;">
+    <div style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.18); border-radius:4px; padding:7px 12px; display:flex; align-items:center;">
+      <div>
+        <strong style="color:#00E5FF;"><i class="fas fa-layer-group mr-1"></i>Automatic Prefix Caching (APC)：</strong>
+        跨多并发共享 System Prompt 与知识库上下文，仅保留一份物理内存页，TTFT 暴跌 80%！
+      </div>
+    </div>
+    <div style="background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.18); border-radius:4px; padding:7px 12px; display:flex; align-items:center;">
+      <div>
+        <strong style="color:#FF6B35;"><i class="fas fa-chart-line mr-1"></i>Chunked Prefill 算力平滑化：</strong>
+        将超长 Prompt 切块与 Decode 混合批处理，彻底消除线上大请求导致的卡顿与 TPOT 剧烈抖动。
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

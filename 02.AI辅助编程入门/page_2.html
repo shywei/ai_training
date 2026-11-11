@@ -3,74 +3,87 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>目录</title>
+<title>六大章节目录</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
 .slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:48px !important; color:#E0E7FF; font-weight:700; }
-.slide-toc-item { display:flex; align-items:flex-start; padding:12px 0; border-bottom:1px solid rgba(0,229,255,0.1); }
-.slide-toc-num { font-size:28px; font-weight:700; color:#00E5FF; min-width:50px; line-height:1; }
+.slide-container h1 { font-size:44px !important; color:#E0E7FF; font-weight:700; }
+.slide-toc-item { display:flex; align-items:flex-start; padding:14px 16px; margin-bottom:10px; background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.12); border-left:3px solid #00E5FF; }
+.slide-toc-num { font-size:26px; font-weight:700; color:#00E5FF; min-width:52px; line-height:1.1; }
 .slide-toc-text { flex:1; }
-.slide-toc-title { font-size:18px; color:#E0E7FF; font-weight:600; margin-bottom:2px; }
-.slide-toc-desc { font-size:13px; color:rgba(224,231,255,0.5); }
-.slide-toc-time { font-size:12px; color:#FF6B35; font-weight:600; min-width:60px; text-align:right; padding-top:4px; }
+.slide-toc-title { font-size:17px; color:#E0E7FF; font-weight:700; margin-bottom:4px; }
+.slide-toc-desc { font-size:12.5px; color:rgba(224,231,255,0.58); line-height:1.45; }
+.slide-toc-time { font-size:12px; color:#FF6B35; font-weight:700; min-width:75px; text-align:right; padding-top:2px; font-family:monospace; }
 .slide-accent-line { width:50px; height:3px; background:#FF6B35; }
 </style>
 </head>
 <body>
 <div class="slide-container flex">
-  <div class="flex flex-col justify-center" style="width:360px; padding-left:80px;">
-    <h1 class="mb-6">目录</h1>
+  <div class="flex flex-col justify-center" style="width:350px; padding-left:70px; padding-right:20px;">
+    <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; margin-bottom:8px;">AGENDA · 02</div>
+    <h1 class="mb-5">课程目录</h1>
     <div class="slide-accent-line mb-6"></div>
-    <p style="font-size:15px; color:rgba(224,231,255,0.4); line-height:1.8;">从原理到实战<br>掌握AI辅助编程的完整链路</p>
+    <p style="font-size:14px; color:rgba(224,231,255,0.55); line-height:1.8; margin-bottom:20px;">
+      告别把代码贴进网页聊天的原始阶段，系统建立 <strong style="color:#E0E7FF;">2026 Coding Agent 底座认知与工具选型体系</strong>。
+    </p>
+    <div style="padding:12px 14px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.2);">
+      <div style="font-size:12px; font-weight:700; color:#FF6B35; margin-bottom:4px;"><i class="fas fa-layer-group" style="margin-right:6px;"></i>课程定位与进阶分工</div>
+      <div style="font-size:11.5px; color:rgba(224,231,255,0.6); line-height:1.55;">
+        · <strong style="color:#00E5FF;">02（本篇必修）</strong>：全员必修，掌握 Prompt、Rules、Harness 六件套与单兵提效<br>
+        · <strong style="color:#22C55E;">02B（可选深潜）</strong>：项目 Leader 与高级开发选修（SDD 规格驱动与多 Agent 并行），普通学员学完 02 可直通 03
+      </div>
+    </div>
   </div>
-  <div class="flex flex-col justify-center flex-1" style="padding:40px 80px 40px 40px;">
+  <div class="flex flex-col justify-center flex-1" style="padding:32px 70px 32px 30px;">
     <div class="slide-toc-item">
       <div class="slide-toc-num">01</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">从网页对话到AI编程</div><div class="slide-toc-desc">网页对话的局限性、AI辅助编程七阶段演进路线</div></div>
-      <div class="slide-toc-time">15min</div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title">从网页对话到 Agent 编程</div>
+        <div class="slide-toc-desc">网页端“人肉总线”天花板 vs Coding Agent 环境闭环 · AI 编程四代演进路线（2021–2026）</div>
+      </div>
+      <div class="slide-toc-time">P03 - P04</div>
     </div>
     <div class="slide-toc-item">
       <div class="slide-toc-num">02</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">大模型基础认知</div><div class="slide-toc-desc">Token机制、上下文窗口、模型形态与计费</div></div>
-      <div class="slide-toc-time">20min</div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title">Token、缓存与编程模型选型</div>
+        <div class="slide-toc-desc">BPE 词元与 Prefix Caching（前缀缓存省 75%~90% 成本） · 2026 主力模型与 Plan+Act 双模组合拳</div>
+      </div>
+      <div class="slide-toc-time">P05 - P06</div>
     </div>
     <div class="slide-toc-item">
       <div class="slide-toc-num">03</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">提示词工程</div><div class="slide-toc-desc">基础技巧、进阶技巧、编程场景应用</div></div>
-      <div class="slide-toc-time">30min</div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title">面向 Coding Agent 的提示词工程</div>
+        <div class="slide-toc-desc">淘汰 2023 套话 · 编程指令四要素（@锚点/契约/负面边界/验证命令） · Spring Boot 正反面对比</div>
+      </div>
+      <div class="slide-toc-time">P07 - P08</div>
     </div>
-    <div class="slide-toc-item">
-      <div class="slide-toc-num">04</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">Harness概念体系</div><div class="slide-toc-desc">Context Engineering、Agent与LLM职责区分、Skills详解、MCP、Rules</div></div>
-      <div class="slide-toc-time">40min</div>
+    <div class="slide-toc-item" style="border-left-color:#FF6B35; background:rgba(255,107,53,0.05);">
+      <div class="slide-toc-num" style="color:#FF6B35;">04</div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title">Harness 驾驭层“六件套”详解 <span style="font-size:11px; color:#FF6B35; margin-left:6px;">[核心重头戏]</span></div>
+        <div class="slide-toc-desc">System Prompt · AGENTS.md 开放标准 · Hooks 确定性护栏 · Skills 渐进披露与实战 · MCP vs CLI · Subagents 隔离</div>
+      </div>
+      <div class="slide-toc-time">P09 - P15</div>
     </div>
-    <div class="slide-toc-item">
-      <div class="slide-toc-num">05</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">Coding Agent工具全景</div><div class="slide-toc-desc">Copilot、Cursor、Claude Code、Codex、OpenCode对比</div></div>
-      <div class="slide-toc-time">20min</div>
+    <div class="slide-toc-item" style="border-left-color:#22C55E;">
+      <div class="slide-toc-num" style="color:#22C55E;">05</div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title">2026 主流 Coding Agent 四大阵营与选型</div>
+        <div class="slide-toc-desc">AI-Native IDE / 国内大厂平台 (Qoder/CodeBuddy/Trae) / Terminal CLI / 开源插件 · 企业选型决策树与 CLI 实操</div>
+      </div>
+      <div class="slide-toc-time">P16 - P18</div>
     </div>
-    <div class="slide-toc-item">
-      <div class="slide-toc-num">06</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">OpenClaw类Agent框架</div><div class="slide-toc-desc">Agent自进化、Memory、子Agent、多平台连接</div></div>
-      <div class="slide-toc-time">20min</div>
-    </div>
-    <div class="slide-toc-item">
-      <div class="slide-toc-num">07</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">新开发范式</div><div class="slide-toc-desc">Spec-driven、Vibe Coding、Agentic Engineering</div></div>
-      <div class="slide-toc-time">15min</div>
-    </div>
-    <div class="slide-toc-item">
-      <div class="slide-toc-num">08</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">OpenCode实战</div><div class="slide-toc-desc">安装配置、演示场景、系统配置技巧、日常交互高阶心法</div></div>
-      <div class="slide-toc-time">50min</div>
-    </div>
-    <div class="slide-toc-item" style="border-bottom:none;">
-      <div class="slide-toc-num">09</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">注意点与总结</div><div class="slide-toc-desc">AI为什么会犯错、常见踩坑、能力边界、学习路线</div></div>
-      <div class="slide-toc-time">15min</div>
+    <div class="slide-toc-item" style="border-left-color:#A855F7; margin-bottom:0;">
+      <div class="slide-toc-num" style="color:#A855F7;">06</div>
+      <div class="slide-toc-text">
+        <div class="slide-toc-title">上下文退化原理与单兵防坑铁律</div>
+        <div class="slide-toc-desc">AI 为什么越聊越笨（注意力稀释与烂代码自回归） · 日常驾驭五条保命铁律 · 精选学习资源与双轨路线</div>
+      </div>
+      <div class="slide-toc-time">P19 - P22</div>
     </div>
   </div>
 </div>

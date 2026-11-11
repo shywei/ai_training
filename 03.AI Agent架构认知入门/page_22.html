@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>第三课总结与后八课进阶路线图</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden;padding:28px 52px;display:flex;flex-direction:column}
+.s h1{font-size:28px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px;font-weight:700}
+.road-card{padding:7px 10px;border-radius:6px;display:flex;flex-direction:column;justify-content:space-between}
+</style></head><body>
+<div class="s">
+  <div class="mb-1 sn">SUMMARY &amp; ROADMAP · 第三课总结与进阶展望</div>
+  <h1 class="mb-2">全课核心认知总结 &amp; 智能体工程技术进阶路线全景</h1>
+  <div style="width:56px;height:3px;background:#FF6B35;margin-bottom:12px;"></div>
+
+  <!-- 顶部三大核心收获 -->
+  <div class="grid grid-cols-3 gap-3.5 mb-3">
+    <div style="padding:12px 15px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.22);border-radius:8px;">
+      <div style="font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:4px;">① 范式认知：立住三大边界</div>
+      <div style="font-size:11.5px;color:rgba(224,231,255,0.72);line-height:1.55;">
+        • <b style="color:#E0E7FF;">裸模型 vs Agent 系统</b>：大脑 vs 完整数字员工<br>
+        • <b style="color:#E0E7FF;">确定性 Workflow vs 自主 Agent</b>：用状态机约束自主循环<br>
+        • <b style="color:#E0E7FF;">通用 Harness vs 垂直应用 Agent</b>：用好前者，亲手造后者
+      </div>
+    </div>
+
+    <div style="padding:12px 15px;background:rgba(168,85,247,0.04);border:1px solid rgba(168,85,247,0.22);border-radius:8px;">
+      <div style="font-size:14px;font-weight:700;color:#A855F7;margin-bottom:4px;">② 运行时认知：Context Engineering</div>
+      <div style="font-size:11.5px;color:rgba(224,231,255,0.72);line-height:1.55;">
+        • 理解 <b style="color:#E0E7FF;">ReAct / Plan-and-Execute / Reflection</b> 三大循环<br>
+        • 看懂每一次 LLM 调用前如何将 <b style="color:#E0E7FF;">Prompt + Memory + RAG + MCP Tools + Observations</b> 动态组装进同一个请求体
+      </div>
+    </div>
+
+    <div style="padding:12px 15px;background:rgba(34,197,94,0.04);border:1px solid rgba(34,197,94,0.22);border-radius:8px;">
+      <div style="font-size:14px;font-weight:700;color:#22C55E;margin-bottom:4px;">③ 工程认知：按需裁剪与非功能底座</div>
+      <div style="font-size:11.5px;color:rgba(224,231,255,0.72);line-height:1.55;">
+        • 掌握架构师<b style="color:#E0E7FF;">五问能力裁剪决策树</b>，拒绝过度工程化<br>
+        • 生产落地必配 <b style="color:#E0E7FF;">Tracing 可观测性、三维 Evals 评测与防提示词注入 + HITL 人工审批安全防线</b>
+      </div>
+    </div>
+  </div>
+
+  <!-- 中部：智能体技术进阶全景路线 -->
+  <div style="font-size:13px;font-weight:700;color:#E0E7FF;margin-bottom:8px;">
+    <i class="fas fa-map-signs text-[#FF6B35] mr-1"></i> 企业级智能体技术进阶全景图 —— 工业级系统的分层成长路线：
+  </div>
+
+  <div class="grid grid-cols-4 gap-2.5 flex-1" style="min-height:0;">
+    <div class="road-card" style="background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.25);">
+      <div>
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:12px;font-weight:700;color:#00E5FF;">模块 04 · 大脑与契约</span>
+          <span style="font-size:11px;font-weight:600;color:#00E5FF;">基础篇</span>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#E0E7FF;margin-bottom:3px;">LLM 交互与 Prompt 工程</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.68);line-height:1.45;">Spring AI ChatClient、快慢模型路由、Prefix Cache 优化、JSON 结构化自愈重试与 SSE 流式输出</div>
+      </div>
+      <div style="font-size:11px;font-weight:600;color:#00E5FF;padding-top:3px;">认知层组件 ①</div>
+    </div>
+
+    <div class="road-card" style="background:rgba(168,85,247,0.05);border:1px solid rgba(168,85,247,0.25);">
+      <div>
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:12px;font-weight:700;color:#A855F7;">模块 05 · 记住用户</span>
+          <span style="font-size:11px;font-weight:600;color:#A855F7;">状态篇</span>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#E0E7FF;margin-bottom:3px;">Memory 记忆系统设计实现</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.68);line-height:1.45;">Redis 滑动窗口与摘要压缩 + MySQL 结构化用户画像 + pgvector 长期语义记忆读写双通路</div>
+      </div>
+      <div style="font-size:11px;font-weight:600;color:#A855F7;padding-top:3px;">认知层组件 ②</div>
+    </div>
+
+    <div class="road-card" style="background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.25);">
+      <div>
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:12px;font-weight:700;color:#00E5FF;">模块 06 · 精通私域知识</span>
+          <span style="font-size:11px;font-weight:600;color:#00E5FF;">知识篇</span>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#E0E7FF;margin-bottom:3px;">企业知识库与 RAG 检索</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.68);line-height:1.45;">文档分块策略、Embedding 选型、PostgreSQL pgvector 混合检索、Rerank 精排与 RAGAS 评测</div>
+      </div>
+      <div style="font-size:11px;font-weight:600;color:#00E5FF;padding-top:3px;">认知层组件 ③</div>
+    </div>
+
+    <div class="road-card" style="background:rgba(255,107,53,0.05);border:1px solid rgba(255,107,53,0.28);">
+      <div>
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:12px;font-weight:700;color:#FF6B35;">模块 07 · 连接外部系统</span>
+          <span style="font-size:11px;font-weight:600;color:#FF6B35;">连接篇</span>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#E0E7FF;margin-bottom:3px;">Tool Calling 与 MCP 协议</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.68);line-height:1.45;">Function Calling 机制、领域微服务 MCP 协议解耦、权限与幂等治理</div>
+      </div>
+      <div style="font-size:11px;font-weight:600;color:#FF6B35;padding-top:3px;">执行层组件 ①</div>
+    </div>
+
+    <div class="road-card" style="background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.28);">
+      <div>
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:12px;font-weight:700;color:#22C55E;">模块 08 · 生产级收官</span>
+          <span style="font-size:11px;font-weight:600;color:#22C55E;">工程篇</span>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#E0E7FF;margin-bottom:3px;">Workflow 状态机与运行时</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.68);line-height:1.45;"><code style="color:#22C55E;">AgentRuntime</code> 有限状态机、TaskPlanner、HITL 人工下单确认、三级容错自愈与全链路 Trace</div>
+      </div>
+      <div style="font-size:11px;font-weight:600;color:#22C55E;padding-top:3px;">执行层组件 ② · 单Agent闭环</div>
+    </div>
+
+    <div class="road-card" style="background:rgba(0,229,255,0.035);border:1px solid rgba(0,229,255,0.18);">
+      <div>
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:12px;font-weight:700;color:#00E5FF;">模块 09 · 工业级框架</span>
+          <span style="font-size:11px;font-weight:600;color:rgba(224,231,255,0.6);">进阶篇</span>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#E0E7FF;margin-bottom:3px;">AgentScope Java 2.0 实践</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.68);line-height:1.45;">对比自研状态机与工业级框架，掌握 ReActAgent、Hook 拦截扩展、内置容错与分布式会话托管</div>
+      </div>
+      <div style="font-size:11px;font-weight:600;color:#00E5FF;padding-top:3px;">框架演进升级</div>
+    </div>
+
+    <div class="road-card" style="background:rgba(168,85,247,0.035);border:1px solid rgba(168,85,247,0.18);">
+      <div>
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:12px;font-weight:700;color:#A855F7;">模块 10 · 团队化作战</span>
+          <span style="font-size:11px;font-weight:600;color:rgba(224,231,255,0.6);">进阶篇</span>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#E0E7FF;margin-bottom:3px;">Multi-Agent 多智能体协同</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.68);line-height:1.45;">Supervisor-Workers、Router 分诊、MsgHub 消息总线与 A2A 跨服务多智能体协议协同</div>
+      </div>
+      <div style="font-size:11px;font-weight:600;color:#A855F7;padding-top:3px;">横向规模化扩展</div>
+    </div>
+
+    <div class="road-card" style="background:rgba(255,107,53,0.035);border:1px solid rgba(255,107,53,0.18);">
+      <div>
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:12px;font-weight:700;color:#FF6B35;">模块 11 · 平台化治理</span>
+          <span style="font-size:11px;font-weight:600;color:rgba(224,231,255,0.6);">架构篇</span>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#E0E7FF;margin-bottom:3px;">企业级 AI 平台架构设计</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.68);line-height:1.45;">统一 AI Gateway、MCP 注册中心、多租户成本配额、红蓝对抗安全审计与组织级资产沉淀</div>
+      </div>
+      <div style="font-size:11px;font-weight:600;color:#FF6B35;padding-top:3px;">企业中台全景收官</div>
+    </div>
+  </div>
+
+  <!-- 底部金句 -->
+  <div style="margin-top:10px;padding:10px 18px;background:linear-gradient(90deg, rgba(255,107,53,0.12), rgba(0,229,255,0.12));border:1px solid rgba(255,107,53,0.35);border-radius:6px;display:flex;justify-content:space-between;align-items:center;">
+    <span style="font-size:14.5px;font-weight:800;color:#FF6B35;">记住全课唯一金句：Agent 不是模型，Agent 是围绕模型构建的完整软件系统！</span>
+    <span style="font-size:12px;color:#00E5FF;font-weight:700;">下一阶段：迈向企业级智能体核心系统工程落地 →</span>
+  </div>
+</div>
+</body></html>

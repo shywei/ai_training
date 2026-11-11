@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>可在 Demo 验证哪些点 & Long-Context vs RAG</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:30px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+</style></head><body>
+<div class="s" style="padding:24px 52px;display:flex;flex-direction:column;">
+  <div class="mb-1 sn">CHAPTER 07</div>
+  <h1 class="mb-1">Long-Context vs RAG 架构对决 &amp; 可在 Demo 验证哪些点</h1>
+  <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px;"></div>
+
+  <div style="flex:1;display:flex;gap:16px;">
+    <!-- 左栏：Long-Context vs RAG -->
+    <div style="flex:0.98;display:flex;flex-direction:column;justify-content:center;">
+      <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">为什么 1M 超长上下文无法替代企业 RAG？（四个硬伤）</div>
+      <div style="padding:10px 12px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;border-radius:5px;margin-bottom:10px;">
+        <div style="font-size:12.5px;color:#FF6B35;font-weight:600;margin-bottom:3px;">“模型都能吃下 100 万字了，为什么不把全量手册直接塞进 Prompt？”</div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.65);line-height:1.55;">窗口变大 ≠ 应该每次把整座图书馆搬进请求。四个工程硬伤决定了 RAG 不可替代：</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+        <div style="padding:8px 11px;background:rgba(255,107,53,0.05);border-left:3px solid #FF6B35;border-radius:4px;">
+          <div style="font-size:12px;color:#FF6B35;font-weight:700;">① 成本差距（100 倍以上）</div>
+          <div style="font-size:11px;color:rgba(224,231,255,0.65);">全量塞入 10 万 tokens vs RAG 按需检索 800 tokens，高频调用下成本差两个数量级。</div>
+        </div>
+        <div style="padding:8px 11px;background:rgba(255,107,53,0.05);border-left:3px solid #FF6B35;border-radius:4px;">
+          <div style="font-size:12px;color:#FF6B35;font-weight:700;">② 首字延迟（TTFT 飙升）</div>
+          <div style="font-size:11px;color:rgba(224,231,255,0.65);">10 万 tokens 预填充（Prefill）导致首字延迟从几百毫秒飙升至十几秒，实时导购无法接受。</div>
+        </div>
+        <div style="padding:8px 11px;background:rgba(255,107,53,0.05);border-left:3px solid #FF6B35;border-radius:4px;">
+          <div style="font-size:12px;color:#FF6B35;font-weight:700;">③ 注意力迷失（Lost in the Middle）</div>
+          <div style="font-size:11px;color:rgba(224,231,255,0.65);">上下文过长时，模型对中间段落注意力显著衰减，大海捞针精度反而不如先检索再精读。</div>
+        </div>
+        <div style="padding:8px 11px;background:rgba(255,107,53,0.05);border-left:3px solid #FF6B35;border-radius:4px;">
+          <div style="font-size:12px;color:#FF6B35;font-weight:700;">④ 无法做细粒度权限过滤（ACL）</div>
+          <div style="font-size:11px;color:rgba(224,231,255,0.65);">全量塞入 = 所有人看到所有数据；RAG 可在检索层按 <code style="color:#00E5FF;">tenant_id / role_ids</code> 精确过滤。</div>
+        </div>
+      </div>
+
+      <div style="padding:9px 12px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.22);border-radius:5px;">
+        <div style="font-size:11px;color:rgba(224,231,255,0.68);line-height:1.55;">
+          <strong style="color:#22C55E;">工程结论（两者互补）：</strong>海量知识库默认用 <strong style="color:#00E5FF;">RAG 精准检索 Top-K</strong> → 塞入 <strong style="color:#E0E7FF;">Long-Context 窗口</strong> 供模型跨段深度对比分析。
+        </div>
+      </div>
+    </div>
+
+    <!-- 右栏：可在 Demo 验证哪些点（v1.3 单体架构） -->
+    <div style="flex:1.02;display:flex;flex-direction:column;justify-content:center;">
+      <div style="font-size:14px;color:#22C55E;font-weight:700;margin-bottom:8px;">🧪 可在 Demo 验证哪些点（v1.3 单体 agent-runtime 实操清单）</div>
+      <div style="padding:12px 14px;background:rgba(34,197,94,0.05);border:2px solid rgba(34,197,94,0.25);border-radius:6px;display:flex;flex-direction:column;gap:8px;flex:1;justify-content:center;">
+        <div style="font-size:11px;color:rgba(224,231,255,0.75);line-height:1.6;">
+          <strong style="color:#22C55E;">① 手动触发商品知识索引（KnowledgeController &amp; KnowledgeService）：</strong><br>
+          执行 <code style="color:#00E5FF;">curl -X POST http://localhost:8080/api/knowledge/index</code>，观察控制台逐条打印 26 条商品（<code style="color:#00E5FF;">products.json</code>）的 BGE Embedding 入库日志，并查 PG 的 <code style="color:#00E5FF;">vector_store</code>（或 <code style="color:#00E5FF;">product_knowledge</code>）表确认 26 条 1024 维向量写入成功。
+        </div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.75);line-height:1.6;">
+          <strong style="color:#22C55E;">② 验证 RAG 语义检索与 Top-K / 阈值旋钮（RetrievalService）：</strong><br>
+          在前端或通过对话接口发起提问“写代码的轻薄笔记本”，观察 <code style="color:#00E5FF;">RetrievalService.retrieve()</code> 中 <code style="color:#00E5FF;">SearchRequest.query(query).withTopK(3).withSimilarityThreshold(0.3)</code> 的召回结果；将阈值调至 <code style="color:#FF6B35;">0.85</code> 验证高阈值拦截。
+        </div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.75);line-height:1.6;">
+          <strong style="color:#22C55E;">③ 验证闲聊关键词过滤跳过检索（isProductRelated）：</strong><br>
+          在聊天框发送“你好呀 / 今天天气不错”，查看 <code style="color:#00E5FF;">logs/llm-chat.log</code>，确认 <code style="color:#00E5FF;">RetrievalService.isProductRelated()</code> 返回 <code style="color:#FF6B35;">false</code>，Prompt 中无 <code style="color:#00E5FF;">## 参考知识</code> 段落。
+        </div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.75);line-height:1.6;">
+          <strong style="color:#22C55E;">④ 验证四路 Context 注入与防编造规则（MemoryManager &amp; PromptManager）：</strong><br>
+          提问“推荐一台适合出差写代码的笔记本”，在 <code style="color:#00E5FF;">logs/llm-chat.log</code> 中核对 <code style="color:#00E5FF;">MemoryManager.buildContext()</code> 拼装的 <code style="color:#00E5FF;">## 用户画像</code>、<code style="color:#00E5FF;">## 相关记忆</code>、<code style="color:#00E5FF;">##参考知识</code>。
+        </div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.75);line-height:1.6;">
+          <strong style="color:#22C55E;">⑤ 验证用户语义记忆沉淀与跨会话召回（UserMemoryService）：</strong><br>
+          发送“记住我平时还做视频剪辑，希望显卡性能强一些”，触发沉淀写入 pgvector <code style="color:#00E5FF;">user_memory</code> 表；清空 Redis 会话后重登提问“给我推荐几款电脑”，验证 <code style="color:#00E5FF;">UserMemoryService.search()</code> 跨会话语义召回成功！
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

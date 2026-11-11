@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>Demo 架构 — 组件与日志</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
+pre{margin:0;font-family:Consolas,Monaco,monospace;font-size:11px;line-height:1.5;color:rgba(224,231,255,0.7)}
+.kw{color:#FF6B35} .str{color:#00E5FF} .cm{color:rgba(224,231,255,0.3)}</style></head><body>
+<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;position:relative;">
+<div class="sn">CHAPTER 09</div>
+<h1 class="mb-2">Demo 架构 — 组件与日志</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+
+<div style="flex:1;display:flex;gap:18px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:8px;">v2.0 新增文件（Tag: v1.2.1）</div>
+    <div style="padding:12px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
+      <pre style="font-size:10px;"><span style="color:#FF6B35;">auth/</span>
+  User.java + UserMapper + AuthController
+
+<span style="color:#FF6B35;">memory/</span>
+  SessionMemory.java        <span style="color:rgba(224,231,255,0.3);">Redis + 滑动窗口(MAX 20, 24h TTL)</span>
+  SummaryPipeline.java      <span style="color:rgba(224,231,255,0.3);">累积摘要压缩(阈值 8 条, 保留 4 条)</span>
+  MemoryManager.java        <span style="color:rgba(224,231,255,0.3);">context 构建(MySQL画像+Redis摘要/历史)</span>
+  UserProfile.java          <span style="color:rgba(224,231,255,0.3);">画像实体(facts/preferences/tasks/constraints)</span>
+  UserProfileMapper.java    <span style="color:rgba(224,231,255,0.3);">MyBatis Plus</span>
+  UserProfileExtractor.java <span style="color:rgba(224,231,255,0.3);">@Async 异步抽取合并(写入 MySQL)</span>
+
+<span style="color:#FF6B35;">core/</span>
+  LlmInteractionLogger.java <span style="color:rgba(224,231,255,0.3);">LLM 交互日志</span></pre>
+    </div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:8px;">日志文件（演示重点）</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+      <div style="padding:8px 10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);border-radius:6px;">
+        <div style="font-size:11.5px;color:#00E5FF;font-weight:700;">logs/llm-interactions.log（或 llm-chat.log）</div>
+        <div style="font-size:10.5px;color:rgba(224,231,255,0.5);">对话请求/响应及 [Memory Injection] 完整 context 注入情况。</div>
+      </div>
+      <div style="padding:8px 10px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);border-radius:6px;">
+        <div style="font-size:11.5px;color:#FF6B35;font-weight:700;">logs/llm-summary.log</div>
+        <div style="font-size:10.5px;color:rgba(224,231,255,0.5);">SummaryPipeline 累积摘要压缩请求（含旧摘要）与 LLM 返回的新摘要。</div>
+      </div>
+      <div style="padding:8px 10px;background:rgba(34,197,94,0.04);border:1px solid rgba(34,197,94,0.15);border-radius:6px;">
+        <div style="font-size:11.5px;color:#22C55E;font-weight:700;">logs/llm-profile.log</div>
+        <div style="font-size:10.5px;color:rgba(224,231,255,0.5);">UserProfileExtractor 异步画像抽取（旧画像 JSON + 新对话 → 合并 JSON）。</div>
+      </div>
+    </div>
+    <div style="font-size:14px;color:#E0E7FF;font-weight:700;margin-bottom:6px;">模型配置（从 application.yml 读取）</div>
+    <div style="padding:8px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.15);border-radius:6px;">
+      <pre style="font-size:10px;">agent.model.fast      -> 快模型：日常对话路由 & SummaryPipeline 摘要压缩
+agent.model.reasoning -> 推理模型：复杂推理路由 & UserProfileExtractor 画像抽取</pre>
+    </div>
+  </div>
+</div>
+<div style="margin-top:12px;padding:10px 12px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:6px;">
+    <div style="font-size:12px;color:#22C55E;font-weight:700;margin-bottom:5px;">可在 Demo (v1.2.1) 验证哪些点（详细步骤见手册 page_17）</div>
+    <div style="display:flex;gap:8px;">
+      <div style="flex:1;font-size:11px;color:rgba(224,231,255,0.7);line-height:1.45;padding:6px 8px;background:rgba(224,231,255,0.04);border-radius:4px;">① 失忆基线<br>新会话问“我叫什么”→ 不知；查交互日志 context=null</div>
+      <div style="flex:1;font-size:11px;color:rgba(224,231,255,0.7);line-height:1.45;padding:6px 8px;background:rgba(224,231,255,0.04);border-radius:4px;">② Redis 缓冲验证<br>redis-cli LRANGE session:{sid}:messages 0 -1 查列表</div>
+      <div style="flex:1;font-size:11px;color:rgba(224,231,255,0.7);line-height:1.45;padding:6px 8px;background:rgba(224,231,255,0.04);border-radius:4px;">③ TTL 滑动刷新<br>redis-cli TTL 查看倒计时；新发消息后 TTL 重置回 24h</div>
+      <div style="flex:1;font-size:11px;color:rgba(224,231,255,0.7);line-height:1.45;padding:6px 8px;background:rgba(224,231,255,0.04);border-radius:4px;">④ 满 8 条累积摘要<br>触发 SummaryPipeline，看 llm-summary.log 与 [对话摘要]</div>
+      <div style="flex:1;font-size:11px;color:rgba(224,231,255,0.7);line-height:1.45;padding:6px 8px;background:rgba(224,231,255,0.04);border-radius:4px;">⑤ 画像合并抽取<br>带“记住”关键词或清空会话，看 llm-profile.log 合并 JSON</div>
+      <div style="flex:1;font-size:11px;color:rgba(224,231,255,0.7);line-height:1.45;padding:6px 8px;background:rgba(224,231,255,0.04);border-radius:4px;">⑥ 画像跨 Session<br>查 MySQL user_profile 表；清空会话/重登后偏好依然生效</div>
+    </div>
+  </div>
+<div style="position:absolute;bottom:14px;right:60px;padding:4px 12px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:12px;font-size:11px;color:#00E5FF;">Demo 可验证</div>
+</div></body></html>

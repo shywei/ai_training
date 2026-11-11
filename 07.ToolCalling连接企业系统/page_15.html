@@ -6,47 +6,45 @@
 .s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
 .s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
 .sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-.code{font-size:10px;color:rgba(224,231,255,0.55);line-height:1.5;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace}
+.code{font-size:11px;color:rgba(224,231,255,0.7);line-height:1.45;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace}
 </style></head><body>
-<div class="s" style="padding:30px 60px;display:flex;flex-direction:column;">
+<div class="s" style="padding:24px 52px;display:flex;flex-direction:column;">
 <div class="mb-2 sn">CHAPTER 04</div>
 <h1 class="mb-2">Function Calling 完整链路 + MCP Client 代码</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
-<div style="flex:1;display:flex;gap:20px;">
-  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:13px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">McpProductClient.java — Tool 发现 + 包装</div>
-    <div class="code" style="margin-bottom:10px;">@PostConstruct<br>public void init() {<br>&nbsp;&nbsp;// 1. 连接 MCP Server<br>&nbsp;&nbsp;mcpClient = McpClient.sync(transport)<br>&nbsp;&nbsp;&nbsp;&nbsp;.requestTimeout(Duration.ofSeconds(10))<br>&nbsp;&nbsp;&nbsp;&nbsp;.build();<br>&nbsp;&nbsp;mcpClient.initialize();<br><br>&nbsp;&nbsp;// 2. 发现 Tool<br>&nbsp;&nbsp;ListToolsResult tools = mcpClient.listTools();<br><br>&nbsp;&nbsp;// 3. 包装为 FunctionCallback<br>&nbsp;&nbsp;for (Tool tool : tools.tools()) {<br>&nbsp;&nbsp;&nbsp;&nbsp;FunctionCallback cb = FunctionCallbackWrapper<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.builder(function)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.withName("mcp_" + tool.name())<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.withDescription(tool.description())<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.build();<br>&nbsp;&nbsp;&nbsp;&nbsp;callbacks.add(cb);<br>&nbsp;&nbsp;}<br>}</div>
-    <div style="font-size:11px;color:rgba(224,231,255,0.4);">
-      <strong style="color:#E0E7FF;">Demo 已覆盖</strong> · 自动发现 MCP Server 的所有 Tool
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:14px;"></div>
+<div style="flex:1;display:flex;gap:18px;">
+  <div style="flex:1.1;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:13.5px;color:#E0E7FF;font-weight:700;margin-bottom:6px;">McpProductClient.java — Tool 发现与动态桥接</div>
+    <div class="code" style="margin-bottom:8px;">@PostConstruct<br>public void init() {<br>&nbsp;&nbsp;// 1. 连接 MCP Server（Demo 基线：有状态长连接）<br>&nbsp;&nbsp;mcpClient = McpClient.sync(transport)<br>&nbsp;&nbsp;&nbsp;&nbsp;.requestTimeout(Duration.ofSeconds(10))<br>&nbsp;&nbsp;&nbsp;&nbsp;.build();<br>&nbsp;&nbsp;mcpClient.initialize(); // [基线握手，2026 无状态模式已免除]<br><br>&nbsp;&nbsp;// 2. 发现 Tool（2026 演进为 server/discover 动态端点）<br>&nbsp;&nbsp;ListToolsResult tools = mcpClient.listTools();<br><br>&nbsp;&nbsp;// 3. 包装为 FunctionCallback（向 LLM 注册 OpenAI tools）<br>&nbsp;&nbsp;for (Tool tool : tools.tools()) {<br>&nbsp;&nbsp;&nbsp;&nbsp;String toolSchema = mapper.writeValueAsString(tool.inputSchema());<br>&nbsp;&nbsp;&nbsp;&nbsp;FunctionCallback cb = new McpToolCallback(<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"mcp_" + tool.name(), "[MCP] " + tool.description(),<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;toolSchema, mcpClient, tool.name());<br>&nbsp;&nbsp;&nbsp;&nbsp;callbacks.add(cb);<br>&nbsp;&nbsp;}<br>}</div>
+    <div style="padding:6px 10px;background:rgba(0,229,255,0.05);border-left:3px solid #00E5FF;border-radius:4px;font-size:11px;color:rgba(224,231,255,0.7);line-height:1.45;">
+      <strong style="color:#00E5FF;">Demo 基线与 2026 对照：</strong>代码基于 Spring AI 1.0.0-M4 跑通有状态握手；2026 无状态规范中无需 <code>initialize()</code>，直接按需 POST 并在 <code>server/discover</code> 获取元数据。
     </div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-    <div style="font-size:13px;color:#E0E7FF;font-weight:700;margin-bottom:8px;">调用时序</div>
-    <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:14px;">
-      <div style="padding:6px 10px;background:rgba(0,229,255,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
-        <span style="color:#00E5FF;">①</span> 用户："ThinkPad X1 多少钱"
+    <div style="font-size:13.5px;color:#E0E7FF;font-weight:700;margin-bottom:6px;">执行时序与权力边界</div>
+    <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px;">
+      <div style="padding:6px 10px;background:rgba(0,229,255,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.75);">
+        <span style="color:#00E5FF;font-weight:700;">①</span> 用户："ThinkPad X1 多少钱"
       </div>
-      <div style="padding:6px 10px;background:rgba(0,229,255,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
-        <span style="color:#00E5FF;">②</span> LlmRouter → TOOL
+      <div style="padding:6px 10px;background:rgba(0,229,255,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.75);">
+        <span style="color:#00E5FF;font-weight:700;">②</span> LlmRouter 意图路由 → 判定为 TOOL 模式
       </div>
-      <div style="padding:6px 10px;background:rgba(255,107,53,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
-        <span style="color:#FF6B35;">③</span> 注册 FunctionCallback → LLM API 请求携带 functions
+      <div style="padding:6px 10px;background:rgba(255,107,53,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.75);">
+        <span style="color:#FF6B35;font-weight:700;">③</span> 注册 Tool Schema → LLM API 请求体携带标准 tools 数组
       </div>
-      <div style="padding:6px 10px;background:rgba(255,107,53,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
-        <span style="color:#FF6B35;">④</span> LLM 返回 tool_call: mcp_queryProductInfo("NB001")
+      <div style="padding:6px 10px;background:rgba(255,107,53,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.75);">
+        <span style="color:#FF6B35;font-weight:700;">④</span> LLM 决策输出 tool_calls: mcp_queryProductInfo("NB001")
       </div>
-      <div style="padding:6px 10px;background:rgba(34,197,94,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
-        <span style="color:#22C55E;">⑤</span> FunctionCallback → MCP Client → MCP Server → MySQL
+      <div style="padding:6px 10px;background:rgba(34,197,94,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.75);">
+        <span style="color:#22C55E;font-weight:700;">⑤</span> <strong>Runtime 校验与执行</strong>：McpToolCallback → MCP Client → MySQL
       </div>
-      <div style="padding:6px 10px;background:rgba(34,197,94,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.6);">
-        <span style="color:#22C55E;">⑥</span> 结果回传 LLM → 最终回复
+      <div style="padding:6px 10px;background:rgba(34,197,94,0.06);border-radius:4px;font-size:11px;color:rgba(224,231,255,0.75);">
+        <span style="color:#22C55E;font-weight:700;">⑥</span> 结果组装（role=tool）回传 LLM → 生成最终自然语言回复
       </div>
     </div>
-    <div style="padding:10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px;">
-      <div style="font-size:11px;color:rgba(224,231,255,0.4);">
-        <strong style="color:#E0E7FF;">LLM 不知道 MCP 的存在</strong><br>
-        它只看到标准的 function definitions<br>
-        MCP 是 Agent ↔ Server 的协议，对 LLM 透明
+    <div style="padding:8px 10px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:4px;">
+      <div style="font-size:11px;color:rgba(224,231,255,0.65);line-height:1.5;">
+        <strong style="color:#E0E7FF;">LLM 不感知 MCP：</strong>大模型仅看见 OpenAI 兼容的 <code>tools</code> 契约；所有 MCP 握手、超时控制、入参白名单校验均由 <strong>Agent Runtime 独占闭环</strong>。
       </div>
     </div>
   </div>

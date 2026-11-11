@@ -1,0 +1,78 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280"><script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script><title>Demo vs 生产具体差距</title><style>*{margin:0;padding:0;box-sizing:border-box}.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}.s h1{font-size:30px!important;color:#E0E7FF;font-weight:700}.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}.gap-card{padding:8px 12px;background:rgba(255,107,53,0.06);border-left:3px solid #FF6B35;border-radius:4px;display:flex;flex-direction:column;gap:2px}.gap-title{font-size:12.5px;color:#FF6B35;font-weight:700}.gap-body{font-size:11px;color:rgba(224,231,255,0.75);line-height:1.45}</style></head><body>
+<div class="s" style="padding:20px 48px;display:flex;flex-direction:column">
+<div class="mb-1 sn">CHAPTER 08 · 生产差距</div>
+<h1 class="mb-1">Demo vs 生产 — 可靠运行时关键机制对照</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:10px"></div>
+<div style="flex:1;display:flex;gap:14px">
+
+<!-- 左侧列 -->
+<div style="flex:1;display:flex;flex-direction:column;gap:7px">
+<div class="gap-card">
+  <div class="gap-title">1. Durable Execution 与故障重建（Rehydration）</div>
+  <div class="gap-body">
+    <strong style="color:#E0E7FF">问题：</strong>Demo 状态散在内存 Map，容器重启或 Pod 漂移后状态全丢。<br>
+    <strong style="color:#22C55E">生产落地：</strong>每个节点执行完毕实时落盘 <code>workflow_checkpoint</code> 表（PostgreSQL/Redis）；故障重启后读取快照<strong>执行 Process Rehydration 重水化重建</strong>，从中断点继续推进，绝不从头重新规划，绝不重复调用副作用工具。
+  </div>
+</div>
+
+<div class="gap-card">
+  <div class="gap-title">2. 概率规划与确定性 FSM 拓扑校验</div>
+  <div class="gap-body">
+    <strong style="color:#E0E7FF">问题：</strong>Demo 仅靠 Prompt 约束步骤 JSON，缺乏程序级依赖校验。<br>
+    <strong style="color:#22C55E">生产落地：</strong>确立“概率规划 + 确定性 FSM 约束”架构，对模型输出的 DAG 执行<strong>循环依赖检测（无环性）与前置依赖条件校验</strong>，通过后方可注入状态机流转。
+  </div>
+</div>
+
+<div class="gap-card">
+  <div class="gap-title">3. 错误恢复四层协同矩阵（Error Recovery Synergy）</div>
+  <div class="gap-body">
+    <strong style="color:#E0E7FF">问题：</strong>仅有单点重试与熔断，遇到商品缺货等语义报错无法动态自愈。<br>
+    <strong style="color:#22C55E">生产落地：</strong>建立 <strong>① 重试（瞬态）+ ② 熔断降级（雪崩）+ ③ 错误重规划（Replanning 动态换路）+ ④ 人工介入接管（Escalation 终极安全）</strong> 四层协同机制。
+  </div>
+</div>
+
+<div class="gap-card">
+  <div class="gap-title">4. 规划触发 — 混合路由机制</div>
+  <div class="gap-body">
+    <strong style="color:#E0E7FF">问题：</strong>Demo 纯依赖静态关键词表，遗漏长尾复杂任务表达，误触发单步任务。<br>
+    <strong style="color:#22C55E">生产落地：</strong>确定性规则快路径（85% 典型场景零成本命中）+ 轻量快模型语义分类兜底。
+  </div>
+</div>
+</div>
+
+<!-- 右侧列 -->
+<div style="flex:1;display:flex;flex-direction:column;gap:7px">
+<div class="gap-card">
+  <div class="gap-title">5. 审批超时与分布式并发锁</div>
+  <div class="gap-body">
+    <strong style="color:#E0E7FF">问题：</strong>待确认操作无 TTL，用户关窗导致工作流永久悬挂；无并发控制导致双下单。<br>
+    <strong style="color:#22C55E">生产落地：</strong>Redis SETEX 5 分钟自动取消并记录 Trace；原子单飞消费防重确认，数据库乐观锁（version）杜绝超卖。
+  </div>
+</div>
+
+<div class="gap-card">
+  <div class="gap-title">6. 分布式链路追踪（OpenTelemetry Tracing）</div>
+  <div class="gap-body">
+    <strong style="color:#E0E7FF">问题：</strong>TraceService 仅保存在单机内存，多实例集群链路分散丢失。<br>
+    <strong style="color:#22C55E">生产落地：</strong>接入 OpenTelemetry 标准，Root Span 绑定 W3C traceparent，步骤转 Span/Event 上报 Jaeger。
+  </div>
+</div>
+
+<div class="gap-card">
+  <div class="gap-title">7. 真正多事件流式响应（Agentic SSE）</div>
+  <div class="gap-body">
+    <strong style="color:#E0E7FF">问题：</strong>Demo 同步跑完所有步骤才回传，前端面对长达 5~10 秒空白等待。<br>
+    <strong style="color:#22C55E">生产落地：</strong>标准化 Agentic SSE 事件流（<code>step_start</code>、<code>tool_call</code>、<code>confirm_required</code>、<code>answer_delta</code>），实时推流。
+  </div>
+</div>
+
+<div style="padding:8px 12px;background:rgba(34,197,94,0.06);border-left:3px solid #22C55E;border-radius:4px">
+  <div style="font-size:12px;color:#22C55E;font-weight:700;margin-bottom:2px">架构演进结论</div>
+  <div style="font-size:11px;color:rgba(224,231,255,0.75);line-height:1.5">
+    第八课手搓完成了状态机、ReAct 循环与容错的核心骨架；生产落地通过 <strong>Durable Execution</strong> 与 <strong>四层协同矩阵</strong> 筑牢可靠性底线，为第九课迁移至专业框架奠定坚实基石。
+  </div>
+</div>
+</div>
+
+</div>
+</div></body></html>

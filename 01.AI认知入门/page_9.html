@@ -1,67 +1,76 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>统一建模与原生多模态</title>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>大模型进化路线：从“专用小模型”到“通用大基座”</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
-*{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
-.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-</style></head><body>
-<div class="s" style="padding:38px 70px;">
-<div style="font-size:14px;color:#00E5FF;letter-spacing:4px;margin-bottom:8px;">CHAPTER 02</div>
-<h1 class="mb-2">统一建模与原生多模态</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:20px;"></div>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <div style="font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:6px;">CHAPTER 02 · 大模型的诞生与本质祛魅</div>
+  <h1 class="mb-2">大模型进化路线：从“专用小模型”到“通用大基座”（2018–2020）</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
 
-<div style="font-size:15px;color:rgba(224,231,255,0.5);margin-bottom:18px;">一个架构处理所有任务、所有模态</div>
+  <div style="font-size:14px; color:rgba(224,231,255,0.6); margin-bottom:16px;">
+    Transformer 诞生后，AI 工业界经历了激烈的路线大决战：双向掩码理解（BERT）vs 单向自回归生成（GPT）。最终，生成式预测统一了天下。
+  </div>
 
-<div class="flex" style="gap:28px;margin-bottom:16px;">
-<div style="flex:1;padding:18px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);">
-<div style="font-size:13px;color:rgba(224,231,255,0.4);letter-spacing:2px;margin-bottom:10px;">2017年之前</div>
-<div style="font-size:12px;color:rgba(224,231,255,0.5);line-height:2;">
-文本 → <span style="color:#FF6B35;">RNN</span><br>
-图像 → <span style="color:#FF6B35;">CNN</span><br>
-语音 → <span style="color:#FF6B35;">专用模型</span><br>
-翻译 → <span style="color:#FF6B35;">Seq2Seq</span>
-</div>
-<div style="margin-top:8px;padding:8px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.1);text-align:center;font-size:12px;color:#FF6B35;font-weight:600;">一个任务 = 一个模型</div>
-</div>
-<div style="display:flex;align-items:center;font-size:28px;color:#00E5FF;">→</div>
-<div style="flex:1;padding:18px;border:2px solid #00E5FF;background:rgba(0,229,255,0.06);">
-<div style="font-size:13px;color:#00E5FF;letter-spacing:2px;margin-bottom:10px;">2017年之后</div>
-<div style="font-size:12px;color:rgba(224,231,255,0.6);line-height:2;">
-文本 → <span style="color:#00E5FF;">Transformer</span><br>
-图像 → <span style="color:#00E5FF;">Transformer</span><br>
-语音 → <span style="color:#00E5FF;">Transformer</span><br>
-代码 → <span style="color:#00E5FF;">Transformer</span>
-</div>
-<div style="margin-top:8px;padding:8px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.1);text-align:center;font-size:12px;color:#00E5FF;font-weight:600;">一个架构 = 所有任务</div>
-</div>
-</div>
+  <!-- Route Comparison: BERT vs GPT -->
+  <div class="flex gap-5 mb-4">
+    <!-- Left: BERT Route -->
+    <div style="flex:1; padding:16px 20px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.18);">
+      <div class="flex justify-between items-center mb-3">
+        <div style="font-size:16px; font-weight:700; color:#00E5FF;"><i class="fas fa-mask" style="margin-right:8px;"></i>BERT 路线：双向编码与完形填空</div>
+        <span style="font-size:11px; padding:2px 8px; background:rgba(0,229,255,0.15); color:#00E5FF; font-weight:600;">2018 Google 提出</span>
+      </div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.65; margin-bottom:10px;">
+        <strong style="color:#E0E7FF;">原理：</strong>掩码语言模型（Masked LM）。随机扣掉句子中的 15% 单词，让模型结合前后上下文填空。<br>
+        <span style="color:#00E5FF; font-family:Consolas,monospace; font-size:11px;">"今天[MASK]气真好，我们去公园[MASK]步。"</span>
+      </div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.6; margin-bottom:10px;">
+        <strong style="color:#22C55E;">优势：</strong>在文本分类、情感分析、命名实体识别（NER）等判别式任务中精度极高。
+      </div>
+      <div style="padding:10px 12px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.2);">
+        <div style="font-size:12px; color:#FF6B35; font-weight:600; line-height:1.5;">
+          <i class="fas fa-exclamation-triangle" style="margin-right:6px;"></i>致命短板：烟囱式孤岛！无法生成连贯长篇文本；每一个下游具体任务都必须由工程师人肉挂载定制分类头（Head）并重训微调。
+        </div>
+      </div>
+    </div>
 
-<div style="font-size:14px;font-weight:700;color:#E0E7FF;margin-bottom:12px;">原生多模态 vs 拼接式多模态</div>
-<div class="flex" style="gap:20px;">
-<div style="flex:1;padding:16px;background:rgba(255,107,53,0.04);border:1px solid rgba(255,107,53,0.12);">
-<div style="font-size:13px;font-weight:700;color:#FF6B35;margin-bottom:8px;">拼接式</div>
-<div style="font-size:12px;color:rgba(224,231,255,0.5);line-height:1.7;">
-图像模型 + 文本模型 + 语音模型<br>
-三个独立模型拼在一起<br>
-<span style="color:#FF6B35;">信息在边界处丢失</span><br>
-跨模态理解能力有限
-</div>
-</div>
-<div style="flex:1;padding:16px;background:rgba(0,229,255,0.04);border:2px solid rgba(0,229,255,0.2);">
-<div style="font-size:13px;font-weight:700;color:#00E5FF;margin-bottom:8px;">原生多模态（Gemini、GPT-5.5）</div>
-<div style="font-size:12px;color:rgba(224,231,255,0.5);line-height:1.7;">
-一个模型同时理解文字+图像+语音<br>
-共享注意力机制<br>
-<span style="color:#00E5FF;">跨模态信息深度融合</span><br>
-看图说话、听音识意成为可能
-</div>
-</div>
-</div>
+    <!-- Right: GPT Route -->
+    <div style="flex:1; padding:16px 20px; background:rgba(255,107,53,0.05); border:1px solid rgba(255,107,53,0.22);">
+      <div class="flex justify-between items-center mb-3">
+        <div style="font-size:16px; font-weight:700; color:#FF6B35;"><i class="fas fa-forward" style="margin-right:8px;"></i>GPT 路线：单向自回归下一个词预测</div>
+        <span style="font-size:11px; padding:2px 8px; background:rgba(255,107,53,0.15); color:#FF6B35; font-weight:600;">2018–2020 OpenAI 坚持</span>
+      </div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.65; margin-bottom:10px;">
+        <strong style="color:#E0E7FF;">原理：</strong>自回归语言建模（Causal LM）。严格只看前文，概率预测下一个出现的 Token。<br>
+        <span style="color:#FF6B35; font-family:Consolas,monospace; font-size:11px;">"床前明月光，疑是地上[预测: 霜]..."</span>
+      </div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.6; margin-bottom:10px;">
+        <strong style="color:#22C55E;">底层洞察：</strong><span style="color:#E0E7FF; font-weight:700;">生成天然包含理解！</span>要想正确预测出复杂的下一个代码词或逻辑推论，模型必须先深刻理解上文的一切常识与因果关系。
+      </div>
+      <div style="padding:10px 12px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.2);">
+        <div style="font-size:12px; color:#00E5FF; font-weight:600; line-height:1.5;">
+          <i class="fas fa-trophy" style="margin-right:6px;"></i>统一天下：Prompt 驱动一切！一个大基座通过给不同的提示词，即可无需改动参数直接胜任翻译、问答、写代码与逻辑推理。
+        </div>
+      </div>
+    </div>
+  </div>
 
-<div style="position:absolute;bottom:20px;left:70px;right:70px;padding:12px 18px;background:rgba(0,229,255,0.06);border:2px solid rgba(0,229,255,0.2);text-align:center;">
-<div style="font-size:14px;color:#00E5FF;font-weight:700;">人不用针对每个任务、每种模态重新设计模型了——一个架构解决所有问题</div>
+  <!-- Bottom Architectural Takeaway -->
+  <div style="padding:12px 18px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.2); display:flex; align-items:center;">
+    <div style="font-size:12px; color:#E0E7FF; line-height:1.6;">
+      <i class="fas fa-cubes" style="color:#00E5FF; margin-right:8px;"></i><strong style="color:#00E5FF;">软件架构设计启示：</strong>BERT 走的是“微服务烟囱化”路线（每个业务写一个专用小模型，各自维护）；而 GPT 走的是“通用基座运行时”路线（统一由一个极度强大的通用大模型驱动所有文本接口）。历史再次证明，通用底座的生命力永远胜过专用烟囱。
+    </div>
+  </div>
 </div>
-</div></body></html>
+</body>
+</html>

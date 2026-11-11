@@ -1,11 +1,68 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280"><script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script><title>状态机结构</title><style>*{margin:0;padding:0;box-sizing:border-box}.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}.code{font-size:10px;color:rgba(224,231,255,0.55);line-height:1.5;background:rgba(0,0,0,0.3);padding:8px 10px;border-radius:4px;font-family:monospace}</style></head><body><div class="s" style="padding:24px 50px;display:flex;flex-direction:column"><div class="mb-1 sn">CHAPTER 03</div><h1 class="mb-1">状态机的结构 — Node · Edge · Condition</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:12px"></div><div style="flex:1;display:flex;gap:14px"><div style="flex:1;display:flex;flex-direction:column;justify-content:center">
-<div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:10px">三个核心元素</div>
-<div style="display:flex;flex-direction:column;gap:8px">
-<div style="padding:12px;background:rgba(0,229,255,0.06);border:2px solid rgba(0,229,255,0.2);border-radius:8px"><div style="font-size:16px;color:#00E5FF;font-weight:700;margin-bottom:6px">Node（节点）</div><div style="font-size:13px;color:rgba(224,231,255,0.65);line-height:1.7">Agent 所处的<strong style="color:#E0E7FF">当前状态</strong>。每个节点定义了"在这个状态下，Agent 能做什么"。<br>例：EXECUTING 节点 → Agent 可以调用工具、思考、返回结果。</div></div>
-<div style="padding:12px;background:rgba(255,107,53,0.06);border:2px solid rgba(255,107,53,0.2);border-radius:8px"><div style="font-size:16px;color:#FF6B35;font-weight:700;margin-bottom:6px">Edge（边）</div><div style="font-size:13px;color:rgba(224,231,255,0.65);line-height:1.7">状态之间的<strong style="color:#E0E7FF">转换路径</strong>。每条边定义了"从状态 A 到状态 B 的条件"。<br>例：EXECUTING → COMPLETED 的边，条件是"所有步骤完成"。</div></div>
-<div style="padding:12px;background:rgba(34,197,94,0.06);border:2px solid rgba(34,197,94,0.2);border-radius:8px"><div style="font-size:16px;color:#22C55E;font-weight:700;margin-bottom:6px">Condition（条件）</div><div style="font-size:13px;color:rgba(224,231,255,0.65);line-height:1.7">触发转换的<strong style="color:#E0E7FF">判断逻辑</strong>。不是 LLM 决定的，是代码硬编码的确定性逻辑。<br>例：retryCount >= 3 → EXECUTING → FAILED。</div></div></div></div>
-<div style="flex:1;display:flex;flex-direction:column;justify-content:center">
-<div style="font-size:15px;color:#E0E7FF;font-weight:700;margin-bottom:10px">Checkpoint 与 Resume</div>
-<div style="font-size:13px;color:rgba(224,231,255,0.65);line-height:1.8;margin-bottom:12px"><strong style="color:#E0E7FF">Checkpoint（检查点）</strong>：在关键节点保存 Agent 的完整状态——当前步骤、已收集的工具结果、状态机位置。就像游戏的存档点。<br><br><strong style="color:#E0E7FF">Resume（恢复）</strong>：从检查点恢复执行。Agent 挂了、用户取消后反悔、超时后重试——都能从最近的检查点继续，不用从头来。</div>
-<div style="padding:12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.08);border-radius:6px;margin-bottom:12px"><div style="font-size:14px;color:#E0E7FF;font-weight:600;margin-bottom:6px">Demo 中的实现</div><div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.7"><strong style="color:#22C55E">Demo 已覆盖</strong>：CONFIRMING 状态暂停 + 用户确认后 Resume<br><strong style="color:#FF6B35">Demo 未覆盖</strong>：持久化 Checkpoint（存数据库，跨进程恢复）</div></div>
-<div style="padding:12px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.15);border-radius:6px"><div style="font-size:13px;color:#A855F7;font-weight:600;margin-bottom:4px">确定性 vs 非确定性</div><div style="font-size:12px;color:rgba(224,231,255,0.55);line-height:1.7"><strong style="color:#E0E7FF">LLM 是非确定性的</strong>：同样输入可能不同输出。<br><strong style="color:#E0E7FF">状态机是确定性的</strong>：同样条件一定走同样路径。<br>Workflow 的价值就是<strong style="color:#A855F7">用确定性约束非确定性</strong>。</div></div></div></div></div></body></html>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280"><script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script><title>状态机结构与持久化重建</title><style>*{margin:0;padding:0;box-sizing:border-box}.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}.s h1{font-size:30px!important;color:#E0E7FF;font-weight:700}.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}</style></head><body>
+<div class="s" style="padding:22px 48px;display:flex;flex-direction:column">
+<div class="mb-1 sn">CHAPTER 03 · 核心机制</div>
+<h1 class="mb-1">状态机结构 — Node · Edge · Durable Execution 持久化重建</h1>
+<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:10px"></div>
+<div style="flex:1;display:flex;gap:14px">
+
+<!-- 左侧：状态机三要素与图原语映射 -->
+<div style="flex:1;display:flex;flex-direction:column;gap:6px">
+<div style="font-size:13.5px;color:#E0E7FF;font-weight:700;">状态机三大核心原语</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<div style="padding:8px 12px;background:rgba(0,229,255,0.06);border:1.5px solid rgba(0,229,255,0.2);border-radius:6px">
+  <div style="font-size:13px;color:#00E5FF;font-weight:700;">Node（节点）— 当前计算单元</div>
+  <div style="font-size:11px;color:rgba(224,231,255,0.7);line-height:1.5">定义该状态下允许执行的动作（如 PLANNING 拆任务、EXECUTING 调工具、CONFIRMING 等待审批）。</div>
+</div>
+<div style="padding:8px 12px;background:rgba(255,107,53,0.06);border:1.5px solid rgba(255,107,53,0.2);border-radius:6px">
+  <div style="font-size:13px;color:#FF6B35;font-weight:700;">Edge（边）— 状态转换路径</div>
+  <div style="font-size:11px;color:rgba(224,231,255,0.7);line-height:1.5">严格定义流转走向，杜绝非法跨跃（如 COMPLETED 终态不可逆流回 EXECUTING）。</div>
+</div>
+<div style="padding:8px 12px;background:rgba(34,197,94,0.06);border:1.5px solid rgba(34,197,94,0.2);border-radius:6px">
+  <div style="font-size:13px;color:#22C55E;font-weight:700;">Condition（条件）— 确定性判定逻辑</div>
+  <div style="font-size:11px;color:rgba(224,231,255,0.7);line-height:1.5">代码硬编码规则，非大模型自主决定（如重试计数超限 → 强制流转 FAILED）。</div>
+</div>
+</div>
+
+<div style="padding:8px 12px;background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.2);border-radius:6px;margin-top:2px;">
+  <div style="font-size:12px;color:#00E5FF;font-weight:700;margin-bottom:3px;">🔗 对齐 2026 现代图编排框架（StateGraph）</div>
+  <div style="font-size:11px;color:rgba(224,231,255,0.7);line-height:1.5">
+    • <strong>State & Reducer</strong> ↔ <code>WorkflowTrace</code> 全局状态汇总<br>
+    • <strong>Conditional Edges</strong> ↔ 条件路由分支（工具执行 / 重试判定）<br>
+    • <strong>Interrupt & Checkpoint</strong> ↔ <code>CONFIRMING</code> 断点挂起与上下文持久化
+  </div>
+</div>
+</div>
+
+<!-- 右侧：持久化执行与故障重建 (Durable Execution & Rehydration) -->
+<div style="flex:1.2;display:flex;flex-direction:column;gap:6px">
+<div style="font-size:13.5px;color:#E0E7FF;font-weight:700;">持久化执行与故障重建（Durable Execution & Rehydration）</div>
+
+<!-- 策略 1 -->
+<div style="padding:9px 12px;background:rgba(168,85,247,0.06);border:1.5px solid rgba(168,85,247,0.25);border-radius:6px">
+  <div style="font-size:12.5px;color:#A855F7;font-weight:700;margin-bottom:3px;">💾 1. 状态持久化策略（Node Checkpointing）</div>
+  <div style="font-size:11px;color:rgba(224,231,255,0.75);line-height:1.55">
+    • <strong>实时快照写入：</strong>每个 Node/Step 执行完成后，<strong>必须实时将状态机位置、变量上下文、已完成的工具调用结果写入持久化存储</strong>（PostgreSQL / Redis）。<br>
+    • <strong>乐观锁防护（Version Lock）：</strong>单记录维护版本号 <code>version</code>，杜绝多 Worker 竞争引发的脏写与双花执行。
+  </div>
+</div>
+
+<!-- 策略 2 -->
+<div style="padding:9px 12px;background:rgba(0,229,255,0.06);border:1.5px solid rgba(0,229,255,0.25);border-radius:6px">
+  <div style="font-size:12.5px;color:#00E5FF;font-weight:700;margin-bottom:3px;">🔄 2. 跨进程故障重建（Process Rehydration）</div>
+  <div style="font-size:11px;color:rgba(224,231,255,0.75);line-height:1.55">
+    • <strong>故障场景：</strong>系统宕机、K8s Pod 重启漂移、进程 OOM 崩溃或网络会话闪断。<br>
+    • <strong>重水化恢复（Rehydration）：</strong>新 Pod/进程根据 <code>traceId</code> 读取底层 Checkpoint 快照，在内存中<strong>精确重构状态机与上下文变量</strong>，直接从<strong>中断节点</strong>继续往下推进，<strong>绝不需要从头重新规划</strong>，且避免重复调用外部已有副作用工具。
+  </div>
+</div>
+
+<!-- 对比卡片 -->
+<div style="padding:8px 12px;background:rgba(224,231,255,0.03);border:1px solid rgba(224,231,255,0.1);border-radius:6px">
+  <div style="font-size:11.5px;color:rgba(224,231,255,0.75);line-height:1.5">
+    <strong style="color:#22C55E;">Demo 现状：</strong>状态保存在内存 Map（<code>traces</code> / <code>pendingConfirmations</code>），单机简单直观。<br>
+    <strong style="color:#FF6B35;">生产级标准：</strong>全量引入 <strong>Durable Execution</strong>，状态落库 + Checkpoint 恢复，保障任务跨分钟/跨天断点续传。
+  </div>
+</div>
+
+</div>
+</div>
+</div></body></html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>第五章 · 裸 LLM 的四大物理边界与工程治理约束</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.s { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.s h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
+.card { background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.15); border-radius:4px; padding:14px 18px; }
+.badge { font-size:11px; font-weight:700; padding:2px 8px; border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="s flex flex-col justify-between">
+  <!-- Header -->
+  <div>
+    <div style="font-size:13px; color:#A855F7; letter-spacing:4px; margin-bottom:4px;">CHAPTER 05 · 物理边界、架构反哺与全栈选型</div>
+    <h1 class="mb-2">裸 LLM 的四大物理边界与工程治理约束</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:12px;"></div>
+    <div style="font-size:13px; color:rgba(224,231,255,0.7); line-height:1.5;">
+      无论大模型参数多么庞大，作为纯概率自回归计算单元，其在物理现实与数学规律面前存在四大无法被自身打破的天然边界。
+    </div>
+  </div>
+
+  <!-- 4 Physical Boundaries 2x2 Grid -->
+  <div class="grid grid-cols-2 gap-4 my-1">
+    <!-- Boundary 1 -->
+    <div class="card" style="border-top:3px solid #FF6B35;">
+      <div class="flex justify-between items-center mb-1">
+        <span class="badge" style="background:rgba(255,107,53,0.15); color:#FF6B35;">物理边界 01 · 注意力</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Lost in the Middle</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">上下文长度衰减与 U 型注意力塌陷</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.5;">
+        • <strong>U 型注意力分布曲线：</strong>模型对输入序列的首部（Primacy）和尾部（Recency）保持最高敏感度，对处于中间深水区的关键事实检索准确率大幅崩塌！<br>
+        • <strong>工程真相：</strong>标称 128K 甚至 1M 的上下文窗口，绝不等于有效工作记忆（Working Memory）。
+      </div>
+    </div>
+
+    <!-- Boundary 2 -->
+    <div class="card" style="border-top:3px solid #38BDF8;">
+      <div class="flex justify-between items-center mb-1">
+        <span class="badge" style="background:rgba(56,189,248,0.15); color:#38BDF8;">物理边界 02 · 算力</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Latency &amp; Memory Wall</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">自回归串行依赖与不可突破的延迟墙</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.5;">
+        • <strong>马尔可夫串行枷锁：</strong>Decode 阶段每一步严格依赖上一步 Token，无法通过增加 GPU 数量来无限并行加速单个请求；<br>
+        • <strong>吞吐上限物理限制：</strong>TPS（每秒吐字数）被 HBM 显存物理带宽死死卡死，无法胜任 10ms 级别的微服务底层 SLA 事务响应要求。
+      </div>
+    </div>
+
+    <!-- Boundary 3 -->
+    <div class="card" style="border-top:3px solid #F59E0B;">
+      <div class="flex justify-between items-center mb-1">
+        <span class="badge" style="background:rgba(245,158,11,0.15); color:#F59E0B;">物理边界 03 · 知识</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Knowledge Cutoff</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">知识静止于权重截止期与参数固化</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.5;">
+        • <strong>权重参数彻底静态：</strong>模型完成训练保存为文件的瞬间，其大脑认知被永久定格，既无法获知此刻发生的现实新闻，也无法知晓企业内部实时变动的私有数据库；<br>
+        • <strong>灾难性遗忘：</strong>强行通过全量微调硬塞新知识，会直接洗刷原本已经对齐的通用逻辑能力。
+      </div>
+    </div>
+
+    <!-- Boundary 4 -->
+    <div class="card" style="border-top:3px solid #A855F7;">
+      <div class="flex justify-between items-center mb-1">
+        <span class="badge" style="background:rgba(168,85,247,0.15); color:#A855F7;">物理边界 04 · 稳定性</span>
+        <span style="font-size:11px; color:rgba(224,231,255,0.5);">Stochastic Non-Determinism</span>
+      </div>
+      <div style="font-size:14px; font-weight:700; color:#E0E7FF; margin-bottom:4px;">概率分布采样与输出非绝对确定性</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.68); line-height:1.5;">
+        • <strong>本质是概率生成机：</strong>底层依靠随机抽样与浮点加法非结合律，相同输入在并发多卡环境下可能产生微小输出漂移与 Schema 格式变异；<br>
+        • <strong>无法满足刚性契约：</strong>在金融账务、风控审批等要求“零容错、零漂移”的严肃业务场景，裸模型无法作为确定性执行器直接裸奔。
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Governance Architecture Conclusion -->
+  <div style="background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.2); border-radius:4px; padding:12px 18px;">
+    <div style="font-size:13px; font-weight:700; color:#00E5FF; margin-bottom:4px;">
+      <i class="fas fa-shield-alt" style="margin-right:8px;"></i>架构师最高共识：裸大模型仅仅是“推理核心算子（ALU）”，绝非完整计算机
+    </div>
+    <div style="font-size:12px; color:rgba(224,231,255,0.75); line-height:1.55;">
+      计算机的发展历史告诉我们：纯粹的算术逻辑单元（ALU）必须与总线、内存（RAM）、外设驱动与操作系统（OS）结合才能成为可用的整机。<br>
+      今天的大模型也是如此——<strong>所有大模型的物理缺陷，必须且只能由外部成熟的软件工程系统（外部记忆库、RAG、Tool Calling 与状态机工作流）来实施严密闭环治理！</strong>
+    </div>
+  </div>
+</div>
+</body>
+</html>

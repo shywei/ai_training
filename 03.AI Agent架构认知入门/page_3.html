@@ -1,41 +1,106 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>为什么需要Agent</title>
+<title>为什么只有大模型不够？—— 从裸 LLM 到 Agent 系统</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
-.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
-.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
-.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
-.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden;padding:34px 56px;display:flex;flex-direction:column}
+.s h1{font-size:30px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px;font-weight:700}
+.lim-card{padding:11px 14px;background:rgba(255,107,53,0.05);border:1px solid rgba(255,107,53,0.22);border-radius:6px}
+.sys-box{padding:10px 14px;border-radius:6px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.18)}
 </style></head><body>
-<div class="s" style="padding:36px 60px;">
-<div class="mb-2 sn">CHAPTER 01</div><h1 class="mb-2">为什么需要Agent</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+<div class="s">
+  <div class="mb-1 sn">CHAPTER 01 · 范式边界：什么是真正的 AGENT</div>
+  <h1 class="mb-2">为什么只有大模型不够？—— 从裸 LLM 到企业级 Agent 系统</h1>
+  <div style="width:56px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
 
-<div style="margin-bottom:14px;">
-  <div class="q">ChatGPT已经这么强了，为什么还需要Agent？</div>
-</div>
-<div class="flex" style="gap:28px;">
-  <div style="flex:1;">
-    <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:10px;">✅ ChatGPT能做的</div>
-    <div class="cb"><div class="cd">回答问题、生成内容、理解上下文、代码生成</div></div>
-    <div style="font-size:12px;color:rgba(224,231,255,0.4);margin-top:6px;text-align:center;">一问一答，对话结束即终止</div>
+  <div class="flex gap-6 flex-1" style="min-height:0;">
+    <!-- 左栏：裸 LLM 的四大天生局限 -->
+    <div style="width:450px;display:flex;flex-direction:column;justify-content:space-between;padding:16px 18px;background:rgba(255,107,53,0.03);border:1px solid rgba(255,107,53,0.18);border-radius:8px;">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span style="font-size:16px;font-weight:700;color:#FF6B35;"><i class="fas fa-brain mr-2"></i>裸大模型（Stateless LLM API）</span>
+          <span style="font-size:11px;padding:2px 8px;background:rgba(255,107,53,0.15);color:#FF6B35;border-radius:4px;">只有“缸中之脑”</span>
+        </div>
+        <div style="font-size:12px;color:rgba(224,231,255,0.6);margin-bottom:12px;">每次 HTTP 调用都是无状态函数 <code style="color:#FF6B35;">Text_Out = f(Text_In)</code>，在企业落地时面临四大硬伤：</div>
+
+        <div class="flex flex-col gap-2.5">
+          <div class="lim-card">
+            <div style="font-size:13px;font-weight:700;color:#FF6B35;margin-bottom:2px;">❶ 无状态失忆（No Memory）</div>
+            <div style="font-size:12px;color:rgba(224,231,255,0.65);">关掉窗口或换个 Session 就忘记用户尺码、过敏源与历史偏好，无法提供连续服务。</div>
+          </div>
+          <div class="lim-card">
+            <div style="font-size:13px;font-weight:700;color:#FF6B35;margin-bottom:2px;">❷ 私域知识盲区与幻觉（No Private Knowledge）</div>
+            <div style="font-size:12px;color:rgba(224,231,255,0.65);">不知道企业内部退换货新规、今日促销价与非公开商品手册，只能靠猜（产生严重幻觉）。</div>
+          </div>
+          <div class="lim-card">
+            <div style="font-size:13px;font-weight:700;color:#FF6B35;margin-bottom:2px;">❸ 有嘴无手，无法改变外部世界（No Action / Tools）</div>
+            <div style="font-size:12px;color:rgba(224,231,255,0.65);">只能生成“建议您去查库存”，不能真正查询 MySQL 实时库存、创建订单或发起退款。</div>
+          </div>
+          <div class="lim-card">
+            <div style="font-size:13px;font-weight:700;color:#FF6B35;margin-bottom:2px;">❹ 缺乏多步状态控制与安全护栏（No Runtime Governance）</div>
+            <div style="font-size:12px;color:rgba(224,231,255,0.65);">无法保证复杂任务的执行顺序、报错重试、高危动作人工确认（HITL）及全链路审计。</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:10px 12px;background:rgba(255,107,53,0.08);border-radius:5px;font-size:12px;color:#E0E7FF;">
+        <b style="color:#FF6B35;">结论：</b>单次调用 LLM 只是“文本生成器”，无法直接交付企业级业务结果。
+      </div>
+    </div>
+
+    <!-- 右栏：企业级 Agent 系统完整形态 -->
+    <div class="flex-1 flex flex-col justify-between" style="padding:16px 20px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.2);border-radius:8px;">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <span style="font-size:16px;font-weight:700;color:#00E5FF;"><i class="fas fa-cubes mr-2"></i>企业级 Agent 系统完整形态（System Architecture）</span>
+          <span style="font-size:11px;padding:2px 8px;background:rgba(34,197,94,0.15);color:#22C55E;border-radius:4px;">大脑 + 记忆 + 知识 + 手脚 + 护栏</span>
+        </div>
+
+        <!-- 核心大脑 -->
+        <div style="padding:10px 16px;background:linear-gradient(90deg, rgba(0,229,255,0.12), rgba(168,85,247,0.12));border:1px solid rgba(0,229,255,0.35);border-radius:6px;text-align:center;margin-bottom:10px;">
+          <div style="font-size:14px;font-weight:700;color:#E0E7FF;">🧠 核心推理大脑（LLM Router：Fast Model 意图路由 + Reasoning Model 深度规划）</div>
+          <div style="font-size:11px;color:rgba(224,231,255,0.65);">负责意图理解、任务拆解、工具选择与最终回复生成（本身不存状态、不直接连数据库）</div>
+        </div>
+
+        <!-- 认知层 + 执行层 双栏对比 -->
+        <div class="grid grid-cols-2 gap-3 mb-3">
+          <div class="sys-box" style="border-color:rgba(0,229,255,0.3);">
+            <div style="font-size:13px;font-weight:700;color:#00E5FF;margin-bottom:6px;">📘 认知层（Cognitive Layer）— 让大脑“想得准”</div>
+            <div style="font-size:11.5px;color:rgba(224,231,255,0.72);line-height:1.65;">
+              • <b style="color:#E0E7FF;">Prompt 工程与指令体系</b>：定义角色边界、JSON Schema 约束与 Few-shot 示范<br>
+              • <b style="color:#E0E7FF;">Memory 记忆机制</b>：记“人”——工作记忆滑动窗口 + 用户画像 + 长期语义记忆<br>
+              • <b style="color:#E0E7FF;">Knowledge / RAG 知识增强</b>：记“事”——检索企业私域领域知识库与规范政策，消除幻觉
+            </div>
+          </div>
+
+          <div class="sys-box" style="border-color:rgba(255,107,53,0.3);background:rgba(255,107,53,0.03);">
+            <div style="font-size:13px;font-weight:700;color:#FF6B35;margin-bottom:6px;">⚡ 执行层（Execution Layer）— 让系统“办成事”</div>
+            <div style="font-size:11.5px;color:rgba(224,231,255,0.72);line-height:1.65;">
+              • <b style="color:#E0E7FF;">Tool Calling 工具调用</b>：模型输出结构化调用意图，宿主执行真实业务 API<br>
+              • <b style="color:#E0E7FF;">MCP 标准化协议</b>：解耦 Agent 引擎与外部领域微服务（商品/知识/订单服务）<br>
+              • <b style="color:#E0E7FF;">Workflow 状态机编排</b>：控制多步循环、重试降级与人工确认（HITL）
+            </div>
+          </div>
+        </div>
+
+        <!-- 治理与底座层 -->
+        <div class="sys-box" style="border-color:rgba(34,197,94,0.3);background:rgba(34,197,94,0.04);">
+          <div style="font-size:13px;font-weight:700;color:#22C55E;margin-bottom:4px;">🛡️ 运行时治理底座（Governance & Observability）— 让生产“敢上线”</div>
+          <div class="grid grid-cols-3 gap-2" style="font-size:11px;color:rgba(224,231,255,0.7);">
+            <div>• <b style="color:#E0E7FF;">Guardrails 安全护栏</b>：防 Prompt 注入、PII 脱敏</div>
+            <div>• <b style="color:#E0E7FF;">ErrorRecovery 三级容错</b>：工具重试、熔断与兜底</div>
+            <div>• <b style="color:#E0E7FF;">Trace & Evals</b>：全链路耗时/Token 追踪与评测</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:10px 14px;background:rgba(0,229,255,0.08);border-left:4px solid #00E5FF;border-radius:4px;font-size:12.5px;color:#E0E7FF;">
+        <b style="color:#00E5FF;">架构师第一定律：</b>不要试图通过“换个更大的模型”解决系统架构问题——缺记忆补 Memory，缺私域数据补 RAG，缺执行补 MCP Tool，缺可控性补状态机。
+      </div>
+    </div>
   </div>
-  <div style="width:2px;background:rgba(0,229,255,0.15);"></div>
-  <div style="flex:1;">
-    <div style="font-size:14px;color:#FF6B35;font-weight:700;margin-bottom:10px;">❌ ChatGPT做不到的</div>
-    <div class="cb"><div class="cd">不能调用企业系统（ERP、CRM）</div></div>
-    <div class="cb"><div class="cd">不能长期记忆（每次对话从零开始）</div></div>
-    <div class="cb"><div class="cd">不能规划复杂任务（多步骤自动执行）</div></div>
-    <div class="cb"><div class="cd">不能主动行动（只能被动回答）</div></div>
-  </div>
 </div>
-<div style="margin-top:14px;padding:12px 16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.12);text-align:center;">
-  <div style="font-size:14px;color:#E0E7FF;">企业需要的不是"聊天机器人"，而是能<span style="color:#00E5FF;font-weight:700;">连接系统、调用工具、记住上下文、自主执行</span>的"智能系统"</div>
-</div>
-<div style="margin-top:10px;text-align:center;font-size:13px;color:rgba(224,231,255,0.5);">Agent不是模型，Agent是系统。LLM是大脑，Agent还有手、脚和记忆。</div>
-</div></body></html>
+</body></html>

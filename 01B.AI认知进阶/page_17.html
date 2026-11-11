@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>企业私有化部署显存精准速算黄金公式（含工程修正项）</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
+<style>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.s { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:26px 65px; display:flex; flex-direction:column; justify-content:space-between; }
+.s h1 { font-size:28px !important; color:#E0E7FF; font-weight:700; }
+.card { background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.15); border-radius:4px; padding:11px 14px; }
+.badge { font-size:11px; font-weight:700; padding:1px 6px; border-radius:3px; }
+</style>
+</head>
+<body>
+<div class="s">
+  <!-- Header -->
+  <div>
+    <div style="font-size:13px; color:#00E5FF; letter-spacing:4px; margin-bottom:4px;">CHAPTER 04 · 模型文件、量化与算力底座</div>
+    <h1 class="mb-1">企业私有化部署显存精准速算黄金公式（含工程修正项）</h1>
+    <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:10px;"></div>
+    <div style="font-size:12.5px; color:rgba(224,231,255,0.7); line-height:1.45;">
+      真实工业部署不能只看理论公式！<strong>显存总需求必须计入 CUDA 运行时、显存分配器碎片、框架调度与多卡通信缓冲</strong>。
+    </div>
+  </div>
+
+  <!-- Top: Enhanced 5-Component Golden Formula -->
+  <div class="card my-1" style="border-top:3px solid #00E5FF;">
+    <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center gap-2">
+        <span class="badge" style="background:rgba(0,229,255,0.15); color:#00E5FF;">工业速算总纲</span>
+        <span style="font-size:13.5px; font-weight:700; color:#E0E7FF;">生产推理总显存（VRAM Total）工程级精准分解模型</span>
+      </div>
+      <span style="font-family:Consolas,monospace; font-size:11.5px; color:#00E5FF;">VRAM = (M_w + M_kv + M_act + M_cuda + M_comm) × (1 + Frag_rate)</span>
+    </div>
+    <div class="grid grid-cols-5 gap-2.5" style="font-size:11px; color:rgba(224,231,255,0.7); line-height:1.45;">
+      <div style="background:rgba(0,0,0,0.3); padding:7px 9px; border-radius:3px; border-left:3px solid #00E5FF;">
+        <strong style="color:#00E5FF;">1. 静态权重 (M_w)</strong><br>
+        <code>P × B × 1.2</code><br>
+        <span style="color:rgba(224,231,255,0.55);">BF16 每 1B 需 2GB；INT4 每 1B 需 0.6GB（含 Scale 与冗余）。</span>
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:7px 9px; border-radius:3px; border-left:3px solid #38BDF8;">
+        <strong style="color:#38BDF8;">2. 动态 KV Cache (M_kv)</strong><br>
+        <code>并发 × 上下文长度</code><br>
+        <span style="color:rgba(224,231,255,0.55);">2×2×L×H_kv×d_h×Tokens。高并发长文本下的首要显存杀手！</span>
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:7px 9px; border-radius:3px; border-left:3px solid #FF6B35;">
+        <strong style="color:#FF6B35;">3. 前向计算激活 (M_act)</strong><br>
+        <code>0.5 ~ 1.5 GB</code><br>
+        <span style="color:rgba(224,231,255,0.55);">单步矩阵乘法临时中间张量，与 Batch 规模正相关。</span>
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:7px 9px; border-radius:3px; border-left:3px solid #F59E0B;">
+        <strong style="color:#F59E0B;">4. CUDA 运行时 (M_cuda)</strong><br>
+        <code>1.0 ~ 2.0 GB 常驻</code><br>
+        <span style="color:rgba(224,231,255,0.55);">CUDA Context、驱动常驻、算子执行工作区（Scratchpad）。</span>
+      </div>
+      <div style="background:rgba(0,0,0,0.3); padding:7px 9px; border-radius:3px; border-left:3px solid #22C55E;">
+        <strong style="color:#22C55E;">5. 框架缓存/多卡通信</strong><br>
+        <code>M_comm ≈ 1.0 ~ 3.0 GB</code><br>
+        <span style="color:rgba(224,231,255,0.55);">NCCL 张量并行通信缓冲区 + vLLM Block Table 显存池调度。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Engineering Correction Term Callout -->
+  <div style="padding:8px 14px; background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.25); border-radius:4px; display:flex; align-items:center; justify-content:space-between;">
+    <div style="font-size:11.5px; color:#E0E7FF; line-height:1.5;">
+      <i class="fas fa-exclamation-triangle" style="color:#FF6B35; margin-right:8px;"></i><strong style="color:#FF6B35;">显存分配器物理碎片（Fragmentation 15%~25%）：</strong>
+      PyTorch/CUDA 内存分配器由于不同长度请求频繁 malloc/free，不可避免产生内部与外部显存碎片。<strong>必须乘以 1.20 冗余安全系数</strong>，否则高并发突发瞬时引发 OOM 进程崩溃！
+    </div>
+  </div>
+
+  <!-- Bottom: Hardware Sizing Matrix -->
+  <div style="background:rgba(15,23,42,0.65); border:1px solid rgba(0,229,255,0.2); border-radius:4px; padding:10px 16px;">
+    <div class="flex items-center gap-2 mb-1.5">
+      <i class="fas fa-server" style="color:#22C55E; font-size:12px;"></i>
+      <span style="font-size:12.5px; font-weight:700; color:#22C55E;">架构师企业硬件容量规划实战矩阵表（含工程冗余与并发估算）</span>
+    </div>
+    <div class="grid grid-cols-4 gap-2.5" style="font-size:11px;">
+      <!-- 7B/8B -->
+      <div style="background:rgba(255,255,255,0.03); padding:7px 9px; border-radius:3px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+          <strong style="color:#00E5FF; font-size:11.5px;">7B / 8B 规模</strong>
+          <span class="badge" style="background:rgba(0,229,255,0.15); color:#00E5FF;">单兵入门</span>
+        </div>
+        <div style="color:rgba(224,231,255,0.65); line-height:1.45;">
+          • BF16 权重：约 16 GB<br>
+          • INT4 权重：约 5.5 GB<br>
+          • <strong>推荐：单卡 RTX 4090 (24GB)</strong><br>
+          • <strong>承载力：</strong>INT4 跑 32K 上下文，并发 16~32 稳健顺畅。
+        </div>
+      </div>
+
+      <!-- 14B -->
+      <div style="background:rgba(255,255,255,0.03); padding:7px 9px; border-radius:3px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+          <strong style="color:#38BDF8; font-size:11.5px;">14B 规模</strong>
+          <span class="badge" style="background:rgba(56,189,248,0.15); color:#38BDF8;">部门甜点</span>
+        </div>
+        <div style="color:rgba(224,231,255,0.65); line-height:1.45;">
+          • BF16 权重：约 30 GB<br>
+          • INT4 权重：约 10 GB<br>
+          • <strong>推荐：单卡 4090 或 A10/L40</strong><br>
+          • <strong>承载力：</strong>INT4 单卡兼顾极佳性价比与优秀业务推理。
+        </div>
+      </div>
+
+      <!-- 32B -->
+      <div style="background:rgba(255,255,255,0.03); padding:7px 9px; border-radius:3px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+          <strong style="color:#FF6B35; font-size:11.5px;">32B 规模</strong>
+          <span class="badge" style="background:rgba(255,107,53,0.15); color:#FF6B35;">企业主力</span>
+        </div>
+        <div style="color:rgba(224,231,255,0.65); line-height:1.45;">
+          • BF16 权重：约 65 GB<br>
+          • INT4 权重：约 22 GB<br>
+          • <strong>推荐：双卡 4090 或 单卡 A800</strong><br>
+          • <strong>承载力：</strong>编程与逻辑推理第一梯队，企业自建中流砥柱。
+        </div>
+      </div>
+
+      <!-- 70B/72B -->
+      <div style="background:rgba(255,255,255,0.03); padding:7px 9px; border-radius:3px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+          <strong style="color:#A855F7; font-size:11.5px;">70B / 72B 规模</strong>
+          <span class="badge" style="background:rgba(168,85,247,0.15); color:#A855F7;">旗舰基座</span>
+        </div>
+        <div style="color:rgba(224,231,255,0.65); line-height:1.45;">
+          • BF16 权重：约 145 GB<br>
+          • INT4 权重：约 46 GB<br>
+          • <strong>推荐：双卡 A800/H800 或 4×4090</strong><br>
+          • <strong>承载力：</strong>顶级全能基座，支撑全公司复杂 Agent 业务中枢。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

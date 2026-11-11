@@ -3,118 +3,74 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>专家系统与第二次寒冬</title>
+<title>专家系统与第二次寒冬（1980–2000s）</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
-.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-era-label { font-size:13px; font-weight:600; letter-spacing:2px; padding:4px 14px; display:inline-block; margin-bottom:14px; }
-.slide-event-row { display:flex; align-items:flex-start; margin-bottom:12px; }
-.slide-event-year { font-size:18px; font-weight:700; min-width:55px; line-height:1; }
-.slide-event-content { flex:1; }
-.slide-event-title { font-size:14px; font-weight:600; color:#E0E7FF; margin-bottom:2px; }
-.slide-event-desc { font-size:12px; color:rgba(224,231,255,0.5); line-height:1.4; }
-.slide-divider-v { width:1px; background:rgba(0,229,255,0.15); margin:0 30px; }
-.slide-note { font-size:13px; color:rgba(224,231,255,0.4); line-height:1.6; font-style:italic; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:38px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 01</div>
-  <h1 class="mb-2">专家系统与第二次寒冬（1980-2000s）</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:28px;"></div>
+<div class="slide-container">
+  <div style="font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:6px;">CHAPTER 01 · 前大模型时代（1943–2016）</div>
+  <h1 class="mb-2">专家系统与第二次寒冬（1980–2000s）：成千上万条 if-else 规则库的崩塌</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
 
-  <div class="flex" style="height:500px;">
-    <!-- Left: Expert Systems & Commercialization -->
-    <div style="flex:1;">
-      <div class="slide-era-label" style="background:rgba(0,229,255,0.1); color:#00E5FF; border:1px solid rgba(0,229,255,0.3);">专家系统与商业化 1980-1997</div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#00E5FF;">1980</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">XCON专家系统</div>
-          <div class="slide-event-desc">卡内基梅隆大学为DEC开发，配置订单时间从30分钟缩短到几分钟，每年节省约2500万美元</div>
-        </div>
+  <div style="font-size:14px; color:rgba(224,231,255,0.6); margin-bottom:16px;">
+    1980 年代，学术界与产业界转向“专家系统（Expert Systems）”，企图让人类“知识工程师”将行业专家的经验逐条提炼为人肉规则库。
+  </div>
+
+  <!-- Left / Right Architecture & Failure Breakdown -->
+  <div class="flex gap-5 mb-4">
+    <!-- Left: Architecture & Temporary Glory -->
+    <div style="flex:1; padding:16px 20px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.18);">
+      <div class="flex justify-between items-center mb-3">
+        <div style="font-size:16px; font-weight:700; color:#00E5FF;"><i class="fas fa-layer-group" style="margin-right:8px;"></i>专家系统的经典架构（短期的商业奇迹）</div>
+        <span style="font-size:11px; padding:2px 8px; background:rgba(0,229,255,0.15); color:#00E5FF; font-weight:600;">1980s 繁荣期</span>
       </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#00E5FF;">1982</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">霍普菲尔德网络</div>
-          <div class="slide-event-desc">物理学家霍普菲尔德提出，可用于内容可寻址存储，为神经网络复兴埋下种子</div>
-        </div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.65; margin-bottom:10px;">
+        <strong style="color:#E0E7FF;">双引擎解耦架构：</strong><br>
+        1. <span style="color:#00E5FF; font-weight:600;">知识库（Knowledge Base）</span>：存储数千条专有人类经验规则（IF 症状 A AND 检验指标 B THEN 疾病 C 概率 0.8）；<br>
+        2. <span style="color:#00E5FF; font-weight:600;">推理机（Inference Engine）</span>：正向链（从事实推结论）或逆向链（从目标找证据）逻辑解释器。
       </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#00E5FF;">1982</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">日本"第五代计算机"计划</div>
-          <div class="slide-event-desc">目标开发具有逻辑推理能力的计算机，引发全球AI竞赛</div>
-        </div>
+      <div style="padding:10px 12px; background:rgba(0,0,0,0.35); font-family:Consolas,monospace; font-size:11px; color:#00E5FF; margin-bottom:10px; border-left:3px solid #00E5FF;">
+        RULE 451: IF (blood_culture = pos) AND (gram_stain = rod) ...<br>
+        THEN recommend_antibiotic("gentamicin"); // MYCIN 细菌感染诊断
       </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#00E5FF;">1986</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">BP算法系统化推广</div>
-          <div class="slide-event-desc">辛顿等人让多层神经网络训练成为可能——现代神经网络训练的根基</div>
-        </div>
-      </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#00E5FF;">1997</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">深蓝击败国际象棋冠军</div>
-          <div class="slide-event-desc">IBM深蓝战胜卡斯帕罗夫，计算机首次在复杂策略游戏中超越人类顶级选手</div>
-        </div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.65); line-height:1.5;">
+        <strong style="color:#E0E7FF;">历史高光：</strong>DEC 公司的 XCON 系统帮助配置 VAX 计算机订单，每年节省数千万美元；日本甚至斥资千亿日元启动“第五代计算机”国家战略。
       </div>
     </div>
 
-    <div class="slide-divider-v"></div>
+    <!-- Right: The 4 Fatal Flaws -->
+    <div style="flex:1; padding:16px 20px; background:rgba(255,107,53,0.05); border:1px solid rgba(255,107,53,0.22);">
+      <div class="flex justify-between items-center mb-3">
+        <div style="font-size:16px; font-weight:700; color:#FF6B35;"><i class="fas fa-bomb" style="margin-right:8px;"></i>为什么成千上万条规则必然崩溃？（四大死穴）</div>
+        <span style="font-size:11px; padding:2px 8px; background:rgba(255,107,53,0.15); color:#FF6B35; font-weight:600;">第二次寒冬根源</span>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.45;">
+          <strong style="color:#FF6B35;">1. 知识获取瓶颈（Knowledge Acquisition Bottleneck）：</strong>专家自身的隐性经验与直觉往往无法清晰言说，访谈转化成本极其昂贵。
+        </div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.45;">
+          <strong style="color:#FF6B35;">2. 维护成本雪崩（Rule Chaos）：</strong>当规则库膨胀到万条以上，规则之间出现隐蔽冲突、环形循环与死锁，牵一发而动全身，无人敢改。
+        </div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.45;">
+          <strong style="color:#FF6B35;">3. 脆弱性与不确定性（Brittle）：</strong>只要遇到一条未预料的边界 Corner Case，推理链条立刻断裂，系统要么静默崩溃，要么输出荒唐结论。
+        </div>
+        <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.45;">
+          <strong style="color:#FF6B35;">4. 莫拉维克悖论（Moravec's Paradox）：</strong>让计算机下国际象棋易如反掌，但让计算机看懂“一岁婴儿眼中的世界”却难如登天。
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <!-- Right: Winter & Seeds of Revival -->
-    <div style="flex:1;">
-      <div class="slide-era-label" style="background:rgba(255,107,53,0.1); color:#FF6B35; border:1px solid rgba(255,107,53,0.3);">寒冬与复苏种子 1992-2006</div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#FF6B35;">1992</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title" style="color:#FF6B35;">第二次AI寒冬</div>
-          <div class="slide-event-desc">日本"第五代计算机"计划未达成目标，专家系统的局限性暴露，AI再次跌入低谷</div>
-        </div>
-      </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#FF6B35;">1995</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">LSTM网络诞生</div>
-          <div class="slide-event-desc">霍赫赖特和施密德胡贝尔通过门控机制解决梯度消失问题，序列建模取得突破</div>
-        </div>
-      </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#FF6B35;">1997</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">LSTM彻底解决梯度消失 + 双向RNN</div>
-          <div class="slide-event-desc">恒定误差轮播单元引入，双向循环神经网络被提出，NLP基础架构趋于成熟</div>
-        </div>
-      </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#FF6B35;">1998</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title">LeNet-5：神经网络首次商用</div>
-          <div class="slide-event-desc">杨立昆将卷积神经网络应用于手写数字识别，催生了后来的AlexNet、ResNet</div>
-        </div>
-      </div>
-      <div class="slide-event-row">
-        <div class="slide-event-year" style="color:#FF6B35;">2006</div>
-        <div class="slide-event-content">
-          <div class="slide-event-title" style="color:#FF6B35;">深度学习诞生</div>
-          <div class="slide-event-desc">辛顿发表深度信念网络论文，提出逐层预训练方法，"深度学习"术语由此诞生</div>
-        </div>
-      </div>
-
-      <div style="margin-top:16px; padding:12px 16px; background:rgba(0,229,255,0.06); border-left:3px solid #00E5FF;">
-        <div class="slide-note">
-          <i class="fas fa-seedling" style="color:#00E5FF; margin-right:8px;"></i>
-          两次寒冬教会AI领域一个道理：<strong style="color:#E0E7FF;">光有理论不够，需要数据和算力的配合</strong>。这为后来的爆发埋下了伏笔。
-        </div>
-      </div>
+  <!-- Bottom Engineer Takeaway -->
+  <div style="padding:12px 18px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.2); display:flex; align-items:center;">
+    <div style="font-size:12px; color:#E0E7FF; line-height:1.6;">
+      <i class="fas fa-laptop-code" style="color:#00E5FF; margin-right:8px;"></i><strong style="color:#00E5FF;">软件工程长期启示：</strong>传统软件开发中最容易犯的错误，就是试图用“确定性的代码逻辑（Hard-coded Logic）”去硬刚“非确定性的真实世界”。当现实维度的复杂度远超人脑思维容量时，基于规则的系统注定被自己庞大的技术债务活活拖垮。
     </div>
   </div>
 </div>

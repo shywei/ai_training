@@ -30,13 +30,13 @@ Scheduler 是最核心的组件——没有它，其他组件都没有意义。�
 答：是的。LangGraph 的 Graph + State + Node 对应 Scheduler + State Manager + Tool Executor。Spring AI 的 Advisor + ChatClient 对应 Memory Manager + LLM 调用。理解了这六个组件，就理解了所有 Agent 框架的底层设计。
 
 **学员问：Checkpoint 和 Trace 的区别是什么？**
-答：Checkpoint 是"存档"——保存 Agent 的完整状态，用于恢复执行。Trace 是"日志"——记录执行过程，用于调试和审计。Checkpoint 是为了"继续"，Trace 是为了"回溯"。
+答：Checkpoint 是"存档"——保存 Agent 的完整状态，用于恢复执行。Trace 是"日志"——记录执行过程，用于调试和审计。Checkpoint 是为了"继续"，Trace 是为了"回溯"。**Demo 做法**：Checkpoint 只做 CONFIRMING 暂停（PendingConfirmation 存内存），Trace 用 TraceService 的内存 Map，重启全丢；**生产做法**：Checkpoint 落 workflow_checkpoint 表（state/step_payload/version），Trace 接 OpenTelemetry → Jaeger——两者存储、保留期、写入频率完全不同，别混用一套方案。
 
 ## Take Away
-六个组件各有职责，协作完成可靠执行。理解了它们，就理解了所有 Agent 框架的底层设计。
+落地顺序：Scheduler/State Manager → Tool Executor/容错 → Checkpoint/Tracing——前两步决定能不能跑，后两步决定能不能运维。
 
 ## Why This Slide Matters
-如果跳过这页，学员只知道"Agent Runtime 是什么"，但不知道"它由什么组成"。组件化思维是工程化的基础。
+跳过这页，学员会把循环、工具、容错全塞进一个类，上线后想换存储、加确认都动不了主流程，重构成本翻倍。
 
 ## Transition
-接下来讲容错——工具调用失败怎么办。
+六个组件的职责清楚了，接下来（P10）按执行顺序看第一个核心组件——TaskPlanner 任务规划器。

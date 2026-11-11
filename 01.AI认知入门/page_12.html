@@ -1,53 +1,126 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>Scaling Laws与涌现能力</title>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>本质祛魅：大模型到底是一台什么机器？</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
-*{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
-.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-</style></head><body>
-<div class="s" style="padding:45px 70px;">
-<div style="font-size:14px;color:#00E5FF;letter-spacing:4px;margin-bottom:8px;">CHAPTER 03</div>
-<h1 class="mb-2">Scaling Laws与涌现能力</h1>
-<div style="width:50px;height:3px;background:#FF6B35;margin-bottom:20px;"></div>
+* { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
+.slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; padding:28px 65px; }
+.slide-container h1 { font-size:30px !important; color:#E0E7FF; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="slide-container">
+  <div style="font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; margin-bottom:6px;">CHAPTER 02 · 大模型的诞生与本质祛魅</div>
+  <h1 class="mb-2">本质祛魅：大模型到底是一台什么机器？—— 概率预测机</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:14px;"></div>
 
-<div style="font-size:15px;color:rgba(224,231,255,0.5);margin-bottom:18px;">投钱进去，能力一定涨——然后突然涌现出新能力</div>
+  <div style="font-size:14px; color:rgba(224,231,255,0.6); margin-bottom:16px;">
+    卸下所有的哲学神话与概念包装：大模型既不是全知全能的超级意识，也不是精确的关系型数据库，它本质上是一台**基于前文预测下一个词的条件概率预测机（Next-Token Predictor）**。
+  </div>
 
-<div class="flex" style="gap:28px;margin-bottom:18px;">
-<div style="flex:1;padding:22px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.15);">
-<div style="font-size:16px;font-weight:700;color:#00E5FF;margin-bottom:14px;"><i class="fas fa-chart-line" style="margin-right:8px;"></i>Scaling Laws</div>
-<div style="display:flex;align-items:flex-end;gap:14px;height:100px;margin-bottom:14px;">
-<div style="text-align:center;"><div style="width:50px;background:linear-gradient(to top,rgba(0,229,255,0.3),rgba(0,229,255,0.1));height:22px;border:1px solid rgba(0,229,255,0.3);"></div><div style="font-size:11px;color:rgba(224,231,255,0.4);margin-top:4px;">GPT-1</div><div style="font-size:11px;color:rgba(224,231,255,0.3);">1.17亿</div></div>
-<div style="text-align:center;"><div style="width:50px;background:linear-gradient(to top,rgba(0,229,255,0.4),rgba(0,229,255,0.15));height:48px;border:1px solid rgba(0,229,255,0.4);"></div><div style="font-size:11px;color:rgba(224,231,255,0.4);margin-top:4px;">GPT-2</div><div style="font-size:11px;color:rgba(224,231,255,0.3);">15亿</div></div>
-<div style="text-align:center;"><div style="width:50px;background:linear-gradient(to top,rgba(255,107,53,0.4),rgba(255,107,53,0.15));height:90px;border:1px solid rgba(255,107,53,0.4);"></div><div style="font-size:11px;color:#FF6B35;margin-top:4px;">GPT-3</div><div style="font-size:11px;color:#FF6B35;">1750亿</div></div>
-</div>
-<div style="font-size:13px;color:rgba(224,231,255,0.6);line-height:1.7;">
-2020年OpenAI实证：参数越多、数据越多，<strong style="color:#E0E7FF;">能力持续提升</strong>。<br>
-投资变得<strong style="color:#00E5FF;">可预期</strong>——砸钱进去，能力一定涨。
-</div>
-</div>
+  <!-- End-to-end Inference Pipeline Grid -->
+  <div class="flex gap-2 mb-4 items-stretch">
+    <!-- Step 1: Tokenize -->
+    <div style="flex:1; padding:12px 10px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.18); text-align:center;">
+      <div style="font-size:11px; color:#00E5FF; font-weight:700; margin-bottom:4px;">01 · 分词</div>
+      <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">Tokenizer</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.6); line-height:1.4;">
+        把输入字符串切分为 Token 序列并映射为离散整数 ID
+      </div>
+      <div style="margin-top:6px; padding:4px; background:rgba(0,0,0,0.3); font-family:Consolas,monospace; font-size:11px; color:#00E5FF;">
+        "Hello" &rarr; 15496
+      </div>
+    </div>
 
-<div style="flex:1;padding:22px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.15);">
-<div style="font-size:16px;font-weight:700;color:#FF6B35;margin-bottom:14px;"><i class="fas fa-bolt" style="margin-right:8px;"></i>涌现能力（Emergent Ability）</div>
-<div style="font-size:13px;color:rgba(224,231,255,0.6);line-height:1.8;">
-<div style="padding:14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.12);margin-bottom:14px;">
-当模型达到一定规模，会<strong style="color:#E0E7FF;">突然拥有之前没有的能力</strong>
-</div>
-写代码、数学推理、多步规划——<br>
-这些能力没有被专门训练过<br>
-是自己<strong style="color:#FF6B35;">"冒"出来的</strong><br><br>
-<div style="font-size:14px;color:#FF6B35;font-weight:600;">
-人甚至不用告诉模型"你会什么"<br>到了规模，它自己就会了
-</div>
-</div>
-</div>
-</div>
+    <!-- Arrow -->
+    <div style="display:flex; align-items:center; color:rgba(0,229,255,0.4); font-size:14px;">&rarr;</div>
 
-<div style="padding:16px 20px;background:rgba(0,229,255,0.06);border:2px solid rgba(0,229,255,0.2);text-align:center;">
-<div style="font-size:15px;color:#00E5FF;font-weight:700;">Scaling Laws + 涌现能力 = 前所未有的确定性</div>
-<div style="font-size:13px;color:rgba(224,231,255,0.4);margin-top:6px;">以前的AI寒冬是因为能力有天花板。大模型不同：只要投钱，能力就涨，而且会涌现出新能力。这就是所有公司疯狂投入的根本原因。</div>
-</div>
+    <!-- Step 2: Embedding -->
+    <div style="flex:1; padding:12px 10px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.18); text-align:center;">
+      <div style="font-size:11px; color:#00E5FF; font-weight:700; margin-bottom:4px;">02 · 向量化</div>
+      <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">Embedding</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.6); line-height:1.4;">
+        将整数 ID 查表映射为几千维的连续语义稠密向量
+      </div>
+      <div style="margin-top:6px; padding:4px; background:rgba(0,0,0,0.3); font-family:Consolas,monospace; font-size:11px; color:#00E5FF;">
+        [0.12, -0.85, ...]
+      </div>
+    </div>
 
-</div></body></html>
+    <!-- Arrow -->
+    <div style="display:flex; align-items:center; color:rgba(0,229,255,0.4); font-size:14px;">&rarr;</div>
+
+    <!-- Step 3: Transformer Layers -->
+    <div style="flex:1.2; padding:12px 10px; background:rgba(255,107,53,0.05); border:1px solid rgba(255,107,53,0.22); text-align:center;">
+      <div style="font-size:11px; color:#FF6B35; font-weight:700; margin-bottom:4px;">03 · 深层网络</div>
+      <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">Transformer Layers</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.6); line-height:1.4;">
+        数十层多头自注意力与 FFN 矩阵乘法，融合全篇上下文语义
+      </div>
+      <div style="margin-top:6px; padding:4px; background:rgba(0,0,0,0.3); font-family:Consolas,monospace; font-size:11px; color:#FF6B35;">
+        Q · K^T · V + FFN
+      </div>
+    </div>
+
+    <!-- Arrow -->
+    <div style="display:flex; align-items:center; color:rgba(255,107,53,0.4); font-size:14px;">&rarr;</div>
+
+    <!-- Step 4: Logits & Softmax -->
+    <div style="flex:1; padding:12px 10px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.18); text-align:center;">
+      <div style="font-size:11px; color:#00E5FF; font-weight:700; margin-bottom:4px;">04 · 概率分布</div>
+      <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">Softmax Logits</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.6); line-height:1.4;">
+        映射为词表中几十万个词的概率归一化分布
+      </div>
+      <div style="margin-top:6px; padding:4px; background:rgba(0,0,0,0.3); font-family:Consolas,monospace; font-size:11px; color:#00E5FF;">
+        P("code") = 68%
+      </div>
+    </div>
+
+    <!-- Arrow -->
+    <div style="display:flex; align-items:center; color:rgba(0,229,255,0.4); font-size:14px;">&rarr;</div>
+
+    <!-- Step 5: Sampling -->
+    <div style="flex:1; padding:12px 10px; background:rgba(34,197,94,0.04); border:1px solid rgba(34,197,94,0.18); text-align:center;">
+      <div style="font-size:11px; color:#22C55E; font-weight:700; margin-bottom:4px;">05 · 采样输出</div>
+      <div style="font-size:13px; font-weight:700; color:#E0E7FF; margin-bottom:6px;">Sample & Decode</div>
+      <div style="font-size:11px; color:rgba(224,231,255,0.6); line-height:1.4;">
+        挑选最高概率或温度加权采样一个 Token，拼入上文继续循环
+      </div>
+      <div style="margin-top:6px; padding:4px; background:rgba(0,0,0,0.3); font-family:Consolas,monospace; font-size:11px; color:#22C55E;">
+        输出并自回归
+      </div>
+    </div>
+  </div>
+
+  <!-- Deep Demystification Grid -->
+  <div class="flex gap-5 mb-4">
+    <div style="flex:1; padding:14px 18px; background:rgba(255,107,53,0.05); border:1px solid rgba(255,107,53,0.2);">
+      <div style="font-size:14px; font-weight:700; color:#FF6B35; margin-bottom:6px;"><i class="fas fa-times-circle" style="margin-right:6px;"></i>大模型不是什么？</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.6;">
+        - <strong style="color:#E0E7FF;">不是真理数据库：</strong>它并不按 Key-Value 严谨存储事实，内部根本没有存放网页文本；<br>
+        - <strong style="color:#E0E7FF;">不是全能先知：</strong>它没有任何自主欲求或真正的现实常识，它只是在统计上模仿人类语言的高维分布规律。
+      </div>
+    </div>
+    <div style="flex:1; padding:14px 18px; background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.2);">
+      <div style="font-size:14px; font-weight:700; color:#00E5FF; margin-bottom:6px;"><i class="fas fa-check-circle" style="margin-right:6px;"></i>大模型的真实本质是什么？</div>
+      <div style="font-size:12px; color:rgba(224,231,255,0.7); line-height:1.6;">
+        - <strong style="color:#00E5FF;">高维模式补全器：</strong>它是一台巨型的条件概率生成机：$P(w_t \mid w_1, w_2, \dots, w_{t-1})$；<br>
+        - <strong style="color:#00E5FF;">语言流形模拟器：</strong>在数十亿到数万亿个连续权重参数中，压缩了整个人类文明数字语料的隐式关联模式。
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Engineer Takeaway -->
+  <div style="padding:12px 18px; background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.2); display:flex; align-items:center;">
+    <div style="font-size:12px; color:#E0E7FF; line-height:1.6;">
+      <i class="fas fa-microchip" style="color:#00E5FF; margin-right:8px;"></i><strong style="color:#00E5FF;">程序员底层第一原则：</strong>永远记住它是一台基于概率的预测机。所有让你拍案叫绝的推理与代码生成，都是“下一个 Token 概率最高”这一数学目标的宏大副产物。看清这一点，我们才能在工程上既善用其强项，又严防其失控。
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -11,10 +11,10 @@
 .slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
 .slide-container h1 { font-size:48px !important; color:#E0E7FF; font-weight:700; }
 .slide-toc-item { display:flex; align-items:flex-start; padding:8px 0; border-bottom:1px solid rgba(0,229,255,0.1); }
-.slide-toc-num { font-size:24px; font-weight:700; color:#00E5FF; min-width:50px; line-height:1; }
+.slide-toc-num { font-size:22px; font-weight:700; color:#00E5FF; min-width:48px; line-height:1; }
 .slide-toc-text { flex:1; }
-.slide-toc-title { font-size:16px; color:#E0E7FF; font-weight:600; margin-bottom:1px; }
-.slide-toc-desc { font-size:12px; color:rgba(224,231,255,0.5); }
+.slide-toc-title { font-size:15px; color:#E0E7FF; font-weight:600; margin-bottom:2px; }
+.slide-toc-desc { font-size:11px; color:rgba(224,231,255,0.55); line-height:1.4; }
 .slide-accent-line { width:50px; height:3px; background:#FF6B35; }
 </style>
 </head>
@@ -23,51 +23,43 @@
   <div class="flex flex-col justify-center" style="width:320px; padding-left:80px;">
     <h1 class="mb-6">目录</h1>
     <div class="slide-accent-line mb-6"></div>
-    <p style="font-size:14px; color:rgba(224,231,255,0.4); line-height:1.8;">
+    <p style="font-size:14px; color:rgba(224,231,255,0.45); line-height:1.8;">
       从"为什么需要知识"到"企业级 RAG 完整体系"<br>
-      让 Agent 能查、能用、能优化
+      让 Agent 能查、能用、能评估、能优化
     </p>
   </div>
   <div class="flex flex-col justify-center flex-1" style="padding:20px 60px 20px 30px;">
     <div class="slide-toc-item">
       <div class="slide-toc-num">01</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">技术选型三角</div><div class="slide-toc-desc">Prompt vs RAG vs 微调（Fine-tuning）的本质区别与选型</div></div>
+      <div class="slide-toc-text"><div class="slide-toc-title">为什么需要 Knowledge（P3-P6）</div><div class="slide-toc-desc">技术选型三角（Prompt vs RAG vs 微调）、Prompt 局限、Fine-tuning 成本与局限、RAG 核心本质</div></div>
     </div>
     <div class="slide-toc-item">
       <div class="slide-toc-num">02</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">为什么需要 Knowledge</div><div class="slide-toc-desc">Prompt 的局限、Fine-tuning 的问题、RAG 的思路</div></div>
-    </div>
-    <div class="slide-toc-item">
-      <div class="slide-toc-num">02</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">知识怎么进来</div><div class="slide-toc-desc">企业知识全景、Data Pipeline、Chunking、Embedding</div></div>
+      <div class="slide-toc-text"><div class="slide-toc-title">企业多元数据矩阵与知识进库（P7-P9）</div><div class="slide-toc-desc">向量库绝非万能银弹、企业多元数据矩阵（SQL/RAG/图谱/API）、版面感知解析与 2026 Embedding</div></div>
     </div>
     <div class="slide-toc-item">
       <div class="slide-toc-num">03</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">知识怎么存和查</div><div class="slide-toc-desc">向量数据库 pgvector、语义检索、关键词过滤</div></div>
+      <div class="slide-toc-text"><div class="slide-toc-title">知识怎么存和查（P10-P12）</div><div class="slide-toc-desc">pgvector 向量索引、语义检索（RetrievalService）、【P0纠正】元数据范围约束 vs 真正混合检索</div></div>
     </div>
     <div class="slide-toc-item">
       <div class="slide-toc-num">04</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">知识怎么用</div><div class="slide-toc-desc">context 演进、Prompt + RAG 集成、Token 预算</div></div>
+      <div class="slide-toc-text"><div class="slide-toc-title">知识怎么用（P13-P14）</div><div class="slide-toc-desc">context 演进（v1.0 → v3.0）、Prompt + RAG 结构化注入、Token 预算控制、间接提示词注入安全隔离</div></div>
     </div>
     <div class="slide-toc-item">
       <div class="slide-toc-num">05</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">企业级优化</div><div class="slide-toc-desc">Hybrid Search、Rerank、RAG Evaluation、Cache</div></div>
+      <div class="slide-toc-text"><div class="slide-toc-title">完整 10 步 Pipeline 与企业优化（P15-P18）</div><div class="slide-toc-desc">10步 RAG Pipeline（深度强化上下文组装）、生产四件套（Cache/真正Hybrid/Rerank/Eval）、评测三元组与范式演进</div></div>
     </div>
     <div class="slide-toc-item">
       <div class="slide-toc-num">06</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">v3.0 Demo 全貌</div><div class="slide-toc-desc">做成了什么、端到端数据流、关键设计决策</div></div>
+      <div class="slide-toc-text"><div class="slide-toc-title">v3.0 Demo 全貌与记忆升级（P19-P21）</div><div class="slide-toc-desc">端到端数据流、Demo vs 生产六项差距、v1.3 项目结构、向量数据库赋能语义记忆（UserMemoryService）</div></div>
     </div>
     <div class="slide-toc-item">
       <div class="slide-toc-num">07</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">Demo vs 生产 + 项目架构</div><div class="slide-toc-desc">差距分析、代码阅读路线图</div></div>
+      <div class="slide-toc-text"><div class="slide-toc-title">Long-Context vs RAG 与 Demo 验证清单（P22）</div><div class="slide-toc-desc">超长上下文四个硬伤与互补结论、可在 v1.3 Demo 亲手验证的核心检验点</div></div>
     </div>
-    <div class="slide-toc-item">
+    <div class="slide-toc-item" style="border-bottom:none;">
       <div class="slide-toc-num">08</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">记忆体系升级 + 总结</div><div class="slide-toc-desc">向量数据库赋能 Memory、能力地图、Agent 进度</div></div>
-    </div>
-    <div class="slide-toc-item">
-      <div class="slide-toc-num">09</div>
-      <div class="slide-toc-text"><div class="slide-toc-title">Long-Context vs RAG</div><div class="slide-toc-desc">超长上下文能否替代 RAG？四个硬伤与互补结论</div></div>
+      <div class="slide-toc-text"><div class="slide-toc-title">第六课总结（P23）</div><div class="slide-toc-desc">Agent 构建进度、第六课能力地图、课后实战练习与下一课 Tool Calling 预告</div></div>
     </div>
   </div>
 </div>

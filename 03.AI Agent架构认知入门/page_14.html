@@ -1,84 +1,129 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
-<title>AI开发生态</title>
+<title>架构总蓝图（上）：企业级智能体系统工业参考架构全景</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
-.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
-.s h1{font-size:32px!important;color:#E0E7FF;font-weight:700}
-.sn{font-size:14px;color:#00E5FF;letter-spacing:4px}
-.q{font-size:18px;color:#FF6B35;font-weight:700;padding:10px 16px;background:rgba(255,107,53,0.06);border-left:4px solid #FF6B35;margin-bottom:14px;line-height:1.4}
-.cb{padding:12px 14px;border:1px solid rgba(0,229,255,0.12);background:rgba(0,229,255,0.03);margin-bottom:8px}
-.ct{font-size:14px;font-weight:700;color:#00E5FF;margin-bottom:3px}
-.cd{font-size:13px;color:rgba(224,231,255,0.55);line-height:1.6}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden;padding:28px 48px;display:flex;flex-direction:column}
+.s h1{font-size:26px!important;color:#E0E7FF;font-weight:700}
+.sn{font-size:13px;color:#00E5FF;letter-spacing:4px;font-weight:700}
+.mod-chip{padding:7px 10px;border-radius:5px;font-size:11px;line-height:1.45}
 </style></head><body>
-<div class="s" style="padding:36px 60px;">
-<div class="mb-2 sn">CHAPTER 06</div><h1 class="mb-2">AI开发生态</h1><div style="width:50px;height:3px;background:#FF6B35;margin-bottom:24px;"></div>
+<div class="s">
+  <div class="mb-1 sn">CHAPTER 04 · 架构总蓝图：企业级智能体系统参考模型（分层架构全景）</div>
+  <h1 class="mb-1">架构总蓝图（上）：企业级智能体系统工业参考架构全景</h1>
+  <div style="font-size:11.5px;color:rgba(224,231,255,0.6);margin-bottom:10px;">
+    以经典智能导购与企业助理为例，构建现代化多模块生产级智能体工程拓扑与工业级分层架构：
+  </div>
 
-<div style="margin-bottom:12px;">
-  <div style="font-size:16px;color:#E0E7FF;">AI开发生态——七层架构</div>
-  <div style="width:40px;height:2px;background:#FF6B35;margin-top:8px;"></div>
+  <!-- 四层架构全景图 -->
+  <div class="flex flex-col gap-2.5 flex-1" style="min-height:0;">
+    <!-- L1: 前端接入层 -->
+    <div style="padding:8px 16px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.25);border-radius:7px;display:flex;align-items:center;justify-content:space-between;">
+      <div class="flex items-center gap-3">
+        <span style="padding:3px 8px;background:rgba(0,229,255,0.18);color:#00E5FF;font-size:11px;font-weight:700;border-radius:4px;">前端交互层</span>
+        <span style="font-size:13px;font-weight:700;color:#E0E7FF;">现代化 Web / 移动交互终端</span>
+        <span style="font-size:11.5px;color:rgba(224,231,255,0.65);">SSE 流式打字机响应 · 实时执行步骤状态栏 · HITL 高危下单确认卡片 · Trace 调试面板</span>
+      </div>
+      <span style="font-size:11px;color:#00E5FF;font-family:Consolas,monospace;">POST /api/chat/stream &amp; /api/chat/confirm ⬇</span>
+    </div>
+
+    <!-- L2: 核心智能体引擎宿主 (Agent Runtime) -->
+    <div style="padding:12px 16px;background:#070B14;border:2px solid rgba(0,229,255,0.4);border-radius:8px;flex:1;display:flex;flex-direction:column;justify-content:space-between;">
+      <div class="flex justify-between items-center mb-1">
+        <div class="flex items-center gap-2">
+          <span style="padding:3px 9px;background:#00E5FF;color:#0B1120;font-size:11.5px;font-weight:800;border-radius:4px;">核心智能体引擎宿主 (Agent Runtime)</span>
+          <span style="font-size:12.5px;font-weight:700;color:#E0E7FF;">智能体运行时引擎（控制流驱动 + 上下文组装中心）</span>
+        </div>
+        <span style="font-size:11px;color:#22C55E;">对外暴露 REST / SSE · 对内调度 LLM / Memory / MCP</span>
+      </div>
+
+      <!-- 内部八大核心组件网格 -->
+      <div class="grid grid-cols-4 gap-2.5">
+        <div class="mod-chip" style="background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.3);">
+          <div style="font-weight:700;color:#22C55E;">1. GuardrailsService · 安全护栏</div>
+          <div style="color:rgba(224,231,255,0.7);">输入敏感词/Prompt注入拦截、手机号/身份证 PII 脱敏</div>
+        </div>
+        <div class="mod-chip" style="background:rgba(0,229,255,0.07);border:1px solid rgba(0,229,255,0.3);">
+          <div style="font-weight:700;color:#00E5FF;">2. PromptManager · 提示词管理</div>
+          <div style="color:rgba(224,231,255,0.7);">管理 System 角色模板、缓存友好型前缀与 JSON 输出约束</div>
+        </div>
+        <div class="mod-chip" style="background:rgba(168,85,247,0.07);border:1px solid rgba(168,85,247,0.3);">
+          <div style="font-weight:700;color:#A855F7;">3. MemoryManager · 记忆编排</div>
+          <div style="color:rgba(224,231,255,0.7);">统一编排近期会话窗口、用户画像与语义记忆</div>
+        </div>
+        <div class="mod-chip" style="background:rgba(0,229,255,0.07);border:1px solid rgba(0,229,255,0.3);">
+          <div style="font-weight:700;color:#00E5FF;">4. LlmRouter · 模型路由</div>
+          <div style="color:rgba(224,231,255,0.7);">按意图复杂度动态路由 Fast 快模型与 Reasoning 旗舰模型</div>
+        </div>
+
+        <div class="mod-chip" style="background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.35);">
+          <div style="font-weight:700;color:#FF6B35;">5. Runtime &amp; TaskPlanner · 状态引擎</div>
+          <div style="color:rgba(224,231,255,0.7);">FSM 有限状态机驱动（PLANNING → EXECUTING），控制最大步数</div>
+        </div>
+        <div class="mod-chip" style="background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.35);">
+          <div style="font-weight:700;color:#FF6B35;">6. ConfirmationService · 审批拦截</div>
+          <div style="color:rgba(224,231,255,0.7);">拦截高危工具（如创建订单），保存待确认快照，等待人工审批</div>
+        </div>
+        <div class="mod-chip" style="background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.3);">
+          <div style="font-weight:700;color:#22C55E;">7. ErrorRecovery · 韧性容错</div>
+          <div style="color:rgba(224,231,255,0.7);">JSON 自愈重试 + 工具调用指数退避重试 + 熔断降级兜底</div>
+        </div>
+        <div class="mod-chip" style="background:rgba(168,85,247,0.07);border:1px solid rgba(168,85,247,0.3);">
+          <div style="font-weight:700;color:#A855F7;">8. TraceService · 全链路追踪</div>
+          <div style="color:rgba(224,231,255,0.7);">全链路记录每个 Step 的耗时、Token 消耗、工具入参出参与状态</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- L3: 标准化微服务工具层 -->
+    <div class="grid grid-cols-2 gap-4">
+      <div style="padding:10px 14px;background:rgba(255,107,53,0.05);border:1px solid rgba(255,107,53,0.32);border-radius:7px;">
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:13px;font-weight:700;color:#FF6B35;"><i class="fas fa-plug mr-1"></i> 领域工具微服务 (Domain Tool Server) · 商品与交易</span>
+          <span style="font-size:11px;padding:1px 6px;background:rgba(255,107,53,0.15);color:#FF6B35;border-radius:3px;">MCP HTTP/SSE</span>
+        </div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.75);line-height:1.5;">
+          暴露核心交易 Tools：<code style="color:#FF6B35;">search_products</code>（条件筛选商品）、<code style="color:#FF6B35;">get_product_detail</code>（查实时价格与库存）、<code style="color:#FF6B35;">calculate_discount</code>（满减核算）、<code style="color:#FF6B35;">create_order</code>（高危写操作·需HITL确认）。
+        </div>
+      </div>
+
+      <div style="padding:10px 14px;background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.32);border-radius:7px;">
+        <div class="flex justify-between items-center mb-1">
+          <span style="font-size:13px;font-weight:700;color:#00E5FF;"><i class="fas fa-plug mr-1"></i> 知识检索微服务 (Knowledge Retrieval Server) · 知识与记忆</span>
+          <span style="font-size:11px;padding:1px 6px;background:rgba(0,229,255,0.15);color:#00E5FF;border-radius:3px;">MCP HTTP/SSE</span>
+        </div>
+        <div style="font-size:11px;color:rgba(224,231,255,0.75);line-height:1.5;">
+          暴露认知检索 Tools：<code style="color:#00E5FF;">search_knowledge</code>（混合检索商品深度评测/尺码指南/退换货规则 + Rerank）、<code style="color:#00E5FF;">get_user_profile</code> &amp; <code style="color:#00E5FF;">recall_user_memory</code>（读写画像与长期记忆）。
+        </div>
+      </div>
+    </div>
+
+    <!-- L4: 三大存储与数据库底座 -->
+    <div class="grid grid-cols-3 gap-3">
+      <div style="padding:8px 12px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.18);border-radius:6px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#00E5FF;">Redis 内存缓存</div>
+          <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.4;">短期对话滑动窗口 + 会话摘要 + HITL 待确认挂起快照</div>
+        </div>
+        <i class="fas fa-bolt text-[#00E5FF] opacity-60"></i>
+      </div>
+      <div style="padding:8px 12px;background:rgba(255,107,53,0.03);border:1px solid rgba(255,107,53,0.18);border-radius:6px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#FF6B35;">MySQL 关系型数据库</div>
+          <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.4;"><code style="color:#FF6B35;">product</code> 实时价格库存表 + <code style="color:#FF6B35;">user_profile</code> 结构化用户画像表</div>
+        </div>
+        <i class="fas fa-table text-[#FF6B35] opacity-60"></i>
+      </div>
+      <div style="padding:8px 12px;background:rgba(168,85,247,0.03);border:1px solid rgba(168,85,247,0.18);border-radius:6px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#A855F7;">PostgreSQL + pgvector 向量库</div>
+          <div style="font-size:11px;color:rgba(224,231,255,0.6);line-height:1.4;"><code style="color:#A855F7;">knowledge_vector</code> 私域知识向量表 + <code style="color:#A855F7;">user_memory</code> 长期语义记忆表</div>
+        </div>
+        <i class="fas fa-vector-square text-[#A855F7] opacity-60"></i>
+      </div>
+    </div>
+  </div>
 </div>
-<div style="display:flex;flex-direction:column;gap:6px;">
-  <div style="display:flex;align-items:center;gap:10px;">
-    <div style="width:120px;text-align:right;font-size:11px;color:rgba(224,231,255,0.5);">应用层<div style="font-size:11px;color:rgba(224,231,255,0.3);">面向用户的产品</div></div>
-    <div style="flex:1;display:flex;gap:6px;">
-      <div style="flex:1;padding:7px 10px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:3px;text-align:center;font-size:11px;color:#00E5FF;">Claude Code</div>
-      <div style="flex:1;padding:7px 10px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:3px;text-align:center;font-size:11px;color:#00E5FF;">Cursor</div>
-      <div style="flex:1;padding:7px 10px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:3px;text-align:center;font-size:11px;color:#00E5FF;">Dify</div>
-    </div>
-  </div>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <div style="width:120px;text-align:right;font-size:11px;color:rgba(224,231,255,0.5);">Agent Runtime</div>
-    <div style="flex:1;display:flex;gap:6px;">
-      <div style="flex:1;padding:7px 10px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:3px;text-align:center;font-size:11px;color:#00E5FF;">编排 · 调度 · 状态</div>
-      <div style="flex:1;padding:7px 10px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:3px;text-align:center;font-size:10px;color:rgba(224,231,255,0.5);">LangGraph</div>
-    </div>
-  </div>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <div style="width:120px;text-align:right;font-size:11px;color:rgba(224,231,255,0.5);">开发框架<div style="font-size:11px;color:rgba(224,231,255,0.3);">封装LLM的SDK</div></div>
-    <div style="flex:1;display:flex;gap:6px;">
-      <div style="flex:1;padding:7px 10px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:3px;text-align:center;font-size:11px;color:#00E5FF;">Spring AI</div>
-      <div style="flex:1;padding:7px 10px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:3px;text-align:center;font-size:11px;color:#00E5FF;">LangChain</div>
-      <div style="flex:1;padding:7px 10px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:3px;text-align:center;font-size:11px;color:#00E5FF;">Mastra</div>
-    </div>
-  </div>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <div style="width:120px;text-align:right;font-size:11px;color:rgba(224,231,255,0.5);">协议层<div style="font-size:11px;color:rgba(224,231,255,0.3);">统一通信标准</div></div>
-    <div style="flex:1;display:flex;gap:6px;">
-      <div style="flex:1;padding:7px 10px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.2);border-radius:3px;text-align:center;font-size:11px;color:#FF6B35;">MCP</div>
-      <div style="flex:1;padding:7px 10px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.2);border-radius:3px;text-align:center;font-size:11px;color:#FF6B35;">A2A</div>
-      <div style="flex:1;padding:7px 10px;background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.2);border-radius:3px;text-align:center;font-size:11px;color:#FF6B35;">OpenAPI</div>
-    </div>
-  </div>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <div style="width:120px;text-align:right;font-size:11px;color:rgba(224,231,255,0.5);">模型层<div style="font-size:11px;color:rgba(224,231,255,0.3);">Agent的大脑</div></div>
-    <div style="flex:1;display:flex;gap:6px;">
-      <div style="flex:1;padding:7px 10px;background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.12);border-radius:3px;text-align:center;font-size:11px;color:rgba(224,231,255,0.6);">GPT</div>
-      <div style="flex:1;padding:7px 10px;background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.12);border-radius:3px;text-align:center;font-size:11px;color:rgba(224,231,255,0.6);">Claude</div>
-      <div style="flex:1;padding:7px 10px;background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.12);border-radius:3px;text-align:center;font-size:11px;color:rgba(224,231,255,0.6);">Qwen</div>
-      <div style="flex:1;padding:7px 10px;background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.12);border-radius:3px;text-align:center;font-size:11px;color:rgba(224,231,255,0.6);">DeepSeek</div>
-    </div>
-  </div>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <div style="width:120px;text-align:right;font-size:11px;color:rgba(224,231,255,0.5);">基础设施<div style="font-size:11px;color:rgba(224,231,255,0.3);">存储与计算</div></div>
-    <div style="flex:1;display:flex;gap:6px;">
-      <div style="flex:1;padding:7px 10px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.08);border-radius:3px;text-align:center;font-size:11px;color:rgba(224,231,255,0.45);">GPU</div>
-      <div style="flex:1;padding:7px 10px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.08);border-radius:3px;text-align:center;font-size:11px;color:rgba(224,231,255,0.45);">Vector DB</div>
-      <div style="flex:1;padding:7px 10px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.08);border-radius:3px;text-align:center;font-size:11px;color:rgba(224,231,255,0.45);">Redis</div>
-      <div style="flex:1;padding:7px 10px;background:rgba(0,229,255,0.03);border:1px solid rgba(0,229,255,0.08);border-radius:3px;text-align:center;font-size:11px;color:rgba(224,231,255,0.45);">PostgreSQL</div>
-    </div>
-  </div>
-</div>
-<div style="margin-top:10px;display:flex;gap:14px;">
-  <div style="flex:1;text-align:center;padding:8px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
-    <div style="font-size:11px;color:rgba(224,231,255,0.5);">你要学的</div>
-    <div style="font-size:12px;color:#00E5FF;font-weight:600;">Spring AI · MCP · RAG · Workflow</div>
-  </div>
-  <div style="flex:1;text-align:center;padding:8px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:5px;">
-    <div style="font-size:11px;color:rgba(224,231,255,0.5);">知道就行的</div>
-    <div style="font-size:12px;color:rgba(224,231,255,0.55);font-weight:600;">GPU · 模型训练 · 向量DB运维</div>
-  </div>
-</div>
-</div></body></html>
+</body></html>

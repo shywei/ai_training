@@ -350,7 +350,7 @@ public class WorkflowController {
 
                         if (finalAnswer.isEmpty()) {
                             return Flux.just("{\"type\":\"token\",\"content\":\"（无响应）\"}",
-                                    "{\"type\":\"done\",\"status\":\"completed\"}");
+                                    String.format("{\"type\":\"done\",\"status\":\"completed\",\"mode\":\"%s\",\"stepCount\":%d}", mode, stepCount));
                         }
 
                         // 逐 chunk 流式输出（每 20 字符一组，减少事件数）
@@ -364,7 +364,7 @@ public class WorkflowController {
                                 .delayElements(Duration.ofMillis(80))
                                 .map(chunk -> "{\"type\":\"token\",\"content\":\"" + escapeJson(chunk) + "\"}");
 
-                        String doneEvent = "{\"type\":\"done\",\"status\":\"completed\"}";
+                        String doneEvent = String.format("{\"type\":\"done\",\"status\":\"completed\",\"mode\":\"%s\",\"stepCount\":%d}", mode, stepCount);
                         return Flux.concat(tokenFlux, Flux.just(doneEvent));
 
                     } else if (result.isNeedsConfirmation()) {

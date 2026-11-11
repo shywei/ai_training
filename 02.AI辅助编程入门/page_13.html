@@ -3,120 +3,91 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
-<title>Context Engineering全景图</title>
+<title>支柱 ④ 实战 · 手把手剖析一个企业级 Java SKILL.md</title>
 <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
 <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet" />
 <style>
 * { margin:0; padding:0; list-style:none; text-decoration:none; box-sizing:border-box; }
 .slide-container { width:1280px; height:720px; background:#0B1120; position:relative; font-family:"Microsoft YaHei",sans-serif; overflow:hidden; }
-.slide-container h1 { font-size:32px !important; color:#E0E7FF; font-weight:700; }
-.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; }
-.slide-ctx-layer { display:flex; align-items:center; gap:10px; padding:7px 14px; margin-bottom:2px; border-radius:6px; }
-.slide-ctx-label { font-size:12px; font-weight:700; min-width:110px; text-align:right; }
-.slide-ctx-desc { font-size:11px; color:rgba(224,231,255,0.5); flex:1; }
-.slide-ctx-who { font-size:10px; padding:2px 8px; border-radius:3px; min-width:70px; text-align:center; }
-.slide-ctx-arrow { text-align:center; color:rgba(0,229,255,0.3); font-size:12px; padding:1px 0; }
+.slide-container h1 { font-size:29px !important; color:#E0E7FF; font-weight:700; }
+.slide-section-num { font-size:14px; color:#00E5FF; letter-spacing:4px; font-weight:700; }
+.code-panel { padding:10px 14px; background:rgba(0,0,0,0.5); border:1px solid rgba(0,229,255,0.22); font-family:monospace; font-size:11px; color:#E0E7FF; line-height:1.48; }
+.anat-card { padding:10px 13px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.15); margin-bottom:8px; }
 </style>
 </head>
 <body>
-<div class="slide-container" style="padding:22px 70px;">
-  <div class="mb-2 slide-section-num">CHAPTER 04 · 核心理念</div>
-  <h1 class="mb-2">Context Engineering — Agent真正看到的世界</h1>
-  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:8px;"></div>
-  <div style="font-size:12px; color:rgba(224,231,255,0.5); margin-bottom:12px;">Prompt决定AI回答得怎么样；<strong style="color:#FF6B35;">Context决定AI能完成多复杂的任务。</strong></div>
+<div class="slide-container" style="padding:26px 65px;">
+  <div class="mb-1 slide-section-num">CHAPTER 04 · HARNESS 驾驭层“六件套”详解</div>
+  <h1 class="mb-2">支柱 ④ 实战 · 手把手剖析一个企业级 Java `SKILL.md`</h1>
+  <div style="width:50px; height:3px; background:#FF6B35; margin-bottom:12px;"></div>
 
-  <div class="flex" style="gap:30px;">
-    <!-- Left: Context layers diagram -->
-    <div style="flex:1;">
-      <div style="font-size:13px; font-weight:700; color:#00E5FF; margin-bottom:8px;"><i class="fas fa-layer-group" style="margin-right:6px;"></i>Agent真正看到的上下文（从高到低）</div>
-
-      <div class="slide-ctx-layer" style="background:rgba(255,107,53,0.08); border:1px solid rgba(255,107,53,0.2);">
-        <div class="slide-ctx-label" style="color:#FF6B35;">System Prompt</div>
-        <div class="slide-ctx-desc">Agent的人格、能力边界、安全规则</div>
-        <div class="slide-ctx-who" style="background:rgba(255,107,53,0.15); color:#FF6B35;">框架内置</div>
+  <div class="flex" style="gap:22px;">
+    <!-- Left Column: Directory Tree + Full SKILL.md Example -->
+    <div style="flex:1.15;">
+      <div style="font-size:13.5px; font-weight:700; color:#00E5FF; margin-bottom:6px;">
+        <i class="fas fa-folder-tree" style="margin-right:6px;"></i>1. 标准企业级 Skill 目录结构（指令 + 模板 + 校验脚本）
       </div>
-      <div class="slide-ctx-arrow"><i class="fas fa-arrow-down"></i></div>
-
-      <div class="slide-ctx-layer" style="background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.15);">
-        <div class="slide-ctx-label" style="color:#00E5FF;">AGENTS.md</div>
-        <div class="slide-ctx-desc">项目技术栈、规范、架构说明 — <strong style="color:#E0E7FF;">你写的</strong></div>
-        <div class="slide-ctx-who" style="background:rgba(0,229,255,0.15); color:#00E5FF;">项目级</div>
+      <div class="code-panel" style="margin-bottom:10px; border-left:3px solid #00E5FF;">
+        .claude/skills/<strong style="color:#22C55E;">spring-flyway-migration</strong>/<br>
+        ├── <strong style="color:#FF6B35;">SKILL.md</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:rgba(224,231,255,0.45);"># 核心触发元数据 + 标准化作业步骤 SOP</span><br>
+        ├── <strong style="color:#00E5FF;">templates/</strong><br>
+        │&nbsp;&nbsp;&nbsp;└── V_template__desc.sql <span style="color:rgba(224,231,255,0.45);"># 团队标准 DDL 幂等注释与索引命名模板</span><br>
+        └── <strong style="color:#FFC832;">scripts/</strong><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;└── lint_mysql_ddl.py &nbsp;&nbsp;<span style="color:rgba(224,231,255,0.45);"># 校验是否缺失主键/注释/是否含高危锁表语句</span>
       </div>
-      <div class="slide-ctx-arrow"><i class="fas fa-arrow-down"></i></div>
 
-      <div class="slide-ctx-layer" style="background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.15);">
-        <div class="slide-ctx-label" style="color:#00E5FF;">Rules</div>
-        <div class="slide-ctx-desc">代码风格、禁止操作、架构约束 — <strong style="color:#E0E7FF;">你定的</strong></div>
-        <div class="slide-ctx-who" style="background:rgba(0,229,255,0.15); color:#00E5FF;">项目级</div>
+      <div style="font-size:13.5px; font-weight:700; color:#FF6B35; margin-bottom:6px;">
+        <i class="fas fa-file-code" style="margin-right:6px;"></i>2. `SKILL.md` 真实源码剖析（`spring-flyway-migration`）
       </div>
-      <div class="slide-ctx-arrow"><i class="fas fa-arrow-down"></i></div>
-
-      <div class="slide-ctx-layer" style="background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.15);">
-        <div class="slide-ctx-label" style="color:#00E5FF;">Skills</div>
-        <div class="slide-ctx-desc">可复用的任务流程、审查清单、工作流 — <strong style="color:#E0E7FF;">你编的</strong></div>
-        <div class="slide-ctx-who" style="background:rgba(0,229,255,0.15); color:#00E5FF;">项目级</div>
-      </div>
-      <div class="slide-ctx-arrow"><i class="fas fa-arrow-down"></i></div>
-
-      <div class="slide-ctx-layer" style="background:rgba(0,229,255,0.06); border:1px solid rgba(0,229,255,0.15);">
-        <div class="slide-ctx-label" style="color:#00E5FF;">Memory</div>
-        <div class="slide-ctx-desc">历史决策、踩坑记录、你的偏好 — <strong style="color:#E0E7FF;">Agent积累的</strong></div>
-        <div class="slide-ctx-who" style="background:rgba(0,229,255,0.15); color:#00E5FF;">跨会话</div>
-      </div>
-      <div class="slide-ctx-arrow"><i class="fas fa-arrow-down"></i></div>
-
-      <div class="slide-ctx-layer" style="background:rgba(224,231,255,0.04); border:1px solid rgba(224,231,255,0.1);">
-        <div class="slide-ctx-label" style="color:#E0E7FF;">用户Prompt</div>
-        <div class="slide-ctx-desc">你当前的指令</div>
-        <div class="slide-ctx-who" style="background:rgba(224,231,255,0.1); color:#E0E7FF;">本次任务</div>
-      </div>
-      <div class="slide-ctx-arrow"><i class="fas fa-arrow-down"></i></div>
-
-      <div class="slide-ctx-layer" style="background:rgba(224,231,255,0.04); border:1px solid rgba(224,231,255,0.1);">
-        <div class="slide-ctx-label" style="color:#E0E7FF;">当前代码 + Git Diff</div>
-        <div class="slide-ctx-desc">Agent正在操作的文件、最近的变更</div>
-        <div class="slide-ctx-who" style="background:rgba(224,231,255,0.1); color:#E0E7FF;">实时</div>
-      </div>
-      <div class="slide-ctx-arrow"><i class="fas fa-arrow-down"></i></div>
-
-      <div class="slide-ctx-layer" style="background:rgba(224,231,255,0.02); border:1px solid rgba(224,231,255,0.06);">
-        <div class="slide-ctx-label" style="color:rgba(224,231,255,0.5);">MCP结果 + 历史对话</div>
-        <div class="slide-ctx-desc">工具返回值、之前的交互（可能被截断）</div>
-        <div class="slide-ctx-who" style="background:rgba(224,231,255,0.05); color:rgba(224,231,255,0.4);">易丢失</div>
+      <div class="code-panel" style="border-left:3px solid #FF6B35;">
+        <div><span style="color:#FF6B35;">---</span></div>
+        <div><span style="color:#00E5FF;">name</span>: <span style="color:#22C55E;">spring-flyway-migration</span></div>
+        <div><span style="color:#00E5FF;">description</span>: <span style="color:#FFC832;">当用户要求新增/修改数据库表字段、生成 Flyway SQL 迁移脚本或同步修改 MyBatis-Plus Entity 时触发此技能。</span></div>
+        <div><span style="color:#FF6B35;">---</span></div>
+        <div style="margin-top:4px;"><span style="color:#00E5FF; font-weight:700;">## Step 1: 版本号计算与模板读取</span></div>
+        <div>1. 扫描 `src/main/resources/db/migration/` 下最新 `V&#123;日期&#125;.&#123;序号&#125;__*.sql` 文件；</div>
+        <div>2. 读取本技能目录下 `templates/V_template__desc.sql` 作为结构基准。</div>
+        <div style="margin-top:4px;"><span style="color:#00E5FF; font-weight:700;">## Step 2: 集团 DBA 强制规范</span></div>
+        <div>- 所有新增表必须包含 `id`, `tenant_id`, `created_at`, `updated_at`, `is_deleted`；</div>
+        <div>- 严禁使用 `FLOAT/DOUBLE` 存储金额，金额字段必须为 `DECIMAL(18,4) NOT NULL`；</div>
+        <div>- 每个字段与表结尾必须携带 `COMMENT` 中文说明。</div>
+        <div style="margin-top:4px;"><span style="color:#00E5FF; font-weight:700;">## Step 3: 脚本静态审查与 Entity 同步（闭环验证）</span></div>
+        <div>1. 生成 SQL 文件后，**必须运行** `python .claude/skills/spring-flyway-migration/scripts/lint_mysql_ddl.py &lt;sql_path&gt;`；</div>
+        <div>2. 校验通过后，同步更新对应 `Entity.java` 字段，并运行 `mvn test-compile` 验证。</div>
       </div>
     </div>
 
-    <!-- Right: Key insight -->
-    <div style="flex:1;">
-      <div style="font-size:14px; font-weight:700; color:#FF6B35; margin-bottom:8px;"><i class="fas fa-lightbulb" style="margin-right:6px;"></i>关键认知</div>
+    <!-- Right Column: 4 Key Design Secrets of Writing High-Hit Skills -->
+    <div style="flex:0.85;">
+      <div style="font-size:14.5px; font-weight:700; color:#22C55E; margin-bottom:8px;">
+        <i class="fas fa-wand-magic-sparkles" style="margin-right:6px;"></i>3. 编写高命中率 `SKILL.md` 的四大工程心法
+      </div>
 
-      <div style="padding:12px 14px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.12); margin-bottom:10px;">
-        <div style="font-size:14px; color:#E0E7FF; font-weight:700; margin-bottom:8px;">Prompt Engineering vs Context Engineering</div>
-        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.7;">
-          <strong style="color:#FF6B35;">Prompt Engineering</strong>：优化你写的那一句话<br>
-          <strong style="color:#00E5FF;">Context Engineering</strong>：优化Agent看到的所有信息<br><br>
-          Prompt只是上下文的<strong style="color:#E0E7FF;">冰山一角</strong>。Agent的输出质量，<br>
-          80%取决于它能看到多少项目信息，20%取决于你怎么问。
+      <div class="anat-card" style="border-left:3px solid #FFC832;">
+        <div style="font-size:13px; font-weight:700; color:#FFC832; margin-bottom:3px;">① `description` 就是路由触发器（Router Prompt）</div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.45;">
+          Agent 靠阅读 `description` 决定是否加载该 Skill。切忌写“数据库辅助工具”这种空话，必须写明**“当用户要求 [具体场景 A / 关键词 B] 时触发”**！
         </div>
       </div>
 
-      <div style="padding:12px 14px; background:rgba(255,107,53,0.04); border:1px solid rgba(255,107,53,0.12); margin-bottom:10px;">
-        <div style="font-size:14px; color:#FF6B35; font-weight:700; margin-bottom:8px;">为什么Agent比网页对话强？</div>
-        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.7;">
-          网页对话：只有 <strong style="color:#E0E7FF;">Prompt + 历史对话</strong>（最下面两层）<br>
-          Agent编程：<strong style="color:#FF6B35;">全部8层上下文</strong>都能看到<br><br>
-          这就是为什么同一个模型，Agent能完成网页对话做不到的事。
+      <div class="anat-card" style="border-left:3px solid #00E5FF;">
+        <div style="font-size:13px; font-weight:700; color:#00E5FF; margin-bottom:3px;">② 确定性检查交给 `scripts/`，别让 LLM 心算</div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.45;">
+          大模型容易漏看某个字段没加 `COMMENT`。在 Skill 中内置一个 30 行 Python/Bash 检查脚本让 Agent 调用，比写十遍“请仔细检查”靠谱百倍。
         </div>
       </div>
 
-      <div style="padding:12px 14px; background:rgba(224,231,255,0.03); border:1px solid rgba(224,231,255,0.1);">
-        <div style="font-size:14px; color:#E0E7FF; font-weight:700; margin-bottom:8px;">你的工作：管理上下文</div>
-        <div style="font-size:12px; color:rgba(224,231,255,0.55); line-height:1.7;">
-          <strong style="color:#00E5FF;">AGENTS.md</strong> — 告诉Agent"你是谁、在什么项目里"<br>
-          <strong style="color:#00E5FF;">Rules</strong> — 告诉Agent"什么能做、什么不能做"<br>
-          <strong style="color:#00E5FF;">Skills</strong> — 告诉Agent"这个任务怎么做"<br>
-          <strong style="color:#00E5FF;">Memory</strong> — 让Agent记住"之前发生过什么"<br><br>
-          <strong style="color:#FF6B35;">写好这四个文件，比写好一个Prompt重要10倍。</strong>
+      <div class="anat-card" style="border-left:3px solid #22C55E;">
+        <div style="font-size:13px; font-weight:700; color:#22C55E; margin-bottom:3px;">③ 样板文件放入 `templates/`（Few-Shot 锚点）</div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.45;">
+          把团队最标准的 Controller/Test/SQL 样板放在技能包的 `templates/` 下，让 Agent 生成前先 `Read` 样板，输出的代码风格与老员工毫无二致。
+        </div>
+      </div>
+
+      <div class="anat-card" style="border-left:3px solid #A855F7; margin-bottom:0;">
+        <div style="font-size:13px; font-weight:700; color:#A855F7; margin-bottom:3px;">④ 让 Agent 帮你写 Skill（`/learn` 经验沉淀）</div>
+        <div style="font-size:11.5px; color:rgba(224,231,255,0.7); line-height:1.45;">
+          当你带着 Agent 历经千辛万苦排完一个棘手 Bug 或完成一次标准接入后，直接下令：<strong style="color:#E0E7FF;">“把刚才我们的操作步骤与踩坑点提炼成一个 `SKILL.md` 保存到 `.claude/skills/`”</strong>，立刻完成团队经验固化！
         </div>
       </div>
     </div>
