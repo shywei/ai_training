@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>Checkpointer 能力落地：断点复水 Rehydration 与时光倒流 Forking</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 20px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 3px; font-weight: 600; }
+    .code-box { font-family: Consolas, "Fira Code", monospace; font-size: 10.8px; line-height: 1.42; background: rgba(0,0,0,0.48); padding: 9px 11px; border-radius: 6px; border: 1px solid rgba(224,231,255,0.14); color: #E0E7FF; white-space: pre; overflow-x: hidden; }
+  </style>
+</head>
+<body>
+  <div class="s">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;" class="mb-1">
+        <span class="sn">PART 2 · 企业级增量（一）：Checkpointer 两大生产能力落地</span>
+        <span style="font-size:11.5px;color:#4ADE80;background:rgba(74,222,128,0.14);border:1px solid rgba(74,222,128,0.35);padding:2px 9px;border-radius:4px;font-weight:700;">复水与分叉 Demo 已覆盖 · Saga 外部补偿仅 PPT 讲解</span>
+      </div>
+      <h1 style="font-size:27px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">
+        怎么解决恢复与回滚难题？断点复水（Rehydration）与分支（Forking）
+      </h1>
+      <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1.06fr;gap:16px;flex:1;min-height:0;">
+      <!-- 左栏：Rehydration -->
+      <div style="background:rgba(0,229,255,0.03);border:1.5px solid rgba(0,229,255,0.28);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:15px;color:#00E5FF;font-weight:700;"><i class="fas fa-redo"></i> 1. 跨进程断点复水（Rehydration）</span>
+            <span style="font-size:11px;color:#4ADE80;background:rgba(74,222,128,0.12);padding:2px 7px;border-radius:4px;font-family:monospace;">POST /rehydrate</span>
+          </div>
+          <div style="font-size:12.5px;color:#CBD5E1;line-height:1.5;margin-bottom:8px;">
+            • <strong>原理：</strong>新 Pod 收到唤醒请求后，通过 <code>executionId + checkpointId</code> 加载快照，还原 <code>stepCursor</code> 与已查询到的 <code>scratchpad</code> 结果，<strong>跳过已完成步骤</strong>从中断游标原位续跑。
+          </div>
+          <div class="code-box"><span style="color:#94A3B8;">// WorkflowV7Controller ➔ AgentScopeWorkflowAdapter</span>
+<span style="color:#569CD6;">public</span> <span style="color:#4EC9B0;">WorkflowResponse</span> rehydrateFromCheckpoint(<span style="color:#4EC9B0;">String</span> execId, <span style="color:#4EC9B0;">String</span> cpId) {
+  <span style="color:#4EC9B0;">AgentCheckpoint</span> cp = checkpointStore.loadCheckpoint(execId, cpId);
+  <span style="color:#569CD6;">if</span> (cp.getState() == <span style="color:#4EC9B0;">WorkflowState</span>.COMPLETED) <span style="color:#569CD6;">return</span> completed(...);
+
+  <span style="color:#94A3B8;">// 从 stepCursor 与 callStack 原位恢复推演，绝不重复扣款</span>
+  <span style="color:#4EC9B0;">String</span> resumeMsg = <span style="color:#CE9178;">"继续执行在步骤 "</span> + cp.getStepCursor()
+      + <span style="color:#CE9178;">" 挂起的任务, 历史栈: "</span> + cp.getCallStack();
+  <span style="color:#569CD6;">return</span> executeTask(execId, cp.getSessionId(), cp.getUserId(), resumeMsg);
+}</div>
+        </div>
+        <div style="font-size:12px;color:#00E5FF;background:rgba(0,229,255,0.08);border-radius:5px;padding:7px 10px;">
+          ✅ <strong>解决痛点：</strong>K8s 发版重启、或次日审批通过后，跨实例无缝唤醒而不重跑前置步骤。
+        </div>
+      </div>
+
+      <!-- 右栏：Time-Travel Forking -->
+      <div style="background:rgba(192,132,252,0.035);border:1.5px solid rgba(192,132,252,0.3);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:15px;color:#C084FC;font-weight:700;"><i class="fas fa-code-branch"></i> 2. 时光倒流分支（Time-Travel Forking）</span>
+            <span style="font-size:11px;color:#C084FC;background:rgba(192,132,252,0.14);padding:2px 7px;border-radius:4px;font-family:monospace;">POST /fork</span>
+          </div>
+          <div style="background:rgba(0,0,0,0.42);border:1px solid rgba(224,231,255,0.12);border-radius:5px;padding:7px 10px;margin-bottom:8px;font-size:11.5px;font-family:monospace;line-height:1.48;">
+            <span style="color:#00E5FF;">chk-0 (需求解析) ➔ chk-1 (查出拯救者 Y9000P)</span><br>
+            &nbsp;&nbsp;├── <span style="color:#F87171;">chk-2 (准备下单 ¥8999 ➔ 用户驳回)</span> [原分支保留审计]<br>
+            &nbsp;&nbsp;└── <span style="color:#4ADE80;">cp-fork (parent=chk-1 ➔ 改搜 MacBook)</span> [新分支]
+          </div>
+          <div class="code-box"><span style="color:#94A3B8;">// AgentScopeCheckpointStore.forkFromCheckpoint(...)</span>
+<span style="color:#4EC9B0;">AgentCheckpoint</span> base = loadCheckpoint(srcExecId, cpId);
+<span style="color:#4EC9B0;">AgentCheckpoint</span> forked = <span style="color:#569CD6;">new</span> <span style="color:#4EC9B0;">AgentCheckpoint</span>(
+    newExecId, <span style="color:#CE9178;">"cp-fork-..."</span>, cpId, <span style="color:#4EC9B0;">WorkflowState</span>.EXECUTING, base.getStepCursor());
+forked.setScratchpad(<span style="color:#569CD6;">new</span> <span style="color:#4EC9B0;">HashMap</span>&lt;&gt;(base.getScratchpad()));
+saveSnapshot(forked);</div>
+        </div>
+        <div style="font-size:12px;color:#FBBF24;background:rgba(251,191,36,0.1);border-radius:5px;padding:7px 10px;">
+          ⚠️ <strong>重要边界（仅 PPT）：</strong>若旧分支已产生外部副作用（如锁库存/订机票），Forking 必须联动 Saga 逆向补偿（第 11 课详讲）。
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>2026 企业 AI 技术栈三层生态坐标与需求选型决策指南</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 20px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 3px; font-weight: 600; }
+    .layer-card { background: rgba(15, 23, 42, 0.72); border-radius: 8px; padding: 10px 14px; }
+  </style>
+</head>
+<body>
+<div class="s">
+  <div>
+    <div class="mb-1 sn">PART 3 · 生态全景坐标与架构师选型决策</div>
+    <h1 style="font-size:27px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">
+      2026 企业 AI 技术栈三层坐标与精准选型决策指南
+    </h1>
+    <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:0.96fr 1.04fr;gap:16px;flex:1;min-height:0;">
+    <!-- 左：L1 / L2 / L3 三层生态坐标 -->
+    <div style="display:flex;flex-direction:column;justify-content:space-between;gap:10px;">
+      <div class="layer-card" style="border:1px solid rgba(192,132,252,0.3);border-left:4px solid #C084FC;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <span style="color:#C084FC;font-weight:700;font-size:14.5px;">L3 · 低代码平台层（Dify / Coze / 百炼）</span>
+          <span style="font-size:11.5px;color:#CBD5E1;">类比：可视化 BPM</span>
+        </div>
+        <div style="font-size:12.5px;color:#CBD5E1;line-height:1.5;">适合运营快速搭 FAQ 问答或 POC 验证；难以深度嵌入微服务核心事务与内网复杂鉴权。</div>
+      </div>
+
+      <div class="layer-card" style="border:1px solid rgba(74,222,128,0.38);border-left:4px solid #4ADE80;background:rgba(34,197,94,0.06);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <span style="color:#4ADE80;font-weight:700;font-size:14.5px;">L2 · 智能体运行时层（AgentScope 2.0 / Embabel / LangGraph）</span>
+          <span style="font-size:11.5px;color:#A7F3D0;font-weight:700;">类比：Spring MVC</span>
+        </div>
+        <div style="font-size:12.5px;color:#E2E8F0;line-height:1.5;">接管 <code>ReActAgent</code> 多步循环、五阶段 <code>Middleware</code> 钩子、多通道事件流与 <code>StateStore</code> 状态快照。</div>
+      </div>
+
+      <div class="layer-card" style="border:1px solid rgba(56,189,248,0.35);border-left:4px solid #38BDF8;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <span style="color:#38BDF8;font-weight:700;font-size:14.5px;">L1 · 模型通信底座层（Spring AI 2.0 / LangChain4j）</span>
+          <span style="font-size:11.5px;color:#CBD5E1;">类比：JDBC / Servlet</span>
+        </div>
+        <div style="font-size:12.5px;color:#CBD5E1;line-height:1.5;">统一厂商协议，提供 <code>ChatClient</code>、<code>@Tool</code>、内置 MCP 与单次 <code>Advisor</code> 链，轻量标准、无多步状态机。</div>
+      </div>
+
+      <div style="background:rgba(248,113,113,0.08);border-left:3px solid #F87171;border-radius:5px;padding:8px 12px;font-size:12px;color:#E0E7FF;line-height:1.48;">
+        <strong style="color:#F87171;">为什么不选 Spring AI Alibaba 2.0？</strong> 目前仍处于 Milestone 预发布阶段，生产稳定性与通用 Harness 能力不如已发布稳定 GA 的 <strong>AgentScope Java 2.0.0</strong>。
+      </div>
+    </div>
+
+    <!-- 右：需求选型决策树 -->
+    <div style="background:rgba(15,23,42,0.72);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:12px 16px;display:flex;flex-direction:column;justify-content:space-between;">
+      <div style="font-size:15px;color:#FBBF24;font-weight:700;">🎯 业务需求选型决断树：你的项目该用谁？</div>
+
+      <div style="background:rgba(56,189,248,0.08);border-left:4px solid #38BDF8;border-radius:6px;padding:9px 12px;">
+        <div style="color:#38BDF8;font-size:13.5px;font-weight:700;margin-bottom:3px;">✅ 选 L1（Spring AI 2.0）就足够：</div>
+        <ul style="font-size:12.5px;color:#E2E8F0;line-height:1.5;list-style:disc;margin-left:16px;">
+          <li>单轮/少轮问答、摘要、结构化提取</li>
+          <li>标准企业 RAG（检索 ➔ 拼 Prompt ➔ 输出）</li>
+          <li>传统 Java 代码主控流程，仅在某一步调 1~2 个只读工具</li>
+        </ul>
+      </div>
+
+      <div style="background:rgba(74,222,128,0.08);border-left:4px solid #4ADE80;border-radius:6px;padding:9px 12px;">
+        <div style="color:#4ADE80;font-size:13.5px;font-weight:700;margin-bottom:3px;">🚀 必须引入 L2（AgentScope 2.0）：</div>
+        <ul style="font-size:12.5px;color:#E2E8F0;line-height:1.5;list-style:disc;margin-left:16px;">
+          <li>动态多步 ReAct 规划（按工具结果决定下一步）</li>
+          <li>高危工具执行前拦截风控与 HITL 无损挂起审批</li>
+          <li>跨进程断点复水（Rehydration）与思考/工具/正文多通道流式 UI</li>
+        </ul>
+      </div>
+
+      <div style="background:rgba(251,191,36,0.1);border-left:3px solid #FBBF24;padding:8px 12px;border-radius:4px;font-size:12px;color:#E2E8F0;line-height:1.48;">
+        <strong style="color:#FBBF24;">选型第一原则：</strong>优先选用 <strong>GA 稳定版</strong>，并用六边形架构将选型隔离在 <code>adapter/</code> 内，留好退路。
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

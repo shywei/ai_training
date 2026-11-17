@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>同构提效（四）：官方内置 MCP Client 替代手写桥接</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 20px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 3px; font-weight: 600; }
+    .code-box { font-family: Consolas, "Fira Code", monospace; font-size: 11px; line-height: 1.42; background: rgba(0,0,0,0.48); padding: 10px 12px; border-radius: 6px; border: 1px solid rgba(224,231,255,0.14); color: #E0E7FF; white-space: pre; overflow-x: hidden; }
+  </style>
+</head>
+<body>
+  <div class="s">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;" class="mb-1">
+        <span class="sn">PART 1 · 同构能力提效（V5 ➔ V6 · 外部 MCP 协议连接）</span>
+        <span style="font-size:11.5px;color:#38BDF8;background:rgba(56,189,248,0.14);border:1px solid rgba(56,189,248,0.35);padding:2px 9px;border-radius:4px;font-weight:700;">装配已预留 · Demo 默认 Mock/HTTP 兜底独立运行</span>
+      </div>
+      <h1 style="font-size:27px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">
+        MCP 工具接入：从手写客户端与桥接器到官方内置 MCP Client
+      </h1>
+      <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:10px;"></div>
+    </div>
+
+    <!-- 五步闭环概览 -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;">
+      <div style="background:rgba(248,113,113,0.07);border-left:3px solid #F87171;border-radius:5px;padding:8px 11px;">
+        <div style="font-size:12.5px;color:#F87171;font-weight:700;">1. V5 存在什么问题？</div>
+        <div style="font-size:12px;color:#CBD5E1;margin-top:3px;line-height:1.45;"><code>McpProductClient</code>(201行) + <code>McpKnowledgeClient</code>(212行) + <code>McpToolCallback</code>(80行) 全部手写 SSE 握手、重连与 Schema 桥接。</div>
+      </div>
+      <div style="background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:5px;padding:8px 11px;">
+        <div style="font-size:12.5px;color:#00E5FF;font-weight:700;">2. 引入什么概念？</div>
+        <div style="font-size:12px;color:#CBD5E1;margin-top:3px;line-height:1.45;"><strong>MCP Client Starter</strong>（<code>spring-ai-starter-mcp-client</code>）与 <code>SyncMcpToolCallbackProvider</code> 标准适配器。</div>
+      </div>
+      <div style="background:rgba(192,132,252,0.06);border-left:3px solid #C084FC;border-radius:5px;padding:8px 11px;">
+        <div style="font-size:12.5px;color:#C084FC;font-weight:700;">3. 原理与怎么解决？</div>
+        <div style="font-size:12px;color:#CBD5E1;margin-top:3px;line-height:1.45;">Starter 按 YAML 自动创建 <code>McpSyncClient</code>、执行 <code>initialize</code> 握手并发现远端工具，统一暴露为 <code>ToolCallbackProvider</code>。</div>
+      </div>
+      <div style="background:rgba(74,222,128,0.07);border-left:3px solid #4ADE80;border-radius:5px;padding:8px 11px;">
+        <div style="font-size:12.5px;color:#4ADE80;font-weight:700;">4. 框架位置 &amp; 架构评估</div>
+        <div style="font-size:12px;color:#CBD5E1;margin-top:3px;line-height:1.45;">仍是连接 8081/8082 MCP Server（<strong>架构未变</strong>），仅把 493 行手写客户端与桥接胶水压缩为配置 + 3 行注入。</div>
+      </div>
+    </div>
+
+    <!-- 左右对照代码 -->
+    <div style="display:grid;grid-template-columns:1fr 1.08fr;gap:16px;flex:1;min-height:0;">
+      <div style="background:rgba(255,255,255,0.025);border:1.5px solid rgba(255,107,53,0.3);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:14.5px;color:#FF8A5B;font-weight:700;"><i class="fas fa-unlink"></i> V5 手搓原版 · McpToolCallback.java (80行)</span>
+            <span style="font-size:11.5px;color:#FF8A5B;background:rgba(255,107,53,0.12);padding:2px 8px;border-radius:4px;">手动连接 + 手动桥接</span>
+          </div>
+          <div class="code-box"><span style="color:#94A3B8;">// 1. McpProductClient.java (201行)：手动建立 SSE 传输与初始化</span>
+<span style="color:#4EC9B0;">McpSyncClient</span> client = <span style="color:#4EC9B0;">McpClient</span>.sync(transport).build();
+client.initialize();
+
+<span style="color:#94A3B8;">// 2. McpToolCallback.java (80行)：手动实现 FunctionCallback 桥接</span>
+<span style="color:#569CD6;">public class</span> <span style="color:#4EC9B0;">McpToolCallback</span> <span style="color:#569CD6;">implements</span> <span style="color:#4EC9B0;">FunctionCallback</span> {
+  <span style="color:#569CD6;">public</span> <span style="color:#4EC9B0;">String</span> call(<span style="color:#4EC9B0;">String</span> functionInput) {
+    <span style="color:#4EC9B0;">Map</span>&lt;<span style="color:#4EC9B0;">String</span>, <span style="color:#4EC9B0;">Object</span>&gt; args = mapper.readValue(functionInput, <span style="color:#4EC9B0;">Map</span>.class);
+    <span style="color:#4EC9B0;">CallToolResult</span> res = mcpClient.callTool(<span style="color:#569CD6;">new</span> <span style="color:#4EC9B0;">CallToolRequest</span>(name, args));
+    <span style="color:#569CD6;">return</span> extractTextContent(res);
+  }
+}</div>
+        </div>
+        <div style="font-size:12px;color:#FF8A5B;background:rgba(255,107,53,0.08);border-radius:5px;padding:7px 10px;">
+          ⚠️ <strong>痛点：</strong>每接一个外部 MCP Server 都要复制连接管理、断线懒重连与回调包装代码。
+        </div>
+      </div>
+
+      <div style="background:rgba(0,229,255,0.035);border:1.5px solid rgba(0,229,255,0.3);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:14.5px;color:#00E5FF;font-weight:700;"><i class="fas fa-plug"></i> V6 Spring AI 2.0 · 配置即接入 + 自动装配</span>
+            <span style="font-size:11.5px;color:#4ADE80;background:rgba(74,222,128,0.12);padding:2px 8px;border-radius:4px;font-weight:700;">桥接代码归零</span>
+          </div>
+          <div class="code-box"><span style="color:#94A3B8;"># 1. application.yml：声明远端 MCP Server 连接，Starter 自动建连</span>
+<span style="color:#569CD6;">spring.ai.mcp.client:</span>
+  <span style="color:#9CDCFE;">enabled:</span> <span style="color:#FBBF24;">false</span> <span style="color:#94A3B8;"># 启动 8081/8082 时改为 true 即可直连</span>
+  <span style="color:#569CD6;">sse.connections:</span>
+    <span style="color:#9CDCFE;">product-server.url:</span> http://localhost:8081
+    <span style="color:#9CDCFE;">knowledge-server.url:</span> http://localhost:8082
+
+<span style="color:#94A3B8;">// 2. SpringAi2ChatConfig.java：注入 SyncMcpToolCallbackProvider 挂载</span>
+<span style="color:#4EC9B0;">SyncMcpToolCallbackProvider</span> mcp = mcpProvider.getIfAvailable();
+<span style="color:#569CD6;">if</span> (mcp != <span style="color:#569CD6;">null</span>) builder.defaultToolCallbacks(mcp);</div>
+        </div>
+        <div style="font-size:12px;color:#4ADE80;background:rgba(74,222,128,0.08);border-radius:5px;padding:7px 10px;">
+          ✅ <strong>Demo 工程说明：</strong>V6 已预留官方 MCP 自动装配代码；为支持离线零依赖启动，默认 <code>enabled: false</code> 并由 <code>SpringAi2ToolAdapter</code> 兜底（V7 则用独立 <code>McpEnterpriseToolAdapter</code> 实现 <code>EnterpriseToolPort</code>）。
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

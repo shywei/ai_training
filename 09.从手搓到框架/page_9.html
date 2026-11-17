@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>V6 的能力边界：API 优雅了，但多步状态机依然要手搓</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 20px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 3px; font-weight: 600; }
+    .code-box { font-family: Consolas, "Fira Code", monospace; font-size: 11px; line-height: 1.42; background: rgba(0,0,0,0.48); padding: 10px 12px; border-radius: 6px; border: 1px solid rgba(224,231,255,0.14); color: #E0E7FF; white-space: pre; overflow-x: hidden; }
+  </style>
+</head>
+<body>
+  <div class="s">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;" class="mb-1">
+        <span class="sn">PART 1 · 同构能力提效（V6 天花板剖析 · 引入 AgentScope 的动因）</span>
+        <span style="font-size:11.5px;color:#FF8A5B;background:rgba(255,107,53,0.14);border:1px solid rgba(255,107,53,0.35);padding:2px 9px;border-radius:4px;font-weight:700;">✅ Demo 真实写照（SpringAi2WorkflowAdapter 300行）</span>
+      </div>
+      <h1 style="font-size:27px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">
+        V6 的天花板：Spring AI 2.0 没接管的那 300 行状态机胶水
+      </h1>
+      <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:10px;"></div>
+      <div style="background:rgba(255,107,53,0.08);border-left:3px solid #FF6B35;border-radius:4px;padding:7px 14px;font-size:13px;color:#E0E7FF;line-height:1.48;">
+        <strong style="color:#FF8A5B;">关键发现：</strong>打开 8083 工程的 <code>SpringAi2WorkflowAdapter.java</code>，你会发现虽然通信与单步工具极简了，但<strong>多步状态推进循环依然需要开发者自己手写 300 行</strong>！
+      </div>
+    </div>
+
+    <!-- 左右：真实 300 行胶水代码解剖 vs Spring AI 定位结论 -->
+    <div style="display:grid;grid-template-columns:1.12fr 0.88fr;gap:16px;flex:1;margin-top:10px;min-height:0;">
+      <!-- 左：SpringAi2WorkflowAdapter 真实代码证据 -->
+      <div style="background:rgba(255,255,255,0.025);border:1.5px solid rgba(255,107,53,0.32);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:14.5px;color:#FF8A5B;font-weight:700;"><i class="fas fa-code"></i> SpringAi2WorkflowAdapter.java (300行 · 仍需手搓的部分)</span>
+          </div>
+          <div class="code-box"><span style="color:#94A3B8;">// 1. 依然要自己手写任务步骤规划 (planTask)</span>
+<span style="color:#4EC9B0;">List</span>&lt;<span style="color:#4EC9B0;">WorkflowStep</span>&gt; steps = planTask(message);
+currentCheckpoint.setState(<span style="color:#4EC9B0;">WorkflowState</span>.EXECUTING);
+
+<span style="color:#94A3B8;">// 2. 依然要自己手写 while 状态推进循环 (driveWorkflowLoop)</span>
+<span style="color:#569CD6;">while</span> (cursor &lt; <span style="color:#4EC9B0;">Math</span>.max(<span style="color:#F472B6;">1</span>, steps.size()) &amp;&amp; cursor &lt; MAX_ITERATIONS) {
+  cursor++;
+  <span style="color:#4EC9B0;">String</span> thought = chatClient.prompt().user(promptContext).call().content();
+
+  <span style="color:#94A3B8;">// 3. 依然要自己手动检查高危动作并中断循环！</span>
+  <span style="color:#569CD6;">if</span> (checkNeedsHumanConfirmation(thought, step)) {
+    checkpoint.setState(<span style="color:#4EC9B0;">WorkflowState</span>.CONFIRMING);
+    checkpointStore.saveSnapshot(checkpoint);
+    <span style="color:#569CD6;">return</span> <span style="color:#4EC9B0;">WorkflowResponse</span>.confirming(...);
+  }
+  <span style="color:#94A3B8;">// 4. 依然要自己手动在每步末尾保存快照并推送 SSE Sink</span>
+  checkpointStore.saveSnapshot(nextCheckpoint);
+}</div>
+        </div>
+        <div style="font-size:12px;color:#FF8A5B;background:rgba(255,107,53,0.08);border-radius:5px;padding:6px 10px;">
+          ⚠️ <strong>痛点复现：</strong>如果每个业务团队都在 Spring AI 上手写这套循环，就会长出五花八门的“自制简陋版状态机”。
+        </div>
+      </div>
+
+      <!-- 右：本质剖析 -->
+      <div style="background:rgba(0,229,255,0.03);border:1.5px solid rgba(0,229,255,0.28);border-radius:8px;padding:12px 16px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="font-size:15px;color:#00E5FF;font-weight:700;margin-bottom:10px;">
+            <i class="fas fa-compass"></i> 为什么 Spring AI 2.0 不提供这些？
+          </div>
+          <div style="background:rgba(15,23,42,0.75);border-left:4px solid #38BDF8;border-radius:5px;padding:10px 12px;margin-bottom:10px;">
+            <div style="font-size:13.5px;color:#38BDF8;font-weight:700;">架构类比：Spring AI = Servlet API</div>
+            <div style="font-size:12.5px;color:#CBD5E1;margin-top:4px;line-height:1.52;">
+              Servlet API 标准化了 HTTP Request/Response 与 Filter 链，但它不是工作流引擎。同理，Spring AI 标准化了 <code>ChatClient</code>、<code>@Tool</code> 与 <code>Advisor</code>，刻意保持轻量无状态。
+            </div>
+          </div>
+          <div style="font-size:13px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">Spring AI 2.0 留给上层的四块空白：</div>
+          <ul style="font-size:12.5px;color:#CBD5E1;line-height:1.65;list-style:disc;margin-left:18px;">
+            <li>多轮 ReAct 状态机与动态迭代收敛</li>
+            <li>任务执行现场（CallStack/游标）持久化快照</li>
+            <li>工具执行前细粒度钩子与无损审批挂起</li>
+            <li>多通道（思考/工具/正文/审批）结构化事件流</li>
+          </ul>
+        </div>
+        <div style="background:rgba(74,222,128,0.1);border-radius:5px;padding:8px 12px;font-size:12.5px;color:#E0E7FF;">
+          👉 <strong style="color:#4ADE80;">下一步演进：</strong>引入<strong>应用级智能体框架 AgentScope 2.0（Spring MVC 级）</strong>，先看它如何接管主循环！
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

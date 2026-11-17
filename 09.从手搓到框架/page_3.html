@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>破题：两条截然不同的演进主线与三套对照工程</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 22px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 4px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="s">
+    <div>
+      <div class="mb-1 sn">CHAPTER 01 · 破题：为什么从手搓走向框架？</div>
+      <h1 style="font-size:27px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">
+        先分清两种完全不同的问题：开发效率提升 vs 企业级能力补齐
+      </h1>
+      <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:10px;"></div>
+      <div style="background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:4px;padding:8px 14px;font-size:13.5px;color:#E0E7FF;line-height:1.5;">
+        <strong style="color:#00E5FF;">全课总纲：</strong>引入框架绝不能一锅炖！必须严格区分<strong>“同样功能换框架写更省事（架构没变）”</strong>与<strong>“手搓做不好、企业生产必须靠框架补齐的环节”</strong>。
+      </div>
+    </div>
+
+    <!-- 中部两列：严格切分两类问题 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1;margin:12px 0;min-height:0;">
+      <!-- 左：5.1 同构重构（效率提升） -->
+      <div style="background:rgba(56,189,248,0.04);border:1.5px solid rgba(56,189,248,0.3);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <span style="font-size:15.5px;color:#38BDF8;font-weight:700;"><i class="fas fa-tachometer-alt"></i> 主线一：同构能力替换（开发效率提升）</span>
+            <span style="font-size:11.5px;color:#38BDF8;background:rgba(56,189,248,0.14);padding:2px 8px;border-radius:4px;font-weight:700;">架构设计未变</span>
+          </div>
+          <div style="font-size:13px;color:#CBD5E1;line-height:1.6;margin-bottom:10px;">
+            第 04~08 课用 V5 手搓实现的导购功能，在框架下<strong>核心架构逻辑（Prompt+Tool+ReAct）没有任何变化</strong>，变的只是写法与胶水代码量：
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px;">
+            <div style="background:rgba(15,23,42,0.7);border-left:3px solid #38BDF8;padding:8px 10px;border-radius:4px;">
+              <strong style="color:#F8FAFC;">1. Prompt 拼装 &amp; 调用：</strong><code>PromptManager</code>(65行) ➔ <code>ChatClient.builder()</code>
+            </div>
+            <div style="background:rgba(15,23,42,0.7);border-left:3px solid #38BDF8;padding:8px 10px;border-radius:4px;">
+              <strong style="color:#F8FAFC;">2. 工具声明 &amp; MCP 接入：</strong>手写正则 + <code>McpToolCallback</code> ➔ <code>@Tool</code> + <code>ToolCallingAdvisor</code>
+            </div>
+            <div style="background:rgba(15,23,42,0.7);border-left:3px solid #38BDF8;padding:8px 10px;border-radius:4px;">
+              <strong style="color:#F8FAFC;">3. 横切安全 &amp; ReAct 主循环：</strong>散落调用 + 651 行 while ➔ <code>Advisor</code> + <code>ReActAgent</code>
+            </div>
+          </div>
+        </div>
+        <div style="background:rgba(56,189,248,0.1);border-radius:5px;padding:8px 12px;font-size:12.5px;color:#E0E7FF;">
+          <strong>本质定性：</strong>消灭重复胶水代码（1834 行 ➔ ~500 行），解决“写得累、易写错”。
+        </div>
+      </div>
+
+      <!-- 右：5.2 企业级增量环节 -->
+      <div style="background:rgba(192,132,252,0.04);border:1.5px solid rgba(192,132,252,0.32);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <span style="font-size:15.5px;color:#C084FC;font-weight:700;"><i class="fas fa-cubes"></i> 主线二：企业级 Agent 应当有的增量环节</span>
+            <span style="font-size:11.5px;color:#C084FC;background:rgba(192,132,252,0.16);padding:2px 8px;border-radius:4px;font-weight:700;">V5 极难手搓实现</span>
+          </div>
+          <div style="font-size:13px;color:#CBD5E1;line-height:1.6;margin-bottom:10px;">
+            以下 4 个生产级能力在 V5 受限于内存态与同步循环<strong>极难做好</strong>，必须靠框架运行时机制提供支撑：
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px;">
+            <div style="background:rgba(15,23,42,0.7);border-left:3px solid #C084FC;padding:8px 10px;border-radius:4px;">
+              <strong style="color:#F8FAFC;">1. Checkpointer 断点复水与分支：</strong>K8s 重启或跨天审批后原位续跑、时光倒流分叉
+            </div>
+            <div style="background:rgba(15,23,42,0.7);border-left:3px solid #FF8A5B;padding:8px 10px;border-radius:4px;">
+              <strong style="color:#F8FAFC;">2. 认知生命周期 Middleware：</strong>在工具真正执行前（<code>onActing</code>）无损挂起等待 HITL
+            </div>
+            <div style="background:rgba(15,23,42,0.7);border-left:3px solid #4ADE80;padding:8px 10px;border-radius:4px;">
+              <strong style="color:#F8FAFC;">3. 多通道类型化事件流 &amp; 4. 契约自愈：</strong>告别伪流式、拦截参数幻觉自动修填
+            </div>
+          </div>
+        </div>
+        <div style="background:rgba(192,132,252,0.12);border-radius:5px;padding:8px 12px;font-size:12.5px;color:#E0E7FF;">
+          <strong>本质定性：</strong>补齐高可用、可挂起、真流式、强契约的企业级基础设施能力。
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部：三套同业务横向对照工程 -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,107,53,0.35);border-radius:6px;padding:9px 12px;">
+        <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:#FF8A5B;margin-bottom:3px;">
+          <span>V5 · enterprise-ai-agent</span><span style="font-family:monospace;">:8080</span>
+        </div>
+        <div style="font-size:12px;color:#CBD5E1;">Spring AI 1.0-M4 纯手搓基准（已冻结），暴露胶水重与内存易丢短板</div>
+      </div>
+      <div style="background:rgba(56,189,248,0.05);border:1px solid rgba(56,189,248,0.35);border-radius:6px;padding:9px 12px;">
+        <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:#38BDF8;margin-bottom:3px;">
+          <span>V6 · springai2（通信基础设施）</span><span style="font-family:monospace;">:8083</span>
+        </div>
+        <div style="font-size:12px;color:#E0E7FF;">Spring AI 2.0.2 GA + Boot 4 + JDK 21，类比 <strong>Servlet API</strong>，管协议与单步工具</div>
+      </div>
+      <div style="background:rgba(74,222,128,0.05);border:1px solid rgba(74,222,128,0.35);border-radius:6px;padding:9px 12px;">
+        <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:#4ADE80;margin-bottom:3px;">
+          <span>V7 · agentscope（智能体运行时）</span><span style="font-family:monospace;">:8084</span>
+        </div>
+        <div style="font-size:12px;color:#E0E7FF;">AgentScope 2.0.0 GA + JDK 17+，类比 <strong>Spring MVC</strong>，管状态循环与认知钩子</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

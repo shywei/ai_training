@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>同构提效（六）：AgentScope ReActAgent 接管多轮主循环</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 20px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 3px; font-weight: 600; }
+    .code-box { font-family: Consolas, "Fira Code", monospace; font-size: 11px; line-height: 1.42; background: rgba(0,0,0,0.48); padding: 10px 12px; border-radius: 6px; border: 1px solid rgba(224,231,255,0.14); color: #E0E7FF; white-space: pre; overflow-x: hidden; }
+  </style>
+</head>
+<body>
+  <div class="s">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;" class="mb-1">
+        <span class="sn">PART 1 · 同构能力提效（V6 ➔ V7 · ReAct 主循环接管）</span>
+        <span style="font-size:11.5px;color:#4ADE80;background:rgba(74,222,128,0.14);border:1px solid rgba(74,222,128,0.35);padding:2px 9px;border-radius:4px;font-weight:700;">✅ Demo 已覆盖（:8084 AgentScopeConfig &amp; Adapter）</span>
+      </div>
+      <h1 style="font-size:27px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">
+        ReAct 主循环接管：从 300 行手写状态循环到 ReActAgent
+      </h1>
+      <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+      <div style="background:rgba(192,132,252,0.08);border-left:3px solid #C084FC;border-radius:4px;padding:7px 14px;font-size:13px;color:#E0E7FF;line-height:1.48;">
+        <strong style="color:#C084FC;">五步看透 ReActAgent：</strong><strong>问题：</strong>V5/V6 都得手写 <code>while (step &lt; MAX)</code> 推动 THINK-ACT-OBSERVE ➔ <strong>概念：</strong>AgentScope <code>ReActAgent</code> ➔ <strong>原理：</strong>内核内置规划-调用-观察循环与 <code>maxIters</code> 熔断 ➔ <strong>调用：</strong>配置期组装模型/Toolkit/中间件，运行期一行 <code>call()</code> 委托执行。
+      </div>
+    </div>
+
+    <!-- 左右：配置期装配 vs 运行期调用 -->
+    <div style="display:grid;grid-template-columns:1.04fr 0.96fr;gap:14px;flex:1;margin-top:10px;min-height:0;">
+      <div style="background:rgba(0,229,255,0.03);border:1.5px solid rgba(0,229,255,0.28);border-radius:8px;padding:11px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:14.5px;color:#00E5FF;font-weight:700;"><i class="fas fa-cogs"></i> 1. 装配期：AgentScopeConfig.java</span>
+            <span style="font-size:11px;color:#00E5FF;background:rgba(0,229,255,0.12);padding:2px 7px;border-radius:4px;">Toolkit + ReActAgent.builder()</span>
+          </div>
+          <div class="code-box"><span style="color:#94A3B8;">// 1. 构建 OpenAI 兼容模型客户端（直连 SiliconFlow）</span>
+<span style="color:#4EC9B0;">Model</span> model = <span style="color:#4EC9B0;">OpenAIChatModel</span>.builder()
+    .apiKey(apiKey).baseUrl(baseUrl).modelName(modelName).stream(<span style="color:#569CD6;">true</span>).build();
+
+<span style="color:#94A3B8;">// 2. 注册带 @Tool 注解的企业导购工具集</span>
+<span style="color:#4EC9B0;">Toolkit</span> toolkit = <span style="color:#569CD6;">new</span> <span style="color:#4EC9B0;">Toolkit</span>();
+toolkit.registerTool(shoppingAgentTools);
+
+<span style="color:#94A3B8;">// 3. 装配 ReActAgent（框架内核接管多轮 ReAct 循环）</span>
+<span style="color:#569CD6;">return</span> <span style="color:#4EC9B0;">ReActAgent</span>.builder()
+    .name(agentName).sysPrompt(systemPrompt)
+    .model(model).toolkit(toolkit).maxIters(<span style="color:#F472B6;">10</span>)
+    .middlewares(<span style="color:#569CD6;">List</span>.of(schemaRepairMiddleware, lifecycleMiddleware))
+    .stateStore(checkpointStore.getAgentScopeStateStore()).build();</div>
+        </div>
+        <div style="font-size:12px;color:#00E5FF;background:rgba(0,229,255,0.08);border-radius:5px;padding:6px 10px;">
+          ✅ <strong>核心差异：</strong><code>ChatClient</code> 只管单次调用；<code>ReActAgent</code> 把“循环引擎 + 工具路由 + 中间件 + 状态存储”打包为完整运行时。
+        </div>
+      </div>
+
+      <div style="background:rgba(74,222,128,0.035);border:1.5px solid rgba(74,222,128,0.3);border-radius:8px;padding:11px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:14.5px;color:#4ADE80;font-weight:700;"><i class="fas fa-play-circle"></i> 2. 运行期：AgentScopeWorkflowAdapter.java</span>
+            <span style="font-size:11px;color:#4ADE80;background:rgba(74,222,128,0.12);padding:2px 7px;border-radius:4px;">消灭手写 while 循环</span>
+          </div>
+          <div class="code-box"><span style="color:#94A3B8;">// 构建本次执行隔离上下文（绑定 sessionId 与 userId）</span>
+<span style="color:#4EC9B0;">RuntimeContext</span> context = <span style="color:#4EC9B0;">RuntimeContext</span>.builder()
+    .sessionId(execId).userId(userId).build();
+
+<span style="color:#94A3B8;">// 一行代码委托 ReActAgent 推进多轮思考、调工具与收敛！</span>
+<span style="color:#4EC9B0;">Msg</span> responseMsg = shoppingAgent.call(message, context).block();
+<span style="color:#4EC9B0;">String</span> answer = responseMsg != <span style="color:#569CD6;">null</span> ? responseMsg.getTextContent() : <span style="color:#CE9178;">""</span>;
+
+<span style="color:#94A3B8;">// 若触发中间件风控拦截，直接返回 CONFIRMING 审批响应</span>
+<span style="color:#569CD6;">if</span> (<span style="color:#4EC9B0;">Boolean</span>.TRUE.equals(context.get(<span style="color:#CE9178;">"APPROVAL_REQUIRED"</span>))) {
+  <span style="color:#569CD6;">return</span> <span style="color:#4EC9B0;">WorkflowResponse</span>.confirming(execId, ...);
+}</div>
+        </div>
+        <div style="font-size:12px;color:#4ADE80;background:rgba(74,222,128,0.08);border-radius:5px;padding:6px 10px;">
+          ✅ <strong>开发效率跃迁：</strong>V5 <code>AgentRuntime</code> 651 行 ➔ V6 <code>WorkflowAdapter</code> 300 行 ➔ V7 核心编排仅 ~110 行！
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

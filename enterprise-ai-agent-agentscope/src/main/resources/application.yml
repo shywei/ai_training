@@ -1,0 +1,60 @@
+server:
+  port: 8084
+
+# SSE 异步超时设置：防止 Agent 复杂思考与工具执行流被提前中断
+spring:
+  mvc:
+    async:
+      request-timeout: 600000
+
+  # Redis 配置（会话缓存与状态持久化）
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 5000
+
+  # MySQL 配置（用户画像持久化）
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/agent_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASS:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+# AgentScope 2.0 模型与端点配置（无缝对接 SiliconFlow）
+agentscope:
+  model:
+    provider: openai
+    api-key: ${SILICONFLOW_API_KEY:sk-fake-key-for-local-dev}
+    base-url: ${LLM_BASE_URL:https://api.siliconflow.cn}
+    model-name: ${LLM_MODEL_NAME:Qwen/Qwen2.5-7B-Instruct}
+    temperature: 0.7
+    stream: true
+  agent:
+    name: "EnterpriseShoppingAgentScope"
+    max-iters: 10
+    default-session-id: "default-session"
+  checkpoint:
+    storage-type: memory # memory, redis, or file
+    file-path: "./data/checkpoints"
+
+# MCP Server 外部工具服务器连接配置（复用 8081 商品服务与 8082 知识库服务）
+mcp:
+  product:
+    server-url: ${MCP_SERVER_URL:http://localhost:8081}
+  knowledge:
+    server-url: ${KNOWLEDGE_SERVER_URL:http://localhost:8082}
+
+# 领域风控阈值配置（P18: 业务语义由开发者守护）
+domain:
+  risk:
+    high-amount-threshold: 3000.0 # 超过 3000 元订单强制触发人在回路审批 (HITL)
+    restricted-categories:
+      - "企业高定珠宝"
+      - "批量大额储值卡"
+
+logging:
+  level:
+    root: INFO
+    com.example.agent: DEBUG
+    io.agentscope: INFO

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>防框架套牢（一）：为什么要做六边形隔离？</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 20px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 3px; font-weight: 600; }
+    .code { font-size: 10.8px; color: #E2E8F0; line-height: 1.42; background: rgba(15, 23, 42, 0.9); padding: 9px 11px; border-radius: 6px; font-family: Consolas, monospace; border: 1px solid rgba(255,255,255,0.1); white-space: pre; }
+  </style>
+</head>
+<body>
+<div class="s">
+  <div>
+    <div class="mb-1 sn">PART 3 · 防框架套牢架构（问题与概念：六边形 Ports &amp; Adapters）</div>
+    <h1 style="font-size:27px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">
+      为什么不能把 @Tool 和 ChatClient 写进业务层？六边形防套牢架构
+    </h1>
+    <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+    <div style="background:rgba(255,107,53,0.08);border-left:3px solid #FF6B35;border-radius:4px;padding:7px 14px;font-size:13px;color:#E0E7FF;line-height:1.48;">
+      <strong style="color:#FF8A5B;">五步看透防套牢：</strong><strong>问题：</strong>AI 框架迭代极快（Spring AI 1.0 ➔ 2.0 连 <code>CallAroundAdvisor</code> 与 <code>AdvisedRequest</code> 都改名重构）➔ <strong>概念：</strong>六边形架构（Ports &amp; Adapters）➔ <strong>原理：</strong>依赖倒置，纯 POJO 领域核定义抽象端口，所有框架 SDK 关进外层 <code>adapter/</code>。
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:0.98fr 1.02fr;gap:16px;flex:1;margin-top:10px;min-height:0;">
+    <!-- 左：致命反模式 -->
+    <div style="background:rgba(15,23,42,0.65);border:1.5px solid rgba(248,113,113,0.32);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span style="font-size:15px;font-weight:700;color:#F87171;">❌ 反模式：框架 API 直接入侵核心业务类</span>
+          <span style="font-size:11px;color:#FECACA;background:rgba(239,68,68,0.2);padding:2px 7px;border-radius:4px;">Vendor Lock-in</span>
+        </div>
+        <div class="code"><span style="color:#7CA668">// 反模式：业务 Service 绑死特定 AI 框架的注解与消息类型</span>
+<span style="color:#C084FC">@Service</span>
+<span style="color:#38BDF8">public class</span> <span style="color:#F87171;font-weight:700">OrderServiceImpl</span> {
+  <span style="color:#C084FC">@org.springframework.ai.tool.annotation.Tool</span>
+  <span style="color:#38BDF8">public</span> <span style="color:#F87171">org.springframework.ai.chat.messages.Message</span> createOrder(
+      <span style="color:#F87171">org.springframework.ai.chat.prompt.Prompt</span> prompt) {
+    <span style="color:#7CA668">// 业务风控逻辑与框架 Prompt/Message 强耦合</span>
+  }
+}</div>
+      </div>
+      <div style="background:rgba(248,113,113,0.1);border-left:3px solid #F87171;border-radius:4px;padding:8px 12px;font-size:12.5px;color:#E2E8F0;line-height:1.5;">
+        <strong style="color:#F87171;">真实代价：</strong>一旦升级大版本或切换 AgentScope，所有核心业务类与单元测试全部编译报错，必须推倒重测。
+      </div>
+    </div>
+
+    <!-- 右：六边形三层隔离 -->
+    <div style="background:rgba(15,23,42,0.65);border:1.5px solid rgba(74,222,128,0.32);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span style="font-size:15px;font-weight:700;color:#4ADE80;">✅ 正解：Ports &amp; Adapters 依赖倒置三层模型</span>
+          <span style="font-size:11px;color:#4ADE80;background:rgba(34,197,94,0.2);padding:2px 7px;border-radius:4px;">零侵入切换</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="background:rgba(30,41,59,0.7);border:1px solid rgba(56,189,248,0.35);border-radius:6px;padding:8px 12px;">
+            <div style="color:#38BDF8;font-weight:700;font-size:13.5px;">① 入站适配器 (Inbound Adapters) —— 唯一允许放 AI 框架</div>
+            <div style="font-size:12px;color:#CBD5E1;margin-top:2px;"><code>SpringAi2WorkflowAdapter</code> / <code>AgentScopeWorkflowAdapter</code>、Controller</div>
+          </div>
+          <div style="background:rgba(34,197,94,0.12);border:2px solid #4ADE80;border-radius:6px;padding:8px 12px;">
+            <div style="color:#4ADE80;font-weight:700;font-size:13.5px;">② 领域核心与端口 (Domain &amp; Ports) —— 100% 纯 Java POJO</div>
+            <div style="font-size:12px;color:#E2E8F0;margin-top:2px;"><code>ShoppingDomainService</code>、<code>ToolOrderRequest</code>、<code>ShoppingAgentPort</code>（零 AI 包导入）</div>
+          </div>
+          <div style="background:rgba(30,41,59,0.7);border:1px solid rgba(192,132,252,0.35);border-radius:6px;padding:8px 12px;">
+            <div style="color:#C084FC;font-weight:700;font-size:13.5px;">③ 出站适配器 (Outbound Adapters) —— 对接数据库与 MCP</div>
+            <div style="font-size:12px;color:#CBD5E1;margin-top:2px;">实现 <code>CheckpointStorePort</code> 与 <code>EnterpriseToolPort</code></div>
+          </div>
+        </div>
+      </div>
+      <div style="background:rgba(74,222,128,0.1);border-left:3px solid #4ADE80;border-radius:4px;padding:8px 12px;font-size:12.5px;color:#E2E8F0;">
+        <strong style="color:#4ADE80;">核心收益：</strong>业务核心与底层 AI 框架同时面向抽象 <code>port/</code> 接口编程，外围可随时热替换。
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

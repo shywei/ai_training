@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>框架边界一：复杂领域模型的反射死穴与扁平化 Tool DTO</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 20px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 3px; font-weight: 600; }
+    .code { font-size: 11px; color: #E2E8F0; line-height: 1.42; background: rgba(15, 23, 42, 0.9); padding: 8px 10px; border-radius: 6px; font-family: Consolas, monospace; border: 1px solid rgba(255,255,255,0.1); white-space: pre; }
+    .trap-card { background: rgba(248, 113, 113, 0.07); border: 1px solid rgba(248, 113, 113, 0.3); border-radius: 8px; padding: 11px 14px; display: flex; flex-direction: column; justify-content: space-between; }
+  </style>
+</head>
+<body>
+<div class="s">
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;" class="mb-1">
+      <span class="sn">PART 3 · 框架的边界（一）：自动 Schema 反射不是万能的</span>
+      <span style="font-size:11.5px;color:#4ADE80;background:rgba(74,222,128,0.14);border:1px solid rgba(74,222,128,0.35);padding:2px 9px;border-radius:4px;font-weight:700;">✅ Demo 已覆盖（扁平化 ToolOrderRequest）</span>
+    </div>
+    <h1 style="font-size:27px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">
+      为什么不能把内部实体直接暴露给 @Tool？三大反射死穴与扁平 DTO
+    </h1>
+    <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+    <div style="background:rgba(251,191,36,0.08);border-left:3px solid #FBBF24;border-radius:4px;padding:7px 14px;font-size:13px;color:#E0E7FF;line-height:1.48;">
+      <strong style="color:#FBBF24;">问题本质：</strong><code>@Tool</code> 反射推导 Schema 遇到<strong>多态接口、泛型擦除、JPA 双向循环引用</strong>会直接失效或栈溢出崩溃；必须为大模型专门设计 1~2 层扁平化 Tool DTO。
+    </div>
+  </div>
+
+  <!-- 上部三大反射死穴 -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:10px 0;">
+    <div class="trap-card">
+      <div>
+        <div style="color:#F87171;font-size:14.5px;font-weight:700;margin-bottom:6px;">死穴 1 · 多态接口与深层嵌套</div>
+        <div style="font-size:12.5px;color:#E2E8F0;line-height:1.5;margin-bottom:8px;">
+          入参含接口或抽象类时，反射拿不到具体子类属性，导出空对象 <code>{}</code>；嵌套超 4 层时模型漏填率飙升。
+        </div>
+      </div>
+      <div class="code"><span style="color:#38BDF8">class</span> <span style="color:#FBBF24">OrderCmd</span> {
+  PaymentStrategy pay; <span style="color:#F87171">// ❌ 丢失子类字段</span>
+  List&lt;Node&gt; tree;     <span style="color:#F87171">// ❌ 深层嵌套易漏</span>
+}</div>
+    </div>
+
+    <div class="trap-card">
+      <div>
+        <div style="color:#F87171;font-size:14.5px;font-weight:700;margin-bottom:6px;">死穴 2 · 泛型擦除与弱类型 Map</div>
+        <div style="font-size:12.5px;color:#E2E8F0;line-height:1.5;margin-bottom:8px;">
+          Java 运行时泛型擦除导致 <code>Map&lt;String, Object&gt;</code> 或通配符无法推导字段名，Schema 退化为无约束 <code>object</code>。
+        </div>
+      </div>
+      <div class="code"><span style="color:#38BDF8">public</span> String <span style="color:#FBBF24">query</span>(
+  Map&lt;String, Object&gt; p, <span style="color:#F87171">// ❌ 模型盲猜键名</span>
+  PageQuery&lt;?&gt; page      <span style="color:#F87171">// ❌ 通配符丢失</span>
+)</div>
+    </div>
+
+    <div class="trap-card">
+      <div>
+        <div style="color:#F87171;font-size:14.5px;font-weight:700;margin-bottom:6px;">死穴 3 · 双向关联栈溢出</div>
+        <div style="font-size:12.5px;color:#E2E8F0;line-height:1.5;margin-bottom:8px;">
+          直接暴露 JPA 实体（<code>User</code> 持有 <code>Order</code>，<code>Order</code> 又反向持有 <code>User</code>），启动期生成 Schema 直接 <code>StackOverflowError</code>！
+        </div>
+      </div>
+      <div class="code"><span style="color:#38BDF8">class</span> <span style="color:#FBBF24">UserEntity</span> { List&lt;OrderEntity&gt; orders; }
+<span style="color:#38BDF8">class</span> <span style="color:#FBBF24">OrderEntity</span> { UserEntity user; }
+<span style="color:#F87171">// ❌ 启动期反射 Schema 递归死循环！</span></div>
+    </div>
+  </div>
+
+  <!-- 下部三大工程准则 -->
+  <div style="background:rgba(15,23,42,0.75);border:1px solid rgba(74,222,128,0.32);border-radius:8px;padding:12px 16px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span style="font-size:15px;font-weight:700;color:#4ADE80;">✅ 开发者必须落地的解法：面向大模型的扁平化 Tool DTO 准则</span>
+      <span style="font-size:12px;color:#CBD5E1;">把复杂度留在 Java Adapter，把极简留给大模型</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
+      <div style="background:rgba(30,41,59,0.6);padding:9px 12px;border-radius:6px;border-left:4px solid #38BDF8;">
+        <div style="color:#38BDF8;font-weight:700;font-size:13.5px;">① 物理隔离数据库实体</div>
+        <div style="font-size:12.5px;color:#E2E8F0;margin-top:3px;line-height:1.48;">严禁把 DB Entity 直接作 Tool 入参，独立定义无循环引用的 <code>ToolOrderRequest</code>。</div>
+      </div>
+      <div style="background:rgba(30,41,59,0.6);padding:9px 12px;border-radius:6px;border-left:4px solid #C084FC;">
+        <div style="color:#C084FC;font-weight:700;font-size:13.5px;">② 结构拍平与枚举展开</div>
+        <div style="font-size:12.5px;color:#E2E8F0;margin-top:3px;line-height:1.48;">嵌套压平至 1~2 层基本字段；多态策略改用显式枚举或字符串标识。</div>
+      </div>
+      <div style="background:rgba(30,41,59,0.6);padding:9px 12px;border-radius:6px;border-left:4px solid #FBBF24;">
+        <div style="color:#FBBF24;font-weight:700;font-size:13.5px;">③ 适配层组装复杂领域对象</div>
+        <div style="font-size:12.5px;color:#E2E8F0;margin-top:3px;line-height:1.48;">模型只填扁平字段，再由 Java Adapter 查询构造内部复杂领域实体。</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

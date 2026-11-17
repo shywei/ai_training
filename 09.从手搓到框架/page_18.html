@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>企业级增量（四）：Tool 强契约与自愈纠错循环 Schema Repair Loop</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 20px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 3px; font-weight: 600; }
+    .code-box { font-family: Consolas, "Fira Code", monospace; font-size: 10.6px; line-height: 1.4; background: rgba(0,0,0,0.48); padding: 9px 11px; border-radius: 6px; border: 1px solid rgba(224,231,255,0.14); color: #E0E7FF; white-space: pre; overflow-x: hidden; }
+  </style>
+</head>
+<body>
+  <div class="s">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;" class="mb-1">
+        <span class="sn">PART 2 · 企业级增量（四）：强类型契约与异常自愈</span>
+        <span style="font-size:11.5px;color:#38BDF8;background:rgba(56,189,248,0.14);border:1px solid rgba(56,189,248,0.35);padding:2px 9px;border-radius:4px;font-weight:700;">DTO 校验与拦截已覆盖 · 端到端多轮重填以 PPT 原理为主</span>
+      </div>
+      <h1 style="font-size:27px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">
+        模型传参老出错怎么办？Bean Validation 契约 + 自愈纠错循环
+      </h1>
+      <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+      <div style="background:rgba(248,113,113,0.08);border-left:3px solid #F87171;border-radius:4px;padding:7px 14px;font-size:13px;color:#E0E7FF;line-height:1.48;">
+        <strong style="color:#F87171;">问题与两道防线：</strong>大模型常把商品号写成 <code>"lenovo-01"</code>、手机号少一位；V5 一报错就降级。框架下：<strong>防线一</strong>用 Jakarta 注解把规则推导进 JSON Schema；<strong>防线二</strong>靠扩展点拦截校验异常拼接 Repair Prompt 驱动限次重填。
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:0.96fr 1.04fr;gap:16px;flex:1;margin-top:10px;min-height:0;">
+      <!-- 左栏：防线一 ToolOrderRequest -->
+      <div style="background:rgba(0,229,255,0.03);border:1.5px solid rgba(0,229,255,0.28);border-radius:8px;padding:11px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:14.5px;color:#00E5FF;font-weight:700;">防线一：ToolOrderRequest 强契约（事前约束）</span>
+            <span style="font-size:11px;color:#4ADE80;background:rgba(74,222,128,0.12);padding:2px 7px;border-radius:4px;">单测已覆盖</span>
+          </div>
+          <div class="code-box"><span style="color:#94A3B8;">// 1. 领域契约声明（SpringAI2 与 AgentScope 100% 共用）</span>
+<span style="color:#C084FC;">@Pattern</span>(regexp = <span style="color:#CE9178;">"^(NB|PH|ACC)[0-9]{3}$"</span>, message = <span style="color:#CE9178;">"格式如 NB001"</span>)
+<span style="color:#569CD6;">private</span> <span style="color:#4EC9B0;">String</span> productId;
+
+<span style="color:#C084FC;">@Min</span>(value = <span style="color:#F472B6;">1</span>) <span style="color:#C084FC;">@Max</span>(value = <span style="color:#F472B6;">99</span>)
+<span style="color:#569CD6;">private</span> <span style="color:#4EC9B0;">Integer</span> quantity;
+
+<span style="color:#C084FC;">@Pattern</span>(regexp = <span style="color:#CE9178;">"^1[3-9]\\d{9}$"</span>, message = <span style="color:#CE9178;">"合法11位大陆手机号"</span>)
+<span style="color:#569CD6;">private</span> <span style="color:#4EC9B0;">String</span> contactPhone;
+
+<span style="color:#94A3B8;">// 2. 工具入口执行校验（ShoppingAgentTools / SpringAi2ToolAdapter）</span>
+<span style="color:#4EC9B0;">Set</span>&lt;<span style="color:#4EC9B0;">ConstraintViolation</span>&lt;<span style="color:#4EC9B0;">ToolOrderRequest</span>&gt;&gt; v = validator.validate(req);
+<span style="color:#569CD6;">if</span> (!v.isEmpty()) <span style="color:#569CD6;">throw new</span> <span style="color:#4EC9B0;">ConstraintViolationException</span>(...);</div>
+        </div>
+        <div style="font-size:12px;color:#00E5FF;background:rgba(0,229,255,0.08);border-radius:5px;padding:6px 10px;">
+          ✅ <strong>双重作用：</strong>既供框架反射生成 JSON Schema，又在运行时把住参数入口。
+        </div>
+      </div>
+
+      <!-- 右栏：防线二 Schema Repair Loop -->
+      <div style="background:rgba(192,132,252,0.035);border:1.5px solid rgba(192,132,252,0.3);border-radius:8px;padding:11px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:14.5px;color:#C084FC;font-weight:700;">防线二：Schema Repair Loop（事后扩展点自愈）</span>
+            <span style="font-size:11px;color:#FBBF24;background:rgba(251,191,36,0.14);padding:2px 7px;border-radius:4px;">需开发者扩展</span>
+          </div>
+          <div class="code-box"><span style="color:#94A3B8;">// V6 实现 (SchemaRepairCallAdvisor.java)：拦截异常并追加修正提示重试</span>
+<span style="color:#569CD6;">while</span> (attempt &lt;= MAX_REPAIR_ATTEMPTS) {
+  <span style="color:#569CD6;">try</span> { <span style="color:#569CD6;">return</span> chain.nextCall(currentRequest); }
+  <span style="color:#569CD6;">catch</span> (<span style="color:#4EC9B0;">ConstraintViolationException</span> cve) {
+    <span style="color:#569CD6;">if</span> (++attempt &gt; MAX_REPAIR_ATTEMPTS) <span style="color:#569CD6;">throw</span> cve;
+    <span style="color:#4EC9B0;">Prompt</span> fixed = currentRequest.prompt().augmentUserMessage(
+        old -&gt; <span style="color:#569CD6;">new</span> <span style="color:#4EC9B0;">UserMessage</span>(old.getText() + <span style="color:#CE9178;">"\n[自愈提示] "</span> + err));
+    currentRequest = currentRequest.mutate().prompt(fixed).build();
+  }
+}
+
+<span style="color:#94A3B8;">// V7 实现 (SchemaRepairMiddleware.java)：onActing + .onErrorResume()</span>
+<span style="color:#569CD6;">return</span> next.apply(in).onErrorResume(err -&gt; emitSchemaRepairEvent(err));</div>
+        </div>
+        <div style="font-size:12px;color:#FBBF24;background:rgba(251,191,36,0.1);border-radius:5px;padding:6px 10px;">
+          ⚠️ <strong>边界澄清：</strong>框架原生只管“校验不通过抛异常”；捕获错误拼 Repair Prompt 并限制 2~3 次上限，必须由开发者通过 Advisor / Middleware 扩展。
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

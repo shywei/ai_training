@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>Checkpointer 原理与实现：数据模型、存储轨道与混合快照</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 20px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 3px; font-weight: 600; }
+    .code-box { font-family: Consolas, "Fira Code", monospace; font-size: 10.8px; line-height: 1.42; background: rgba(0,0,0,0.48); padding: 9px 12px; border-radius: 6px; border: 1px solid rgba(224,231,255,0.14); color: #E0E7FF; white-space: pre; overflow-x: hidden; }
+  </style>
+</head>
+<body>
+  <div class="s">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;" class="mb-1">
+        <span class="sn">PART 2 · 企业级增量（一）：Checkpointer 原理与工程实现</span>
+        <span style="font-size:11.5px;color:#38BDF8;background:rgba(56,189,248,0.14);border:1px solid rgba(56,189,248,0.35);padding:2px 9px;border-radius:4px;font-weight:700;">快照与 Delta 接口 Demo 已覆盖 · 自动增量回放仅 PPT 讲解</span>
+      </div>
+      <h1 style="font-size:27px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">
+        Checkpointer 核心原理：快照模型、热冷双轨与混合捕获策略
+      </h1>
+      <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1.06fr 0.94fr;gap:16px;flex:1;min-height:0;">
+      <!-- 左栏：数据模型与混合快照策略 -->
+      <div style="background:rgba(255,255,255,0.025);border:1.5px solid rgba(0,229,255,0.28);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="font-size:14.5px;color:#00E5FF;font-weight:700;margin-bottom:6px;">
+            <i class="fas fa-database"></i> 1. 纯数据快照模型：AgentCheckpoint.java
+          </div>
+          <div class="code-box" style="margin-bottom:10px;"><span style="color:#569CD6;">public class</span> <span style="color:#4EC9B0;">AgentCheckpoint</span> <span style="color:#569CD6;">implements</span> <span style="color:#4EC9B0;">Serializable</span> {
+  <span style="color:#569CD6;">private String</span> executionId;        <span style="color:#94A3B8;">// 单次任务全局链路 ID</span>
+  <span style="color:#569CD6;">private String</span> checkpointId;       <span style="color:#94A3B8;">// 当前快照版本号</span>
+  <span style="color:#569CD6;">private String</span> parentCheckpointId; <span style="color:#94A3B8;">// 父快照指针（构建 DAG 版本树）</span>
+  <span style="color:#569CD6;">private WorkflowState</span> state;       <span style="color:#94A3B8;">// PLANNING / EXECUTING / CONFIRMING</span>
+  <span style="color:#569CD6;">private int</span> stepCursor;            <span style="color:#94A3B8;">// 当前执行游标</span>
+  <span style="color:#569CD6;">private Map</span>&lt;<span style="color:#569CD6;">String</span>, <span style="color:#569CD6;">Object</span>&gt; scratchpad; <span style="color:#94A3B8;">// 工具中间结果（物理隔离不污染Prompt）</span>
+  <span style="color:#569CD6;">private Map</span>&lt;<span style="color:#569CD6;">String</span>, <span style="color:#569CD6;">Object</span>&gt; stateDelta; <span style="color:#94A3B8;">// 增量差分键</span>
+  <span style="color:#569CD6;">private Map</span>&lt;<span style="color:#569CD6;">String</span>, <span style="color:#569CD6;">Object</span>&gt; pendingConfirmation; <span style="color:#94A3B8;">// HITL 挂起审批明细</span>
+}</div>
+
+          <div style="font-size:13.5px;color:#C084FC;font-weight:700;margin-bottom:5px;">2. 捕获策略权衡（Full Snapshot vs State Delta）</div>
+          <div style="font-size:12px;color:#CBD5E1;line-height:1.52;">
+            • <strong>Full Snapshot：</strong>读 O(1) 极快，但长链路每步写全量导致存储膨胀。<br>
+            • <strong>State Delta：</strong>写 O(Δ) 极轻，但恢复时需沿 <code>parentCheckpointId</code> 回放合并。<br>
+            • <strong style="color:#4ADE80;">混合策略：</strong>关键跃迁点（如 <code>CONFIRMING</code>）落全量快照，中间步记增量。
+          </div>
+        </div>
+        <div style="font-size:12px;color:#F87171;background:rgba(248,113,113,0.08);border-radius:5px;padding:6px 10px;">
+          ⚠️ <strong>序列化铁律：</strong>快照内严禁放入 <code>HttpClient</code>、DB 连接或线程对象，只存纯数据 DTO。
+        </div>
+      </div>
+
+      <!-- 右栏：框架内对应的实现与调用 -->
+      <div style="background:rgba(192,132,252,0.035);border:1.5px solid rgba(192,132,252,0.3);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:14.5px;color:#C084FC;font-weight:700;"><i class="fas fa-plug"></i> 3. 框架对应实现：AgentScopeCheckpointStore</span>
+            <span style="font-size:11px;color:#C084FC;background:rgba(192,132,252,0.14);padding:2px 7px;border-radius:4px;">桥接 AgentStateStore</span>
+          </div>
+          <div class="code-box" style="margin-bottom:10px;"><span style="color:#94A3B8;">// 1. AgentScopeConfig.java：将 StateStore 挂载进 ReActAgent</span>
+<span style="color:#4EC9B0;">ReActAgent</span>.builder()
+    .stateStore(checkpointStore.getAgentScopeStateStore()).build();
+
+<span style="color:#94A3B8;">// 2. AgentScopeCheckpointStore.java：统一实现 CheckpointStorePort</span>
+<span style="color:#DCDCAA;">@Override</span>
+<span style="color:#569CD6;">public void</span> saveSnapshot(<span style="color:#4EC9B0;">AgentCheckpoint</span> cp) {
+  checkpointIndex.put(buildKey(cp.getExecutionId(), cp.getCheckpointId()), cp);
+  <span style="color:#94A3B8;">// 同步回写 AgentScope 原生 AgentStateStore，保持内核可感知</span>
+  <span style="color:#4EC9B0;">AgentState</span> state = <span style="color:#4EC9B0;">AgentState</span>.builder()
+      .sessionId(cp.getExecutionId()).curIter(cp.getStepCursor()).build();
+  agentScopeStateStore.save(<span style="color:#CE9178;">"EnterpriseShoppingAgent"</span>, cp.getExecutionId(), <span style="color:#CE9178;">"CURRENT_STATE"</span>, state);
+}</div>
+
+          <div style="background:rgba(15,23,42,0.75);border-left:3px solid #38BDF8;border-radius:5px;padding:8px 11px;font-size:12px;color:#CBD5E1;line-height:1.5;">
+            <strong style="color:#38BDF8;">热冷双轨存储（V6 <code>RedisPostgresCheckpointAdapter</code>）：</strong><br>
+            • <strong>热轨道：</strong>Redis String（7 天 TTL）+ <code>latest</code> 指针，亚毫秒恢复；<br>
+            • <strong>冷轨道：</strong>PostgreSQL <code>agent_execution_checkpoint (JSONB)</code>，支撑跨周挂起审计。
+          </div>
+        </div>
+        <div style="font-size:12px;color:#4ADE80;background:rgba(74,222,128,0.08);border-radius:5px;padding:6px 10px;">
+          ✅ <strong>调用效果：</strong>上层通过抽象端口 <code>CheckpointStorePort</code> 读写快照，底层可从内存切换至 Redis/PG。
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

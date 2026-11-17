@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>同构提效（三）：@Tool 声明式工具与 ToolCallingAdvisor 自动闭环</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 20px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 3px; font-weight: 600; }
+    .code-box { font-family: Consolas, "Fira Code", monospace; font-size: 11px; line-height: 1.42; background: rgba(0,0,0,0.48); padding: 10px 12px; border-radius: 6px; border: 1px solid rgba(224,231,255,0.14); color: #E0E7FF; white-space: pre; overflow-x: hidden; }
+  </style>
+</head>
+<body>
+  <div class="s">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;" class="mb-1">
+        <span class="sn">PART 1 · 同构能力提效（V5 ➔ V6 · 工具声明与单步闭环）</span>
+        <span style="font-size:11.5px;color:#4ADE80;background:rgba(74,222,128,0.14);border:1px solid rgba(74,222,128,0.35);padding:2px 9px;border-radius:4px;font-weight:700;">✅ Demo 已覆盖（SpringAi2ToolAdapter）</span>
+      </div>
+      <h1 style="font-size:27px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">
+        消灭正则硬提取：@Tool 声明式契约 + ToolCallingAdvisor 自动闭环
+      </h1>
+      <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+    </div>
+
+    <!-- 顶部两张核心概念卡（只列2项，下方代码/原理图100%覆盖这2项） -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:10px;">
+      <div style="background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.28);border-radius:7px;padding:10px 14px;">
+        <div style="font-size:14px;color:#00E5FF;font-weight:700;margin-bottom:3px;">1. @Tool + @ToolParam：反射自动生成原生 Function Schema</div>
+        <div style="font-size:12.5px;color:#CBD5E1;line-height:1.48;">
+          <strong>V5 问题：</strong>Prompt 约定文本格式 + 手写 80 行 <code>McpToolCallback</code> 拼 Schema。<br>
+          <strong>V6 原理：</strong>扫描 Java 方法签名与注解，自动生成 JSON Schema 走大模型原生 <code>tools</code> 字段。
+        </div>
+      </div>
+      <div style="background:rgba(192,132,252,0.05);border:1px solid rgba(192,132,252,0.3);border-radius:7px;padding:10px 14px;">
+        <div style="font-size:14px;color:#C084FC;font-weight:700;margin-bottom:3px;">2. ToolCallingAdvisor：内置接管工具调用递归闭环</div>
+        <div style="font-size:12.5px;color:#CBD5E1;line-height:1.48;">
+          <strong>V5 问题：</strong><code>AgentRuntime</code> 手写 95 行脆弱正则 <code>TOOL_CALL:(...)</code>，多一个换行即崩溃。<br>
+          <strong>V6 原理：</strong><code>ChatClient</code> 默认挂载 <code>ToolCallingAdvisor</code>，自动反序列化参数、反射执行并回填模型。
+        </div>
+      </div>
+    </div>
+
+    <!-- 下方左右：左=V5脆弱正则 vs V6 @Tool，右=ToolCallingAdvisor 内部闭环原理与控制代码 -->
+    <div style="display:grid;grid-template-columns:1.02fr 0.98fr;gap:14px;flex:1;min-height:0;">
+      <!-- 左栏：@Tool 代码与 V5 对比 -->
+      <div style="background:rgba(255,255,255,0.025);border:1.5px solid rgba(0,229,255,0.28);border-radius:8px;padding:11px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="font-size:13.5px;color:#FF8A5B;font-weight:700;margin-bottom:5px;">V5 手搓正则（95行，格式微变即失效）</div>
+          <div class="code-box" style="margin-bottom:9px;"><span style="color:#94A3B8;">// AgentRuntime.java：大模型多打空格或全角括号直接失配！</span>
+<span style="color:#4EC9B0;">Pattern</span> p = <span style="color:#4EC9B0;">Pattern</span>.compile(<span style="color:#CE9178;">"TOOL_CALL:(\\w+)\\((.*?)\\)"</span>);
+<span style="color:#4EC9B0;">Matcher</span> m = p.matcher(thinking);</div>
+
+          <div style="font-size:13.5px;color:#00E5FF;font-weight:700;margin-bottom:5px;">V6 声明式定义：SpringAi2ToolAdapter.java + defaultTools</div>
+          <div class="code-box"><span style="color:#DCDCAA;">@Tool</span>(name = <span style="color:#CE9178;">"queryProductInfo"</span>,
+      description = <span style="color:#CE9178;">"查询商品的详细规格信息。传入商品ID（如 NB001）"</span>)
+<span style="color:#569CD6;">public</span> <span style="color:#4EC9B0;">Map</span>&lt;<span style="color:#4EC9B0;">String</span>, <span style="color:#4EC9B0;">Object</span>&gt; queryProductInfo(
+    <span style="color:#DCDCAA;">@ToolParam</span>(description = <span style="color:#CE9178;">"商品ID，格式如 NB001"</span>) <span style="color:#4EC9B0;">String</span> productId) {
+  <span style="color:#569CD6;">return</span> mockProductCatalog.get(productId.trim().toUpperCase());
+}
+<span style="color:#94A3B8;">// 挂载方式：ChatClient.builder(chatModel).defaultTools(toolAdapter).build()</span></div>
+        </div>
+        <div style="font-size:12px;color:#4ADE80;background:rgba(74,222,128,0.08);border-radius:5px;padding:6px 10px;">
+          ✅ <strong>开发提效：</strong>工具注册代码减少 75%，正则解析胶水直接清零。
+        </div>
+      </div>
+
+      <!-- 右栏：ToolCallingAdvisor 幕后自动闭环机制与源码级用法 -->
+      <div style="background:rgba(192,132,252,0.035);border:1.5px solid rgba(192,132,252,0.3);border-radius:8px;padding:11px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="font-size:14px;color:#C084FC;font-weight:700;margin-bottom:6px;">
+            <i class="fas fa-sync-alt"></i> ToolCallingAdvisor 幕后是如何自动闭环的？
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;margin-bottom:9px;">
+            <div style="background:rgba(15,23,42,0.75);padding:6px 10px;border-radius:5px;border-left:3px solid #38BDF8;">
+              <strong style="color:#38BDF8;">Step 1：</strong><code>ChatClient</code> 默认启用内置 <code>ToolCallingAdvisor</code>，随请求附上 <code>tools</code> JSON Schema
+            </div>
+            <div style="background:rgba(15,23,42,0.75);padding:6px 10px;border-radius:5px;border-left:3px solid #C084FC;">
+              <strong style="color:#C084FC;">Step 2：</strong>模型返回 <code>chatResponse.hasToolCalls() == true</code> 时自动拦截响应
+            </div>
+            <div style="background:rgba(15,23,42,0.75);padding:6px 10px;border-radius:5px;border-left:3px solid #4ADE80;">
+              <strong style="color:#4ADE80;">Step 3：</strong>调用 <code>ToolCallingManager</code> 反序列化入参 ➔ 反射执行 <code>@Tool</code> ➔ 包装 <code>ToolResponseMessage</code> 回填模型继续推理
+            </div>
+          </div>
+          <div class="code-box"><span style="color:#94A3B8;">// 架构师须知：若需手动接管循环，可显式关闭内置自动执行（仅PPT讲解）</span>
+<span style="color:#4EC9B0;">ChatOptions</span> opts = <span style="color:#4EC9B0;">ToolCallingChatOptions</span>.builder()
+    .internalToolExecutionEnabled(<span style="color:#569CD6;">false</span>).build();
+<span style="color:#4EC9B0;">ChatResponse</span> resp = chatClient.prompt(prompt).options(opts).call().chatResponse();</div>
+        </div>
+        <div style="font-size:12px;color:#C084FC;background:rgba(192,132,252,0.1);border-radius:5px;padding:6px 10px;">
+          ⚠️ <strong>注意边界：</strong><code>ToolCallingAdvisor</code> 在单次请求内一口气跑完所有工具，<strong>不支持中途挂起审批</strong>！
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

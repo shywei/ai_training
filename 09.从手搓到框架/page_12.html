@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>企业级增量（一）：为什么 ChatMemory 救不了跨天审批与 Pod 重启？</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 20px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 3px; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    th { background: rgba(0,229,255,0.14); color: #00E5FF; text-align: left; padding: 7px 12px; font-weight: 700; border: 1px solid rgba(0,229,255,0.28); }
+    td { padding: 7px 12px; border: 1px solid rgba(224,231,255,0.12); color: #E0E7FF; }
+  </style>
+</head>
+<body>
+  <div class="s">
+    <div>
+      <div class="mb-1 sn">PART 2 · 企业级 Agent 应当有的增量环节（V5 极难手搓）</div>
+      <h1 style="font-size:27px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">
+        企业级环节一：为什么 ChatMemory 救不了 Pod 重启与跨天审批？
+      </h1>
+      <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+      <div style="background:rgba(248,113,113,0.08);border-left:3px solid #F87171;border-radius:4px;padding:7px 14px;font-size:13px;color:#E0E7FF;line-height:1.48;">
+        <strong style="color:#F87171;">问题场景：</strong>智能导购查完商品、锁好优惠券，在支付 ¥8999 前挂起等财务主管次日审批——期间 K8s 发版销毁了 Pod。V5 单机 <code>ConcurrentHashMap</code> 直接清空；把聊天记录存 Redis（<code>ChatMemory</code>）依然不知道代码跑到了哪一步！
+      </div>
+    </div>
+
+    <!-- 三级状态边界定义（核心概念） -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:10px 0;">
+      <div style="background:rgba(0,229,255,0.05);border:1.5px solid rgba(0,229,255,0.25);border-radius:8px;padding:11px 13px;">
+        <div style="font-size:14.5px;color:#00E5FF;font-weight:700;margin-bottom:5px;">① Chat History（对话历史）</div>
+        <div style="font-size:12.5px;color:#CBD5E1;line-height:1.52;">
+          • <strong>存什么：</strong>自然语言问答消息列表。<br>
+          • <strong>干什么：</strong>拼装下次发给大模型的上下文。<br>
+          • <strong style="color:#F87171;">局限：</strong>里面没有程序步数游标、没有工具返回的中间 Map。
+        </div>
+      </div>
+
+      <div style="background:rgba(192,132,252,0.05);border:1.5px solid rgba(192,132,252,0.28);border-radius:8px;padding:11px 13px;">
+        <div style="font-size:14.5px;color:#C084FC;font-weight:700;margin-bottom:5px;">② Agent State（会话业务变量）</div>
+        <div style="font-size:12.5px;color:#CBD5E1;line-height:1.52;">
+          • <strong>存什么：</strong>用户偏好品牌、预算上限、默认地址等全局事实。<br>
+          • <strong>干什么：</strong>跨轮次低频读写共享。<br>
+          • <strong style="color:#FBBF24;">局限：</strong>不记录单次任务执行堆栈。
+        </div>
+      </div>
+
+      <div style="background:rgba(255,107,53,0.07);border:1.5px solid rgba(255,107,53,0.4);border-radius:8px;padding:11px 13px;">
+        <div style="font-size:14.5px;color:#FF8A5B;font-weight:700;margin-bottom:5px;">③ Execution Checkpointer（执行栈快照）</div>
+        <div style="font-size:12.5px;color:#E0E7FF;line-height:1.52;">
+          • <strong>存什么：</strong><code>stepCursor</code> 游标、<code>callStack</code>、<code>scratchpad</code>、待审批单。<br>
+          • <strong>干什么：</strong>冻结运行现场，支撑重启续跑与分支回滚！
+        </div>
+      </div>
+    </div>
+
+    <!-- 框架对应能力对比表 -->
+    <div style="border-radius:8px;overflow:hidden;background:rgba(0,0,0,0.28);">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:24%;">持久化与恢复能力</th>
+            <th style="width:24%;">V5 手搓 / V6 Spring AI 2.0</th>
+            <th style="width:26%;">V7 AgentScope 2.0</th>
+            <th style="width:26%;">本课工程落地定位</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Chat History 对话记忆</strong></td>
+            <td>Redis List / <code>ChatMemory</code> 接口</td>
+            <td><span style="color:#4ADE80;font-weight:700;">✔ 原生</span>（<code>StateBackedMemory</code>）</td>
+            <td>仅作模型上下文窗口渲染</td>
+          </tr>
+          <tr>
+            <td><strong>Execution Checkpointer</strong></td>
+            <td><span style="color:#F87171;font-weight:700;">✘ 无原生支持</span>（V6 仍须手写 150 行适配器）</td>
+            <td><span style="color:#4ADE80;font-weight:700;">✔ 原生</span>（<code>AgentStateStore</code> + <code>AgentState</code>）</td>
+            <td><code>AgentScopeCheckpointStore</code> 桥接 <code>CheckpointStorePort</code></td>
+          </tr>
+          <tr>
+            <td><strong>跨进程断点复水 &amp; 分支</strong></td>
+            <td><span style="color:#F87171;font-weight:700;">✘ 完全缺失</span>（重跑易重复扣款）</td>
+            <td><span style="color:#4ADE80;font-weight:700;">✔ 基于快照 ID 恢复与分叉</span></td>
+            <td><code>POST /rehydrate</code> &amp; <code>POST /fork</code>（Demo 已覆盖）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

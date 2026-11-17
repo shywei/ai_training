@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>同构提效（一）：Prompt 组装与模型调用 ChatClient</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 22px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 3px; font-weight: 600; }
+    .code-box { font-family: Consolas, "Fira Code", monospace; font-size: 11.5px; line-height: 1.46; background: rgba(0,0,0,0.48); padding: 11px 14px; border-radius: 6px; border: 1px solid rgba(224,231,255,0.14); color: #E0E7FF; white-space: pre; overflow-x: hidden; }
+    .badge-demo { font-size: 11.5px; color: #4ADE80; background: rgba(74,222,128,0.14); border: 1px solid rgba(74,222,128,0.35); padding: 2px 9px; border-radius: 4px; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="s">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;" class="mb-1">
+        <span class="sn">PART 1 · 同构能力提效（V5 ➔ V6 · 架构未变，写法升级）</span>
+        <span class="badge-demo">✅ Demo 已覆盖（:8080 vs :8083）</span>
+      </div>
+      <h1 style="font-size:27px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">
+        Prompt 组装与模型调用：从 PromptManager 到 ChatClient.builder()
+      </h1>
+      <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:10px;"></div>
+    </div>
+
+    <!-- 五步闭环逻辑条 -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;">
+      <div style="background:rgba(248,113,113,0.07);border-left:3px solid #F87171;border-radius:5px;padding:9px 11px;">
+        <div style="font-size:12.5px;color:#F87171;font-weight:700;">1. V5 存在什么问题？</div>
+        <div style="font-size:12px;color:#CBD5E1;margin-top:3px;line-height:1.45;">每次调用都要手动 <code>String.format</code> 拼模板、建 <code>List&lt;Message&gt;</code>、深层链式取 <code>getOutput()</code>，样板代码多且易漏配切面。</div>
+      </div>
+      <div style="background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:5px;padding:9px 11px;">
+        <div style="font-size:12.5px;color:#00E5FF;font-weight:700;">2. 引入什么概念？</div>
+        <div style="font-size:12px;color:#CBD5E1;margin-top:3px;line-height:1.45;"><strong>ChatClient Fluent API</strong>：借鉴 <code>RestClient</code> 的流式声明式接口，取代零散的 <code>ChatModel.call(Prompt)</code> 过程式拼装。</div>
+      </div>
+      <div style="background:rgba(192,132,252,0.06);border-left:3px solid #C084FC;border-radius:5px;padding:9px 11px;">
+        <div style="font-size:12.5px;color:#C084FC;font-weight:700;">3. 原理与怎么解决？</div>
+        <div style="font-size:12px;color:#CBD5E1;margin-top:3px;line-height:1.45;"><strong>配置期/运行期分离</strong>：启动期用 Builder 固化默认 System、Advisors、Tools；调用期按需覆写 User 参数，自动组装 <code>Prompt</code>。</div>
+      </div>
+      <div style="background:rgba(74,222,128,0.07);border-left:3px solid #4ADE80;border-radius:5px;padding:9px 11px;">
+        <div style="font-size:12.5px;color:#4ADE80;font-weight:700;">4. 框架位置 &amp; 架构评估</div>
+        <div style="font-size:12px;color:#CBD5E1;margin-top:3px;line-height:1.45;">对应 <code>SpringAi2ChatConfig</code>。<strong>架构本质未变</strong>（仍是发 System+User 给模型），纯开发效率提升（65 行 ➔ 25 行核心配置）。</div>
+      </div>
+    </div>
+
+    <!-- 下方左右代码严格对照 -->
+    <div style="display:grid;grid-template-columns:1fr 1.06fr;gap:16px;flex:1;min-height:0;">
+      <div style="background:rgba(255,255,255,0.025);border:1.5px solid rgba(255,107,53,0.3);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:14.5px;color:#FF8A5B;font-weight:700;"><i class="fas fa-file-code"></i> V5 手搓原版 · PromptManager + 业务调用</span>
+            <span style="font-size:11.5px;color:#FF8A5B;background:rgba(255,107,53,0.12);padding:2px 8px;border-radius:4px;">过程式手动组装</span>
+          </div>
+          <div class="code-box"><span style="color:#94A3B8;">// 1. PromptManager.java (65行)：手写占位符拼接</span>
+<span style="color:#569CD6;">String</span> sys = <span style="color:#569CD6;">String</span>.format(<span style="color:#CE9178;">"# 角色\n你是%s。%s..."</span>,
+    agentName, agentRole, agentConstraints);
+
+<span style="color:#94A3B8;">// 2. 每次请求手动新建消息列表与 Prompt 对象</span>
+<span style="color:#569CD6;">List</span>&lt;<span style="color:#4EC9B0;">Message</span>&gt; msgs = <span style="color:#569CD6;">new</span> <span style="color:#4EC9B0;">ArrayList</span>&lt;&gt;();
+msgs.add(<span style="color:#569CD6;">new</span> <span style="color:#4EC9B0;">SystemMessage</span>(sys));
+msgs.add(<span style="color:#569CD6;">new</span> <span style="color:#4EC9B0;">UserMessage</span>(promptManager.buildUserPrompt(msg, ctx)));
+
+<span style="color:#94A3B8;">// 3. 显式调用 ChatModel 并层层解包结果 + 手动调安全过滤</span>
+<span style="color:#4EC9B0;">ChatResponse</span> resp = chatModel.call(<span style="color:#569CD6;">new</span> <span style="color:#4EC9B0;">Prompt</span>(msgs, options));
+<span style="color:#569CD6;">String</span> reply = resp.getResult().getOutput().getText();
+reply = guardrailsService.sanitize(reply); <span style="color:#F87171;">// 极易漏调！</span></div>
+        </div>
+        <div style="font-size:12.5px;color:#FF8A5B;background:rgba(255,107,53,0.08);border-radius:5px;padding:7px 10px;">
+          ⚠️ <strong>对照结论：</strong>底层依然是构造 <code>SystemMessage + UserMessage</code> 发给模型，只是全靠人工搬砖。
+        </div>
+      </div>
+
+      <div style="background:rgba(0,229,255,0.035);border:1.5px solid rgba(0,229,255,0.3);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:14.5px;color:#00E5FF;font-weight:700;"><i class="fas fa-bolt"></i> V6 Spring AI 2.0 · SpringAi2ChatConfig.java</span>
+            <span style="font-size:11.5px;color:#4ADE80;background:rgba(74,222,128,0.12);padding:2px 8px;border-radius:4px;font-weight:700;">配置集中 · 调用一行</span>
+          </div>
+          <div class="code-box"><span style="color:#94A3B8;">// 1. 配置期：ChatClient.builder(chatModel) 集中装配 Bean</span>
+<span style="color:#C084FC;">@Bean</span>
+<span style="color:#569CD6;">public</span> <span style="color:#4EC9B0;">ChatClient</span> shoppingChatClient(<span style="color:#4EC9B0;">ChatModel</span> chatModel, ...) {
+  <span style="color:#569CD6;">return</span> <span style="color:#4EC9B0;">ChatClient</span>.builder(chatModel)
+      .defaultSystem(systemPrompt)
+      .defaultAdvisors(<span style="color:#569CD6;">List</span>.of(guardrailsAdvisor, repairAdvisor, telemetryAdvisor))
+      .defaultTools(toolAdapter)
+      .build();
+}
+
+<span style="color:#94A3B8;">// 2. 运行期（SpringAi2WorkflowAdapter）：业务侧一行完成调用</span>
+<span style="color:#569CD6;">String</span> reply = chatClient.prompt().user(promptContext).call().content();
+<span style="color:#94A3B8;">// 若需结构化强类型返回：.call().entity(ShoppingIntent.class)</span></div>
+        </div>
+        <div style="font-size:12.5px;color:#4ADE80;background:rgba(74,222,128,0.08);border-radius:5px;padding:7px 10px;">
+          ✅ <strong>调用收益：</strong>公共约束、拦截器与工具在 Bean 配置期收口，业务端彻底告别模板与解包样板代码。
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>企业级增量（三）：多通道类型化事件流 streamEvents</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 20px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 3px; font-weight: 600; }
+    .code-box { font-family: Consolas, "Fira Code", monospace; font-size: 10.6px; line-height: 1.4; background: rgba(0,0,0,0.48); padding: 9px 11px; border-radius: 6px; border: 1px solid rgba(224,231,255,0.14); color: #E0E7FF; white-space: pre; overflow-x: hidden; }
+  </style>
+</head>
+<body>
+  <div class="s">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;" class="mb-1">
+        <span class="sn">PART 2 · 企业级增量（三）：多通道实时事件流</span>
+        <span style="font-size:11.5px;color:#4ADE80;background:rgba(74,222,128,0.14);border:1px solid rgba(74,222,128,0.35);padding:2px 9px;border-radius:4px;font-weight:700;">✅ Demo 已覆盖（AgentEventStreamBridge）</span>
+      </div>
+      <h1 style="font-size:27px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">
+        告别“算完再拆字”的伪流式：类型化 AgentEvent 多通道事件流
+      </h1>
+      <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+      <div style="background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:4px;padding:7px 14px;font-size:13px;color:#E0E7FF;line-height:1.48;">
+        <strong style="color:#00E5FF;">五步看透多通道流：</strong><strong>问题：</strong>V5 同步跑完再用 <code>Flux.interval</code> 拆字符（伪流式，首字等 5~8s）；V6 仅单通道文本流，思考与正文混杂 ➔ <strong>概念与原理：</strong>AgentScope <code>streamEvents()</code> 实时发射 30+ 种强类型 <code>AgentEvent</code>，前端按 <code>channel</code> 独立渲染。
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:0.95fr 1.05fr;gap:16px;flex:1;margin-top:10px;min-height:0;">
+      <!-- 左栏：4 大通道与演进对比 -->
+      <div style="display:flex;flex-direction:column;justify-content:space-between;gap:8px;">
+        <div style="background:rgba(192,132,252,0.07);border-left:4px solid #C084FC;border-radius:6px;padding:8px 12px;">
+          <div style="font-size:13.5px;color:#C084FC;font-weight:700;">通道 1 · 思考过程流（thought）</div>
+          <div style="font-size:12px;color:#CBD5E1;margin-top:2px;"><code>THINKING_BLOCK_START / DELTA / END</code> ➔ 前端折叠“深度思考中”卡片</div>
+        </div>
+        <div style="background:rgba(56,189,248,0.07);border-left:4px solid #38BDF8;border-radius:6px;padding:8px 12px;">
+          <div style="font-size:13.5px;color:#38BDF8;font-weight:700;">通道 2 · 工具执行流（tool）</div>
+          <div style="font-size:12px;color:#CBD5E1;margin-top:2px;"><code>TOOL_CALL_START / DELTA</code> + <code>TOOL_RESULT_END</code> ➔ 即时点亮“正在查库存”进度条</div>
+        </div>
+        <div style="background:rgba(74,222,128,0.07);border-left:4px solid #4ADE80;border-radius:6px;padding:8px 12px;">
+          <div style="font-size:13.5px;color:#4ADE80;font-weight:700;">通道 3 · 正文回答流（answer）</div>
+          <div style="font-size:12px;color:#CBD5E1;margin-top:2px;"><code>TEXT_BLOCK_START / DELTA / END</code> ➔ 纯净打字机流式输出，无需正则剥离标签</div>
+        </div>
+        <div style="background:rgba(251,191,36,0.07);border-left:4px solid #FBBF24;border-radius:6px;padding:8px 12px;">
+          <div style="font-size:13.5px;color:#FBBF24;font-weight:700;">通道 4 · 审批与自愈控制流（confirm / repair）</div>
+          <div style="font-size:12px;color:#CBD5E1;margin-top:2px;"><code>REQUIRE_USER_CONFIRM</code> + <code>CUSTOM("SchemaRepair")</code> ➔ 弹窗审批确认</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border-radius:5px;padding:7px 11px;font-size:12px;color:#E0E7FF;">
+          <strong>延迟对比：</strong>V5 伪流式 (3~8s) ➔ V6 单文本流 (1~2s) ➔ V7 类型化事件流 (<strong style="color:#4ADE80;">&lt;100ms 首个进度事件</strong>)
+        </div>
+      </div>
+
+      <!-- 右栏：真实调用代码与 SSE 输出 -->
+      <div style="background:rgba(15,23,42,0.68);border:1.5px solid rgba(192,132,252,0.3);border-radius:8px;padding:11px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="font-size:14px;color:#C084FC;font-weight:700;margin-bottom:6px;">
+            AgentScopeWorkflowAdapter + AgentEventStreamBridge 真实实现
+          </div>
+          <div class="code-box" style="margin-bottom:8px;"><span style="color:#94A3B8;">// 1. AgentScopeWorkflowAdapter.java：直接调用 streamEvents()</span>
+<span style="color:#4EC9B0;">Flux</span>&lt;<span style="color:#4EC9B0;">AgentEvent</span>&gt; events = shoppingAgent.streamEvents(message, context);
+<span style="color:#569CD6;">return</span> eventBridge.bridgeToWorkflowStream(execId, events);
+
+<span style="color:#94A3B8;">// 2. AgentEventStreamBridge.java：按 AgentEventType 映射统一领域事件</span>
+<span style="color:#569CD6;">switch</span> (event.getType()) {
+  <span style="color:#569CD6;">case</span> THINKING_BLOCK_DELTA -&gt; <span style="color:#4EC9B0;">WorkflowStreamEvent</span>.thought(execId, <span style="color:#F472B6;">1</span>, delta);
+  <span style="color:#569CD6;">case</span> TOOL_CALL_START      -&gt; <span style="color:#4EC9B0;">WorkflowStreamEvent</span>.toolStart(execId, <span style="color:#F472B6;">1</span>, toolName, ...);
+  <span style="color:#569CD6;">case</span> TEXT_BLOCK_DELTA     -&gt; <span style="color:#4EC9B0;">WorkflowStreamEvent</span>.of(<span style="color:#CE9178;">"token"</span>, execId, delta);
+  <span style="color:#569CD6;">case</span> REQUIRE_USER_CONFIRM -&gt; <span style="color:#4EC9B0;">WorkflowStreamEvent</span>.of(<span style="color:#CE9178;">"confirm_required"</span>, ...);
+}</div>
+          <div style="font-size:12px;color:#4ADE80;font-weight:700;margin-bottom:3px;">GET /api/v7/workflow/stream-events 实时返回示例：</div>
+          <div class="code-box" style="font-size:10.2px;">data:{"type":"thought","payload":"需先查询 NB001 库存与配置..."}
+data:{"type":"tool_start","toolName":"queryProductInfo"}
+data:{"type":"token","payload":"联想拯救者 Y9000P 现售价 ¥8999..."}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

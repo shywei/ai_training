@@ -23,8 +23,8 @@
 | **06** | **Knowledge企业知识系统与RAG** | Knowledge 不是散落的文档，而是经过 Pipeline 治理后能被 AI 高保真召回的企业资产。 | **实战主线必修** | 23P 课件 + 23篇手册 | `enterprise-ai-agent` (Tag: `v1.3`) |
 | **07** | **ToolCalling连接企业系统** | Tool 不是单纯的 HTTP 接口，而是 AI 与企业核心资产之间严格受控的安全边界。 | **实战主线必修** | 34P 课件 + 34篇手册 | `enterprise-ai-agent` (Tag: `v1.4`) |
 | **08** | **Workflow构建可靠的企业Agent** | Workflow 不是固定流程，而是通过状态机与容错兜底让 Agent 在复杂生产中可控运行的机制。 | **实战主线必修** | 26P 课件 + 26篇手册 | `enterprise-ai-agent` (Tag: `v1.5`) |
-| **09** *(规划)* | **从手搓到框架：框架边界** | 手搓理解底层原理，框架提升工程效率；框架省下的不是代码行数，而是粘合胶水。 | 进阶规划 | 24P 课件 + 24篇手册 | AgentScope Java 2.0 重构对比 |
-| **10** *(规划)* | **Multi-Agent 协作网络** | 单 Agent 有复杂度天花板；多 Agent 不是数量堆叠，而是拓扑规划与职责委派。框架没有最好，只有最适合。 | 进阶规划 | 24P 课件 + 24篇手册 | AgentScope vs Embabel vs LangGraph |
+| **09** | **从手搓到框架：框架的边界** | 手搓理解底层原理，框架提升工程效率；省的不是代码行数，是粘合胶水；守住领域边界，防框架套牢。 | **进阶主线必修** | 24P 课件 + 24篇手册 | `enterprise-ai-agent-springai2` (Tag: `v6.0-springai2`)<br>`enterprise-ai-agent-agentscope` (Tag: `v7.0-agentscope`) |
+| **10** *(规划)* | **Multi-Agent 协作网络** | 单 Agent 有复杂度天花板；多 Agent 不是数量堆叠，而是拓扑规划与职责委派。框架没有最好，只有最适合。 | 进阶规划 | 22P 课件 + 22篇手册 | AgentScope vs Embabel vs LangGraph |
 | **11** *(规划)* | **企业级 Agent 工程交付：从业务需求到生产验收** | 把业务方的模糊许愿翻译成确定性的状态机契约、红蓝对抗评测集与灰度熔断上线门禁，打通研发到生产的最后一公里。 | 进阶规划 | 24P 课件 + 24篇手册 | 导购 Agent 全链路工程交付实战 |
 | **12** *(规划)* | **企业 AI 平台：从单个 Agent 到平台化运营** | 企业最终长期运营与治理的不是零散的 Agent，而是高可用的 AI 原生研发平台。 | 进阶规划 | 22P 课件 + 22篇手册 | 平台全景架构与评测合规体系 |
 
@@ -91,19 +91,31 @@ ai_training/
 │   ├── Demo演示步骤.md
 │   ├── page_1.html ~ page_26.html
 │   └── 演讲手册/page_1.md ~ page_26.md
+├── 09.从手搓到框架/                       # 第 09 课: 两级阶梯对比、Checkpointer 复水、Middleware 与六边形防套牢 (24P)
+│   ├── index.html
+│   ├── 扩展学习指南.md
+│   ├── Demo演示步骤.md
+│   ├── page_1.html ~ page_24.html
+│   └── 演讲手册/page_1.md ~ page_24.md
 ├── dist_ppts/                            # 全套课程导出的 16:9 满铺 2K 超清 .pptx 演示文稿
-│   └── 01.AI认知入门.pptx ~ 08.Workflow构建可靠的企业Agent.pptx
-└── enterprise-ai-agent/                  # 第 04-08 课企业级生产演练代码库
-    ├── agent-runtime/                    # 核心运行时微服务 (Spring Boot 3.4.1, 端口 8080)
-    │   └── src/main/java/com/example/agent/
-    │       ├── auth/                     # 用户鉴权与上下文绑定
-    │       ├── core/                     # 04课: 提示词管理 (PromptManager)、流式吐字、结构化输出、敏感词护栏 (GuardrailsService)
-    │       ├── memory/                   # 05课: Redis 短期会话缓冲与 MySQL 长期画像沉淀 (MemoryManager)
-    │       ├── tool/                     # 07课: MCP 客户端接入与工具回调调度 (McpToolCallback, McpProductClient, McpKnowledgeClient)
-    │       └── workflow/                 # 08课: ReAct 循环引擎 (AgentRuntime)、7状态机 (WorkflowState)、任务规划 (TaskPlanner)、三级容错与追踪
-    ├── mcp-product-server/               # 07课: 商品能力微服务 (Spring Boot 3.4.1, 端口 8081, McpServerConfig)
-    ├── mcp-knowledge-server/             # 07课: 知识库检索微服务 (Spring Boot 3.4.1, 端口 8082, VectorSearchService)
-    ├── web/                              # 前端管理与可视化调试界面 (Vue 2.7 + Element UI, 端口 3000)
-    ├── docker/                           # 基础设施容器编排 (MySQL 8.0, Redis 7.0, PostgreSQL 16 + pgvector)
-    └── docs/                             # 历次演进设计决策与数据库 Schema
+│   └── 01.AI认知入门.pptx ~ 09.从手搓到框架.pptx
+├── enterprise-ai-agent/                  # 第 04-08 课企业级生产演练代码库 (手搓原版 v5.0，端口 8080，永久冻结基准)
+│   ├── agent-runtime/                    # 核心运行时微服务 (Spring Boot 3.4.1, 端口 8080)
+│   │   └── src/main/java/com/example/agent/
+│   │       ├── auth/                     # 用户鉴权与上下文绑定
+│   │       ├── core/                     # 04课: 提示词管理 (PromptManager)、流式吐字、结构化输出、敏感词护栏 (GuardrailsService)
+│   │       ├── memory/                   # 05课: Redis 短期会话缓冲与 MySQL 长期画像沉淀 (MemoryManager)
+│   │       ├── tool/                     # 07课: MCP 客户端接入与工具回调调度 (McpToolCallback, McpProductClient, McpKnowledgeClient)
+│   │       └── workflow/                 # 08课: ReAct 循环引擎 (AgentRuntime)、7状态机 (WorkflowState)、任务规划 (TaskPlanner)、三级容错与追踪
+│   ├── mcp-product-server/               # 07课: 商品能力微服务 (Spring Boot 3.4.1, 端口 8081, McpServerConfig)
+│   ├── mcp-knowledge-server/             # 07课: 知识库检索微服务 (Spring Boot 3.4.1, 端口 8082, VectorSearchService)
+│   ├── web/                              # 前端管理与可视化调试界面 (Vue 2.7 + Element UI, 端口 3000)
+│   ├── docker/                           # 基础设施容器编排 (MySQL 8.0, Redis 7.0, PostgreSQL 16 + pgvector)
+│   └── docs/                             # 历次演进设计决策与数据库 Schema
+├── enterprise-ai-agent-springai2/        # 第 09 课第一级阶梯对照工程: Spring AI 2.0.2 GA 现代基础设施版 (端口 8083)
+│   ├── src/main/java/com/example/agent/  # 六边形架构: domain + port + adapter.springai2 (ChatClient / @Tool / CallAdvisor / Checkpointer)
+│   └── docs/                             # v6.0-setup.md 与 v6.0-springai2-decisions.md
+└── enterprise-ai-agent-agentscope/       # 第 09 课第二级阶梯对照工程: AgentScope Java 2.0.0 GA 高阶应用框架版 (端口 8084)
+    ├── src/main/java/com/example/agent/  # 六边形架构: 100% 共享 domain/port + adapter.agentscope (ReActAgent / 五阶段 Middleware / 28类 AgentEvent)
+    └── docs/                             # v7.0-setup.md 与 v7.0-agentscope-decisions.md
 ```

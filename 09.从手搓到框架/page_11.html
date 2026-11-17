@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>第一部分总结：V5 → V6 → V7 同构功能对照全景</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 20px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 3px; font-weight: 600; }
+    .map-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .map-table th { background: rgba(30,41,59,0.95); color: #E2E8F0; font-weight: 700; padding: 6px 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.12); }
+    .map-table td { padding: 5.5px 10px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #CBD5E1; line-height: 1.4; }
+  </style>
+</head>
+<body>
+  <div class="s">
+    <div>
+      <div class="mb-1 sn">PART 1 总结 · 同构能力横向对照全景</div>
+      <h1 style="font-size:27px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">
+        V5 ➔ V6 ➔ V7 同构功能对比：架构本质没变，变的只是研发效率
+      </h1>
+      <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+      <div style="background:rgba(56,189,248,0.08);border-left:3px solid #38BDF8;border-radius:4px;padding:7px 14px;font-size:13px;color:#E0E7FF;line-height:1.48;">
+        <strong style="color:#38BDF8;">第一部分核心定性：</strong>以下 8 个模块在 04~08 课都已经跑通。从 V5 到 V6 再到 V7，导购 Agent 的<strong>业务架构与设计思路完全一致</strong>，框架替我们吸收的是<strong>协议、模板、正则和循环胶水</strong>。
+      </div>
+    </div>
+
+    <div style="background:rgba(15,23,42,0.7);border:1px solid rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;">
+      <table class="map-table">
+        <thead>
+          <tr>
+            <th style="width:16%;">同构功能模块</th>
+            <th style="width:28%;color:#FF8A5B;">V5 手搓原版 (:8080)</th>
+            <th style="width:28%;color:#38BDF8;">V6 Spring AI 2.0 (:8083)</th>
+            <th style="width:28%;color:#4ADE80;">V7 AgentScope 2.0 (:8084)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:700;color:#F8FAFC;">1. Prompt 与调用</td>
+            <td><code>PromptManager.java</code> (65行) 手拼</td>
+            <td><code>ChatClient.builder()</code> 链式装配</td>
+            <td><code>ReActAgent.builder().sysPrompt()</code></td>
+          </tr>
+          <tr>
+            <td style="font-weight:700;color:#F8FAFC;">2. 安全切面拦截</td>
+            <td><code>GuardrailsService</code> (78行) 散落调用</td>
+            <td><code>GuardrailsCallAdvisor</code> 责任链</td>
+            <td><code>LifecycleMiddleware.onAgent/ModelCall</code></td>
+          </tr>
+          <tr>
+            <td style="font-weight:700;color:#F8FAFC;">3. 工具契约声明</td>
+            <td><code>McpToolCallback</code> (80行) 手写 Schema</td>
+            <td><code>@Tool</code> + <code>@ToolParam</code> 反射推导</td>
+            <td><code>ShoppingAgentTools</code> + <code>Toolkit</code></td>
+          </tr>
+          <tr>
+            <td style="font-weight:700;color:#F8FAFC;">4. 单步工具解析</td>
+            <td><code>extractToolCall()</code> (95行) 正则抠</td>
+            <td>内置 <code>ToolCallingAdvisor</code> (0行胶水)</td>
+            <td><code>ReActAgent</code> 原生工具调度 (0行)</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700;color:#F8FAFC;">5. MCP 协议连接</td>
+            <td><code>McpProduct/KnowledgeClient</code> (413行)</td>
+            <td><code>SyncMcpToolCallbackProvider</code> 配置装配</td>
+            <td><code>McpEnterpriseToolAdapter</code> 端口适配</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700;color:#F8FAFC;">6. ReAct 主循环</td>
+            <td><code>AgentRuntime.java</code> (651行) while 循环</td>
+            <td><code>SpringAi2WorkflowAdapter</code> (300行) 仍手写</td>
+            <td><code>ReActAgent.call()</code> (~110行编排)</td>
+          </tr>
+          <tr style="background:rgba(30,41,59,0.75);font-weight:700;">
+            <td style="color:#F8FAFC;">核心代码体量对比</td>
+            <td style="color:#FF8A5B;">~1834 行（协议+循环全手写）</td>
+            <td style="color:#38BDF8;">~950 行（通信消融，循环仍手写）</td>
+            <td style="color:#4ADE80;">~500 行（循环托管，聚焦业务与扩展）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 承上启下框 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div style="background:rgba(56,189,248,0.07);border:1px solid rgba(56,189,248,0.3);border-radius:7px;padding:10px 14px;">
+        <div style="font-size:13.5px;color:#38BDF8;font-weight:700;margin-bottom:3px;">效率角度的直观选型</div>
+        <div style="font-size:12.5px;color:#E0E7FF;line-height:1.48;">如果需求只是<strong>单轮问答、标准 RAG、1~2 步只读工具调用</strong>，引入 <strong>V6 (Spring AI 2.0)</strong> 就足够轻便高效！</div>
+      </div>
+      <div style="background:rgba(192,132,252,0.08);border:1px solid rgba(192,132,252,0.35);border-radius:7px;padding:10px 14px;">
+        <div style="font-size:13.5px;color:#C084FC;font-weight:700;margin-bottom:3px;">为什么还要进入第二部分？</div>
+        <div style="font-size:12.5px;color:#E0E7FF;line-height:1.48;">因为企业级 Agent 远不止“把既有代码写短”——还有 4 个 <strong>V5 手搓极难实现</strong> 的关键能力，必须靠框架底座来落地！</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>框架边界二：确定性业务风控主权 &amp; StateStore ≠ 企业三层记忆</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 20px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 3px; font-weight: 600; }
+    .code { font-size: 10.6px; color: #E2E8F0; line-height: 1.4; background: rgba(15, 23, 42, 0.9); padding: 9px 11px; border-radius: 6px; font-family: Consolas, monospace; border: 1px solid rgba(255,255,255,0.1); white-space: pre; }
+  </style>
+</head>
+<body>
+<div class="s">
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;" class="mb-1">
+      <span class="sn">PART 3 · 框架的边界（二）：业务规则主权与记忆体系边界</span>
+      <span style="font-size:11.5px;color:#38BDF8;background:rgba(56,189,248,0.14);border:1px solid rgba(56,189,248,0.35);padding:2px 9px;border-radius:4px;font-weight:700;">ShoppingDomainService Demo 已覆盖 · HarnessAgent 为仅 PPT 讲解</span>
+    </div>
+    <h1 style="font-size:27px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">
+      框架不会替你做的两件核心大事：风控规则主权 &amp; 企业三层记忆
+    </h1>
+    <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1.02fr 0.98fr;gap:16px;flex:1;min-height:0;">
+    <!-- 左栏：ShoppingDomainService 业务主权 -->
+    <div style="background:rgba(15,23,42,0.68);border:1.5px solid rgba(74,222,128,0.3);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="font-size:15px;color:#4ADE80;font-weight:700;"><i class="fas fa-gavel"></i> 1. 业务规则主权：绝不交给 Prompt 猜</span>
+          <span style="font-size:11px;color:#4ADE80;background:rgba(74,222,128,0.12);padding:2px 7px;border-radius:4px;">Demo 已覆盖</span>
+        </div>
+        <div style="font-size:12.5px;color:#CBD5E1;line-height:1.5;margin-bottom:8px;">
+          如果把“满 ¥5000 须审批”写在 System Prompt 里让模型自己判断，一旦遭遇提示词注入或幻觉就会直接资损！<strong>资金阈值、限购配额、选品加权算法</strong>必须由纯 Java 领域服务确定性执行：
+        </div>
+        <div class="code"><span style="color:#7CA668">// ShoppingDomainService.java（V6 与 V7 完全共用）</span>
+<span style="color:#38BDF8">public static final</span> BigDecimal HIGH_RISK_AMOUNT_THRESHOLD = <span style="color:#38BDF8">new</span> BigDecimal(<span style="color:#A7F3D0">"5000.00"</span>);
+
+<span style="color:#38BDF8">public boolean</span> isHighRiskAction(String toolName, ToolOrderRequest req) {
+  <span style="color:#38BDF8">if</span> (<span style="color:#A7F3D0">"createOrder"</span>.equalsIgnoreCase(toolName)) {
+    <span style="color:#38BDF8">if</span> (req == <span style="color:#38BDF8">null</span>) <span style="color:#38BDF8">return true</span>; <span style="color:#7CA668">// 参数缺失默认按高风险拦截</span>
+    <span style="color:#38BDF8">if</span> (req.getTotalAmount().compareTo(HIGH_RISK_AMOUNT_THRESHOLD) &gt;= <span style="color:#F472B6">0</span>) <span style="color:#38BDF8">return true</span>;
+    <span style="color:#38BDF8">if</span> (req.getQuantity() &gt; <span style="color:#F472B6">3</span>) <span style="color:#38BDF8">return true</span>;
+  }
+  <span style="color:#38BDF8">return</span> toolName.contains(<span style="color:#A7F3D0">"refund"</span>) || toolName.contains(<span style="color:#A7F3D0">"delete"</span>);
+}</div>
+      </div>
+      <div style="font-size:12px;color:#4ADE80;background:rgba(74,222,128,0.08);border-radius:5px;padding:7px 10px;">
+        ✅ <strong>结论：</strong>框架管运行调度，开发者永远掌握业务判断的最终一票否决权。
+      </div>
+    </div>
+
+    <!-- 右栏：HarnessAgent 定位 & StateStore != 三层记忆 -->
+    <div style="background:rgba(15,23,42,0.68);border:1.5px solid rgba(248,113,113,0.32);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="font-size:15px;color:#F87171;font-weight:700;"><i class="fas fa-memory"></i> 2. 边界辨析：StateStore ≠ 企业三层记忆</span>
+          <span style="font-size:11px;color:#FBBF24;background:rgba(251,191,36,0.14);padding:2px 7px;border-radius:4px;">Harness 为仅 PPT 讲解</span>
+        </div>
+        <div style="background:rgba(56,189,248,0.08);border-left:3px solid #38BDF8;border-radius:5px;padding:7px 10px;font-size:12px;color:#E0E7FF;line-height:1.48;margin-bottom:8px;">
+          <strong style="color:#38BDF8;">AgentScope HarnessAgent 宿主四大支柱：</strong><code>Workspace</code>（工作目录）、<code>Memory</code>（短期窗口）、<code>Sandbox</code>（隔离代码执行）、<code>StateStore</code>（运行状态持久化）——它解决的是智能体运行时的宿主容器问题。
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px;font-size:12px;">
+          <div style="background:rgba(30,41,59,0.65);padding:7px 10px;border-radius:5px;display:flex;justify-content:space-between;">
+            <span><strong>L1 短期会话与运行断点 (Redis)：</strong>消息栈与挂起快照</span>
+            <span style="color:#4ADE80;font-weight:700;">✅ 框架接管</span>
+          </div>
+          <div style="background:rgba(30,41,59,0.65);padding:7px 10px;border-radius:5px;display:flex;justify-content:space-between;">
+            <span><strong>L2 结构化用户画像 (MySQL)：</strong>尺码/品牌偏好/消费力</span>
+            <span style="color:#F87171;font-weight:700;">❌ 须自建</span>
+          </div>
+          <div style="background:rgba(30,41,59,0.65);padding:7px 10px;border-radius:5px;display:flex;justify-content:space-between;">
+            <span><strong>L3 长期知识与权限穿透 (pgvector)：</strong>跨会话记忆与 ACL</span>
+            <span style="color:#F87171;font-weight:700;">❌ 须定制</span>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:#F87171;background:rgba(248,113,113,0.08);border-radius:5px;padding:7px 10px;">
+        ⚠️ <strong>破除误区：</strong>挂了 <code>StateStore</code> 绝不等于替代了第 05 课的画像抽取与第 06 课的企业知识库！
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

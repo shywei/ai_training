@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>Middleware 落地与对比：onActing 无损挂起 HITL</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 20px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 3px; font-weight: 600; }
+    .code-box { font-family: Consolas, "Fira Code", monospace; font-size: 10.8px; line-height: 1.4; background: rgba(0,0,0,0.48); padding: 9px 11px; border-radius: 6px; border: 1px solid rgba(224,231,255,0.14); color: #E0E7FF; white-space: pre; overflow-x: hidden; }
+    .matrix-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .matrix-table th { background: rgba(30,41,59,0.92); color: #E2E8F0; font-weight: 700; padding: 7px 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.12); }
+    .matrix-table td { padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #CBD5E1; line-height: 1.45; }
+  </style>
+</head>
+<body>
+  <div class="s">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;" class="mb-1">
+        <span class="sn">PART 2 · 企业级增量（二）：Middleware 实战落地与对比</span>
+        <span style="font-size:11.5px;color:#4ADE80;background:rgba(74,222,128,0.14);border:1px solid rgba(74,222,128,0.35);padding:2px 9px;border-radius:4px;font-weight:700;">✅ Demo 已覆盖（LifecycleMiddleware）</span>
+      </div>
+      <h1 style="font-size:27px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">
+        Middleware 如何落地 HITL 挂起？与 Advisor 选型边界对比
+      </h1>
+      <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+    </div>
+
+    <!-- 上半部分：LifecycleMiddleware.onActing 真实代码 + 挂载调用 -->
+    <div style="background:rgba(15,23,42,0.68);border:1.5px solid rgba(192,132,252,0.3);border-radius:8px;padding:10px 14px;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:14px;color:#C084FC;font-weight:700;">LifecycleMiddleware.java：在工具真正执行前拦下大额下单并挂起</span>
+        <span style="font-size:11px;color:#CBD5E1;">挂载：<code>ReActAgent.builder().middlewares(List.of(lifecycleMiddleware))</code></span>
+      </div>
+      <div class="code-box"><span style="color:#C084FC;">@Override</span>
+<span style="color:#569CD6;">public</span> <span style="color:#4EC9B0;">Flux</span>&lt;<span style="color:#4EC9B0;">AgentEvent</span>&gt; <span style="color:#DCDCAA;">onActing</span>(<span style="color:#4EC9B0;">Agent</span> agent, <span style="color:#4EC9B0;">RuntimeContext</span> ctx, <span style="color:#4EC9B0;">ActingInput</span> in, <span style="color:#4EC9B0;">Function</span>&lt;...&gt; next) {
+  <span style="color:#569CD6;">for</span> (<span style="color:#4EC9B0;">ToolUseBlock</span> toolCall : in.toolCalls()) {
+    <span style="color:#4EC9B0;">ToolOrderRequest</span> req = extractOrderRequest(toolCall.getInput());
+    <span style="color:#569CD6;">if</span> (domainService.isHighRiskAction(toolCall.getName(), req)) { <span style="color:#94A3B8;">// 1. 领域规则判定 ≥ ¥5000</span>
+      checkpointStore.saveSnapshot(<span style="color:#569CD6;">new</span> <span style="color:#4EC9B0;">AgentCheckpoint</span>(execId, cpId, ..., <span style="color:#4EC9B0;">WorkflowState</span>.CONFIRMING)); <span style="color:#94A3B8;">// 2. 存快照</span>
+      ctx.put(<span style="color:#CE9178;">"APPROVAL_REQUIRED"</span>, <span style="color:#4EC9B0;">Boolean</span>.TRUE);
+      <span style="color:#569CD6;">return</span> <span style="color:#4EC9B0;">Flux</span>.just(<span style="color:#569CD6;">new</span> <span style="color:#4ADE80;font-weight:700;">RequireUserConfirmEvent</span>(cpId, <span style="color:#569CD6;">List</span>.of(toolCall))); <span style="color:#94A3B8;">// 3. 短路工具执行并挂起！</span>
+    }
+  }
+  <span style="color:#569CD6;">return</span> next.apply(in); <span style="color:#94A3B8;">// 低风险动作直接放行执行工具</span>
+}</div>
+    </div>
+
+    <!-- 下半部分：四维原理对比表 -->
+    <div style="background:rgba(15,23,42,0.68);border:1px solid rgba(56,189,248,0.28);border-radius:8px;padding:10px 14px;flex:1;display:flex;flex-direction:column;justify-content:space-between;">
+      <div style="font-size:14px;color:#38BDF8;font-weight:700;margin-bottom:4px;">Spring AI CallAdvisor/StreamAdvisor vs AgentScope MiddlewareBase 选型对照</div>
+      <table class="matrix-table">
+        <thead>
+          <tr>
+            <th style="width:18%;">对比维度</th>
+            <th style="width:41%;color:#38BDF8;">Spring AI 2.0 Advisor</th>
+            <th style="width:41%;color:#C084FC;">AgentScope 2.0 MiddlewareBase</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:700;color:#F8FAFC;">抽象定位</td>
+            <td>请求/响应责任链（类比 Servlet Filter）</td>
+            <td>智能体认知生命周期钩子（嵌入 Agent/Reasoning/Acting）</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700;color:#F8FAFC;">ReAct 轮次感知</td>
+            <td><span style="color:#F87171;">✘ 不感知</span>：只看单次模型 HTTP 调用</td>
+            <td><span style="color:#4ADE80;">✔ 原生感知</span>：<code>RuntimeContext</code> 携带会话与执行上下文</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700;color:#F8FAFC;">HITL 挂起能力</td>
+            <td><span style="color:#FBBF24;">成本高</span>：需自抛异常中断并手写保存与恢复</td>
+            <td><span style="color:#4ADE80;">原生支持</span>：<code>onActing</code> 发射 <code>RequireUserConfirmEvent</code> 短路挂起</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700;color:#F8FAFC;">最佳适用场景</td>
+            <td>全局 PII 脱敏、注入防护、Token 计数、网络日志</td>
+            <td>高危工具前风控拦截、人工审批挂起、思维链审计、异常自愈</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

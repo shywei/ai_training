@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>第 09 课核心总结：框架的边界与工程落地准则</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 22px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 3px; font-weight: 600; }
+    .col-card { background: rgba(15, 23, 42, 0.72); border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; justify-content: space-between; }
+  </style>
+</head>
+<body>
+<div class="s">
+  <div>
+    <div class="sn">PART 3 · 本课核心总结（第 09 课完整闭环）</div>
+    <h1 style="font-size:28px;font-weight:700;color:#F8FAFC;margin-top:2px;margin-bottom:6px;">
+      从手搓到框架：看清两条演进主线，守住框架的边界
+    </h1>
+    <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:10px;"></div>
+    <div style="background:rgba(30,41,59,0.65);border-left:4px solid #FBBF24;padding:8px 14px;border-radius:0 6px 6px 0;font-size:13.5px;color:#E2E8F0;line-height:1.5;">
+      <strong style="color:#FBBF24;">一句话带走：</strong>手搓理解原理，框架提升效率；省的不是行数，是胶水；分清“同构提效”与“企业级补齐”，用六边形架构守住领域边界、防框架套牢。
+    </div>
+  </div>
+
+  <!-- 3 栏纯聚焦第 09 课自身总结（无任何下一课预告） -->
+  <div style="flex:1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:12px;min-height:0;">
+    <!-- 栏 1：两条演进主线定性 -->
+    <div class="col-card" style="border:1px solid rgba(56,189,248,0.32);">
+      <div>
+        <div style="color:#38BDF8;font-weight:700;font-size:15.5px;margin-bottom:10px;">① 两条截然不同的演进主线</div>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:12.5px;">
+          <div style="background:rgba(30,41,59,0.6);padding:10px 12px;border-radius:6px;border-left:3px solid #38BDF8;">
+            <strong style="color:#38BDF8;">主线 1 · 同构效率提升（V5 ➔ V6 ➔ V7）</strong>
+            <div style="color:#E2E8F0;margin-top:4px;line-height:1.52;">
+              <code>ChatClient</code>、<code>@Tool</code>、<code>Advisor</code>、<code>ReActAgent</code> 做的是既有导购功能的框架替换；<strong>Agent 架构本质未变</strong>，收益是胶水代码从 1834 行降至 ~500 行。
+            </div>
+          </div>
+          <div style="background:rgba(30,41,59,0.6);padding:10px 12px;border-radius:6px;border-left:3px solid #C084FC;">
+            <strong style="color:#C084FC;">主线 2 · 企业级关键环节补齐</strong>
+            <div style="color:#E2E8F0;margin-top:4px;line-height:1.52;">
+              <strong>Checkpointer 复水与分支</strong>、<strong>认知 Middleware 挂起 HITL</strong>、<strong>多通道事件流</strong>、<strong>强契约自愈</strong>——这些 V5 极难手搓做好，必须靠运行时框架能力支撑。
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="background:rgba(56,189,248,0.1);padding:8px 12px;border-radius:5px;font-size:12px;color:#E2E8F0;">
+        <strong>认知收益：</strong>不再把“语法糖提效”和“运行时新能力”混为一谈。
+      </div>
+    </div>
+
+    <!-- 栏 2：技术选型速查 -->
+    <div class="col-card" style="border:1px solid rgba(74,222,128,0.32);">
+      <div>
+        <div style="color:#4ADE80;font-weight:700;font-size:15.5px;margin-bottom:10px;">② 基础设施 vs 应用框架选型</div>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:12.5px;">
+          <div style="background:rgba(30,41,59,0.6);padding:10px 12px;border-radius:6px;border-left:3px solid #38BDF8;">
+            <strong style="color:#38BDF8;">Spring AI 2.0.2 GA（Servlet 级底座）</strong>
+            <div style="color:#E2E8F0;margin-top:4px;line-height:1.52;">
+              接管单次通信、<code>@Tool</code> 反射与 <code>Advisor</code> 链；适合<strong>单轮问答、RAG 与 1~2 步工具查询</strong>。复杂状态机仍需手写。
+            </div>
+          </div>
+          <div style="background:rgba(30,41,59,0.6);padding:10px 12px;border-radius:6px;border-left:3px solid #4ADE80;">
+            <strong style="color:#4ADE80;">AgentScope 2.0.0 GA（MVC 级框架）</strong>
+            <div style="color:#E2E8F0;margin-top:4px;line-height:1.52;">
+              接管 <code>ReActAgent</code> 循环、五阶段 <code>Middleware</code>、多通道 <code>streamEvents</code> 与 <code>AgentStateStore</code>；适合<strong>多步规划、HITL 挂起与断点恢复</strong>。
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="background:rgba(74,222,128,0.1);padding:8px 12px;border-radius:5px;font-size:12px;color:#E2E8F0;">
+        <strong>选型原则：</strong>简单场景不引入重型框架，长链路状态场景不手搓简陋循环。
+      </div>
+    </div>
+
+    <!-- 栏 3：开发者必须守住的三条边界 -->
+    <div class="col-card" style="border:1px solid rgba(251,191,36,0.35);">
+      <div>
+        <div style="color:#FBBF24;font-weight:700;font-size:15.5px;margin-bottom:10px;">③ 开发者必须守住的三条边界</div>
+        <div style="display:flex;flex-direction:column;gap:9px;font-size:12.5px;">
+          <div style="background:rgba(30,41,59,0.6);padding:9px 12px;border-radius:6px;">
+            <strong style="color:#FBBF24;">1. 扁平化 Tool DTO 与扩展自愈</strong>
+            <div style="color:#E2E8F0;margin-top:3px;line-height:1.48;">避开多态/泛型/双向关联死穴，用 Jakarta Validation + Advisor/Middleware 扩展自愈重试。</div>
+          </div>
+          <div style="background:rgba(30,41,59,0.6);padding:9px 12px;border-radius:6px;">
+            <strong style="color:#F87171;">2. 确定性业务风控与三层记忆</strong>
+            <div style="color:#E2E8F0;margin-top:3px;line-height:1.48;">¥5000 风控与打分留在 <code>ShoppingDomainService</code>；<code>StateStore</code> 不替代 L2 画像与 L3 知识库。</div>
+          </div>
+          <div style="background:rgba(30,41,59,0.6);padding:9px 12px;border-radius:6px;">
+            <strong style="color:#4ADE80;">3. 六边形 Ports &amp; Adapters 隔离</strong>
+            <div style="color:#E2E8F0;margin-top:3px;line-height:1.48;">保持 <code>domain/</code> 与 <code>port/</code> 纯 Java 零依赖，框架全部锁进 <code>adapter/</code> 可拔插替换。</div>
+          </div>
+        </div>
+      </div>
+      <div style="background:rgba(251,191,36,0.1);padding:8px 12px;border-radius:5px;font-size:12px;color:#E2E8F0;">
+        <strong>扩展提示：</strong>按 <code>E</code> 键可随时调出本课《扩展学习指南》深入源码与表结构设计。
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

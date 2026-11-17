@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>企业级增量（二）：为什么 Advisor 拦不住高危工具执行前挂起？</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 20px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 3px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="s">
+    <div>
+      <div class="mb-1 sn">PART 2 · 企业级增量（二）：认知全生命周期拦截 Middleware</div>
+      <h1 style="font-size:27px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">
+        为什么 Spring AI Advisor 拦不住“工具执行前审批挂起”？
+      </h1>
+      <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+      <div style="background:rgba(248,113,113,0.08);border-left:3px solid #F87171;border-radius:4px;padding:7px 14px;font-size:13px;color:#E0E7FF;line-height:1.48;">
+        <strong style="color:#F87171;">问题痛点：</strong>高危操作（如订单 ≥ ¥5000）必须在<strong>“模型决定调 <code>createOrder</code>、但工具尚未扣款执行”</strong>的那一瞬间暂停并存快照；V5 靠关键词硬匹配且内存阻塞，而 Spring AI <code>Advisor</code> 根本看不见智能体内部的轮次与工具动作！
+      </div>
+    </div>
+
+    <!-- 左右对比：Advisor 视角 vs MiddlewareBase 五阶段真实钩子 -->
+    <div style="display:grid;grid-template-columns:0.95fr 1.05fr;gap:16px;flex:1;margin-top:10px;min-height:0;">
+      <!-- 左栏：Advisor 的盲区 -->
+      <div style="background:rgba(0,229,255,0.03);border:1.5px solid rgba(0,229,255,0.28);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <span style="font-size:15.5px;color:#00E5FF;font-weight:700;"><i class="fas fa-filter"></i> Spring AI Advisor 的拦截视角</span>
+            <span style="font-size:11.5px;color:#00E5FF;background:rgba(0,229,255,0.12);padding:2px 8px;border-radius:4px;">单次 HTTP 通信边界</span>
+          </div>
+          <div style="background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.22);border-radius:6px;padding:10px 12px;margin-bottom:10px;font-family:Consolas,monospace;font-size:12px;color:#CBD5E1;line-height:1.6;">
+            ChatClientRequest ➔ [Advisors] ➔ ChatModel<br>
+            ChatClientResponse ◄─ [Advisors] ◄─ ChatModel
+          </div>
+          <div style="background:rgba(248,113,113,0.08);border-left:3px solid #F87171;border-radius:5px;padding:10px 12px;font-size:12.5px;color:#E0E7FF;line-height:1.55;">
+            <strong style="color:#F87171;">三大盲区：</strong><br>
+            1. 只看得到单次模型请求，不知道当前处于 ReAct 第几轮；<br>
+            2. <code>ToolCallingAdvisor</code> 默认闭环一口气跑完工具；<br>
+            3. 想在调工具前挂起并释放 HTTP 线程，只能抛异常硬中断循环并手写恢复逻辑。
+          </div>
+        </div>
+        <div style="background:rgba(0,229,255,0.08);border-radius:5px;padding:8px 12px;font-size:12.5px;color:#E0E7FF;">
+          <strong>适用边界：</strong>只适合 PII 脱敏、注入检查、Token 计量等单次请求级切面。
+        </div>
+      </div>
+
+      <!-- 右栏：AgentScope MiddlewareBase 五阶段真实钩子 -->
+      <div style="background:rgba(192,132,252,0.035);border:1.5px solid rgba(192,132,252,0.32);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <span style="font-size:15.5px;color:#C084FC;font-weight:700;"><i class="fas fa-brain"></i> 概念与原理：AgentScope MiddlewareBase</span>
+            <span style="font-size:11.5px;color:#C084FC;background:rgba(192,132,252,0.14);padding:2px 8px;border-radius:4px;">5 个认知生命周期钩子</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;">
+            <div style="background:rgba(192,132,252,0.08);border-left:3px solid #C084FC;padding:6px 10px;border-radius:4px;">
+              <strong style="color:#C084FC;">1. onAgent：</strong>任务入站与收官钩子（全局审计、耗时统计）
+            </div>
+            <div style="background:rgba(56,189,248,0.08);border-left:3px solid #38BDF8;padding:6px 10px;border-radius:4px;">
+              <strong style="color:#38BDF8;">2. onSystemPrompt：</strong>动态注入/增强系统安全提示词
+            </div>
+            <div style="background:rgba(251,191,36,0.08);border-left:3px solid #FBBF24;padding:6px 10px;border-radius:4px;">
+              <strong style="color:#FBBF24;">3. onModelCall：</strong>底层模型网络请求钩子（对应 Advisor 能力）
+            </div>
+            <div style="background:rgba(0,229,255,0.08);border-left:3px solid #00E5FF;padding:6px 10px;border-radius:4px;">
+              <strong style="color:#00E5FF;">4. onReasoning：</strong>模型思考规划前/后拦截，监控思维链
+            </div>
+            <div style="background:rgba(255,107,53,0.14);border-left:3px solid #FF8A5B;padding:7px 10px;border-radius:4px;">
+              <strong style="color:#FF8A5B;">5. onActing（核心！）：</strong>工具执行前精准拦截（风控挂起 + 结合 Flux <code>.onErrorResume()</code> 做异常自愈）
+            </div>
+          </div>
+        </div>
+        <div style="background:rgba(192,132,252,0.1);border-radius:5px;padding:8px 12px;font-size:12.5px;color:#E0E7FF;">
+          ✅ <strong>解决方式：</strong>把钩子嵌入认知循环内部，不用改业务工具即可在调工具前无损暂停！
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

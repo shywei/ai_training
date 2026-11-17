@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>同构提效（五）：CallAdvisor 与 StreamAdvisor 双向拦截链</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 20px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 3px; font-weight: 600; }
+    .code-box { font-family: Consolas, "Fira Code", monospace; font-size: 10.8px; line-height: 1.4; background: rgba(0,0,0,0.48); padding: 9px 11px; border-radius: 6px; border: 1px solid rgba(224,231,255,0.14); color: #E0E7FF; white-space: pre; overflow-x: hidden; }
+  </style>
+</head>
+<body>
+  <div class="s">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;" class="mb-1">
+        <span class="sn">PART 1 · 同构能力提效（V5 ➔ V6 · 横切关注点 AOP 化）</span>
+        <span style="font-size:11.5px;color:#4ADE80;background:rgba(74,222,128,0.14);border:1px solid rgba(74,222,128,0.35);padding:2px 9px;border-radius:4px;font-weight:700;">✅ Demo 已覆盖（GuardrailsCallAdvisor &amp; TelemetryStreamAdvisor）</span>
+      </div>
+      <h1 style="font-size:27px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">
+        横切安全与遥测：从散落调用到 CallAdvisor / StreamAdvisor 责任链
+      </h1>
+      <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+      <div style="background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:4px;padding:7px 14px;font-size:13px;color:#E0E7FF;line-height:1.48;">
+        <strong style="color:#00E5FF;">五步看透 Advisor：</strong><strong>问题：</strong>V5 <code>GuardrailsService</code> 散落业务代码极易漏调 ➔ <strong>概念：</strong>双向洋葱责任链（2.0.2 GA 正式定名 <code>CallAdvisor / StreamAdvisor</code>，废弃旧 <code>*AroundAdvisor</code>）➔ <strong>原理：</strong>按 <code>getOrder()</code> 升序入站前置处理、降序出站后置审查 ➔ <strong>调用：</strong>挂载到 <code>defaultAdvisors()</code> 全局生效。
+      </div>
+    </div>
+
+    <!-- 左右真实 Spring AI 2.0.2 API 代码 -->
+    <div style="display:grid;grid-template-columns:1.05fr 0.95fr;gap:14px;flex:1;margin-top:10px;min-height:0;">
+      <!-- 左栏：GuardrailsCallAdvisor -->
+      <div style="background:rgba(0,229,255,0.03);border:1.5px solid rgba(0,229,255,0.28);border-radius:8px;padding:11px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:14.5px;color:#00E5FF;font-weight:700;"><i class="fas fa-shield-alt"></i> 1. GuardrailsCallAdvisor（同步双向拦截）</span>
+            <span style="font-size:11px;color:#4ADE80;background:rgba(74,222,128,0.12);padding:2px 7px;border-radius:4px;">CallAdvisor</span>
+          </div>
+          <div class="code-box"><span style="color:#569CD6;">public class</span> <span style="color:#4EC9B0;">GuardrailsCallAdvisor</span> <span style="color:#569CD6;">implements</span> <span style="color:#4EC9B0;">CallAdvisor</span> {
+  <span style="color:#DCDCAA;">@Override</span>
+  <span style="color:#569CD6;">public</span> <span style="color:#4EC9B0;">ChatClientResponse</span> <span style="color:#DCDCAA;">adviseCall</span>(<span style="color:#4EC9B0;">ChatClientRequest</span> req, <span style="color:#4EC9B0;">CallAdvisorChain</span> chain) {
+    <span style="color:#4EC9B0;">String</span> text = req.prompt().getUserMessage().getText();
+    <span style="color:#94A3B8;">// 1. 【前置拦截】Prompt 注入阻断 + 手机号/身份证 PII 脱敏</span>
+    <span style="color:#569CD6;">if</span> (checkInjection(text)) <span style="color:#569CD6;">throw new</span> <span style="color:#4EC9B0;">SecurityException</span>(<span style="color:#CE9178;">"违规输入拦截"</span>);
+    req = req.mutate().prompt(req.prompt().augmentUserMessage(
+        old -&gt; <span style="color:#569CD6;">new</span> <span style="color:#4EC9B0;">UserMessage</span>(sanitizePii(text)))).build();
+
+    <span style="color:#94A3B8;">// 2. 【推进责任链】进入下一 Advisor 或 ChatModel</span>
+    <span style="color:#4EC9B0;">ChatClientResponse</span> resp = chain.nextCall(req);
+
+    <span style="color:#94A3B8;">// 3. 【后置审查】过滤响应密钥与敏感词并注入耗时上下文</span>
+    <span style="color:#4EC9B0;">String</span> safe = sanitizeOutput(extractResponseText(resp));
+    <span style="color:#569CD6;">return</span> resp.mutate().chatResponse(maskedChatResp(resp, safe)).build();
+  }
+}</div>
+        </div>
+        <div style="font-size:12px;color:#00E5FF;background:rgba(0,229,255,0.08);border-radius:5px;padding:6px 10px;">
+          ✅ <strong>调用方式：</strong>设置 <code>getOrder() = HIGHEST_PRECEDENCE + 100</code>，确保发给模型前第一道脱敏。
+        </div>
+      </div>
+
+      <!-- 右栏：TelemetryStreamAdvisor -->
+      <div style="background:rgba(192,132,252,0.035);border:1.5px solid rgba(192,132,252,0.3);border-radius:8px;padding:11px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:14.5px;color:#C084FC;font-weight:700;"><i class="fas fa-tachometer-alt"></i> 2. TelemetryStreamAdvisor（流式 TTFT 监控）</span>
+            <span style="font-size:11px;color:#C084FC;background:rgba(192,132,252,0.14);padding:2px 7px;border-radius:4px;">StreamAdvisor</span>
+          </div>
+          <div class="code-box"><span style="color:#569CD6;">public class</span> <span style="color:#4EC9B0;">TelemetryStreamAdvisor</span> <span style="color:#569CD6;">implements</span> <span style="color:#4EC9B0;">StreamAdvisor</span> {
+  <span style="color:#DCDCAA;">@Override</span>
+  <span style="color:#569CD6;">public</span> <span style="color:#4EC9B0;">Flux</span>&lt;<span style="color:#4EC9B0;">ChatClientResponse</span>&gt; <span style="color:#DCDCAA;">adviseStream</span>(
+      <span style="color:#4EC9B0;">ChatClientRequest</span> req, <span style="color:#4EC9B0;">StreamAdvisorChain</span> chain) {
+    <span style="color:#569CD6;">long</span> start = <span style="color:#4EC9B0;">System</span>.currentTimeMillis();
+    <span style="color:#4EC9B0;">AtomicBoolean</span> isFirst = <span style="color:#569CD6;">new</span> <span style="color:#4EC9B0;">AtomicBoolean</span>(<span style="color:#569CD6;">true</span>);
+
+    <span style="color:#569CD6;">return</span> chain.nextStream(req).map(chunk -&gt; {
+      <span style="color:#569CD6;">if</span> (isFirst.compareAndSet(<span style="color:#569CD6;">true</span>, <span style="color:#569CD6;">false</span>)) {
+        log.info(<span style="color:#CE9178;">"首 Token 延迟 (TTFT): {}ms"</span>, <span style="color:#4EC9B0;">System</span>.currentTimeMillis() - start);
+      }
+      <span style="color:#569CD6;">return</span> chunk.mutate().context(<span style="color:#CE9178;">"ttft_ms"</span>, ...).build();
+    });
+  }
+}</div>
+        </div>
+        <div style="font-size:12px;color:#C084FC;background:rgba(192,132,252,0.09);border-radius:5px;padding:6px 10px;">
+          ⚠️ <strong>响应式红线：</strong>严禁在 <code>adviseStream</code> 的 <code>map()</code> 中执行阻塞 JDBC/Redis 调用，防止阻塞 EventLoop！
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

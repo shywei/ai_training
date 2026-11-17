@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=1280">
+<title>目录</title>
+<script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+<link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;list-style:none;text-decoration:none;box-sizing:border-box}
+.s{width:1280px;height:720px;background:#0B1120;position:relative;font-family:"Microsoft YaHei",sans-serif;overflow:hidden}
+.s h1{font-size:48px!important;color:#E0E7FF;font-weight:700}
+.toc-item{display:flex;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(0,229,255,0.08)}
+.toc-num{font-size:20px;font-weight:700;color:#00E5FF;min-width:44px;line-height:1}
+.toc-title{font-size:15px;color:#E0E7FF;font-weight:600;margin-bottom:3px}
+.toc-desc{font-size:12px;color:rgba(224,231,255,0.45);line-height:1.45}
+</style></head><body>
+<div class="s flex">
+  <div class="flex flex-col justify-center" style="width:290px;padding-left:60px;">
+    <h1 class="mb-4">目录</h1>
+    <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:16px;"></div>
+    <p style="font-size:13px;color:rgba(224,231,255,0.4);line-height:1.85;">
+      两条演进主线定界<br>
+      同构替换提效（V5 → V6 → V7）<br>
+      企业级运行时机制补齐<br>
+      领域边界与六边形防套牢
+    </p>
+  </div>
+  <div class="flex flex-col justify-center flex-1" style="padding:12px 50px 12px 24px;">
+    <div class="toc-item">
+      <div class="toc-num">01</div>
+      <div><div class="toc-title">破题：复盘 V5 痛点与两条截然不同的演进主线</div><div class="toc-desc">区分“同功能换写法提效”与“手搓极难实现的企业级环节”，明确 V5 / V6 / V7 三套对照标本定位</div></div>
+    </div>
+    <div class="toc-item">
+      <div class="toc-num">02</div>
+      <div><div class="toc-title">同构效率提升（一）：Spring AI 2.0 接管模型与工具通信</div><div class="toc-desc">ChatClient 声明式装配、JDK 21 虚拟线程与可观测底座、@Tool 与 ToolCallingAdvisor 闭环、内置 MCP Client 与 Advisor 链</div></div>
+    </div>
+    <div class="toc-item">
+      <div class="toc-num">03</div>
+      <div><div class="toc-title">同构效率提升（二）：从 V6 天花板到 AgentScope ReActAgent</div><div class="toc-desc">剖析 SpringAi2WorkflowAdapter 仍需手搓的 300 行循环，看 ReActAgent 如何接管主循环并汇总 V5→V6→V7 效率对照</div></div>
+    </div>
+    <div class="toc-item">
+      <div class="toc-num">04</div>
+      <div><div class="toc-title">企业级增量（一）：Execution Checkpointer 断点持久化与复水</div><div class="toc-desc">为什么 ChatMemory 救不了跨天审批与 Pod 重启？三级存储隔离、混合快照、跨进程 Rehydration 与时光倒流 Forking</div></div>
+    </div>
+    <div class="toc-item">
+      <div class="toc-num">05</div>
+      <div><div class="toc-title">企业级增量（二）：认知生命周期 Middleware 与多通道事件流</div><div class="toc-desc">Advisor 单次请求链 vs Middleware 五阶段钩子（onActing 无损挂起 HITL）；告别伪流式，用 streamEvents 解耦多通道渲染</div></div>
+    </div>
+    <div class="toc-item">
+      <div class="toc-num">06</div>
+      <div><div class="toc-title">企业级增量（三）：Tool 强契约校验与 Schema Repair 自愈循环</div><div class="toc-desc">Jakarta Bean Validation 推导 JSON Schema 防线 + 拦截违规异常合成 Repair Prompt 的自主纠错闭环</div></div>
+    </div>
+    <div class="toc-item">
+      <div class="toc-num">07</div>
+      <div><div class="toc-title">框架的边界：反射死穴、风控主权与六边形防套牢</div><div class="toc-desc">扁平化 Tool DTO、ShoppingDomainService 规则主权、StateStore ≠ 三层记忆，Ports &amp; Adapters 实现零侵入平替</div></div>
+    </div>
+    <div class="toc-item" style="border-bottom:none;">
+      <div class="toc-num">08</div>
+      <div><div class="toc-title">企业 AI 技术栈选型决策指南与全课总结</div><div class="toc-desc">L1 / L2 / L3 三层生态坐标、按业务复杂度精准选型决策树与第 09 课核心工程准则收官</div></div>
+    </div>
+  </div>
+</div>
+</body></html>

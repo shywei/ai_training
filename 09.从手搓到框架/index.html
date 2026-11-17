@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>09.从手搓到框架 - 幻灯片演示系统</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body, html {
+    width:100%; height:100%; overflow:hidden;
+    background:#0B1120; font-family:"Microsoft YaHei", -apple-system, sans-serif;
+    color:#E2E8F0; user-select:none;
+  }
+  
+  /* 幻灯片全屏居中自适应容器 */
+  #viewport-wrapper {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    background: #0B1120;
+    overflow: hidden;
+  }
+  
+  /* 固定 16:9 画布容器 */
+  #slide-stage {
+    position: relative;
+    width: 1280px;
+    height: 720px;
+    background: #0B1120;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
+    transform-origin: center center;
+    transition: transform 0.08s ease-out;
+  }
+
+  /* 幻灯片 iframe */
+  #slide-frame {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    border: none;
+    background: #0B1120;
+  }
+
+  /* 焦点与交互屏蔽层（彻底解决 iframe 劫持键盘事件问题） */
+  #click-shield {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 10;
+    cursor: default;
+  }
+
+  /* 顶部进度条 */
+  #progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #38BDF8, #818CF8);
+    z-index: 1000;
+    transition: width 0.2s ease-out;
+  }
+
+  /* 悬浮控制工具栏 */
+  #control-bar {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 40px;
+    padding: 6px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 100;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+    opacity: 0.35;
+    transition: opacity 0.25s, transform 0.25s;
+  }
+  #control-bar:hover, #control-bar.active {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-2px);
+  }
+
+  .ctrl-btn {
+    background: none;
+    border: none;
+    color: #94A3B8;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    outline: none;
+    white-space: nowrap;
+  }
+  .ctrl-btn:hover {
+    color: #38BDF8;
+    background: rgba(56, 189, 248, 0.12);
+  }
+  .ctrl-btn:active {
+    transform: scale(0.96);
+  }
+  .ctrl-btn:disabled {
+    color: #475569;
+    cursor: not-allowed;
+    background: none;
+  }
+
+  #page-indicator {
+    font-size: 13px;
+    font-weight: 700;
+    color: #F1F5F9;
+    min-width: 65px;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+
+  /* 快捷键提示条 */
+  #kbd-hint {
+    font-size: 11px;
+    color: #64748B;
+    border-left: 1px solid rgba(255,255,255,0.12);
+    padding-left: 12px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    white-space: nowrap;
+  }
+  kbd {
+    background: rgba(255,255,255,0.12);
+    border-radius: 4px;
+    padding: 2px 6px;
+    color: #CBD5E1;
+    font-size: 11px;
+    font-family: inherit;
+  }
+
+  /* 通用侧边抽屉样式 (演讲备注 N / 扩展学习 E) */
+  .side-drawer {
+    position: fixed;
+    top: 0;
+    right: -540px;
+    width: 540px;
+    height: 100%;
+    background: rgba(11, 17, 32, 0.97);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(255,255,255,0.14);
+    z-index: 2000;
+    transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: -20px 0 40px rgba(0,0,0,0.75);
+    user-select: text;
+  }
+  .side-drawer.open {
+    right: 0;
+  }
+  .drawer-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.7);
+  }
+  .drawer-header h3 {
+    font-size: 15px;
+    color: #38BDF8;
+    font-weight: 600;
+  }
+  .drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    font-size: 13.5px;
+    line-height: 1.75;
+    color: #E2E8F0;
+    word-break: break-word;
+  }
+  .drawer-body.raw-text {
+    white-space: pre-wrap;
+  }
+  .drawer-body a {
+    color: #38BDF8;
+    text-decoration: underline;
+    word-break: break-all;
+  }
+  .drawer-body a:hover {
+    color: #7DD3FC;
+  }
+  .drawer-body h1, .drawer-body h2, .drawer-body h3, .drawer-body h4 {
+    color: #F8FAFC;
+    margin: 16px 0 8px 0;
+    line-height: 1.4;
+  }
+  .drawer-body h1 { font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
+  .drawer-body h2 { font-size: 16px; color: #38BDF8; }
+  .drawer-body h3 { font-size: 14.5px; color: #A5B4FC; }
+  .drawer-body p, .drawer-body li { margin-bottom: 8px; }
+  .drawer-body ul, .drawer-body ol { padding-left: 20px; margin-bottom: 12px; }
+  .drawer-body code {
+    background: rgba(255,255,255,0.1);
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-family: Consolas, monospace;
+    font-size: 12.5px;
+    color: #FCD34D;
+  }
+  .drawer-body blockquote {
+    border-left: 3px solid #38BDF8;
+    padding: 8px 14px;
+    background: rgba(56, 189, 248, 0.08);
+    margin: 10px 0;
+    border-radius: 0 6px 6px 0;
+  }
+</style>
+</head>
+<body tabindex="0">
+
+<div id="progress-bar"></div>
+
+<div id="viewport-wrapper">
+  <div id="slide-stage">
+    <iframe id="slide-frame" src="page_1.html" allowfullscreen></iframe>
+    <div id="click-shield" title="单击右侧下一页，单击左侧上一页，双击全屏"></div>
+  </div>
+</div>
+
+<!-- 底部悬浮控制栏 -->
+<div id="control-bar">
+  <button id="btn-prev" class="ctrl-btn" title="上一页 (← / PageUp / Backspace)">◀ 上一页</button>
+  <span id="page-indicator">1 / 24</span>
+  <button id="btn-next" class="ctrl-btn" title="下一页 (→ / Space / PageDown / Enter)">下一页 ▶</button>
+  <button id="btn-notes" class="ctrl-btn" title="演讲者备注 (N)">📝 演讲备注</button>
+  <button id="btn-ext" class="ctrl-btn" title="课后扩展学习指南 (E)">📚 扩展学习</button>
+  <button id="btn-fs" class="ctrl-btn" title="全屏演示 (F / F11)">⛶ 全屏</button>
+  <div id="kbd-hint">
+    <span><kbd>→</kbd>/<kbd>Space</kbd> 翻页</span>
+    <span><kbd>N</kbd> 备注</span>
+    <span><kbd>E</kbd> 扩展</span>
+    <span><kbd>F</kbd> 全屏</span>
+  </div>
+</div>
+
+<!-- 演讲者备注抽屉 -->
+<div id="notes-drawer" class="side-drawer">
+  <div class="drawer-header">
+    <h3 id="notes-title">演讲手册备注 (第 1 页)</h3>
+    <button id="btn-close-notes" class="ctrl-btn" style="padding:4px 8px; font-size:16px;">✕</button>
+  </div>
+  <div id="notes-body" class="drawer-body raw-text">正在载入备注...</div>
+</div>
+
+<!-- 课后扩展学习指南抽屉 -->
+<div id="ext-drawer" class="side-drawer">
+  <div class="drawer-header">
+    <h3>📚 课后扩展学习指南 (09.从手搓到框架)</h3>
+    <button id="btn-close-ext" class="ctrl-btn" style="padding:4px 8px; font-size:16px;">✕</button>
+  </div>
+  <div id="ext-body" class="drawer-body"></div>
+</div>
+
+<script>
+  const pages = ["page_1.html","page_2.html","page_3.html","page_4.html","page_5.html","page_6.html","page_7.html","page_8.html","page_9.html","page_10.html","page_11.html","page_12.html","page_13.html","page_14.html","page_15.html","page_16.html","page_17.html","page_18.html","page_19.html","page_20.html","page_21.html","page_22.html","page_23.html","page_24.html"];
+  const notesMap = {"page_1.html":"# 第 01 页：从手搓到框架：框架的边界（封面与导读）\n\n## Slide Objective\n确立第 09 课的核心教学主轴：引导学员把“**同构功能换框架写更省事（5.1 开发效率提升）**”与“**手搓做不好、企业级必须靠框架补齐的能力（5.2 运行时机制补齐）**”严格区分开，同时守住**领域边界与防套牢架构**。\n\n## Suggested Presentation\n各位同学、架构师同行，欢迎来到第 09 课《从手搓到框架：框架的边界》。\n\n在前五课（04~08 课）中，我们从零手搓了一套完整可运行的企业导购 Agent 原型（V5，`enterprise-ai-agent`），覆盖了 Prompt 组装、三层记忆、RAG 知识检索、MCP 工具调用以及状态机容错。通过亲手造轮子，大家已经看清了智能体底层的每一颗齿轮。\n\n但回到真实企业研发中，很多团队一引入 **Spring AI 2.0** 或 **AgentScope 2.0** 就容易掉进两个误区：要么把框架当成“万能黑盒”，把风控和业务规则也一股脑交给大模型和框架注解；要么分不清**哪些是换了个更简洁的 API（架构没变）**，**哪些是手搓根本扛不住的企业级深水区能力**。\n\n今天这节课，我们就用一套非常严谨的脉络把这件事讲透：\n1. **第一部分（同构提效 V5 ➔ V6 ➔ V7）**：做的是和 V5 完全一样的导购功能，架构设计没有变，变的只是用 Spring AI 2.0 和 AgentScope 2.0 替换手搓胶水；\n2. **第二部分（企业级增量环节）**：聚焦 4 个在 V5 里极难手搓做好、但企业级 Agent 必须具备的环节——**Checkpointer 断点复水与分支、认知生命周期 Middleware、多通道类型化事件流、Tool 强契约与自愈循环**；\n3. **第三部分（框架的边界与防套牢）**：讲清哪些死穴和业务主权框架管不了，以及如何用**六边形架构（Ports & Adapters）**实现框架可插拔平替。\n\n## Key Emphasis\n1. **双主轴思维**：自始至终分清“开发效率提升”与“企业级新能力补齐”。\n2. **五步讲透每个概念**：遇到什么问题 ➔ 引入什么概念 ➔ 底层原理 ➔ 如何解决问题 ➔ 对应框架哪一块与怎么调用。\n3. **诚实划定边界**：明确标注“Demo 已覆盖”与“仅 PPT 讲解”的知识点。\n\n## Optional Extension\n### Q1: 学了 V5 手搓再学框架，手搓的代码是不是白写了？\n**讲师解析**：恰恰相反。只有手搓过 `PromptManager`、`McpToolCallback` 和 651 行的 `AgentRuntime`，你才能一眼看出 `ChatClient`、`ToolCallingAdvisor` 和 `ReActAgent` 替你省掉了哪几层胶水；也只有手搓过内存态 `ConcurrentHashMap`，你才能瞬间听懂为什么生产环境需要 `Checkpointer` 和跨进程复水。\n\n## Classroom Interaction\n“大家平时在项目里引入新框架时，最容易遇到什么困惑？是不知道它底层帮你做了什么，还是升级版本时发现业务代码被绑死了？”\n\n## Take Away\n手搓理解原理，框架解放双手；先分清效率提升与企业级能力增量，再谈框架选型与防套牢。\n\n## Why This Slide Matters\n为整堂课定下清晰的问题意识和逻辑框架，避免后面陷入零散 API 的堆砌。\n\n## Transition\n下面我们先看今天的目录结构，把握全课的八大推进模块。\n","page_2.html":"# 第 02 页：课程目录\n\n## Slide Objective\n向学员展示第 09 课 24 页的清晰推进脉络，按“破题定界 ➔ 同构效率提升（V5→V6→V7） ➔ 企业级增量环节补齐 ➔ 框架边界与防套牢 ➔ 选型与总结”逐层展开。\n\n## Suggested Presentation\n各位同学，请看今天这节课的 8 个章节脉络：\n\n- **01 破题定界**：先把两条截然不同的演进主线立住，介绍 8080 / 8083 / 8084 三套同屏对照工程各自的使命。\n- **02 & 03 同构效率提升**：严格只看“与 V5 做同样功能”的框架替换——先看 Spring AI 2.0（V6）如何接管 Prompt 装配、虚拟线程与可观测底座、`@Tool` 与 `ToolCallingAdvisor`、内置 MCP Client 与 `Advisor` 切面；再剖析 V6 的天花板（仍需手搓 300 行状态循环），从而引出 AgentScope `ReActAgent`（V7）接管主循环，完成 `V5 → V6 → V7` 的效率对照收口。\n- **04 ~ 06 企业级增量环节**：进入手搓极难做好的深水区，依次攻克 Execution Checkpointer 断点复水与分支、认知生命周期 Middleware（重点看 `onActing` 挂起 HITL）、多通道 `streamEvents` 实时事件流，以及 Tool 强契约与 Schema Repair 自愈循环。\n- **07 & 08 框架边界、防套牢与选型总结**：看清反射死穴、业务风控主权和三层记忆边界，落地六边形 Ports & Adapters 零侵入平替，最后收敛到选型决策树与全课总结。\n\n## Key Emphasis\n1. 目录保持简洁干净，逻辑上严格按“同构提效 ➔ 企业级增量 ➔ 边界与防套牢”三段递进。\n2. 强调每一个概念都会从“什么问题”讲到“框架哪一块、怎么调用”。\n\n## Optional Extension\n### Q1: 为什么把“同构替换”和“企业级增量”拆成两个独立部分讲？\n**讲师解析**：如果混在一起讲，学员很容易误以为“用上框架后连业务风控和架构设计也自动升级了”。拆开后就能看清：换掉 `PromptManager` 和 `@Tool` 只是写法升级；而 `Checkpointer`、工具执行前挂起、`streamEvents` 多通道流才是企业生产刚需的能力补齐。\n\n## Classroom Interaction\n引导学员快速扫视目录，确认哪一部分是自己当前项目最迫切想解决的痛点（代码胶水太重 / 状态易丢 / 无法中途审批 / 怕被框架绑死）。\n\n## Take Away\n沿着“先看懂同构提效，再补齐企业级能力，最后守住框架边界”的路线推进全课。\n\n## Why This Slide Matters\n让学员在脑海中先建好清晰的路线图，后续每一页都知道自己处于主线的哪个位置。\n\n## Transition\n好，我们正式进入第 01 章：先给这两条演进主线和三套对照工程定下边界。\n","page_3.html":"# 第 03 页：破题：两条截然不同的演进主线与三套对照工程\n\n## Slide Objective\n帮助学员在概念上彻底切割两类问题（5.1 同构能力效率提升 vs 5.2 手搓极难做好的企业级增量能力），并明确 `V5`（8080）、`V6`（8083）、`V7`（8084）三套同业务标本工程的定位。\n\n## Suggested Presentation\n各位同学，请看这一页。在看具体代码之前，我们先把一个最容易混淆的问题掰扯清楚——**从手搓走向框架，到底改变了什么？**\n\n请看屏幕左边的**主线一：同构能力替换（开发效率提升）**。\n在第 04~08 课中，我们用 V5 手搓了 Prompt 拼接、安全过滤、工具调用、MCP 连接和 ReAct 状态机。如果我们把这些功能原封不动地搬到 Spring AI 2.0（V6）或 AgentScope 2.0（V7）上重写，**从 Agent 架构与设计的角度看，其实没有任何变化**——依然是构造 System+User 发给模型、依然是调 8081/8082 工具、依然是跑 ReAct 循环。变化的只是框架替换和 API 写法，它解决的是“写起来太繁琐、胶水代码太多、正则易写错”的**研发效率问题**。\n\n再看屏幕右边的**主线二：企业级 Agent 应当有的增量环节**。\n有 4 件事，在 V5 的单机内存架构和同步阻塞循环里**手搓极难做好**：\n1. 服务一重启或跨天等待审批，内存状态全丢 ➔ 需要 **Checkpointer 断点复水与分支**；\n2. 模型刚决定下单但还没扣款，必须当场拦住等待人类确认 ➔ 需要 **认知生命周期 Middleware**；\n3. 同步跑完再拆字推送的伪流式体验极差 ➔ 需要 **多通道类型化事件流**；\n4. 模型填错参数格式就崩溃降级 ➔ 需要 **Tool 强契约与自愈纠错循环**。\n这 4 项才是真正补齐企业级生产能力的增量。\n\n为了让大家能像做对比实验一样看清这两条线，我们准备了三套实现同一个电商导购业务的工程：\n- **V5（8080）**：手搓基准；\n- **V6（8083）**：Spring AI 2.0.2 GA（类比 **Servlet API**，管模型通信基础设施）；\n- **V7（8084）**：AgentScope 2.0.0 GA（类比 **Spring MVC**，管多轮智能体运行时）。\n\n## Key Emphasis\n1. **必须划清的界线**：5.1（架构未变、写法变省事） vs 5.2（V5 极难手搓、框架提供的企业级能力）。\n2. **核心类比**：Spring AI = 通信基础设施（Servlet API）；AgentScope = 智能体运行时应用框架（Spring MVC）。\n\n## Optional Extension\n### Q1: 既然 V7 更强大，为什么还要单独建一个 V6（Spring AI 2.0）工程来做对照？\n**讲师解析**：很多 Java 团队认为“引入了 Spring AI 2.0 就万事大吉了”。通过单独跑一遍 V6，大家会亲眼看到：Spring AI 2.0 确实能把 Prompt、Tool 和单次安全切面省掉一半以上代码，但写到多步状态机和审批挂起时，依然要手写 300 行循环。这才能让你真正理解 V6 的边界和 V7 存在的意义。\n\n## Classroom Interaction\n提问：“在你们现在的项目里，遇到更多的是主线一的‘胶水代码太重’，还是主线二的‘状态丢失/无法中途拦截’？”\n\n## Take Away\n框架不是黑魔法：一部分帮我们少写胶水（同构提效），另一部分帮我们补齐手搓扛不住的生产级运行能力。\n\n## Why This Slide Matters\n本页是全课的逻辑总开关，直接决定了学员能不能用清醒的架构视角看待后面所有的技术和代码。\n\n## Transition\n定好界线后，我们先走第一部分——主线一：看看从 V5 到 V6 再到 V7，同样功能的实现是如何一步步消除胶水、提升开发效率的。先看 P04：Prompt 组装与调用。\n","page_4.html":"# 第 04 页：同构提效（一）：Prompt 组装与模型调用 ChatClient\n\n## Slide Objective\n通过五步闭环讲透 `PromptManager` → `ChatClient.builder()` 的演进：明确问题、概念、分离装配原理、架构未变的本质，并展示 V5 与 V6 的真实代码对照（Demo 已覆盖）。\n\n## Suggested Presentation\n各位同学，进入第一部分“同构效率提升”，我们先看最基础的环节：**怎么拼装 Prompt 并调用大模型？**\n\n请顺着页面上方这 4 个格子把逻辑串起来：\n1. **V5 存在什么问题？** 看下方左侧的 `PromptManager.java`（65 行）：每次调用前，我们得手写 `String.format` 替换人设变量，手动 `new ArrayList<Message>()` 往里加 `SystemMessage` 和 `UserMessage`，构造 `Prompt` 对象调用 `chatModel.call()`，再写一长串 `.getResult().getOutput().getText()` 取结果——而且安全过滤 `guardrailsService.sanitize()` 还得在每个业务方法里人工调一遍，非常容易漏！\n2. **引入什么概念？** Spring AI 2.0 推出了 **ChatClient Fluent 声明式 API**，设计风格完全对齐大家熟悉的 `RestClient` 和 `WebClient`。\n3. **底层原理是什么、怎么解决问题？** 它的核心原理是**“配置期与运行期分离”**。请看右侧 `SpringAi2ChatConfig.java`：在 Spring Boot 启动配置期，我们用 `ChatClient.builder(chatModel)` 一次性把全局的 `defaultSystem`、拦截器链 `defaultAdvisors` 和工具集 `defaultTools` 挂载好，注册为一个 Bean；到了运行期，业务类 `SpringAi2WorkflowAdapter` 只需要一行代码 `chatClient.prompt().user(promptContext).call().content()`，内部就会自动帮你组装好消息列表、走完拦截链并解包出文本！\n4. **架构评估**：这一步改变，从 Agent 架构角度看**没有任何变化**——底层发给大模型的依然是 System Prompt + User Prompt。它改变的是代码组织方式，把配置样板代码从 65 行压缩到 25 行，且杜绝了业务端漏挂安全拦截的风险。\n\n## Key Emphasis\n1. **真实 Demo 位置**：`enterprise-ai-agent-springai2` 中的 `SpringAi2ChatConfig.java` 与 `SpringAi2WorkflowAdapter.java`。\n2. **架构清醒度**：`ChatClient` 并没有发明新的 Agent 架构，它只是把过程式的消息包装变成了声明式 Builder，属于纯粹的开发效率提升。\n\n## Optional Extension\n### Q1: 如果某一次业务请求需要临时换一套 System 变量，或者把模型输出直接转成 Java 对象，怎么调用？\n**讲师解析**：`ChatClient` 支持在运行时按次覆盖或增强：比如 `.prompt().system(s -> s.param(\"agentName\", \"VIP导购\")).user(msg).call().entity(ShoppingIntent.class)`。使用 `.entity(...)` 时框架会自动附加结构化 JSON Schema 并在响应后反序列化为对应 Java 类。\n\n## Classroom Interaction\n“对比左右两段代码：如果现在要求所有大模型请求前都加一条日志切面，右边代码需要改业务调用方的那一行 `chatClient.prompt()...` 吗？”（答案：不需要，只需改配置类的 `defaultAdvisors`）。\n\n## Take Away\n`ChatClient.builder()` 通过“配置期固化 + 运行期链式调用”，消除了消息包装与切面漏调的样板代码，但底层交互架构未变。\n\n## Why This Slide Matters\n本页只聚焦 `ChatClient` 这一件事，做到上方概念与下方代码 100% 严密对应，让学员立刻学会怎么配、怎么调。\n\n## Transition\n搞定了 `ChatClient` 的 API 写法，那为什么 Spring AI 2.0 还要把底座拉升到 JDK 21 和 Spring Boot 4.0 呢？接下来 P05 我们专门把这两项底座升级的原理和配置代码讲透。\n","page_5.html":"# 第 05 页：同构提效（二）：JDK 21 虚拟线程与 Spring Boot 4 可观测底座\n\n## Slide Objective\n单独、完整地讲清 Spring AI 2.0 依赖 JDK 21 虚拟线程与 Spring Boot 4.0 可观测底座的原因、原理与真实配置/代码（虚拟线程 Demo 已覆盖；OTel 后端对接采集器为仅 PPT 讲解）。\n\n## Suggested Presentation\n各位同学，很多人在升级 Spring AI 2.0 时会问：“我就想用个 `ChatClient`，为什么官方非要我升级 JDK 21 和 Spring Boot 4.0 呢？”这一页我们用左右两栏真实配置与代码来回答这个问题。\n\n**先看左栏：JDK 21 虚拟线程（Demo 已覆盖）**。\n- **遇到什么问题？** 传统微服务查 MySQL 只要 3 毫秒，而调一次大模型 I/O 阻塞要等 2 到 10 秒。V5 跑在传统 Tomcat 平台线程池（默认 200 线程）上，并发一来线程全部卡死在网络等待上。\n- **引入什么概念与原理？** JDK 21 的 **虚拟线程（JEP 444）**。JVM 在用户态做 M:N 轻量调度，当虚拟线程执行大模型 HTTP 请求发生阻塞时，JVM 自动把它挂起并释放底层 OS 载体线程去服务别的请求，单机即可用同步代码扛住数千并发等待。\n- **在工程里怎么配、怎么用？** 请看代码框：在 `enterprise-ai-agent-springai2/src/main/resources/application.yml` 中开启 `spring.threads.virtual.enabled: true`，Tomcat 请求就自动跑在虚拟线程上；在 `SpringAi2WorkflowAdapter.java` 第 112 行做异步流式输出时，直接写 `Thread.ofVirtual().start(...)` 即可。\n\n**再看右栏：Spring Boot 4.0 / Micrometer 可观测底座（配置已覆盖 · OTel 对接后端仅 PPT 讲解）**。\n- **遇到什么问题？** 第 08 课手写的 `TraceService` 靠人工埋点，很容易漏统 Token 消耗或耗时。\n- **原理与怎么配？** Spring Boot 4.0（Framework 7.0）整合 Micrometer `ObservationRegistry`，在 `ChatClient` 外层自动套上观测切面，按 OpenTelemetry GenAI 语义采集延迟和 Token 用量。看下方 `application.yml` 中的 `spring.ai.chat.observations` 配置——生产环境记得把 `log-prompt` 和 `log-completion` 设为 `false`，防止把用户隐私明文打进监控日志；如果要真正导出到 Jaeger，生产上再引入 `spring-boot-starter-opentelemetry` 并配 OTLP 端点即可（这部分后端对接仅在 PPT 讲解，本地 Demo 不依赖 Jaeger）。\n\n## Key Emphasis\n1. **文码 100% 对应**：左栏讲虚拟线程即配 `application.yml` + `Thread.ofVirtual()` 代码；右栏讲可观测即配 `spring.ai.chat.observations` + OTLP 扩展说明。\n2. **诚实划界**：明确告知学员虚拟线程是 Demo 已覆盖，而对接外部 Jaeger/OTel 采集器为仅 PPT 讲解的架构知识。\n\n## Optional Extension\n### Q1: 用了虚拟线程之后，是不是就完全不需要 WebFlux 反应式编程了？\n**讲师解析**：如果是常规的“发请求 ➔ 等模型返回 ➔ 存数据库”阻塞型业务，JDK 21 虚拟线程配合同步代码开发心智负担最低；但如果要做多路流合并、背压控制或实时多通道 SSE 推送（如 `Flux<WorkflowStreamEvent>`），Reactor 响应式流依然有不可替代的价值。\n\n## Classroom Interaction\n“大家想一想，在 `application.yml` 里把 `log-prompt` 设为 `true` 虽然调试很爽，为什么生产环境一定要关掉？”（防止手机号、订单隐私被直接采集进集中式日志平台）。\n\n## Take Away\nJDK 21 虚拟线程解决同步阻塞下的高并发等待，Boot 4 + Micrometer 让模型耗时与 Token 观测自动化，二者构成 V6 的现代运行时底座。\n\n## Why This Slide Matters\n把之前一笔带过、没有代码落地的两项升级彻底讲透并配齐配置代码，消除学员“只听概念不知怎么配”的困惑。\n\n## Transition\n看完了模型调用与运行底座，接下来 P06 看第 07 课最容易踩坑的地方：V6 是怎么用 `@Tool` 和 `ToolCallingAdvisor` 彻底干掉 V5 脆弱正则表达式的？\n","page_6.html":"# 第 06 页：同构提效（三）：@Tool 声明式契约 + ToolCallingAdvisor 自动闭环\n\n## Slide Objective\n讲透 V5 → V6 工具声明与调度的同构升级：如何用 `@Tool` + `@ToolParam` 消除手写 Schema 胶水，以及内置 `ToolCallingAdvisor` 在幕后自动完成工具调用递归闭环的完整原理（Demo 已覆盖）。\n\n## Suggested Presentation\n各位同学，回忆一下第 07、08 课我们在 V5 里写工具调用有多痛苦：不仅要手写 80 行的 `McpToolCallback` 去拼参数描述，还得在 `AgentRuntime.java` 里写 95 行正则表达式 `Pattern.compile(\"TOOL_CALL:(\\\\w+)\\\\((.*?)\\\\)\")` 去从大模型输出的自然语言里硬抠工具名和参数！大模型只要多输出一个换行、或者一个中文括号，正则立刻失配，整个任务卡死。\n\n在 V6（Spring AI 2.0）中，官方用两个核心组件彻底消灭了这两块胶水：\n\n1. **第一块：`@Tool` + `@ToolParam` 声明式契约推导**。请看左下角 `SpringAi2ToolAdapter.java`：你只需要在普通的 Java 方法上加 `@Tool(name=\"queryProductInfo\", description=\"...\")`，参数上加 `@ToolParam`。框架启动时会自动通过反射把方法签名转成标准 JSON Schema，走大模型原生的 `tools` 协议字段，再也不靠 Prompt 文本约定格式！\n2. **第二块：内置 `ToolCallingAdvisor` 自动接管闭环**。很多同学奇怪：我只写了 `@Tool` 方法，谁来解析模型返回的 JSON、谁来反射调方法、谁把结果再喂回给模型？答案就是 `ChatClient` 默认内置挂载的 `ToolCallingAdvisor`！请看右侧的三步工作流：\n   - Step 1：发请求时自动带上所有 `@Tool` 的 JSON Schema；\n   - Step 2：收到模型响应后检查 `chatResponse.hasToolCalls()`；\n   - Step 3：如果有工具调用意图，内部 `ToolCallingManager` 自动反序列化参数、反射执行你的 Java 方法，再把返回值包装成 `ToolResponseMessage` 自动回填模型发起下一轮推理，直到模型输出最终文本！\n\n因此，原来 V5 里 95 行的正则解析与调度循环，在 V6 里**直接归零**。但请大家特别注意右下角的警示：默认 `ToolCallingAdvisor` 是在单次请求里**一口气把工具跑完**的，如果想中途拦截人工确认，就需要关闭自动执行或交给更高阶框架。\n\n## Key Emphasis\n1. **两项严格对应**：上方讲 `@Tool` 与 `ToolCallingAdvisor`，下方分别给出 `SpringAi2ToolAdapter` 代码和 `ToolCallingAdvisor` 闭环机制 + 关闭开关代码。\n2. **架构判断**：这依然是同构功能替换——底层同样走大模型 Function Calling 与 Tool 执行观察循环，只是省去了手写 Schema 和正则解析胶水。\n\n## Optional Extension\n### Q1: 既然 `ToolCallingChatOptions.internalToolExecutionEnabled(false)` 可以关闭自动工具执行，为什么不推荐在复杂多步 Agent 里自己关掉重写？\n**讲师解析**：因为一旦关闭，你就又得自己写 `while (chatResponse.hasToolCalls())` 循环去手动调用 `ToolCallingManager` 并管理上下文消息列表，又退回到了自己造循环轮子的老路上。\n\n## Classroom Interaction\n“大家可以想一下，如果在 `@Tool` 和 `@ToolParam` 里不写 `description`，会发生什么？”（大模型只看得见 JSON Schema 里的 `description` 和字段名，不写清楚就会猜错参数或选错工具）。\n\n## Take Away\n用 `@Tool` 声明工具契约，让内置 `ToolCallingAdvisor` 自动完成“识别 ➔ 执行 ➔ 回填”闭环，彻底告别脆弱的正则表达式。\n\n## Why This Slide Matters\n不仅教会学员怎么打 `@Tool` 注解，更把幕后黑盒 `ToolCallingAdvisor` 的工作原理与适用限制一次性讲透。\n\n## Transition\n本地 Java 方法变成工具只需要一个 `@Tool` 注解，那第 07 课我们对接的 8081 商品库和 8082 知识库这两个外部 MCP Server，在 V6 里又该怎么接？请看 P07。\n","page_7.html":"# 第 07 页：同构提效（四）：官方内置 MCP Client 替代手写桥接\n\n## Slide Objective\n讲透 V5 → V6 外部 MCP 工具接入的演进：说明 `spring-ai-starter-mcp-client` 与 `SyncMcpToolCallbackProvider` 如何通过配置替代 493 行手写客户端与桥接代码，并诚实说明当前 Demo 的降级兜底设计。\n\n## Suggested Presentation\n各位同学，第 07 课我们为了连接 8081 商品服务和 8082 知识库这两个独立的 MCP Server，在 V5 里足足写了三个大类：`McpProductClient.java`（201 行）、`McpKnowledgeClient.java`（212 行）和 `McpToolCallback.java`（80 行），加起来将近 500 行代码——全是在手动建立 SSE 传输、发 `initialize` 握手、把 MCP 工具描述转成 Spring AI 回调。\n\n在 V6（Spring AI 2.0）里，接入远端 MCP Server 需要写多少代码？答案是**零客户端连接代码，只需配置 + 一行挂载**！\n\n请看右侧代码框的机制：\n1. 引入官方依赖 `spring-ai-starter-mcp-client`；\n2. 在 `application.yml` 中声明 `spring.ai.mcp.client.sse.connections`，把 8081 和 8082 的 URL 填进去；\n3. 框架启动时自动创建 `McpSyncClient`、完成协议握手与工具列表发现，并把它们打包成一个 Spring Bean——`SyncMcpToolCallbackProvider`；\n4. 在 `SpringAi2ChatConfig.java` 里，通过 `builder.defaultToolCallbacks(mcpProvider)` 把远端 MCP 工具直接挂进 `ChatClient`！\n\n这里我必须**如实说明工程边界**：在我们的 `enterprise-ai-agent-springai2` 示例工程里，`SpringAi2ChatConfig` 已经写好了 `ObjectProvider<SyncMcpToolCallbackProvider>` 的自动挂载逻辑；但为了让学员在**没有启动 Docker 和 8081/8082 两个 MCP 进程**时也能独立跑通 Demo，我们在 `application.yml` 里默认把 `spring.ai.mcp.client.enabled` 设为 `false`，由 `SpringAi2ToolAdapter` 提供 HTTP 请求 + 本地 Mock 的平滑兜底。现场演示完整联动时，只需把 `enabled` 改成 `true` 即可。\n\n## Key Emphasis\n1. **五步闭环清晰**：500 行手写客户端/桥接痛点 ➔ `SyncMcpToolCallbackProvider` 概念 ➔ Starter 自动建连发现原理 ➔ YAML 配置与 `defaultToolCallbacks()` 调用。\n2. **严守诚实标注**：清楚告诉学员 Demo 默认 `enabled: false` 配合本地兜底运行，避免误导。\n\n## Optional Extension\n### Q1: 在 V7（AgentScope 2.0）工程里是怎么连 8081/8082 MCP Server 的？\n**讲师解析**：在 `enterprise-ai-agent-agentscope` 中，为了贯彻六边形架构，我们在 `adapter/tool/McpEnterpriseToolAdapter.java` 中通过官方 `io.modelcontextprotocol.sdk:mcp` 实现统一的 `EnterpriseToolPort` 接口，同样具备连不上 8081/8082 时自动降级内置商品库和知识库的能力，保证离线演示 100% 稳定。\n\n## Classroom Interaction\n“对照第 07 课手写 `McpToolCallback` 的经历，现在把连接池和工具发现交给官方 Starter 后，我们研发人员还应该把精力放在 MCP 的哪一部分？”（答案：放在 MCP 工具的业务契约设计、鉴权与治理五件套上，而不是重复写 SSE 握手）。\n\n## Take Away\n官方 `spring-ai-starter-mcp-client` 把数百行 MCP 协议握手与回调桥接胶水收敛为几行 YAML 配置与 `defaultToolCallbacks()` 挂载。\n\n## Why This Slide Matters\n把原版 PPT 仅在标题提了一句的“官方内置 MCP Client”彻底展开，给出完整配置、挂载代码与 Demo 真实开关说明。\n\n## Transition\nPrompt 组装、工具调用、MCP 连接都看完了，V6 在横切安全过滤和流式监控上又是怎么取代 V5 的 `GuardrailsService` 的？请看 P08。\n","page_8.html":"# 第 08 页：同构提效（五）：CallAdvisor 与 StreamAdvisor 双向拦截链\n\n## Slide Objective\n以真实 Spring AI 2.0.2 GA API（`ChatClientRequest` / `ChatClientResponse` / `CallAdvisorChain` / `StreamAdvisorChain`）讲透 `GuardrailsCallAdvisor` 与 `TelemetryStreamAdvisor` 如何取代散落的 `GuardrailsService`（Demo 已覆盖）。\n\n## Suggested Presentation\n各位同学，在 V5 中，我们的安全过滤 `GuardrailsService` 是散落在 Controller 和 Runtime 里手工显式调用的——新来的同事写一个新接口，一忘掉调 `checkInjection()` 或 `sanitize()` 就直接裸奔了。同时，如果是流式响应，很难在每个分片输出时统计首字延迟 TTFT。\n\n为了解决“横切逻辑散落、容易漏调”的问题，Spring AI 2.0 确立了**双向洋葱责任链机制**：同步调用实现 `CallAdvisor`，流式调用实现 `StreamAdvisor`。（顺带避坑：早期 1.0 Milestone 版本的 `CallAroundAdvisor` 和 `AdvisedRequest` 在 2.0.2 GA 已经全面重构为 `CallAdvisor` 和 `ChatClientRequest` / `ChatClientResponse`。）\n\n它的工作原理和大家熟悉的 `Servlet Filter` 完全一致：\n- 每个 Advisor 通过 `getOrder()` 声明优先级；\n- 请求**入站**时，按 Order 从小到大依次执行前置逻辑；\n- 穿过 `chain.nextCall(req)` 或 `chain.nextStream(req)` 进入底层模型；\n- 响应**出站**时，按相反顺序依次执行后置审查与打点。\n\n请看屏幕下方左右两段在 `enterprise-ai-agent-springai2` 中真实编译通过的代码：\n- **左边 `GuardrailsCallAdvisor`**：入站先做 Prompt 注入拦截，再把手机号、身份证号脱敏重写进 `UserMessage`；调完 `chain.nextCall(req)` 后，在出站阶段对敏感密钥词打码。\n- **右边 `TelemetryStreamAdvisor`**：针对流式响应，通过 `chain.nextStream(req).map(...)` 捕获第一个分片到达的时刻，精准算出 TTFT 首字延迟。切记一条红线：**绝对不要在 `adviseStream` 的 `map()` 里调阻塞式数据库或 Redis**，否则会直接卡死 Netty EventLoop！\n\n最后只需在 `SpringAi2ChatConfig` 的 `.defaultAdvisors(List.of(guardrailsAdvisor, repairAdvisor, telemetryAdvisor))` 一挂，全局所有请求自动受保护。\n\n## Key Emphasis\n1. **严格对齐真实 2.0.2 API**：`adviseCall(ChatClientRequest, CallAdvisorChain)`、`adviseStream(ChatClientRequest, StreamAdvisorChain)`、`getName()`、`getOrder()`。\n2. **两项代码全覆盖**：同步安全守卫 + 流式 TTFT 监控均给出对应真实代码。\n3. **响应式避坑**：`StreamAdvisor` 内严禁同步阻塞 I/O。\n\n## Optional Extension\n### Q1: 在我们的 `enterprise-ai-agent-springai2` 工程中，`GuardrailsCallAdvisor` 拦截同步调用，如果是流式调用怎么也加上安全过滤？\n**讲师解析**：只需要让 `GuardrailsCallAdvisor` 同时实现 `StreamAdvisor` 接口（在 `adviseStream` 中先对入站 `request` 做注入校验和 PII 脱敏，再对流式输出块做增量敏感词缓冲过滤），就可以同时覆盖 `.call()` 和 `.stream()` 两条路径。\n\n## Classroom Interaction\n“对比 Spring MVC 的 `HandlerInterceptor`，如果我有 `GuardrailsCallAdvisor`（Order=100）和 `SchemaRepairCallAdvisor`（Order=200），入站时谁先执行？出站时谁先执行？”（入站 100 先，出站 200 先回溯、100 最后收尾）。\n\n## Take Away\n用 `CallAdvisor` 与 `StreamAdvisor` 把安全拦截和遥测监控收敛到统一洋葱责任链中，业务代码无需再操心横切逻辑。\n\n## Why This Slide Matters\n确保学员掌握真实可用的 Spring AI 2.0.2 GA Advisor 编程接口，并理解同步与流式两条拦截链的运行原理与避坑红线。\n\n## Transition\n到这里，Spring AI 2.0 的四大王牌（`ChatClient`、虚拟线程/可观测、`@Tool`+内置MCP、`Advisor` 链）我们已经全部看完了。那用上了 Spring AI 2.0 之后，我们的 `SpringAi2WorkflowAdapter` 到底长什么样？是不是真的“几行代码搞定整个 Agent”了？请看揭示真相的 P09！\n","page_9.html":"# 第 09 页：V6 的能力天花板：API 优雅了，但多步状态机依然要手搓\n\n## Slide Objective\n通过解剖 `SpringAi2WorkflowAdapter.java`（300 行真实代码），让学员直观看到 Spring AI 2.0 作为“模型通信基础设施层（类比 Servlet API）”的能力天花板，引出引入应用级智能体运行时框架（AgentScope 2.0）的必要性。\n\n## Suggested Presentation\n各位同学，请大家直接看 8083 工程里最发人深省的一个类——`SpringAi2WorkflowAdapter.java`，整整 **300 行**！\n\n在刚才的 P04~P08 中，Spring AI 2.0 帮我们把 Prompt 拼接、正则解析工具、MCP 握手和安全切面全接管了。按理说代码应该只剩几十行才对，为什么这个 Adapter 还是写了 300 行？请看左侧这段真实源码：\n1. **步骤规划还要自己写**：`List<WorkflowStep> steps = planTask(message);`\n2. **多轮状态推进循环还要自己写**：`while (cursor < steps.size() && cursor < MAX_ITERATIONS)`，每走一步手动 `cursor++`；\n3. **人在回路审批中断还要自己判断、手动返回**：在 `driveWorkflowLoop` 里调完模型，还得写 `if (checkNeedsHumanConfirmation(...))` 去手动改状态为 `CONFIRMING`、手动存快照、手动提前 `return`；\n4. **每步快照持久化与 SSE 事件推送还要自己穿插调用**：`checkpointStore.saveSnapshot(...)` 和 `sink.tryEmitNext(...)` 全得硬编码在循环体里。\n\n为什么会这样？请看右侧的核心类比：**Spring AI = Servlet API**！\nServlet API 把 HTTP 请求、响应和 Filter 链抽象得极其优雅，但它从来不负责替代 Spring MVC 或工作流引擎。同理，Spring AI 2.0 刻意定位在“模型通信基础设施层”，它帮你优雅地完成**单次模型请求和单步工具循环**，但**不内置多步认知状态机、不内置执行栈快照、也不内置工具前钩子挂起**。\n\n如果团队继续只在 Spring AI 之上做复杂长链路 Agent，每个开发都会自己写一套“土味状态机 `while` 循环”。这就是我们接下来要走上第二级阶梯——**AgentScope 2.0（Spring MVC 级应用框架）**的根本原因！\n\n## Key Emphasis\n1. **用事实说话**：指给学员看 `SpringAi2WorkflowAdapter` 真实留存的 4 块手搓编排代码。\n2. **定位清晰**：Spring AI 不是“不行”，而是它刻意聚焦在基础设施层（Servlet API 定位），多步智能体运行时本就不在它的职责内。\n\n## Optional Extension\n### Q1: 既然 Spring AI `ToolCallingAdvisor` 自己也能循环调工具，为什么 `SpringAi2WorkflowAdapter` 还要在外面再包一层 `while` 循环？\n**讲师解析**：因为 `ToolCallingAdvisor` 内部的循环是封闭且无状态的——一旦把工具全交给它，它就会在一次同步调用里把查商品、查库存、下单全部连续跑完，你没法在“查完库存准备下单”前暂停下来存断点、也没法把每一步的执行轨迹拆解成 `WorkflowStep` 记录下来等待次日人工审批。所以只要需要多步可控状态流转，在 Spring AI 里就只能自己在外面再包一层状态机循环。\n\n## Classroom Interaction\n“对照 P08 和 P09：在什么业务下，你根本不需要写 `SpringAi2WorkflowAdapter` 里这 300 行状态循环，直接调一行 `ChatClient` 就够了？”（答案：不需要多步规划、不需要中途人工审批挂起、不需要断点恢复的问答/RAG/简单查询场景）。\n\n## Take Away\nSpring AI 2.0 消除了“模型通信胶水”，但没有消除“多步状态编排胶水”——这就是通信底座与智能体运行时的界线。\n\n## Why This Slide Matters\n本页是第一部分从 V6 迈向 V7 的核心转折点，让学员从源码证据中彻底明白“为什么不能只停留在基础设施层”。\n\n## Transition\n既然 V6 里这 300 行编排循环依然要手搓，那换上专门的智能体应用框架 AgentScope 2.0（V7）之后，同样的导购主循环会变成什么样？请看 P10！\n","page_10.html":"# 第 10 页：同构提效（六）：AgentScope ReActAgent 接管多轮主循环\n\n## Slide Objective\n通过五步闭环讲透 `ReActAgent` 如何接管 V5（651 行）和 V6（300 行）仍在手写的多轮 ReAct 状态推进循环，展示 `AgentScopeConfig` 装配与 `AgentScopeWorkflowAdapter` 一行委托调用（Demo 已覆盖）。\n\n## Suggested Presentation\n各位同学，刚才看到 V6 里 `SpringAi2WorkflowAdapter` 依然要手写 300 行循环。现在我们切到 8084 端口的 V7 工程（`enterprise-ai-agent-agentscope`），看看引入 **AgentScope 2.0** 之后，同样的导购主循环是怎么写的！\n\n同样按五步逻辑走一遍：\n1. **遇到什么问题？** V5 的 `AgentRuntime`（651 行）和 V6 的 `SpringAi2WorkflowAdapter`（300 行）都把精力耗在了手写 `while` 循环、THINK-ACT-OBSERVE 推进与最大步数保护上；\n2. **引入什么概念？** AgentScope 2.0 的核心智能体内核 —— **`ReActAgent`**；\n3. **底层原理是什么？** `ReActAgent` 把“模型推理 ➔ 解析工具调用 ➔ 执行工具 ➔ 观察结果 ➔ 判断是否继续下一轮”封装成了内核内置的状态循环引擎，并内置 `maxIters` 迭代上限防死循环，外围挂载 `Toolkit` 工具集、五阶段 `Middleware` 钩子和 `AgentStateStore`；\n4. **对应到框架怎么配、怎么调？**\n   - **左栏配置期（`AgentScopeConfig.java`）**：先构建兼容 OpenAI 协议（直连 SiliconFlow）的 `OpenAIChatModel`，把 `@Tool` 工具类 `ShoppingAgentTools` 注册进 `Toolkit`，然后用 `ReActAgent.builder()` 一把组装起来，并挂上 `middlewares` 和 `stateStore`；\n   - **右栏运行期（`AgentScopeWorkflowAdapter.java`）**：构造本次请求的隔离上下文 `RuntimeContext`，然后只需要一行代码：`Msg responseMsg = shoppingAgent.call(message, context).block();`——**原来 651 行 / 300 行的 `while` 状态循环全部交给了 `ReActAgent` 内核**，整个 Adapter 核心编排浓缩到约 110 行！\n\n## Key Emphasis\n1. **对比明确**：`ChatClient` 是单次请求客户端；`ReActAgent` 是把“循环引擎 + 工具路由 + 中间件 + 状态存储”打包的高阶运行时。\n2. **同构定性**：这里实现的依然是导购 Agent 的 ReAct 推理与工具调用循环（08 课已有原理），属于框架托管循环带来的效率跃迁。\n\n## Optional Extension\n### Q1: 在 `AgentScopeConfig.java` 中，`OpenAIChatModel` 可以直接接入本地 Ollama 或 DeepSeek 吗？\n**讲师解析**：完全可以。只要目标推理服务暴露标准 OpenAI 兼容协议接口（`/v1/chat/completions`），只需修改 `application.yml` 中的 `agentscope.model.base-url`、`api-key` 和 `model-name`，无需改动任何 Java 代码即可无缝切换模型后端。\n\n## Classroom Interaction\n“对比 V5 的 651 行 `AgentRuntime`、V6 的 300 行 `SpringAi2WorkflowAdapter` 和 V7 的 110 行 `AgentScopeWorkflowAdapter`，多出来的这几百行代码去哪儿了？”（答案：被 `ReActAgent` 内核吸收了）。\n\n## Take Away\n`ReActAgent` 将多轮 THINK-ACT-OBSERVE 循环、工具调度与迭代上限收敛为内核能力，业务 Adapter 只需一行 `call()` 委托执行。\n\n## Why This Slide Matters\n完成了 `V5 ➔ V6 ➔ V7` 同构能力演进的最后一跳，让学员亲眼看到高阶应用框架如何消灭循环编排胶水。\n\n## Transition\n到这里，我们第一部分“同构功能提效（V5 ➔ V6 ➔ V7）”已经全部看清。下面用 P11 一张表做总收口，同时回答一个关键问题：除了写得更短，企业级 Agent 还有哪些“V5 根本做不好、必须靠框架提供”的能力？请看 P11！\n","page_11.html":"# 第 11 页：第一部分总结：V5 → V6 → V7 同构功能对照全景\n\n## Slide Objective\n以全景对照表汇总第一部分 `V5 → V6 → V7` 的同构代码演进，明确定性：**Agent 架构本质未变，收益在于框架吸收胶水带来的开发效率提升**；并顺畅切入第二部分（V5 极难手搓的企业级增量能力）。\n\n## Suggested Presentation\n各位同学，请看这一页全景表，我们给第一部分做一个干脆利落的收口。\n\n这张表横向摆出了**同一套电商导购功能**在 V5（8080）、V6（8083）和 V7（8084）三套工程里的实现映射：\n- 从 Prompt 组装、安全切面拦截、工具契约声明、单步工具解析、MCP 连接，到最后的 ReAct 主循环——\n  - **V5 手搓**：1834 行，所有协议细节、正则匹配、循环推进全靠自己一行行敲；\n  - **V6（Spring AI 2.0）**：降到约 950 行，通信协议、Prompt、单步工具与安全切面全部被框架吸收，**但多步循环依然得自己写 300 行**；\n  - **V7（AgentScope 2.0）**：降到约 500 行，`ReActAgent` 接管了多轮主循环，开发者只需聚焦领域风控规则和业务扩展点。\n\n在这里，我必须再次敲黑板强调第一部分的**核心定性**：\n截至目前我们对比的这 6 块内容，**从 Agent 架构与设计的角度来看没有任何本质变化**！依然是 Prompt + Tool + MCP + ReAct 循环，变的只是“谁帮你写这些底层胶水”。所以从纯粹的**开发效率视角**看：\n- 如果你的项目只是**单轮/少轮问答、标准 RAG、或者 1~2 步的只读工具查询**，引入 **V6（Spring AI 2.0）** 就已经足够轻便优雅，没必要杀鸡用牛刀。\n\n**但是**，企业级真实生产项目往往还要面对 4 个让 V5 手搓架构直接崩溃的难题——那些就不再是“换个写法省几行代码”的问题了，而是 **V5 极难做好、必须依靠框架运行时机制补齐的企业级关键环节**！下面我们正式进入第二部分！\n\n## Key Emphasis\n1. **死死咬住 5.1 定位**：第一部分全是同构效率提升，架构本质没有变。\n2. **代码行数准确对应真实工程**：V5 1834 行 vs V6 ~950 行 vs V7 ~500 行。\n3. **自然过渡到 5.2**：用“写得短 ≠ 满足企业级生产要求”切入第二部分。\n\n## Optional Extension\n### Q1: 代码行数从 1834 行降到 500 行，是不是代表系统复杂度消失了？\n**讲师解析**：复杂度从来不会消失，它只是从你的业务代码里转移到了框架内部（Complexity Conservation）。框架替你承担了协议编解码、状态循环和默认异常处理；但架构师依然必须理解这些底层原理，否则线上出 Bug 时连排查方向都找不到。这就是为什么课程要先学第 04~08 课手搓，再学第 09 课上框架。\n\n## Classroom Interaction\n“回顾表里这 6 个模块，哪一个模块的胶水消除让你觉得最解压？”（多数后端工程师会对‘正则提取归零’和‘651 行循环归零’最有感触）。\n\n## Take Away\nV5 ➔ V6 ➔ V7 在同构功能上只是框架替换与效率跃迁；简单场景止步 V6 即可，复杂生产场景则必须进入第二部分的增量能力。\n\n## Why This Slide Matters\n完成了对“同构提效”的完整定性与收口，让学员与后续“企业级增量能力”彻底区分开，不再混淆两类价值。\n\n## Transition\n现在进入第二部分——看看在真实企业生产环境下，还有哪 4 个 V5 手搓极难实现、需要框架提供支撑的关键环节。首先看第一个（P12）：Execution Checkpointer！\n","page_12.html":"# 第 12 页：企业级增量（一）：为什么 ChatMemory 救不了跨天审批与 Pod 重启？\n\n## Slide Objective\n正式切入第二部分（5.2 企业级增量能力），通过真实生产事故场景揭示 V5 内存态的致命局限，破除“`ChatMemory` 存聊天记录 = 断点持久化”的常见误区，清晰定义 **Chat History / Agent State / Execution Checkpointer** 三级存储边界。\n\n## Suggested Presentation\n各位同学，欢迎进入第二部分——**企业级 Agent 应当具备、但 V5 手搓极难实现的四大增量环节**！我们来看第一个环节：**Execution Checkpointer（执行栈快照）**。\n\n先看一个极其真实的生产场景：\n用户让导购 Agent 买一台 ¥8999 的拯救者笔记本。Agent 已经查完了商品参数、锁好了优惠券，现在走到了第 3 步“创建高额订单”，触发了人工审批挂起——财务主管可能明天早上才点“同意”。更常见的是，就在等待审批的这几个小时里，后端 K8s 发版滚动重启，把原来处理请求的那个 Pod 销毁了！\n\n在 V5 手搓工程里会发生什么？`TraceService` 和 `ConfirmationService` 全靠单机 `ConcurrentHashMap` 存内存，Pod 一销毁，任务直接人间蒸发！\n此时很多同学会说：“那我用 Spring AI 的 `ChatMemory` 把聊天记录存进 Redis 不行吗？”\n\n**千万注意：把聊天记录存进数据库，绝对救不了断点续跑！** 请看屏幕中间的三级状态边界划分：\n1. **① Chat History（对话历史）**：存的是“我要买电脑”“好的，已为您查询”这类自然语言消息列表，唯一职责是下次请求大模型时拼 Prompt 上下文。光靠几句聊天文本，程序复原不出代码刚才跑到第几步 `stepCursor`、工具返回的商品库存 Map 在哪；\n2. **② Agent State（会话业务变量）**：存的是用户偏好品牌、预算上限这类跨轮次低频全局事实，依然不包含单次任务的执行堆栈；\n3. **③ Execution Checkpointer（执行栈快照）**：这才是企业级运行时真正需要的“游戏存档”！它持久化保存机器执行现场——当前游标 `stepCursor`、调用栈 `callStack`、存放中间工具结果的草稿本 `scratchpad`、以及待审批表单 `pendingConfirmation`。\n\n看下方的框架对比：Spring AI 2.0 原生只提供第一级 `ChatMemory`，做 Checkpointer 还得自己手搓 150 行适配器；而 AgentScope 2.0 原生提供了 `AgentStateStore` + `AgentState` 状态持久化抽象，天然支撑状态保存与恢复。\n\n## Key Emphasis\n1. **核心误区纠偏**：`ChatMemory`（自然语言聊天记录） $\\neq$ `Execution Checkpointer`（程序执行现场快照）。\n2. **三级隔离清晰**：Chat History 管模型上下文，Agent State 管业务属性，Checkpointer 管断点续跑。\n\n## Optional Extension\n### Q1: 在我们的 `enterprise-ai-agent-springai2` 工程中不是也有 `RedisPostgresCheckpointAdapter` 吗？那是不是说明 Spring AI 2.0 也支持 Checkpointer？\n**讲师解析**：请注意区分“框架原生提供”和“课程在 V6 里为了对照而手搓补齐”。`RedisPostgresCheckpointAdapter`（229 行）恰恰是我们在 Spring AI 2.0 之上**自己手搓**出来的端口实现，Spring AI 2.0 官方本身并没有 `Checkpointer` 原语；而在 AgentScope 2.0 中，框架原生就提供了 `AgentStateStore` 体系。\n\n## Classroom Interaction\n“如果你的 Agent 运行在 3 个副本的 K8s 集群里，第 1 次请求打到 Pod-A 挂起审批，次日审批回调打到 Pod-B，没有 Checkpointer 会发生什么？”（Pod-B 内存里什么都没有，直接报错任务不存在）。\n\n## Take Away\nChat History 只服务于模型上下文；只有把 `stepCursor`、`callStack` 和 `scratchpad` 独立持久化为 Checkpointer，Agent 才真正具备抗重启和跨天挂起能力。\n\n## Why This Slide Matters\n为后续讲解快照模型、断点复水和时光倒流打下最坚实的认知底座，让学员明白为什么企业级 Agent 必须引入 Checkpointer。\n\n## Transition\n既然知道了 Checkpointer 存什么、为什么重要，那它的数据结构怎么设计、高频写入和快速恢复怎么兼顾、在 AgentScope 里又具体对应哪一块？请看 P13。\n","page_13.html":"# 第 13 页：Checkpointer 原理与实现：数据模型、存储轨道与混合快照\n\n## Slide Objective\n深入讲透 Checkpointer 的数据模型设计（`AgentCheckpoint`）、Full Snapshot vs State Delta 读写权衡、热冷双轨存储架构，以及在 AgentScope 2.0 中的桥接实现与调用方式（如实标注 Demo 已覆盖与仅 PPT 讲解边界）。\n\n## Suggested Presentation\n各位同学，明确了 Checkpointer 的职责后，我们来看看它的底层原理和框架落地。\n\n请看左栏的 **1. 纯数据快照模型 `AgentCheckpoint.java`**：\n一个可跨进程恢复的快照必须包含四组关键字段：\n- **血缘坐标**：`executionId`（单次任务链路 ID）、`checkpointId`（快照版本 ID）、`parentCheckpointId`（指向父快照，串联成因果版本树）；\n- **状态机位置**：`state`（如 `EXECUTING / CONFIRMING`）与 `stepCursor`（当前子步骤游标）；\n- **机器运行时草稿区**：`callStack` 和 `scratchpad`（专门用来放已查到的商品 JSON 等中间结果——**物理隔离不塞进聊天记录，避免撑爆 Prompt Token 窗口**）；\n- **审批挂起信息**：`pendingConfirmation`。\n这里有一条**序列化铁律**：快照里**严禁**塞入 `HttpClient`、数据库连接或线程闭包，只能是纯数据 DTO，所有客户端连接在恢复时由 Spring 容器重新注入。\n\n接下来看 **2. 快照捕获策略的工程权衡**：\n- 如果每一步都存**全量快照（Full Snapshot）**，恢复时只需查一次（读 $O(1)$），但长链路写放大严重；\n- 如果每一步只记**增量差分（State Delta）**，写入极轻（写 $O(\\Delta)$），但恢复时必须沿 `parentCheckpointId` 往回一路回放合并（读 $O(N)$）。\n- 所以生产级常用**混合策略**：在进入 `CONFIRMING` 挂起或任务完成等关键跃迁点落全量快照，中间常规步骤只记增量。（注意：在我们的 Demo 里，全量快照、Delta 接口与 Redis+PG 落库已经覆盖，但超长步数的全自动增量回放合并引擎属于**仅 PPT 讲解**的架构知识。）\n\n最后看右栏：**在 AgentScope 里对应哪一块、怎么对接？**\n在 `AgentScopeConfig` 中，我们通过 `.stateStore(checkpointStore.getAgentScopeStateStore())` 把 `AgentScopeCheckpointStore` 挂载进 `ReActAgent`。它一方面实现了课程统一的 `CheckpointStorePort` 端口，另一方面在 `saveSnapshot` 时同步把 `curIter` 等状态回写给 AgentScope 原生的 `AgentStateStore`，再配合热轨道 Redis + 冷轨道 PostgreSQL `JSONB`，兼顾亚毫秒恢复和跨周合规审计。\n\n## Key Emphasis\n1. **物理隔离红利**：`scratchpad` 与聊天历史分离，既省 Token 又能精准还原程序现场。\n2. **Demo 边界诚实标明**：基础快照、Delta 接口与 Redis/PG 适配 Demo 已覆盖；大规模自动增量回放合并引擎为仅 PPT 讲解。\n\n## Optional Extension\n### Q1: 为什么在演示工程里 `AgentScopeCheckpointStore` 底层默认包的是 `InMemoryAgentStateStore`，而 `springai2` 里写了 `RedisPostgresCheckpointAdapter`？\n**讲师解析**：两个工程都实现了同一套 `CheckpointStorePort` 接口，目的就是展示六边形端口解耦：V6 重点演示热缓存 Redis + 冷存储 PostgreSQL JSONB 的双写落库实现；V7 重点演示与 AgentScope 原生 `AgentStateStore` 的桥接适配（并且通过配置文件也预留了向 Redis/File 切换的扩展位）。在生产中只需替换端口实现即可共享这套热冷双轨存储。\n\n## Classroom Interaction\n“如果有人把 `ChatClient` 对象直接放进了 `scratchpad` 里做快照序列化，启动或运行到保存快照时会发生什么？”（Jackson 序列化直接抛出 `InvalidDefinitionException` 崩溃）。\n\n## Take Away\n用纯数据 `AgentCheckpoint` 承载执行现场，以“关键节点全量 + 中间步增量”和 Redis/PG 双轨存储平衡写入开销与恢复速度。\n\n## Why This Slide Matters\n把 Checkpointer 从抽象名词拆成落地的表结构、序列化约束和真实框架桥接代码，让学员真正具备设计有状态 Agent 存储的能力。\n\n## Transition\n快照存进去了，那当服务重启或用户改变主意时，怎么把快照“唤醒继续跑”，甚至“回退到某一步分叉重试”呢？请看 P14。\n","page_14.html":"# 第 14 页：Checkpointer 能力落地：断点复水 Rehydration 与时光倒流 Forking\n\n## Slide Objective\n讲透 Checkpointer 带来的两项核心生产能力——跨进程断点复水（Rehydration）与时光倒流分支（Time-Travel Forking），展示真实 API 与代码调用，并严格划定与外部事务补偿（Saga）的边界。\n\n## Suggested Presentation\n各位同学，有了 `AgentCheckpoint` 快照存储之后，企业级 Agent 就解锁了两项像 Git 一样强大的能力。\n\n**先看左栏：1. 跨进程断点复水（Rehydration，Demo 已覆盖）**。\n- **解决什么问题？** 比如主管第二天批准了订单，或者任务跑到一半 Pod 崩溃重启了。此时任意一台新启动的 Pod 实例收到 `POST /rehydrate` 请求（传入 `executionId` 和 `checkpointId`）。\n- **怎么工作的？** 请看代码：`rehydrateFromCheckpoint()` 通过 `checkpointStore.loadCheckpoint(execId, cpId)` 从存储中把快照反序列化出来，还原出 `stepCursor` 和 `callStack`，然后**直接从挂起的游标位置继续向下推演**，前面已经查过的商品价格、库存结果直接从 `scratchpad` 读取，**绝不重跑前置步骤**，彻底避免了“重启重跑导致重复下单扣款”的灾难。\n\n**再看右栏：2. 时光倒流分支（Time-Travel Forking，Demo 已覆盖）**。\n- **解决什么问题？** 假设 Agent 在 `chk-1` 查出了拯救者 Y9000P，到了 `chk-2` 准备下单 ¥8999 时用户反悔了：“太重了，帮我换成苹果轻薄本吧！”或者线上排查某次故障想从第 2 步换个提示词重跑对比。\n- **怎么工作的？** 请看中间的因果版本树和下方 `forkFromCheckpoint()` 代码：系统调用 `POST /fork` 时，**绝不覆盖或删除原有的 `chk-2`**（保留完整审计证据），而是以 `chk-1` 为 `parentCheckpointId`，克隆它的 `scratchpad` 并生成一条全新的 `newExecutionId` 分支继续往前跑！\n\n最后一定要提醒右下角的**重要生产边界（仅 PPT 讲解）**：Time-Travel Forking 重置的是 Agent 内存和数据库里的推演状态；如果 `chk-2` 已经向外部系统发出了不可逆的物理动作（比如调用航司接口锁了机票、或调库存系统预扣了库存），单纯分叉数据库快照是不够的——**必须联动分布式 Saga 逆向补偿机制**先释放外部资源再开新分支（这部分我们会在第 11 课工程交付中深入落地）。\n\n## Key Emphasis\n1. **Rehydration 核心价值**：跨进程原位续跑 + 跳过已完成步骤。\n2. **Forking 核心价值**：Append-Only 不可变因果树，既能换方案重试，又不破坏审计历史。\n3. **诚实划界**：复水与分叉接口在 Demo 中已完整实现（且有单测覆盖）；与外部物理副作用联动的 Saga 补偿为仅 PPT 讲解警示。\n\n## Optional Extension\n### Q1: 在分布式系统中，如果用户连续点两次“同意审批”调 `/confirm` 或 `/rehydrate`，怎么防止并发复水造成重复执行？\n**讲师解析**：必须在复水与确认入口处结合分布式锁或状态机乐观锁（CAS 更新）：只有当数据库中当前 Checkpoint 处于 `CONFIRMING` / `EXECUTING` 非终态时才允许原子抢占并推进游标，一旦完成立即将状态置为 `COMPLETED` 并校验幂等键 `idempotencyKey`。\n\n## Classroom Interaction\n“如果线上有个 5 步的采购 Agent 在第 4 步报错了，排障人员用 `/fork` 从第 3 步分叉复现和调整，原本出错的第 4 步日志还在不在？”（在！Append-Only 因果树完整保留原分支轨迹）。\n\n## Take Away\nRehydration 让长任务具备“跨进程断点续跑”的韧性，Forking 让决策链路具备“可审计的分支重试”能力，但外部物理副作用须配合 Saga 补偿。\n\n## Why This Slide Matters\n让学员直观看到 Checkpointer 落地后的 HTTP 接口、代码实现与真实生产边界，把抽象概念变成可直接调用的工程能力。\n\n## Transition\n解决了“状态存得住、断了能续跑”的问题，接下来看第二个 V5 极难手搓的环节（P15）：当模型决定调一个高危工具、但还没真正执行的那一瞬间，框架怎么精准把它拦住并无损挂起？\n","page_15.html":"# 第 15 页：企业级增量（二）：为什么 Advisor 拦不住高危工具执行前挂起？\n\n## Slide Objective\n通过对比 Spring AI `Advisor` 的单次请求边界与 AgentScope `MiddlewareBase` 的五阶段认知生命周期钩子（严格对齐 `agentscope-core:2.0.0` 真实接口方法），讲透为什么“高危工具执行前 HITL 无损挂起”必须依赖认知生命周期拦截器。\n\n## Suggested Presentation\n各位同学，刚才我们看到了如何保存快照与复水。现在来解决一个紧接着的问题：**到底在代码执行流程的哪个位置，触发“挂起并保存快照”？**\n\n假设用户说“帮我买一台 ¥8999 的拯救者”。模型经过思考后，决定调用 `createOrder` 工具。在企业生产里，我们必须在**“模型刚发出 `createOrder` 意图、但工具方法还没真正执行扣款”**的那一瞬间拦下来，保存快照并挂起等待人类确认。\n\n在 V5 里我们怎么做的？靠硬编码的 `ConfirmationService` 字符串匹配且内存阻塞等待，非常脆弱。\n那用 V6 的 Spring AI `Advisor` 能拦住吗？请看左栏——**拦不住！为什么？**\n因为 Spring AI `Advisor` 围绕的是单次 `ChatModel` 请求/响应（类似 Web 里的 `Servlet Filter`）：\n1. 它只看得见一次 HTTP 发出去的 Prompt 和收到的响应，根本不知道当前处于多轮 ReAct 循环的哪一步；\n2. 内置 `ToolCallingAdvisor` 一收到 `tool_calls` 就会在内部循环里直接反射调工具，没留出“检查每笔工具入参并把整个智能体挂起等待次日审批”的认知切面；如果硬要在 `Advisor` 里拦，只能靠自己抛自定义异常砸断调用链，再在外部手写状态恢复。\n\n再看右栏——**这就是 AgentScope 2.0 引入 `MiddlewareBase` 认知生命周期钩子的原因！**\n我们核对过 `agentscope-core:2.0.0` 的真实源码，`MiddlewareBase` 直接在 `ReActAgent` 内部认知拓扑的 **5 个核心关节** 暴露了标准 Hook：\n1. `onAgent`：智能体任务入站启动与最终收官（做租户校验、总耗时审计）；\n2. `onSystemPrompt`：动态增强或注入安全系统提示词；\n3. `onModelCall`：底层模型网络调用切面（这一个阶段就对应了 Spring AI Advisor 的能力范围）；\n4. `onReasoning`：进入模型思考推演阶段拦截；\n5. **`onActing`（最关键！）**：在工具真正被调用执行**之前**精准拦截 `ActingInput`（里面直接带着本次要调的所有 `ToolUseBlock` 和参数！），并能结合 Reactor `.onErrorResume()` 处理异常自愈。\n\n## Key Emphasis\n1. **严格对齐真实 API**：`MiddlewareBase` 的 5 个方法是 `onAgent`、`onSystemPrompt`、`onModelCall`、`onReasoning`、`onActing`（异常处理在返回的 `Flux<AgentEvent>` 上用 `.onErrorResume()` 实现）。\n2. **本质差异**：`Advisor` 管“应用到模型”的通信边界；`MiddlewareBase` 管“智能体内部思考与行动”的认知拓扑。\n\n## Optional Extension\n### Q1: 在 `MiddlewareBase` 里既有 `onReasoning` 又有 `onModelCall`，两者有什么区别？\n**讲师解析**：`onReasoning` 处于智能体认知循环的“思考阶段”外围（可以观察和干预整个推理上下文、思考流事件和推理轮次状态）；而 `onModelCall` 更贴近底层模型网络请求的实际发出与返回（适合做模型超时重试、备用模型路由降级与单次 Token 计量）。\n\n## Classroom Interaction\n“如果我只希望在发给大模型之前把用户手机号脱敏，应该用 `onActing` 还是 `onModelCall`（或 Spring AI `CallAdvisor`）？”（用 `onModelCall` / `CallAdvisor`，因为这是模型通信层的需求）。\n\n## Take Away\nSpring AI Advisor 是面向单次请求的 HTTP 级拦截；AgentScope MiddlewareBase 则把钩子打进了 ReAct 认知循环，让工具执行前拦截成为可能。\n\n## Why This Slide Matters\n帮学员彻底搞懂“请求拦截链”与“认知生命周期钩子”的本质区别，而不是把两个名字混为一谈。\n\n## Transition\n理解了 `MiddlewareBase` 的 5 个阶段后，我们马上看 P16 的真实代码：在 `LifecycleMiddleware.onActing()` 里，究竟是怎么几行代码实现无损挂起 HITL 的？\n","page_16.html":"# 第 16 页：Middleware 落地与对比：onActing 无损挂起 HITL\n\n## Slide Objective\n展示 `LifecycleMiddleware.onActing()` 实现高危工具无损挂起 HITL 的真实代码与挂载方式（Demo 已覆盖），并用四维矩阵彻底对比 Spring AI `Advisor` 与 AgentScope `MiddlewareBase` 的选型边界。\n\n## Suggested Presentation\n各位同学，直接看屏幕上半部分的真实代码——这就是 8084 工程里 `LifecycleMiddleware.java` 的核心片段，它完全演示了认知钩子怎么实现“人在回路（HITL）无损挂起”：\n\n当 `ReActAgent` 推演出需要调用 `createOrder` 工具时，框架在真正执行工具方法之前，会先回调所有中间件的 `onActing()` 方法：\n1. **第一步（领域规则判定）**：从 `ActingInput` 里拿出 `ToolUseBlock` 的参数，交给纯 Java 的 `domainService.isHighRiskAction()` 判定（比如金额 $\\ge ¥5000$）；\n2. **第二步（保存断点快照）**：一旦命中高风险，立刻构造 `AgentCheckpoint`（状态标为 `WorkflowState.CONFIRMING`）存入 `checkpointStore`，并在 `RuntimeContext` 打上标记；\n3. **第三步（发射挂起事件短路执行）**：注意看最后这句——`return Flux.just(new RequireUserConfirmEvent(cpId, List.of(toolCall)));`！它**没有调用 `next.apply(in)`**，也就是直接短路跳过了底层工具执行，安全地把请求控制权交还给前端弹出确认框！\n\n而如果是查询商品规格这种低风险工具，直接走 `return next.apply(in);` 无缝放行，对业务工具代码**零侵入**！\n\n接着看下半部分的**四维选型对照表**：\n- 如果你只需要做**全局 PII 脱敏、注入防护、Token 计数和请求日志**，用 Spring AI `Advisor` 就够了；\n- 但只要涉及**高危工具执行前风控挂起、思维链审计、异常触发自愈**，AgentScope 的 `MiddlewareBase` 就是降维打击。\n\n## Key Emphasis\n1. **看懂“短路挂起”原理**：不调 `next.apply(in)` 而是直接 `return Flux.just(new RequireUserConfirmEvent(...))`，工具就不会被真实执行。\n2. **零侵入解耦**：风控拦截全写在 `LifecycleMiddleware`，`ShoppingAgentTools` 里不需要写任何审批状态判断代码。\n\n## Optional Extension\n### Q1: 当用户在前端点击“确认批准下单”后，之前挂起的 `createOrder` 工具是怎么接着执行的？\n**讲师解析**：用户点击确认后，前端调用 `POST /api/v7/workflow/confirm?executionId=...&checkpointId=...&confirmed=true`。后端 `AgentScopeWorkflowAdapter.confirmAction()` 加载该 `AgentCheckpoint`，取出 `pendingConfirmation` 中暂存的 `createOrder` 工具参数并触发 `enterpriseToolPort.createOrder()` 完成正式成单，再将 Checkpoint 推进至 `COMPLETED` 终态。\n\n## Classroom Interaction\n“注意看代码里第 4 行的 `next.apply(in)`：如果把 `return Flux.just(RequireUserConfirmEvent)` 错写成先调 `next.apply(in)` 再发射事件，会发生什么线上事故？”（钱已经扣了/订单已经下了，才弹窗问用户同不同意！）。\n\n## Take Away\n在 `onActing` 中通过“领域风控判定 ➔ 保存 Checkpoint ➔ 短路发射 `RequireUserConfirmEvent`”，无需修改业务工具即可实现 HITL 无损挂起。\n\n## Why This Slide Matters\n用不到 15 行真实代码把“认知钩子如何落地企业级审批挂起”讲透，同时形成清晰的 `Advisor` vs `Middleware` 选型参考。\n\n## Transition\n解决了状态恢复和审批挂起，接下来看第三个 V5 极难做好的企业级能力（P17）：交互体验！怎么告别“算完再拆字”的伪流式，把思考、工具进度、正文和审批分通道实时推给前端？\n","page_17.html":"# 第 17 页：企业级增量（三）：多通道类型化事件流 streamEvents\n\n## Slide Objective\n讲透为什么 V5 的“同步阻塞 + 延迟拆字”伪流式与 V6 的“单通道文本流”无法满足现代 Agent UI 交互需求，剖析 AgentScope `streamEvents()` 类型化 `AgentEvent` 多通道解耦原理与 `AgentEventStreamBridge` 真实实现（Demo 已覆盖）。\n\n## Suggested Presentation\n各位同学，大家应该用过 DeepSeek 或现代 AI 助手：页面顶部先实时出现可折叠的“深度思考中...”，接着跳出“正在查询商品库存”卡片，然后才开始逐字打印正式回答，遇到高额下单还会弹出审批按钮。\n\n回头看看我们在第 08 课 V5 里怎么做的 SSE 流式？当时受限于 `AgentRuntime` 是同步阻塞循环，后端把所有步骤跑完拿到最终结果字符串，再用 `Flux.interval(15ms)` 把字符串拆成单个汉字推给前端——**这就是典型的“伪流式”**！用户在等待 5~8 秒期间前端毫无动静，既看不到思考过程，也不知道工具在查什么。\n到了 V6（Spring AI 2.0），虽然有真流式 `Flux<ChatResponse>`，但它只是一条**单通道文本流**，思考标签、工具调用和正文回答全混在字符串里，前端只能靠脆弱的正则去切分。\n\n现在看 AgentScope 2.0（V7）是怎么从底层解决这个问题的：\n它独立于拦截机制之外，原生提供了 `shoppingAgent.streamEvents(message, context)`，在推理和执行的每个瞬间发射**30+ 种强类型 `AgentEvent`**，天然把数据切分成四个独立通道（见左侧）：\n1. **思考过程流（thought）**：`THINKING_BLOCK_START / DELTA / END`，前端直接塞进折叠思考卡片；\n2. **工具执行流（tool）**：`TOOL_CALL_START / DELTA` 和 `TOOL_RESULT_END`，0 毫秒点亮“正在查 NB001 库存”状态条；\n3. **正文回答流（answer）**：`TEXT_BLOCK_START / DELTA / END`，纯粹的打字机回复；\n4. **审批与自愈控制流（confirm / repair）**：`REQUIRE_USER_CONFIRM` 与 `CUSTOM`，直接驱动前端弹窗或提示。\n\n在右栏 `AgentEventStreamBridge.java` 中，我们只需要写一个简单的 `switch (event.getType())`，就能把这些原生类型化事件桥接成六边形领域统一的 `WorkflowStreamEvent` 通过 SSE 实时推出去！\n\n## Key Emphasis\n1. **三代流式体验本质对比**：V5 算完拆字伪流式（3~8s 延迟） ➔ V6 单通道文本流（通道混杂） ➔ V7 类型化多通道事件流（<100ms 即刻反馈且前后端彻底解耦）。\n2. **与真实源码一致**：引用 `AgentEventType` 枚举与 `AgentEventStreamBridge` 映射代码（Demo 已覆盖，且有 `StepVerifier` 单元测试验证）。\n\n## Optional Extension\n### Q1: 在只接入普通对话、不需要调多步工具的场景下，Spring AI 2.0 的单通道 `Flux<ChatResponse>` 够用吗？\n**讲师解析**：完全够用！如果只是常规问答或 RAG 总结，不需要区分思考过程与多步工具调用状态卡片，直接用 `chatClient.prompt().stream().content()` 即可，开发最简单。只有当你的产品形态需要分通道呈现“思考链 + 工具进度卡片 + 正文 + 审批弹窗”时，多通道 `AgentEvent` 才能发挥巨大威力。\n\n## Classroom Interaction\n“请大家看右侧终端返回的 3 行真实 SSE 数据：前端拿到这种带 `type` 字段的 JSON 后，还需要写正则表达式去识别大模型是不是在调用工具吗？”（完全不需要，直接按 `type` 路由到对应 UI 组件）。\n\n## Take Away\n`streamEvents()` 通过强类型事件实现“思考、工具、正文、审批”多通道物理分离，彻底消灭伪流式与前端正则拆包。\n\n## Why This Slide Matters\n让学员真正看懂现代 Agent 应用前后端分离实时交互的底层工程机制，知道为什么多通道事件流是复杂 Agent 的标配。\n\n## Transition\n至此我们攻克了 Checkpointer、Middleware 和多通道事件流。还剩最后一个在企业生产里天天碰到的顽疾（P18）：大模型调工具时老传错参数格式怎么办？\n","page_18.html":"# 第 18 页：企业级增量（四）：Tool 强契约与自愈纠错循环\n\n## Slide Objective\n讲透如何用“事前 Bean Validation 强契约 + 事后 Schema Repair Loop 自愈拦截”两道防线解决大模型传参格式幻觉问题；展示 V6 (`SchemaRepairCallAdvisor`) 与 V7 (`SchemaRepairMiddleware`) 实现，并诚实划定 Demo 覆盖与 PPT 原理边界。\n\n## Suggested Presentation\n各位同学，来看企业级 Agent 必须有的第 4 个环节：**工具参数强契约与异常自愈**。\n\n在实际生产中，大模型调 `createOrder` 工具时经常出现各种参数幻觉：商品 ID 写成小写的 `\"lenovo-01\"`（我们规定是 `NB001`）、购买数量填了个 `0`、手机号少了一位。在 V5 里一旦校验报错，整个工作流就直接抛异常降级了，用户体验突然中断。\n\n在框架体系下，我们用**两道防线**协同解决这个问题：\n\n**第一道防线（事前约束）：`ToolOrderRequest` + Jakarta Bean Validation（Demo 单测已覆盖）**。\n看左栏代码：我们在领域契约类 `ToolOrderRequest` 的字段上加上 `@Pattern(regexp=\"^(NB|PH|ACC)[0-9]{3}$\")`、`@Min(1)` 等标准注解。它有双重价值：一方面供框架自动反射推导进 JSON Schema 告诉模型“应该长什么样”；另一方面在工具入口通过 `validator.validate(req)` 把死大门，绝不让脏数据污染下游数据库！\n\n**第二道防线（事后自愈）：Schema Repair Loop 自愈纠错循环（需要开发者基于扩展点编写）**。\n很多同学会以为框架自带自动纠错——这里必须澄清：**框架原生只负责“校验失败抛异常”；捕获异常、拼接 Repair Prompt 并限制最多重试 2~3 次的逻辑，必须由开发者通过 Advisor 或 Middleware 扩展实现！**\n看右栏两段代码：\n- 在 V6 `SchemaRepairCallAdvisor` 里，捕获 `ConstraintViolationException` 后，把具体的违规字段报错拼成 `[系统自愈纠错提示]` 追加进上下文，在 `while (attempt <= 2)` 内驱动模型重新生成合法参数；\n- 在 V7 `SchemaRepairMiddleware` 里，通过 `onActing` 链上的 `.onErrorResume(...)` 捕获校验异常并发射 `SchemaRepairTriggered` 自定义事件。\n\n这里如实标注边界：`ToolOrderRequest` 校验拦截与 `CustomEvent` 触发已经在 Demo 与单元测试中完整覆盖；而完整多轮端到端大模型自主重填效果受具体模型智商影响，课堂以 PPT 原理解析为主。\n\n## Key Emphasis\n1. **两道防线分工**：事前 Bean Validation 推导 Schema 并守门；事后 Repair Loop 捕获违规并引导模型限次自愈。\n2. **不神话框架**：明确指出“捕获异常拼 Repair Prompt”不是框架自动白送的，而是开发者基于 Advisor / Middleware 扩展点自己写的策略。\n3. **Demo 边界诚实**：区分单测已覆盖的校验/事件发射与端到端多轮模型重填的演示边界。\n\n## Optional Extension\n### Q1: 为什么 `SchemaRepairCallAdvisor` 和 `SchemaRepairMiddleware` 都硬性限制了最大自愈次数（如 `MAX_REPAIR_ATTEMPTS = 2` 或 `3`）？\n**讲师解析**：如果没有最大重试上限，当一个能力较弱的小模型始终无法理解复杂的正则规则（比如一直填错某个字段）时，自愈循环就会变成“报错 ➔ 重试 ➔ 再报错”的死循环，瞬间烧光 Token 预算并把请求拖垮。设定 2~3 次上限后，若仍无法自愈则果断熔断抛出异常走兜底降级，这是生产工程的保底红线。\n\n## Classroom Interaction\n“如果把自愈次数上限设为无限大，或者不写具体错在哪个字段，只跟模型说‘参数错了请重试’，模型能自己改对吗？”（不能！必须把 `ConstraintViolation` 里具体的字段错误详情喂给模型，模型才知道改哪里）。\n\n## Take Away\n用 Jakarta Bean Validation 筑牢事前强契约防线，再用 Advisor / Middleware 扩展点实现限次 Schema Repair 自愈循环。\n\n## Why This Slide Matters\n完成了第二部分四大企业级环节的最后一块拼图，同时破除“框架会自动替你修好所有畸变 JSON”的盲目幻想。\n\n## Transition\n第一部分我们看了同构效率提升，第二部分我们补齐了四大企业级环节。接下来进入第三部分，也是本课点题的核心——**框架的边界**！有哪些死穴和核心资产，哪怕用了最强的框架也绝对不能交出去？请看 P19。\n","page_19.html":"# 第 19 页：框架边界一：复杂领域模型的反射死穴与扁平化 Tool DTO\n\n## Slide Objective\n揭示 `@Tool` 自动 JSON Schema 反射的三大技术死穴（多态接口与深层嵌套、泛型擦除与弱类型 Map、JPA 双向关联栈溢出），并确立面向大模型的扁平化 Tool DTO 三项工程准则（Demo 已覆盖 `ToolOrderRequest`）。\n\n## Suggested Presentation\n各位同学，进入第三部分《框架的边界》。今天刚学会 `@Tool` 自动生成 JSON Schema 时，很多后端同事图省事，直接把业务 Service 里现成的 `OrderEntity` 或 `PageQuery<T>` 塞进工具方法参数里——**在生产环境下，这会直接踩爆三大反射死穴**！\n\n请看屏幕上方这三张红色警示卡：\n1. **死穴 1 · 多态接口与深层嵌套截断**：如果你的入参对象里包含一个 `PaymentStrategy` 接口或抽象父类，框架反射只看得到接口定义，根本不知道运行期要传支付宝还是微信的哪个子类字段，导出的是空对象 `{}`！而且嵌套只要超过 4 层，大模型漏填字段的概率就会急剧飙升；\n2. **死穴 2 · 泛型擦除与弱类型 `Map<String, Object>`**：Java 泛型在运行时会被擦除，当你把工具入参写成 `Map<String, Object>` 或 `PageQuery<?>` 时，框架推导出的是一个没有任何字段约束的空 `object`，大模型只能盲猜键名；\n3. **死穴 3 · 数据库实体双向关联触发 `StackOverflowError`**：如果直接拿 JPA/Hibernate 实体（`UserEntity` 持有 `List<OrderEntity>`，而 `OrderEntity` 又反向持有 `UserEntity`）去生成 JSON Schema，框架递归反射解析时当场死循环栈溢出，服务都起不来！\n\n怎么破？请看下方三项必须落地的工程准则：\n- **① 物理隔离数据库实体**：严禁把 DB Entity 直接暴露给 `@Tool`，必须像我们的 `ToolOrderRequest.java` 一样专门建无循环引用的契约 DTO；\n- **② 结构拍平与枚举展开**：把深层树拍平为 1~2 层基本类型字段；多态策略直接改成显式字符串枚举（如 `\"ALIPAY\" | \"WECHAT\"`）；\n- **③ 适配层完成领域组装**：让大模型只负责填极简的扁平参数，再由 Java `Adapter` 层根据这些值去查库并组装内部复杂领域对象。\n\n## Key Emphasis\n1. **三大死穴均有真实代码反模式**：多态字段丢失、泛型擦除退化、双向引用启动即崩溃。\n2. **核心工程心法**：把复杂度留在 Java 适配层，把极简确定性留给大模型。\n\n## Optional Extension\n### Q1: 既然 `ToolOrderRequest` 拍平了，如果企业原有的 ERP 接口确实需要 30 个嵌套字段怎么办？\n**讲师解析**：绝不要把 30 个嵌套字段直接抛给大模型填。通常由大模型传入 3~5 个关键业务标识（如 `userId`、`productId`、`quantity`、`couponCode`），剩下的收货默认地址、发票抬头、税率等确定性信息，由 Java 适配层在调用 ERP 前从企业用户中心或数据库查询补全。\n\n## Classroom Interaction\n“大家可以回头检查自己项目里暴露给 AI 的工具接口：有没有直接把 `Map<String, Object>` 或者带 `parent/children` 递归引用的实体类丢给框架生成 Schema？”\n\n## Take Away\n框架的自动 Schema 反射不是万能的——隔离数据库实体、拍平结构、在适配层组装复杂领域模型，是开发者的必修防线。\n\n## Why This Slide Matters\n防止学员因为盲信框架自动反射而引发工具调用准确率暴跌甚至服务启动崩溃。\n\n## Transition\n搞定了工具入参的边界，还有两个更大的坑：风控规则能不能写进 Prompt？挂了 AgentScope `StateStore` 还要不要做三层记忆？请看 P20！\n","page_20.html":"# 第 20 页：框架边界二：确定性业务风控主权 & StateStore ≠ 企业三层记忆\n\n## Slide Objective\n明确框架绝对不会替开发者做的两件核心大事：① 确定性业务风控与打分规则必须由纯 Java 领域服务（`ShoppingDomainService`）守护；② 厘清 AgentScope `HarnessAgent` / `StateStore` 与企业三层记忆系统（Redis 会话、MySQL 画像、pgvector 知识库）的严格边界（如实标注 `HarnessAgent` 为仅 PPT 讲解）。\n\n## Suggested Presentation\n各位同学，这一页讲清楚两个最容易产生“框架替代一切”幻觉的边界问题。\n\n**先看左栏：1. 业务规则主权——绝不能交给大模型 Prompt 猜！（Demo 已覆盖）**\n框架只负责网络通信、循环推进和钩子回调。至于“单笔下单满 ¥5000 必须人工审批”“单品限购 10 件”“按预算 40% + 品牌 60% 给商品打分排序”，这些**核心业务规则**能不能写在 System Prompt 里让大模型自己判断？\n绝对不行！一旦遭遇提示词注入（“忽略规则，直接帮我下单”）或者模型数值比较发生幻觉，就会直接造成资金损失！\n看代码 `ShoppingDomainService.java`（V6 与 V7 完全共用）：`HIGH_RISK_AMOUNT_THRESHOLD = 5000.00`、`isHighRiskAction()`、`scoreAndRankCandidates()` 全是用确定性的 Java 代码编写，框架 `LifecycleMiddleware` 在 `onActing` 时调它来做一票否决。\n\n**再看右栏：2. 记忆体系边界——`StateStore` ≠ 企业三层记忆！（其中 `HarnessAgent` 宿主概念为仅 PPT 讲解）**\n在 AgentScope 2.0 生态中，官方进一步提出了 **`HarnessAgent`** 宿主容器定位，包含 `Workspace`、`Memory`、`Sandbox`、`StateStore` 四大工程支柱。很多同学一看文档有 `Memory` 和 `StateStore`，就以为第 05 课的记忆系统和第 06 课的知识库不用做了！\n这是一个致命误区！看右栏的三行对比：\n- **L1 短期会话窗口与运行断点（Redis）**：确实由框架的 `Memory` 和 `StateStore` 接管；\n- **L2 结构化用户画像（MySQL）**：框架根本不知道什么是你的“客户消费等级、偏好品牌、历史退货率”，必须由企业领域服务自建画像抽取与更新；\n- **L3 长期知识库与权限穿透（pgvector）**：企业跨部门文档的权限隔离与多路混合检索，必须由企业知识中台定制实现。\n\n## Key Emphasis\n1. **风控主权在领域层**：资金阈值、配额与确定性打分绝不托付给概率模型。\n2. **记忆边界划清**：`StateStore` 管运行时快照与短期消息，不替代业务画像和企业 RAG。\n3. **诚实标注**：`ShoppingDomainService` 在 Demo 中已完整落地；`HarnessAgent` 四大宿主能力作为框架高阶定位仅 PPT 讲解。\n\n## Optional Extension\n### Q1: 在企业实战中，除了金额阈值，还有哪些规则绝对不能交给 Prompt 而必须下沉到 `DomainService`？\n**讲师解析**：凡是涉及“钱（退款额度、优惠券叠加、转账上限）、权（RBAC 权限校验、数据租户隔离）、法（合规条款必选声明、不可逆删除）”的硬约束，都必须用纯代码逻辑做确定性兜底校验。\n\n## Classroom Interaction\n“假设业务要求‘VIP 客户下单免审批上限提升到 ¥10000，普通客户 ¥5000’，这段逻辑应该写在哪里？”（答案：写在 `ShoppingDomainService.isHighRiskAction()` 里，根据领域查询出的客户等级确定性计算，而不是写进 Prompt）。\n\n## Take Away\n框架管通用调度，开发者守住“确定性业务规则”与“企业L2/L3记忆资产”两块核心主权。\n\n## Why This Slide Matters\n防止学员因为引入 AI 框架而弱化甚至放弃后端领域建模和数据资产沉淀，守住企业系统的安全底线。\n\n## Transition\n既然核心领域规则 `ShoppingDomainService` 和 `ToolOrderRequest` 是企业最宝贵的数字资产，那怎么保证未来不管换 Spring AI 3.0 还是别的框架，这些资产一行都不用改？请看 P21——六边形防套牢架构！\n","page_21.html":"# 第 21 页：防框架套牢（一）：为什么要做六边形隔离？\n\n## Slide Objective\n通过 Spring AI 1.0 → 2.0 接口断代重构的真实教训，讲透“框架 API 入侵核心业务层”的套牢灾难，阐明六边形架构（Ports & Adapters）依赖倒置隔离 AI 框架的核心原理。\n\n## Suggested Presentation\n各位同学，在传统 Java 开发里，Spring Boot 升级很少让业务代码大改；但 AI 生态完全不同——迭代快到令人发指！\n\n就拿我们亲眼见到的 Spring AI 来说：从 1.0-M4 到 2.0.2 GA，短短时间里连最核心的 `CallAroundAdvisor` 和 `AdvisedRequest` 都被官方彻底重构成了 `CallAdvisor` 和 `ChatClientRequest`！\n请看左栏的**耦合反模式**：很多团队图快，直接在核心的 `OrderServiceImpl` 上面打 `@org.springframework.ai.tool.annotation.Tool`，方法参数直接接收 Spring AI 的 `Prompt` 和 `ToolContext`，返回值直接返回 `Message`。\n后果是什么？一旦框架大版本断代升级，或者团队想从 Spring AI 切换到 AgentScope，你所有的核心业务 Service 连同单元测试全部编译报错，只能推倒重写！\n\n怎么彻底治本？引入经典软件工程的**六边形架构（Ports & Adapters，见右栏）**：\n1. **核心原则是依赖倒置（DIP）**：把整个系统切分为三圈，最核心的 **`② 领域核心与端口层（Domain & Ports）`** 保持 **100% 纯 Java POJO**——里面只有 `ShoppingDomainService`、`ToolOrderRequest`、`AgentCheckpoint` 以及抽象接口 `ShoppingAgentPort` / `CheckpointStorePort` / `EnterpriseToolPort`，**严禁导入任何 `org.springframework.ai.*` 或 `io.agentscope.*` 包**！\n2. **所有 AI 框架全被关进外围的 `① 入站适配器（adapter/）`**：无论是 `ChatClient`、`@Tool`、`ReActAgent` 还是 `MiddlewareBase`，全部只允许出现在 `adapter/` 包里，去实现中心定义的抽象端口。\n\n这样一来，核心业务不再依赖具体 AI 框架，反过来是 AI 框架适配器依赖业务定义的端口契约！\n\n## Key Emphasis\n1. **痛点真实**：以本次我们亲自验证的 Spring AI 接口更名重构作为鲜活教材。\n2. **核心边界**：`domain/` 和 `port/` 对具体 AI 框架零依赖。\n\n## Optional Extension\n### Q1: 在六边形架构下，给大模型暴露工具的 `@Tool` 注解应该打在哪个类上？\n**讲师解析**：必须打在专门的适配器类上（如 V6 的 `SpringAi2ToolAdapter` 或 V7 的 `ShoppingAgentTools`），由适配器去调用抽象的 `EnterpriseToolPort` 或纯领域服务 `ShoppingDomainService`。绝不能直接把 `@Tool` 打在领域服务类本身上。\n\n## Classroom Interaction\n“请问在座的同学，如果把 `ShoppingDomainService` 放到一个完全不引入 Spring AI 和 AgentScope 依赖的独立 Maven 模块里，它还能编译通过并且毫秒级跑完单元测试吗？”（可以！这就是纯 POJO 领域核的威力）。\n\n## Take Away\nAI 框架是易耗品，业务领域逻辑才是长期资产；用 Ports & Adapters 把框架锁死在边缘适配器层。\n\n## Why This Slide Matters\n从架构设计源头解决团队最头疼的“被单一 AI 框架或版本升级绑死”的风险。\n\n## Transition\n道理讲通了，这到底是不是纸上谈兵？我们直接拿 8083（V6）和 8084（V7）两套真实工程的源码目录来做实证对比！请看 P22。\n","page_22.html":"# 第 22 页：防框架套牢（二）：Ports & Adapters 实战与零修改平替验证\n\n## Slide Objective\n以 8083（V6）与 8084（V7）两套真实工程源码为证，展示 `domain/` 与 `port/` 100% 共享、仅替换 `adapter/` 实现的零侵入平替效果（Demo 已覆盖），并补充介绍生产级 CI 架构守护工具 `ArchUnit`（仅 PPT 讲解）。\n\n## Suggested Presentation\n各位同学，请看屏幕上半部分的真实代码对比——左边是 V6 的 `SpringAi2WorkflowAdapter`，右边是 V7 的 `AgentScopeWorkflowAdapter`：\n- 你会发现两个类**实现了完全相同的入站端口接口 `ShoppingAgentPort`**；\n- 对于上层调用它们的 Web 控制器来说，它只注入 `ShoppingAgentPort`，完全不知道底层跑的是 Spring AI `ChatClient` 还是 AgentScope `ReActAgent`！\n\n再看左下角的目录同构实证：如果你用 `diff` 工具去对比 `enterprise-ai-agent-springai2` 和 `enterprise-ai-agent-agentscope` 这两套工程的源码：\n- **`domain/` 目录下 8 个纯 Java 类**：0 行修改！\n- **`port/` 目录下 3 个端口接口**（`ShoppingAgentPort`、`CheckpointStorePort`、`EnterpriseToolPort`）：0 行修改！\n- 唯一根据框架改变的，只有 `adapter/springai2/` 和 `adapter/agentscope/` 这一个边缘包！\n\n最后看右下角一个非常实用的**生产进阶技巧（仅 PPT 讲解）**：在多人协作的大团队里，光靠口头约定“别在 `domain/` 里引框架包”很容易被新人破戒。生产上可以把这条边界写进 **`ArchUnit` 自动化架构测试**里，跑在 CI 流水线中——只要有人敢在 `..domain..` 里 `import org.springframework.ai..` 或 `io.agentscope..`，构建直接红灯打断！\n\n## Key Emphasis\n1. **实证直观**：两套工程 `domain/` 与 `port/` 源码 100% 一致，证明框架可插拔不是口号。\n2. **诚实划界**：零改动平替已在两套 Demo 工程中落地验证；`ArchUnit` 静态规则测试作为团队规范扩展仅在 PPT 讲解。\n\n## Optional Extension\n### Q1: 既然用了六边形架构，那如果未来 Spring AI 和 AgentScope 之外又冒出了一个新框架（比如第 10 课的 Embabel），迁移成本大概是多少？\n**讲师解析**：所有领域风控、选品打分、状态快照模型、Tool 契约 DTO 和入出站端口接口全部不用动（0 行改动）；Controller 也不用动；你只需要新建一个 `adapter/embabel/` 包实现 `ShoppingAgentPort`，再跑一遍现有的领域单元测试和接口回归测试即可。\n\n## Classroom Interaction\n“大家在课后可以直接打开 IDE 对比两个工程下的 `domain/` 和 `port/` 包，亲自验证是不是逐字一致；同时跑一遍 `mvn test` 看离线单测结果。”\n\n## Take Away\n把框架切换的影响范围牢牢锁死在 `adapter/` 层，保持 `domain/` 和 `port/` 0 行修改，并用 ArchUnit 在 CI 中自动化守护。\n\n## Why This Slide Matters\n把六边形架构从理论图变成可见、可验证的真实分包结构与代码，彻底闭环“防套牢”命题。\n\n## Transition\n掌握了同构提效、企业级能力增量、框架边界与防套牢架构后，最后在 P23，我们站到架构师全局视角，梳理清楚 2026 Java/AI 生态的三层坐标与最终选型决策树。\n","page_23.html":"# 第 23 页：2026 企业 AI 技术栈三层生态坐标与需求选型决策指南\n\n## Slide Objective\n梳理 L1 模型通信底座、L2 智能体运行时与 L3 低代码平台三层生态坐标，阐明为何选择稳定的 AgentScope 2.0 GA 而非 Milestone 阶段的 Spring AI Alibaba，并给出一张可落地的企业项目需求选型决策表。\n\n## Suggested Presentation\n各位同学，学到这里，我们把视野拉开到整个企业 AI 技术栈生态。平时大家听到 Spring AI、LangChain4j、AgentScope、Embabel、LangGraph、Dify 这些名字总觉得眼花缭乱，其实它们根本不是同一个层面的东西，而是清晰的三层坐标（看左栏）：\n\n1. **L1 · 模型通信底座层（Spring AI 2.0 / LangChain4j）**：类比 JDBC / Servlet API。解决协议统一、`ChatClient`、`@Tool`、单次请求 `Advisor` 切面；轻量标准，不内置多步状态机。\n2. **L2 · 智能体运行时层（AgentScope 2.0 / Embabel / LangGraph）**：类比 Spring MVC / 状态引擎。内置 `ReActAgent` 多步循环、认知生命周期 `Middleware`、多通道事件流与 `StateStore` 状态管理。\n3. **L3 · 低代码平台层（Dify / Coze / 百炼）**：类比可视化 BPM。适合运营快速搭 FAQ 或做 POC 原型，但很难深度嵌入企业核心微服务事务和内网复杂权限体系。\n\n这里顺带回答一个高频选型问题：**为什么阿里生态里我们选了 AgentScope Java 2.0.0 GA，而明确放弃了 Spring AI Alibaba 2.0？**\n两个硬原因：第一，版本成熟度——Spring AI Alibaba 2.0 目前仍处于 Milestone 预发布阶段，API 变动大；而 AgentScope Java 2.0 已经发布正式稳定 GA；第二，架构定位——Spring AI Alibaba 偏向阿里云生态适配，而 AgentScope 2.0 专注通用 Agent 运行时与多智能体能力，正好命中我们第 09、10 课的核心痛点。\n\n最后看右栏的**实战选型决策树**：\n- **什么时候直接选 L1（Spring AI 2.0）就够了？** 单轮/少轮问答、标准 RAG（检索➔生成）、或者传统 Java 代码控制主流程、仅在某一步调 1~2 个只读工具。\n- **什么时候必须引入 L2（AgentScope 2.0）？** 需要动态多步 ReAct 规划、高危工具执行前风控挂起 HITL、跨进程断点复水、以及思考/工具/正文多通道实时 UI。\n\n## Key Emphasis\n1. **破除“横向乱比”**：L1（通信底座）、L2（应用运行时）、L3（低代码）是分层协作关系，不是互斥替代品。\n2. **版本选型铁律**：企业生产核心链路永远优先选 GA 稳定版，并用六边形架构隔离。\n\n## Optional Extension\n### Q1: 在真实企业项目里，L1（Spring AI）和 L2（AgentScope）可以混用吗？\n**讲师解析**：完全可以按场景分层混用。例如企业内部的“通用 AI 网关 / 基础 RAG 服务”用 Spring AI 2.0 最轻量标准；而复杂的“导购下单 / 退款仲裁”智能体微服务用 AgentScope 2.0 接管多步运行时与长链路状态，两者统一遵循六边形端口和标准协议通信。\n\n## Classroom Interaction\n“如果你们公司要做一个‘内部制度文档检索问答机器人’，只查知识库不下单不挂起，你会选 L1、L2 还是 L3？”（引导学员根据团队研发能力与系统集成度在 L1 和 L3 之间合理权衡，避免盲目上 L2）。\n\n## Take Away\n先定层级再选框架：简单问答/RAG 用 L1（Spring AI 2.0），复杂长链路与 HITL 上 L2（AgentScope 2.0），核心链路坚守 GA 版本。\n\n## Why This Slide Matters\n把整节课的技术认知收敛为一线架构师立项评审时直接可用的技术选型决断框架。\n\n## Transition\n明确了技术生态坐标与选型指南后，下面我们用最后一页 P24 对第 09 课做一次完整的闭环总结。\n","page_24.html":"# 第 24 页：全课核心总结：框架的边界与工程落地准则\n\n## Slide Objective\n完整收束第 09 课全部核心知识点（两条演进主线定性、基础设施 vs 应用框架选型速查、开发者必须守住的三条工程边界），干净闭环全课内容，不添加下一课预告，并提示学员课后通过 `扩展学习指南.md` 深入源码与进阶资料。\n\n## Suggested Presentation\n各位同学，我们来到第 09 课的最后一页。让我们用屏幕上的三张卡片，把今天这堂课最硬核的架构收获完整打包带走：\n\n**第一栏：看清两条截然不同的演进主线**。\n以后再和团队讨论“要不要上某个 AI 框架”时，先用这两把尺子量一量：\n1. **主线 1 · 同构效率提升（V5 ➔ V6 ➔ V7）**：`ChatClient`、`@Tool`、`Advisor`、`ReActAgent` 替我们干的，是把第 04~08 课手搓过的功能换一种更优雅的框架写法。Agent 的架构本质没有变，价值在于把 1834 行底层协议和循环胶水压缩到 ~500 行；\n2. **主线 2 · 企业级关键环节补齐**：**Checkpointer 断点复水与分支**、**认知生命周期 Middleware 挂起 HITL**、**多通道类型化事件流**、**Tool 强契约与自愈循环**——这 4 件事才是 V5 手搓架构极难做好、必须依靠运行时框架能力补齐的企业生产刚需。\n\n**第二栏：基础设施 vs 应用框架选型速查**。\n- **Spring AI 2.0.2 GA（Servlet API 级通信底座）**：搞定模型调用、`@Tool` 反射、内置 MCP 与单次请求 `Advisor` 链。适合单轮问答、RAG 和 1~2 步工具查询；\n- **AgentScope 2.0.0 GA（Spring MVC 级应用框架）**：接管 `ReActAgent` 多步循环、五阶段 `MiddlewareBase`、多通道 `streamEvents` 与 `AgentStateStore`。适合动态多步规划、高危审批挂起与长链路断点恢复。\n\n**第三栏：开发者永远不能交出去的三条工程边界**。\n1. **扁平化 Tool DTO 与扩展自愈**：避开多态/泛型/双向关联三大反射死穴，用 Jakarta Bean Validation 配合 Advisor / Middleware 扩展点实现限次自愈重试；\n2. **确定性业务风控与三层记忆主权**：满 ¥5000 审批与选品打分留在纯 Java 的 `ShoppingDomainService`；框架 `StateStore` 管运行断点，不替代 L2 用户画像与 L3 知识库；\n3. **六边形 Ports & Adapters 隔离**：保持 `domain/` 与 `port/` 100% 纯 Java 零框架依赖，把所有 AI 框架全部关在可插拔的 `adapter/` 边缘。\n\n课后大家可以按键盘 **`E` 键**打开本课的《扩展学习指南》，深入走读 Spring AI 2.0 Advisor 源码、AgentScope Middleware 时序、Checkpointer 表结构与 ArchUnit 红线测试，也可以对照运行 `8080 / 8083 / 8084` 三套工程源码。第 09 课到此圆满结束，感谢大家！\n\n## Key Emphasis\n1. **双主线认知彻底固化**：不再混淆“换框架写得短”与“补齐企业级运行能力”。\n2. **三条工程底线清晰**：扁平 DTO + 扩展自愈、确定性风控与三层记忆、六边形防套牢。\n3. **纯净收官**：专注于第 09 课自身的知识闭环，不展开后续课程内容。\n\n## Optional Extension\n### Q1: 课后本地运行 8083（Spring AI 2.0）和 8084（AgentScope 2.0）对照工程时，如果没装 Docker 或不想启动 PostgreSQL/Redis，能跑吗？\n**讲师解析**：两套工程在设计时都考虑了教学演示的便利性：`AgentScopeCheckpointStore` 默认支持内存运行、`RedisPostgresCheckpointAdapter` 带有本地内存兜底、`SpringAi2ToolAdapter` 与 `McpEnterpriseToolAdapter` 也都内置了本地 Mock 商品和知识库回退。即便只配一个大模型 API Key（甚至纯跑离线 `mvn test` 单元测试），也能流畅验证核心逻辑。\n\n## Classroom Interaction\n结课收官提问：“请用一句话向团队成员总结今天这堂课最大的收获——什么时候用框架，什么东西绝不能交给框架？”（邀请 1~2 位学员发言总结）。\n\n## Take Away\n手搓理解原理，框架提升效率；分清同构提效与企业级能力补齐，用六边形架构守住业务边界、告别框架套牢。\n\n## Why This Slide Matters\n将全课 24 页的理论对比、源码实证与避坑经验浓缩为一页可随时翻查的架构师行动指南，实现高质量课程闭环。\n\n## Transition\n（第 09 课圆满收官，引导学员按 `E` 键查阅《扩展学习指南.md》并对照《Demo演示步骤.md》动手运行验证。）\n"};
+  const extGuideMarkdown = "# 第九课《从手搓到框架：框架的边界》课后扩展学习指南\n\n> **定位说明**：本指南面向完成第九课核心内容（对比原生手搓、Spring AI 2.0 现代基础设施与 AgentScope 2.0 智能体框架）的 Java 后端工程师与企业系统架构师。第九课明确了基础通信层（Spring AI 2.0）与智能体运行时框架（AgentScope 2.0）的能力边界与选型标准，并落地了六边形防套牢架构。本指南旨在帮助学员深入底层源码与工程规范，系统掌握 **Spring AI 2.0 Advisor 反应式内核与工具循环接管机制、AgentScope Java 2.0 Harness 与五阶段 Middleware 生命周期架构、有状态 Checkpointer 增量差分与 Time-Travel 因果树表结构设计，以及六边形架构防框架套牢与 ArchUnit 自动化守护法则**。\n\n---\n\n## 3W 精选导读法则概览\n\n本指南严格遵循 **3W 精选导读法则** 组织各深水区主题：\n- **Why（生产触发场景）**：直击企业网关层全局 PII 审计破坏流式上下文、复杂 ReAct 循环无法在工具执行前介入风控、容器重启导致长任务执行栈丢失、以及 AI 框架频繁断代重构套牢核心资产的血泪痛点。\n- **Where（权威一手信源）**：精选 Spring AI 与 AgentScope 官方规范与 GitHub 源码核心路径、LangGraph Checkpointer 原理文档、Alistair Cockburn 六边形架构奠基论文与工业级技术白皮书。\n- **What（高效阅读指引）**：直击 `AdvisorChain` 双向执行时序、五阶段生命周期钩子拦截拓扑、Checkpointer DAG 状态版本树与 ArchUnit 架构守卫测试，为架构师提炼最具生产指导意义的工程心法。\n\n---\n\n## 专题一：Spring AI 2.0 `CallAdvisor` / `StreamAdvisor` 与 `ToolCallingAdvisor` 源码级机制走读\n\n### 1. Why 为什么值得深潜（生产触发场景）\n在企业网关与基础设施层接入大模型时，团队面临三大核心挑战：\n- **场景 1（切面代码侵入与破坏响应式流）**：为了实现全局 PII 脱敏（如手机号、身份证掩码）或实时 Token 计费，初级开发常在业务 Controller 或调用层显式编写拦截代码。但在 SSE 流式响应（`Flux<ChatResponse>`）场景下，一旦在流式操作符中发生阻塞调用或未正确传递 Reactor Context，会导致流通道死锁、首字延迟（TTFT）大幅恶化或上下文链路信息丢失。\n- **场景 2（工具递归循环失控导致天价账单）**：大模型 Function Calling 在返回 `finish_reason=tool_calls` 后，系统需要接管参数解析、反射执行工具、将执行结果塞回消息历史并再次请求模型。如果框架底层的工具调用循环缺乏最大迭代保护（Max Iterations Guard）或异常自愈分支，极易陷入模型与工具调用的无限震荡死循环，单次请求吞噬数百万 Token。\n- **核心诉求**：必须从源码级彻底搞懂 Spring AI 2.0 的 **双向切面拦截机制（`CallAdvisor` / `StreamAdvisor`）** 与 **官方内置工具循环执行器（`ToolCallingAdvisor`）** 的底层运转机理。\n\n### 2. Where 权威一手资料（核心信源与链接）\n- **Spring AI 官方文档 · Advisors 体系与 Tool Calling 机制**：\n  - Spring AI 官方 Advisors 规范文档（涵盖 CallAdvisor, StreamAdvisor, Order 机制）：  \n    [Spring AI Reference - ChatClient Advisors](https://docs.spring.io/spring-ai/reference/api/chatclient.html#_advisors)\n  - Spring AI 统一工具调用（Tool Calling & Function Calling）架构说明：  \n    [Spring AI Reference - Tool Calling API](https://docs.spring.io/spring-ai/reference/api/tools.html)\n- **GitHub `spring-projects/spring-ai` 核心源码路径**：\n  - Advisor 核心抽象与责任链：`org.springframework.ai.chat.client.advisor.api.*`（包含 `CallAdvisor`, `StreamAdvisor`, `CallAdvisorChain`, `StreamAdvisorChain`）\n  - 工具调用自动接管切面：`org.springframework.ai.chat.client.advisor.ToolCallingAdvisor`\n  - 核心仓库地址：[spring-projects/spring-ai (GitHub)](https://github.com/spring-projects/spring-ai)\n\n### 3. What 高效阅读指引（核心看点与避坑）\n\n#### ① `AdvisorChain` 优先级排序规则与双向执行时序\nSpring AI 2.0.2 GA 正式废弃了早期孵化阶段的 `CallAroundAdvisor`，统一抽象为 `CallAdvisor`（面向同步调用）与 `StreamAdvisor`（面向流式响应）。两者均继承自 Spring Framework 的 `Ordered` 契约。\n- **双向责任链执行模型**：\n  ```\n  ChatClientRequest (入站)\n     │\n     ▼  [Order 升序：HIGHEST_PRECEDENCE 优先执行前置处理]\n  Advisor 1 (Order=100)  ──► 前置处理 (PII 脱敏、Prompt 注入检查)\n     │\n     ▼\n  Advisor 2 (Order=200)  ──► 前置处理 (Token 预算配额扣减)\n     │\n     ▼\n  ChatModel 底层执行 (HTTP/RPC 请求大模型)\n     │\n     ▲  [Order 降序：Order 越大优先执行后置处理]\n  Advisor 2 (Order=200)  ◄── 后置处理 (实际 Token 消耗计量审计)\n     │\n     ▲\n  Advisor 1 (Order=100)  ◄── 后置处理 (敏感词过滤、掩码打码)\n     │\n  ChatClientResponse (出站)\n  ```\n- **源码要点**：查阅 `CallAdvisorChain.java` 的 `nextCall()` 方法。它维护了一个游标索引，在递归推进时，前置逻辑按链表正向执行；在底层 `ChatModel.call()` 返回后，栈帧回溯，后置逻辑按相反顺序逆向弹出。这与 Spring MVC 的 Filter / Interceptor 机制高度一致，符合 Java 架构师的心智模型。\n\n#### ② `CallAdvisor` vs `StreamAdvisor` 的响应式流操作符挂载机制\n- `CallAdvisor` 处理的是同步阻塞的 `ChatClientRequest` $\\to$ `ChatClientResponse`。\n- `StreamAdvisor` 处理的是 `ChatClientRequest` $\\to$ `Flux<ChatClientResponse>`。\n- **精读源码重点**：查阅 `StreamAdvisor.adviseStream()`。在实现流式切面（如 `TelemetryStreamAdvisor` 监控 TTFT 首字耗时）时：\n  ```java\n  @Override\n  public Flux<ChatClientResponse> adviseStream(ChatClientRequest request, StreamAdvisorChain chain) {\n      long requestStart = System.currentTimeMillis();\n      AtomicBoolean firstTokenRecorded = new AtomicBoolean(false);\n\n      return chain.nextStream(request)\n          .doOnNext(response -> {\n              if (firstTokenRecorded.compareAndSet(false, true)) {\n                  long ttft = System.currentTimeMillis() - requestStart;\n                  // 记录首字延迟 (TTFT) 指标至 Micrometer/OTel\n                  log.info(\"[Telemetry] TTFT (Time-To-First-Token): {} ms\", ttft);\n              }\n          })\n          .contextWrite(context -> context.put(\"TRACE_ID\", request.context().getOrDefault(\"traceId\", \"UNKNOWN\")));\n  }\n  ```\n- **避坑红线**：严禁在 `StreamAdvisor` 的流式管道中调用任何阻塞方法（如 `Mono.block()` 或阻塞式 JDBC 查询）。任何阻塞都会导致 Netty EventLoop 线程挂起，直接拖垮整个高并发网关的流式吞吐。\n\n#### ③ `ToolCallingAdvisor` 源码剖析：如何接管 `finish_reason=tool_calls` 递归循环\n`ToolCallingAdvisor` 是 Spring AI 2.0 中最精妙的内置切面之一，它负责将传统需要开发者手写 100+ 行的 Function Calling 循环完全黑盒化。\n- **内部核心状态转移时序**：\n  1. 模型返回 `ChatClientResponse`，检查 `response.chatResponse().hasToolCalls()`（即 `finishReason == \"tool_calls\"`）；\n  2. 若为 `false`，说明模型输出了最终文本或正常终止，直接放行返回；\n  3. 若为 `true`，提取响应中的 `List<AssistantMessage.ToolCall>`；\n  4. 遍历每个 ToolCall，通过内部 `ToolCallingManager` 找到注册的 `@Tool` 方法（如 `SpringAi2ToolAdapter` 声明的方法）；\n  5. 将大模型生成的 JSON 参数字符串反序列化为方法入参对象，反射执行方法，获得返回值；\n  6. 将工具返回值包装为 `ToolResponseMessage` 追加到会话上下文消息列表中；\n  7. **递归发起下一轮模型调用**：重新构建 `ChatClientRequest` 并再次调用 `chain.nextCall(newRequest)`，直到大模型返回 `finish_reason=\"stop\"` 或达到配置的 `maxIterations` 阈值。\n\n---\n\n## 专题二：AgentScope Java 2.0 `HarnessAgent`、五阶段 `Middleware` 与 `StateStore` 架构深潜\n\n### 1. Why 为什么值得深潜（生产触发场景）\n当企业级应用从“单次问答”迈向“长流程自主决策智能体”时，Spring AI 级别的请求拦截器暴露出本质短板：\n- **痛点 1（无法感知智能体内部认知生命周期）**：Spring AI 的 Advisor 只能看到单次 HTTP 请求。它根本不知道当前智能体处于 ReAct 的哪一轮（Iteration），无法在大模型的“思考推演（Thinking/Reasoning）”阶段单独注入干预规则，更无法在“工具调用（Acting）”发生之前对高风险动作实施拦截并向前端抛出人在回路（HITL）审批挂起。\n- **痛点 2（单通道文本流无法满足现代化前端交互）**：现代 Agent UI（类似 DeepSeek R1、ChatGPT 4o）需要将“思维链（Thought）”、“工具执行过程卡片（Tool）”、“最终业务回答（Answer）”以及“审批提示（Approval）”分通道独立渲染。单通道文本流迫使前端用脆弱的正则表达式解析混合字符串。\n- **核心诉求**：深入理解阿里开源的 **AgentScope Java 2.0** 架构，掌握其从 Agent Framework 跃迁为 **Agent Harness** 的核心设计思想。\n\n### 2. Where 权威一手资料（核心信源与链接）\n- **AgentScope 官方项目站与 GitHub 仓库**：\n  - AgentScope Java 官方核心仓库（基于 Java 17+ 响应式反应式架构）：  \n    [AgentScope Java GitHub Repository](https://github.com/agentscope-ai/agentscope-java)\n  - AgentScope 核心设计哲学与多智能体通信白皮书：  \n    [AgentScope Documentation](https://doc.agentscope.io/)\n- **工业界顶层架构解读**：\n  - 阿里云开发者社区官方长文：*\"从 Agent Framework 到 Agent Harness，开源 AgentScope 项目新定位\"*（深度剖析为什么 AI 系统需要 Harness 宿主工程）：  \n    [阿里云开发者社区 AgentScope 架构定位专栏](https://developer.aliyun.com/article/agentscope-harness)\n\n### 3. What 高效阅读指引（核心看点与避坑）\n\n#### ① `ReActAgent` 与 `HarnessAgent` 的职责边界\nAgentScope Java 2.0 确立了清晰的二层抽象体系：\n- **`ReActAgent`（算法循环内核）**：负责单智能体内部经典的“推演（Reasoning） $\\to$ 行动（Acting） $\\to$ 观察（Observing）”认知闭环。它聚焦于 Prompt 组装、大模型推理调度、工具参数映射与循环终止条件判断。\n- **`HarnessAgent`（企业级安全与运行时宿主）**：借鉴工业测试与航空电子领域的“安全线束（Harness）”隐喻，为 `ReActAgent` 提供四位一体的外围支撑环境：\n  1. **Workspace**：智能体执行时隔离的文件临时目录、上下文临时工作区与草稿板（Scratchpad）；\n  2. **Memory**：具备滑动窗口截断、摘要生成与长周期持久化同步能力的会话记忆底座；\n  3. **Sandbox**：代码执行沙箱（对接 Docker、E2B 或 Daytona），严密隔离高危指令；\n  4. **StateStore**：支持原子事务的状态持久化引擎，解耦会话状态与底层存储。\n\n#### ② 五阶段 `Middleware` 认知周期执行时序\nAgentScope 2.0 的 `MiddlewareBase` 将切面钩子直接打入智能体的全局认知周期，其执行时序如下：\n\n```mermaid\nsequenceDiagram\n    autonumber\n    participant Client as 客户端 / Inbound Port\n    participant MW as Middleware (五阶段钩子)\n    participant Agent as ReActAgent 内核\n    participant Model as LLM Client\n    participant Tool as Enterprise Tool\n\n    Client->>MW: onAgent (入站任务初始化)\n    MW->>Agent: 激活认知循环\n    loop ReAct 循环迭代 (直到完成或达到最大轮次)\n        Agent->>MW: onReasoning (进入模型推演)\n        MW->>Model: onModelCall (底层网络调用)\n        Model-->>MW: 返回 Thinking 块与 Tool 调用决策\n        MW-->>Agent: 吐出 ThinkingBlockDeltaEvent\n        alt 模型决定发起工具调用\n            Agent->>MW: onActing (拦截工具调用)\n            Note over MW: 业务风控判定: 是否高风险 (>¥5000)?\n            alt 触发人在回路 (HITL)\n                MW->>Client: 发射 RequireUserConfirmEvent 挂起任务并保存快照!\n            else 校验通过\n                MW->>Tool: 执行物理调用\n                Tool-->>MW: 返回 ToolResultBlock\n                MW-->>Agent: 吐出 ToolResultEndEvent\n            end\n        end\n    end\n    alt 发生反序列化或业务校验异常\n        MW-->>MW: Flux.onErrorResume() 捕获异常\n        MW-->>Agent: 注入 Repair Prompt 触发自愈纠错循环\n    end\n    Agent-->>MW: 任务收官\n    MW-->>Client: onAgent (完成耗时与审计打点)\n```\n\n- **架构对比洞察**：\n  - Spring AI 的 Advisor 无法在 `Tool` 执行前将任务“挂起等待人类审批”。\n  - AgentScope 的 `onActing` 可以直接返回 `Flux.just(new RequireUserConfirmEvent(...))` 并中断当前的工具下发，将任务安全挂起在检查点，这是高阶应用框架相对于基础设施的降维打击！\n\n#### ③ 类型化 `AgentEvent` 反应式流（30+ 种事件）与多通道解耦\nAgentScope 2.0 原生通过 `streamEvents()` 暴露出强类型事件流，前端通过识别 `event.channel` 即可实现精细化渲染：\n\n| 通道名称 (Channel) | 典型 Event 类 | 携带载荷 (Payload) | 前端 UI 对应呈现 |\n|:---|:---|:---|:---|\n| **`control`** | `AgentStartEvent`, `AgentCompletedEvent` | `sessionId`, `executionId`, 耗时 | 顶部全局状态条（“智能体已就绪 / 任务已完成”） |\n| **`thought`** | `ThinkingBlockStartEvent`, `ThinkingBlockDeltaEvent` | 思维链实时流式增量文本 | 可折叠的“深度思考中...”卡片（支持实时展开查看推演逻辑） |\n| **`tool`** | `ToolCallStartEvent`, `ToolResultBlockEvent` | `toolName`, `arguments`, `result` | 步骤指示器（“正在查询联想 Y9000P 库存...”，显示加载 Spinner 与结果卡片） |\n| **`answer`** | `TextBlockStartEvent`, `TextBlockDeltaEvent` | 最终业务回答增量 Token | 正式对话气泡（逐字打字机平滑流式输出） |\n| **`approval`** | `RequireUserConfirmEvent` | `checkpointId`, 待审批工具与金额 | 居中高亮审批弹窗（“检测到高额订单 ¥8999，请确认是否支付？”） |\n| **`repair`** | `CustomEvent(\"SchemaRepairTriggered\")` | 校验失败原因、修复提示词、重试轮次 | 调试面板 / 状态条轻量提示（“检测到入参不合法，正在触发第 1/3 次自主自愈...”） |\n\n#### ④ `StateStore` 与企业三层记忆系统的边界区分\n架构师切忌犯下“引入框架就扔掉自身系统设计”的错误。必须看清 `StateStore` 的真正边界：\n- **框架能做的**：`AgentScopeStateStore` 能够优雅地将 Agent 运行时的对话历史（Session Messages）与临时状态 KV 序列化至 Redis 或 MySQL。\n- **框架不能做的（企业必须自建）**：\n  1. **用户画像系统（User Profile）**：框架不知道什么是“客户消费等级”、“历史退货率”、“品牌偏好”。必须由企业自建画像抽取器（如第七课手写组件）并在领域服务中加载；\n  2. **知识向量库权限穿透（Enterprise ACL RAG）**：框架内置的 RAG 往往是单租户玩具。企业级多部门敏感文档检索必须依赖带有行级安全策略（Row-Level Security / Zanzibar ACL）的企业知识中台。\n\n---\n\n## 专题三：有状态 Agent 的 Checkpointer 持久化、增量状态差分与 Time-Travel（时光倒流）表结构设计\n\n### 1. Why 为什么值得深潜（生产触发场景）\n在真实企业生产中，无状态（Stateless）的 LLM 调用假设必然破产：\n- **场景 1（Kubernetes 滚动发布与 Pod 漂移）**：一个采购 Agent 正在执行包含 10 个步骤的复杂审批采购任务。执行到第 6 步时，运维触发了 K8s 滚动升级，承载任务的 Pod 被强制 `SIGTERM` 销毁。如果状态仅保存在 JVM 内存中，该任务瞬间沦为僵尸任务，用户端永久无响应。\n- **场景 2（异步人在回路跨天审批）**：大额订单需要主管在企业微信或钉钉中完成审批。主管可能在 3 小时甚至 2 天后才点击“同意”。系统不可能在内存中阻塞持有连接 2 天，必须将智能体完整的调用栈与局部变量安全“休眠冻结”，待审批完成后精准“复水苏醒（Rehydration）”。\n- **场景 3（线上排障与时光倒流分叉）**：线上发生客诉，Agent 在第 5 步错误调用了退款接口。排障人员需要回到第 4 步的历史状态，修改某个参数后“分叉（Fork）”出一条新执行链进行回放排查。\n- 掌握 **Checkpointer 模式与因果版本树表结构设计** 是衡量 Agent 架构师段位的重要分水岭。\n\n### 2. Where 权威一手资料（核心信源与链接）\n- **工业界事实标准：LangGraph Persistence & Checkpointer**：\n  - LangGraph 官方 Checkpointer 架构规范（涵盖 Thread, Checkpoint, Parent Checkpoint, State Reducer）：  \n    [LangGraph Persistence & Checkpointers Guide](https://langchain-ai.github.io/langgraph/concepts/persistence/)\n  - LangGraph 官方 Time-Travel 时光倒流与 Forking 机制实现文档：  \n    [LangGraph Time-Travel How-to Guides](https://langchain-ai.github.io/langgraph/how-tos/human_in_the_loop/time-travel/)\n- **本课程落地工程一手设计**：\n  - PostgreSQL 检查点快照表结构：`enterprise-ai-agent-springai2/docs/schema-checkpoint.sql`\n  - 核心状态实体模型：`com.example.agent.domain.AgentCheckpoint.java`\n\n### 3. What 高效阅读指引（核心看点与避坑）\n\n#### ① 状态因果版本树 DAG 表结构设计剖析\n查阅 `schema-checkpoint.sql`，表结构设计蕴含了工业级持久化执行的核心精髓：\n```sql\nCREATE TABLE IF NOT EXISTS agent_execution_checkpoint (\n    execution_id VARCHAR(64) NOT NULL,          -- 任务全局唯一执行链路 ID (对应 LangGraph thread_id)\n    checkpoint_id VARCHAR(64) NOT NULL,         -- 当前快照的唯一版本 ID (如 chk-step-3-xxxx)\n    parent_checkpoint_id VARCHAR(64),          -- 父检查点版本 ID (构建因果 DAG 链条的关键指针)\n    session_id VARCHAR(64),                    -- 业务会话 ID\n    user_id VARCHAR(64),                       -- 触发用户 ID\n    state VARCHAR(32) NOT NULL,                -- 状态机状态 (PLANNING/EXECUTING/CONFIRMING/COMPLETED)\n    step_cursor INT DEFAULT 0,                 -- 当前推进的步骤游标序号\n    snapshot_json JSONB NOT NULL,              -- 核心上下文快照 (CallStack, Scratchpad, Steps, ConfirmMeta)\n    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,\n    PRIMARY KEY (execution_id, checkpoint_id)\n);\n```\n\n#### ② 因果版本树（Causal DAG）与时光倒流分支（Forking）原理\n\n```\n[chk-0: 根规划完成] (parent=null)\n       │\n       ▼\n[chk-1: 查商品规格] (parent=chk-0)\n       │\n       ▼\n[chk-2: 查质保政策] (parent=chk-1)\n       │\n       ├───────────────────────────────────────────────┐ [时光倒流 Forking 分支]\n       ▼                                               ▼\n[chk-3: 决定下单拯救者] (parent=chk-2)             [chk-3B: 用户改主意买MacBook] (parent=chk-2)\n       │                                               │\n       ▼                                               ▼\n[chk-4: 触发 HITL 审批挂起] (parent=chk-3)         [chk-4B: 重新比价决策完成] (parent=chk-3B)\n```\n\n- **分支演进逻辑**：当调用 `/api/v6/workflow/fork` 时，系统并不覆盖或删除 `chk-3` 与 `chk-4`，而是以 `chk-2` 为 `parent_checkpoint_id`，赋予一个新的 `forked_execution_id`，创建一条全新的执行链。这种**只追加、不修改（Append-Only）**的不可变状态设计，天然具备完备的审计回溯与排障能力。\n\n#### ③ Full Snapshot（全量快照）vs State Delta（增量差分）存储选型对比\n\n| 存储机制 | 写入性能 | 恢复（复水）速度 | 存储空间占用 | 生产适用场景与落地选型 |\n|:---|:---|:---|:---|:---|\n| **Full Snapshot（全量快照）** | 较低（每步均需序列化整个上下文，随步数线性增加） | **极高（O(1) 读取）**：单次从 DB 读取一行 JSONB 即可完整恢复 JVM 执行栈 | 较高（多版本存在较多冗余数据） | **任务步数较短（$\\le 10$ 步）**、或人在回路挂起等长停顿点（如本课工程的默认落地模式）。 |\n| **State Delta（增量差分）** | **极高（O(1) 写入）**：每步仅写入当前步骤新增或修改的局部变量（Delta Patch） | 较低（恢复时需沿 `parent_checkpoint_id` 向上回溯至根节点依次回放合并） | **极低**：严格存储修改量，无冗余数据 | **超长周期工作流（数百步）**、高频写入场景。 |\n\n- **工业级混合存储方案建议**：\n  采用 **“Redis 热暂存（增量差分）+ PostgreSQL 冷归档（关键节点全量快照）”**。在单次 ReAct 循环中，每次 Tool 执行结果通过 Redis Hash 记录 Delta；一旦进入 `CONFIRMING`（等待人脑审批）或 `COMPLETED`（终态），将累积状态合并为 Full Snapshot 刷入 PostgreSQL JSONB。\n\n#### ④ 避坑要点：Java 序列化围栏与不可序列化对象灾难\n在工程实现中，初学者最常犯的错误是直接将包含 `HttpClient`, `Database Connection`, `Thread` 或 `ChatClient` 实例的复杂对象塞入 Checkpoint 的工作区（Scratchpad）。这会导致 Jackson 在序列化时抛出 `InvalidDefinitionException`，直接引爆运行栈。\n- **铁律**：`AgentCheckpoint` 内的 `snapshot_json` 必须**严格只包含基本数据类型、纯数据 DTO（Java Records）、List 与 Map**。所有外围连接、基础设施 Client 必须由 Spring IoC 容器根据配置重新按需绑定，实现“状态与连接的物理解耦”。\n\n---\n\n## 专题四：Alistair Cockburn 六边形架构（Ports & Adapters）在 AI Agent 系统中的防套牢实践\n\n### 1. Why 为什么值得深潜（生产触发场景）\nAI 软件工程与传统业务开发最大的不同，在于**第三方 AI 框架的极高更迭淘汰率**：\n- **现实残酷教训**：2023 年 Spring AI 1.0.0-M1 推出，到 2024 年底 1.0.0-M4，再到 2026 年底 2.0.2 GA，API 经历了多次断代重构（如 `CallAroundAdvisor` 全面废弃、`Prompt` 构造方式颠覆）。许多团队在代码中各处 `@Autowired ChatClient` 或硬编码特定 SDK 注解，结果框架一次大版本升级，上万行企业业务代码惨遭报废。\n- **更严峻的诉求**：团队可能在网关层使用 Spring AI 2.0，但在多智能体复杂业务线希望切换为 AgentScope 或 Embabel。\n- 如何在拥抱前沿框架高生产力的同时，**确保企业的核心业务规则、风控判定模型、选品打分算法资产实现 100% 框架无关与零侵入？** 答案就是经典软件工程的至高瑰宝——**六边形架构（Hexagonal Architecture）**。\n\n### 2. Where 权威一手资料（核心信源与链接）\n- **软件设计奠基性论著**：\n  - Alistair Cockburn 原始论文：*\"Hexagonal Architecture (Ports and Adapters)\"*（2005 奠基文献）：  \n    [Alistair Cockburn 官方原著专栏](https://alistair.cockburn.us/hexagonal-architecture/)\n  - Martin Fowler 架构专栏：*\"Organizing presentation and domain logic\"*：  \n    [Martin Fowler Architecture Guide](https://martinfowler.com/architecture/)\n- **现代化架构守护工具**：\n  - ArchUnit 官方文档（Java 领域自动化架构边界与分层红线静态检测测试框架）：  \n    [ArchUnit Official Documentation](https://www.archunit.org/)\n\n### 3. What 高效阅读指引（核心看点与避坑）\n\n#### ① AI Agent 系统六边形架构分层规范全景图\n\n```\n┌─────────────────────────────────────────────────────────────────────────────┐\n│                       外部世界 (Driving & Driven Actors)                     │\n│  [REST Controller]   [SSE Client]   [MySQL]   [Redis]   [MCP Servers]      │\n└───────────┬───────────────────────────────────────▲─────────────────────────┘\n            │ 调用                                  │ 驱动\n┌───────────▼───────────────────────────────────────┴─────────────────────────┐\n│                    适配器层 (Adapters Layer) - 随时可替换                   │\n│                                                                             │\n│  【入站适配器 Inbound Adapters】        【出站适配器 Outbound Adapters】       │\n│  - SpringAi2WorkflowAdapter (8083)    - RedisPostgresCheckpointAdapter      │\n│  - AgentScopeWorkflowAdapter (8084)   - McpEnterpriseToolAdapter            │\n│  - WorkflowV7Controller (REST/SSE)    - SpringAi2ToolAdapter                │\n└───────────┬───────────────────────────────────────▲─────────────────────────┘\n            │ 实现                                  │ 实现\n┌───────────▼───────────────────────────────────────┴─────────────────────────┐\n│                     端口层 (Ports Layer) - 抽象接口契约                     │\n│                                                                             │\n│  【入站端口 Inbound Ports】             【出站端口 Outbound Ports】            │\n│  - ShoppingAgentPort                  - CheckpointStorePort                 │\n│                                       - EnterpriseToolPort                  │\n└───────────┬───────────────────────────────────────▲─────────────────────────┘\n            │ 驱动调用                              │ 依赖\n┌───────────▼───────────────────────────────────────┴─────────────────────────┐\n│            纯净领域核心层 (Pure Domain Core) - 绝对零框架依赖               │\n│                                                                             │\n│  - ShoppingDomainService (大额风控判定 >¥5000、限购规则、多维度选品打分)       │\n│  - AgentCheckpoint (因果状态快照模型)                                         │\n│  - ShoppingIntent / ToolOrderRequest (强类型业务领域模型)                     │\n│  - 严格限制: 0 Spring 注解、0 Spring AI 依赖、0 AgentScope 依赖!            │\n└─────────────────────────────────────────────────────────────────────────────┘\n```\n\n#### ② 依赖倒置铁律与双向平替验证\n在我们的两个对照工程中，请重点对比以下目录：\n- `enterprise-ai-agent-springai2/src/main/java/com/example/agent/domain/`\n- `enterprise-ai-agent-agentscope/src/main/java/com/example/agent/domain/`\n- **惊人发现**：两个工程的 `domain/` 与 `port/` 目录源码**100% 逐字相同**！\n  - 核心风控规则（`ShoppingDomainService.isHighRiskAction()` 针对大额超 ¥5000 的拦截）写在领域层；\n  - 选品打分算法（`scoreAndRankCandidates()`）写在领域层；\n  - 当从 Spring AI 2.0 升级为 AgentScope 2.0 时，**Domain 层代码修改量为 0 行，Port 层接口修改量为 0 行**！所有框架更迭全部被限制在 `adapter/` 包内部。\n\n#### ③ 用 ArchUnit 自动化守护架构红线\n不要指望通过团队口头约定来维持架构边界，必须通过自动化测试在 CI 流水线中强制守护。以下是建议引入的 ArchUnit 单元测试范式：\n\n```java\n@AnalyzeClasses(packages = \"com.example.agent\")\npublic class HexagonalArchitectureRulesTest {\n\n    @ArchTest\n    public static final ArchRule domain_layer_must_not_depend_on_frameworks =\n        noClasses()\n            .that().resideInAPackage(\"..domain..\")\n            .should().dependOnClassesThat().resideInAnyPackage(\n                \"org.springframework.ai..\",\n                \"io.agentscope..\",\n                \"org.springframework.web..\",\n                \"org.springframework.data..\"\n            )\n            .because(\"纯净领域核心严禁被任何具体 AI 框架或 Web 容器套牢！\");\n\n    @ArchTest\n    public static final ArchRule ports_must_be_interfaces =\n        classes()\n            .that().resideInAPackage(\"..port..\")\n            .should().beInterfaces()\n            .because(\"端口层必须全部由纯抽象接口构成，确保依赖倒置\");\n}\n```\n\n---\n\n## 配套自测思考题（Self-Check）\n\n在研读完以上专题后，请尝试独立回答以下 3 道架构师级自测题，检验对生产级框架选型与架构治理的掌握情况：\n\n### 思考题 1：Reactive Context 穿透与 StreamAdvisor 流式拦截死锁陷阱\n**场景**：某团队基于 Spring AI 2.0 开发实时客服 Agent。架构师在 `StreamAdvisor` 中定制了一个 Token 计费与审计切面，需要在流式输出每一个 Token 块（`ChatResponse`）时，读取当前请求绑定的租户租约信息，并将当前的 Token 消耗数累加写入远程 Redis。\n开发人员在切面中直接编写了如下代码：\n```java\n@Override\npublic Flux<ChatClientResponse> adviseStream(ChatClientRequest request, StreamAdvisorChain chain) {\n    String tenantId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();\n    return chain.nextStream(request)\n        .map(response -> {\n            redisTemplate.opsForValue().increment(\"tenant:tokens:\" + tenantId, 1);\n            return response;\n        });\n}\n```\n上线压测后，系统立即出现两个严重故障：① `tenantId` 偶发变为 `null` 并抛出 NPE；② 整体流式输出吞吐量骤降 90%，客户端收到流式数据的延迟极大。\n请从 **Reactor 响应式线程模型、ThreadLocal 传递与 I/O 阻塞机制** 角度，深入剖析原因，并给出正确的重构架构方案。\n\n> **参考架构思路**：\n> 1. **故障原因深度剖析**：\n>    - **ThreadLocal 丢失问题**：`SecurityContextHolder` 默认基于 `ThreadLocal` 存储。在 Project Reactor 响应式流管道中，`Flux` 的操作符往往被调度在不同的 Netty I/O 线程或弹性调度器线程（Schedulers）上执行。当流式操作发生线程切换时，`ThreadLocal` 中的上下文信息无法自动跨线程传播，导致下游 `tenantId` 变为 `null`。\n>    - **EventLoop 线程阻塞问题**：`redisTemplate.opsForValue().increment()` 是同步阻塞式 I/O 调用。在 `map()` 操作符中对每一个 Token 块同步调用 Redis，会直接阻塞执行该流的底层 Netty EventLoop 工作线程。由于 EventLoop 线程总数通常等于 CPU 核心数，少量并发流就会耗尽全部 EventLoop，导致整个服务响应式网络通道全部瘫痪，吞吐量断崖式暴跌。\n> 2. **正确重构架构方案**：\n>    - **上下文传播重构**：使用 Reactor 的不可变上下文 `contextWrite()` 与 `deferContextual()`，或使用 Spring Framework 7 / Micrometer 的 `ContextRegistry` 机制，在进入响应式流前将租户标识写入 Reactor Context，确保跨操作符透明传播。\n>    - **流式非阻塞与批量合并**：严禁在 `map()` 逐字打点中同步调用外部存储！改用异步响应式客户端（如 `ReactiveRedisTemplate`）配合操作符窗口合并（如 `.window(Duration.ofSeconds(1))` 或 `.buffer(50)`），将单次交互生成的 Token 数在客户端流结束（`doOnComplete`）时异步合并批量刷入 Redis，保护高并发通道。\n\n---\n\n### 思考题 2：Time-Travel 分支回滚中的外部物理副作用与 Saga 补偿联动\n**场景**：在包含 7 个步骤的企业差旅审批与采购 Agent 中：\n- 第 1 步：检索员工差旅标准与预算合规性；\n- 第 2 步：调用外部航司 API 锁定了机票并生成了预定号（产生了外部系统物理副作用）；\n- 第 3 步：进入人在回路（HITL），等待部门主管审批；\n- 主管在审批时，认为该航班时间不合理，要求：“*不要订这张票，改查明天早上的高铁*”。\n运维架构师尝试调用 `/api/v7/workflow/fork` 接口，从第 1 步的 Checkpoint 分叉生成一条新的执行链路，让 Agent 重新推演高铁路线。\n如果系统仅仅在数据库层面分叉了 Checkpoint 记录，会带来什么严重的业务灾难？在架构设计上，**Time-Travel 时光倒流机制必须与分布式 Saga 事务模式怎样联动**？\n\n> **参考架构思路**：\n> 1. **严重的业务灾难**：\n>    - 产生**外部资源悬空泄漏与资产损失**。虽然 Checkpoint 在数据库中回滚分叉到了 Step 1，使得 Agent 的本地推演栈重置了，但航司外部系统中预定的机票**并没有被取消**！航司会继续保留锁票甚至触发自动扣款，导致企业差旅账户资金被扣除，产生幽灵订单。\n> 2. **与 Saga 补偿机制的联动架构规范**：\n>    - **快照必须记录副作用补偿元数据（Compensating Actions）**：在 Checkpoint 的 `snapshot_json` 中，不能只记录 Scratchpad 数据，必须同时持久化当前状态树已产生外部副作用的逆向补偿动作清单（如 `{\"action\": \"cancelFlightReservation\", \"reservationId\": \"FLY-8801\"}`）。\n>    - **Forking 时的分支差分审计（Branch Diffing）**：当系统从历史节点 `chk-1` 分叉新链路时，状态机必须对比当前被废弃分支（`chk-2` $\\to$ `chk-3`）与基准分叉点之间的差异，自动检测到 `chk-2` 产生过不可忽略的外部物理副作用。\n>    - **自动触发逆向 Saga 回滚**：在激活新分支之前，系统必须先按 LIFO 逆序调用外部系统的取消补偿接口，确保航司资源成功释放，再正式启动高铁分支的推演，保证数字执行栈与物理外部世界的严格一致性。\n\n---\n\n### 思考题 3：多智能体分布式通信下的六边形 Outbound Port 边界设计\n**场景**：某团队计划在第 10 课将系统演进为 Multi-Agent（多智能体协作网络），包含“导购 Agent”、“仓储物流 Agent”与“财务支付 Agent”。\n团队中有两种架构派系：\n- **派系 A**：认为每个 Agent 内部直接注入对方的 Service 或调用特定框架的 `Subagent` 抽象（如在 Spring AI 中直接注入另一个包含 `ChatClient` 的组件，或直接依赖特定开源框架的 Agent 通信机制）；\n- **派系 B**：坚持六边形架构，认为所有 Agent 之间的协作通信必须抽象为出站端口（Outbound Port），下层适配器基于标准协议（如 Google A2A 协议、JSON-RPC 或 CloudEvents）实现。\n请评估两种派系对系统长期可维护性、测试隔离度与团队组织架构协同（Conway's Law 康威定律）的影响，并给出六边形端口契约的设计方案。\n\n> **参考架构思路**：\n> 1. **架构影响评估对比**：\n>    - **派系 A（紧耦合黑盒）**：初期开发极快，但违反了单一职责原则。各个 Agent 的内存、上下文和异常处理深度纠缠在一起。一旦某个 Agent 底层升级框架（如一个用 Spring AI，另一个用 AgentScope），代码彻底无法互通；单测无法独立 Mock，线上排障时链路追踪混乱不堪；随着团队规模扩大，严重违反康威定律，不同小组成员互相踩踏代码。\n>    - **派系 B（六边形松耦合）**：契约明确，边界森严。每个 Agent 是一个自治的微核心。\n> 2. **推荐的六边形 Outbound Port 契约设计方案**：\n>    - **抽象通用协作端口**：\n>      ```java\n>      public interface AgentCollaborationPort {\n>          Mono<AgentMessageEnvelope> dispatchToAgent(\n>              String targetAgentId, \n>              AgentMessageEnvelope envelope\n>          );\n>      }\n>      ```\n>    - **信封协议标准化**：载荷严格采用标准化的消息信封（Envelope），包含 `traceId`, `sourceAgentId`, `targetAgentId`, `capability`, `payloadJson`。\n>    - **适配器灵活插拔**：\n>      - 本地单体测试时：注入 `LocalInProcessAgentAdapter`，走 JVM 内部内存事件总线，单测秒级完成；\n>      - 生产分布式部署时：无缝切换为 `HttpA2aProtocolAdapter`（遵循 Google A2A 标准）或 `KafkaEventBusAdapter`，实现真正跨微服务、跨编程语言的企业级 Multi-Agent 协同集群。\n";
+  let currentIndex = 0;
+
+  const stage = document.getElementById('slide-stage');
+  const frame = document.getElementById('slide-frame');
+  const shield = document.getElementById('click-shield');
+  const progressBar = document.getElementById('progress-bar');
+  const indicator = document.getElementById('page-indicator');
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+  const btnNotes = document.getElementById('btn-notes');
+  const btnCloseNotes = document.getElementById('btn-close-notes');
+  const btnExt = document.getElementById('btn-ext');
+  const btnCloseExt = document.getElementById('btn-close-ext');
+  const btnFs = document.getElementById('btn-fs');
+  const controlBar = document.getElementById('control-bar');
+  const notesDrawer = document.getElementById('notes-drawer');
+  const notesTitle = document.getElementById('notes-title');
+  const notesBody = document.getElementById('notes-body');
+  const extDrawer = document.getElementById('ext-drawer');
+  const extBody = document.getElementById('ext-body');
+
+  // 轻量级 Markdown 渲染器（支持标题、粗体、行内代码、可点击超链接与列表）
+  function renderSimpleMarkdown(md) {
+    if (!md) return '<p>（本课暂无扩展学习指南文件）</p>';
+    const escaped = md
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    const lines = escaped.split(/\r?\n/);
+    let html = '';
+    for (let line of lines) {
+      // 处理超链接与行内格式
+      line = line
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+      if (/^####\s+(.*)/.test(line)) {
+        html += '<h4>' + RegExp.$1 + '</h4>';
+      } else if (/^###\s+(.*)/.test(line)) {
+        html += '<h3>' + RegExp.$1 + '</h3>';
+      } else if (/^##\s+(.*)/.test(line)) {
+        html += '<h2>' + RegExp.$1 + '</h2>';
+      } else if (/^#\s+(.*)/.test(line)) {
+        html += '<h1>' + RegExp.$1 + '</h1>';
+      } else if (/^&gt;\s*(.*)/.test(line)) {
+        html += '<blockquote>' + RegExp.$1 + '</blockquote>';
+      } else if (/^[-*]\s+(.*)/.test(line)) {
+        html += '<ul><li>' + RegExp.$1 + '</li></ul>';
+      } else if (line.trim() === '---') {
+        html += '<hr style="border:none; border-top:1px solid rgba(255,255,255,0.1); margin:14px 0;">';
+      } else if (line.trim() !== '') {
+        html += '<p>' + line + '</p>';
+      }
+    }
+    return html;
+  }
+
+  extBody.innerHTML = renderSimpleMarkdown(extGuideMarkdown);
+
+  // 1. 16:9 动态缩放居中计算
+  function updateScale() {
+    const sw = 1280;
+    const sh = 720;
+    const scale = Math.min(window.innerWidth / sw, window.innerHeight / sh);
+    stage.style.transform = 'scale(' + scale + ')';
+  }
+  window.addEventListener('resize', updateScale);
+  updateScale();
+
+  // 2. 页面切换核心函数
+  function updateSlide(index) {
+    if (index < 0 || index >= pages.length) return;
+    currentIndex = index;
+    frame.setAttribute('src', pages[currentIndex]);
+    indicator.textContent = (currentIndex + 1) + ' / ' + pages.length;
+    btnPrev.disabled = (currentIndex === 0);
+    btnNext.disabled = (currentIndex === pages.length - 1);
+    progressBar.style.width = (((currentIndex + 1) / pages.length) * 100) + '%';
+
+    // 更新演讲手册备注
+    const pageFile = pages[currentIndex];
+    notesTitle.textContent = '演讲手册备注 (第 ' + (currentIndex + 1) + ' 页 - ' + pageFile + ')';
+    notesBody.textContent = notesMap[pageFile] || '（本页暂无专属演讲手册内容）';
+
+    // 唤醒底部控制条 1 秒后淡出
+    controlBar.classList.add('active');
+    clearTimeout(controlBar._timer);
+    controlBar._timer = setTimeout(() => controlBar.classList.remove('active'), 1200);
+
+    // 强行保持主窗口焦点
+    window.focus();
+    document.body.focus();
+  }
+
+  // 3. 统一键盘事件处理器（无论焦点在何处均生效）
+  function handleKeyDown(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+      case 'PageDown':
+      case ' ':
+      case 'Enter':
+        e.preventDefault();
+        e.stopPropagation();
+        updateSlide(currentIndex + 1);
+        break;
+      case 'ArrowLeft':
+      case 'ArrowUp':
+      case 'PageUp':
+      case 'Backspace':
+        e.preventDefault();
+        e.stopPropagation();
+        updateSlide(currentIndex - 1);
+        break;
+      case 'Home':
+        e.preventDefault();
+        e.stopPropagation();
+        updateSlide(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        e.stopPropagation();
+        updateSlide(pages.length - 1);
+        break;
+      case 'f':
+      case 'F':
+        e.preventDefault();
+        e.stopPropagation();
+        btnFs.click();
+        break;
+      case 'n':
+      case 'N':
+        e.preventDefault();
+        e.stopPropagation();
+        btnNotes.click();
+        break;
+      case 'e':
+      case 'E':
+        e.preventDefault();
+        e.stopPropagation();
+        btnExt.click();
+        break;
+      case 'Escape':
+        if (notesDrawer.classList.contains('open') || extDrawer.classList.contains('open')) {
+          e.preventDefault();
+          notesDrawer.classList.remove('open');
+          extDrawer.classList.remove('open');
+        }
+        break;
+    }
+  }
+
+  // 双重监听：捕获阶段挂载到 window 与 document
+  window.addEventListener('keydown', handleKeyDown, true);
+  document.addEventListener('keydown', handleKeyDown, true);
+
+  // 当 iframe 内部加载完毕时，注入键盘穿透监听（作为跨级兜底保护）
+  frame.addEventListener('load', () => {
+    try {
+      const doc = frame.contentDocument || frame.contentWindow.document;
+      if (doc) {
+        doc.addEventListener('keydown', handleKeyDown, true);
+        doc.addEventListener('click', () => {
+          window.focus();
+          document.body.focus();
+        });
+      }
+    } catch (err) {}
+    window.focus();
+    document.body.focus();
+  });
+
+  // 4. 点击屏蔽层 (click-shield) 交互：
+  // 单击右半侧下一页，单击左半侧上一页，双击全屏
+  let clickTimer = null;
+  shield.addEventListener('click', (e) => {
+    window.focus();
+    document.body.focus();
+
+    if (clickTimer) {
+      clearTimeout(clickTimer);
+      clickTimer = null;
+      btnFs.click(); // 双击切换全屏
+      return;
+    }
+
+    clickTimer = setTimeout(() => {
+      clickTimer = null;
+      const rect = shield.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      if (clickX > rect.width * 0.4) {
+        updateSlide(currentIndex + 1);
+      } else {
+        updateSlide(currentIndex - 1);
+      }
+    }, 220);
+  });
+
+  // 5. 鼠标滚轮翻页 (节流防抖 250ms)
+  let wheelLock = false;
+  window.addEventListener('wheel', (e) => {
+    if ((notesDrawer.classList.contains('open') || extDrawer.classList.contains('open')) && e.clientX > window.innerWidth - 540) {
+      return; // 抽屉内部滚动时不拦截
+    }
+    if (wheelLock) return;
+    if (Math.abs(e.deltaY) > 20) {
+      wheelLock = true;
+      if (e.deltaY > 0) updateSlide(currentIndex + 1);
+      else updateSlide(currentIndex - 1);
+      setTimeout(() => { wheelLock = false; }, 260);
+    }
+  }, { passive: true });
+
+  // 6. 控制栏按钮交互（点击后自动释放焦点，防止空格键重触发按钮）
+  btnPrev.addEventListener('click', (e) => {
+    e.target.blur();
+    updateSlide(currentIndex - 1);
+  });
+  btnNext.addEventListener('click', (e) => {
+    e.target.blur();
+    updateSlide(currentIndex + 1);
+  });
+  btnNotes.addEventListener('click', (e) => {
+    e.target.blur();
+    extDrawer.classList.remove('open');
+    notesDrawer.classList.toggle('open');
+    window.focus();
+    document.body.focus();
+  });
+  btnCloseNotes.addEventListener('click', () => {
+    notesDrawer.classList.remove('open');
+    window.focus();
+    document.body.focus();
+  });
+  btnExt.addEventListener('click', (e) => {
+    e.target.blur();
+    notesDrawer.classList.remove('open');
+    extDrawer.classList.toggle('open');
+    window.focus();
+    document.body.focus();
+  });
+  btnCloseExt.addEventListener('click', () => {
+    extDrawer.classList.remove('open');
+    window.focus();
+    document.body.focus();
+  });
+  btnFs.addEventListener('click', (e) => {
+    e.target.blur();
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+    window.focus();
+    document.body.focus();
+  });
+
+  // 初始化首屏
+  updateSlide(0);
+</script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>同构提效（二）：JDK 21 虚拟线程与 Spring Boot 4 可观测底座</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 22px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 3px; font-weight: 600; }
+    .code-box { font-family: Consolas, "Fira Code", monospace; font-size: 11px; line-height: 1.44; background: rgba(0,0,0,0.48); padding: 10px 12px; border-radius: 6px; border: 1px solid rgba(224,231,255,0.14); color: #E0E7FF; white-space: pre; overflow-x: hidden; }
+  </style>
+</head>
+<body>
+  <div class="s">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;" class="mb-1">
+        <span class="sn">PART 1 · 同构能力提效（V6 运行时底座 · 两项均有配置与代码落地）</span>
+        <span style="font-size:11.5px;color:#38BDF8;background:rgba(56,189,248,0.14);border:1px solid rgba(56,189,248,0.35);padding:2px 9px;border-radius:4px;font-weight:700;">虚拟线程 Demo 已覆盖 · OTel 对接仅 PPT 讲解</span>
+      </div>
+      <h1 style="font-size:27px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">
+        为什么 Spring AI 2.0 升级了 JDK 21 与 Spring Boot 4.0 底座？
+      </h1>
+      <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:10px;"></div>
+      <div style="background:rgba(0,229,255,0.06);border-left:3px solid #00E5FF;border-radius:4px;padding:7px 14px;font-size:13px;color:#E0E7FF;line-height:1.5;">
+        <strong style="color:#00E5FF;">升级动因：</strong>Spring AI 2.0.2 GA 绑定 Java 17+/21 与 Spring Boot 4.0 / Framework 7.0，不是为了追新，而是为了直接利用<strong>虚拟线程高并发长等待</strong>与<strong>内建 GenAI 可观测</strong>。
+      </div>
+    </div>
+
+    <!-- 左右两栏：两项底座升级，每栏完整走通 问题->原理->配置/代码 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1;margin-top:12px;min-height:0;">
+      <!-- 左：JDK 21 虚拟线程 -->
+      <div style="background:rgba(0,229,255,0.03);border:1.5px solid rgba(0,229,255,0.28);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:15px;color:#00E5FF;font-weight:700;"><i class="fab fa-java"></i> 1. JDK 21 虚拟线程（Virtual Threads）</span>
+            <span style="font-size:11px;color:#4ADE80;background:rgba(74,222,128,0.14);padding:2px 7px;border-radius:4px;font-weight:700;">Demo 已覆盖</span>
+          </div>
+          <div style="font-size:12.5px;color:#CBD5E1;line-height:1.52;margin-bottom:8px;">
+            • <strong style="color:#F87171;">问题：</strong>LLM 响应动辄 2~10 秒，V5 传统 Tomcat 200 线程并发一高直接阻塞耗尽。<br>
+            • <strong style="color:#00E5FF;">原理：</strong>JVM 轻量级 M:N 调度（JEP 444），网络 I/O 阻塞时自动挂起卸载载体 OS 线程，内存开销仅 KB 级。<br>
+            • <strong style="color:#4ADE80;">怎么配 &amp; 怎么用：</strong>在 <code>application.yml</code> 开开关 + 流式异步直接 <code>Thread.ofVirtual()</code>：
+          </div>
+          <div class="code-box"><span style="color:#94A3B8;"># enterprise-ai-agent-springai2/src/main/resources/application.yml</span>
+<span style="color:#569CD6;">spring:</span>
+  <span style="color:#569CD6;">threads:</span>
+    <span style="color:#569CD6;">virtual:</span>
+      <span style="color:#9CDCFE;">enabled:</span> <span style="color:#4ADE80;">true</span> <span style="color:#94A3B8;"># 自动让 Tomcat/MVC 长阻塞请求跑在虚拟线程</span>
+
+<span style="color:#94A3B8;">// SpringAi2WorkflowAdapter.java (第112行)：异步流式任务</span>
+<span style="color:#4EC9B0;">Thread</span>.ofVirtual().start(() -&gt; {
+    <span style="color:#4EC9B0;">WorkflowResponse</span> resp = driveWorkflowLoop(root, msg, sink);
+    sink.tryEmitNext(<span style="color:#4EC9B0;">WorkflowStreamEvent</span>.completed(execId, resp.getMessage()));
+});</div>
+        </div>
+        <div style="font-size:12px;color:#4ADE80;background:rgba(74,222,128,0.08);border-radius:5px;padding:7px 10px;">
+          ✅ <strong>收益：</strong>无需为了高并发强行把所有同步业务改造成复杂的 WebFlux 反应式回调。
+        </div>
+      </div>
+
+      <!-- 右：Spring Boot 4.0 + Spring AI 2.0 可观测底座 -->
+      <div style="background:rgba(192,132,252,0.035);border:1.5px solid rgba(192,132,252,0.3);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:15px;color:#C084FC;font-weight:700;"><i class="fas fa-chart-line"></i> 2. Spring Boot 4.0 / Micrometer 可观测</span>
+            <span style="font-size:11px;color:#FBBF24;background:rgba(251,191,36,0.14);padding:2px 7px;border-radius:4px;font-weight:700;">配置已覆盖 · 采集仅PPT</span>
+          </div>
+          <div style="font-size:12.5px;color:#CBD5E1;line-height:1.52;margin-bottom:8px;">
+            • <strong style="color:#F87171;">问题：</strong>V5 手写 <code>TraceService</code> 仅存内存 Map，跨调用的 Token 统计与模型延迟极易漏埋点。<br>
+            • <strong style="color:#C084FC;">原理：</strong><code>ChatClient</code> 自动接入 Micrometer <code>ObservationRegistry</code>，按 OpenTelemetry GenAI 语义自动记录耗时、Token 与异常 Span。<br>
+            • <strong style="color:#4ADE80;">怎么配 &amp; 怎么用：</strong>在 <code>application.yml</code> 开启观测开关（生产对接 OTLP/Jaeger）：
+          </div>
+          <div class="code-box"><span style="color:#94A3B8;"># enterprise-ai-agent-springai2/src/main/resources/application.yml</span>
+<span style="color:#569CD6;">spring:</span>
+  <span style="color:#569CD6;">ai:</span>
+    <span style="color:#569CD6;">chat:</span>
+      <span style="color:#569CD6;">observations:</span>
+        <span style="color:#9CDCFE;">log-prompt:</span> <span style="color:#F87171;">false</span>      <span style="color:#94A3B8;"># 生产禁止明文打 Prompt 防 PII 泄露</span>
+        <span style="color:#9CDCFE;">log-completion:</span> <span style="color:#F87171;">false</span>  <span style="color:#94A3B8;"># 自动采集 gen_ai.usage.input_tokens 等指标</span>
+
+<span style="color:#94A3B8;">// 生产扩展（仅 PPT）：引入 spring-boot-starter-opentelemetry 后</span>
+<span style="color:#94A3B8;">// management.otlp.tracing.endpoint=http://jaeger:4318/v1/traces</span>
+<span style="color:#94A3B8;">// 自动导出 ChatModel + ToolCalling + Advisor 全链路 Span</span></div>
+        </div>
+        <div style="font-size:12px;color:#C084FC;background:rgba(192,132,252,0.09);border-radius:5px;padding:7px 10px;">
+          ✅ <strong>收益：</strong>模型调用指标（Token/TTFT/错误率）随框架自动采集，不再散落在业务代码里手写埋点。
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

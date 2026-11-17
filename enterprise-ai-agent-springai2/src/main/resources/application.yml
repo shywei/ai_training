@@ -1,0 +1,70 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: enterprise-ai-agent-springai2
+
+  # JDK 21 虚拟线程开关：自动让 Tomcat/MVC 长耗时 I/O 请求运行在虚拟线程上
+  threads:
+    virtual:
+      enabled: true
+
+  # SSE 长任务保护
+  mvc:
+    async:
+      request-timeout: 600000
+
+  # Spring AI 2.0.2 GA OpenAI Starter & 内置可观测/MCP 配置
+  ai:
+    openai:
+      api-key: ${SILICONFLOW_API_KEY:sk-sample-placeholder}
+      base-url: ${OPENAI_BASE_URL:https://api.siliconflow.cn}
+      chat:
+        options:
+          model: ${AGENT_CHAT_MODEL:Qwen/Qwen2.5-7B-Instruct}
+          temperature: 0.7
+    chat:
+      observations:
+        log-prompt: false
+        log-completion: false
+    mcp:
+      client:
+        # 设为 true 且启动 8081/8082 MCP Server 时，Spring AI 自动装配 SyncMcpToolCallbackProvider
+        enabled: false
+        sse:
+          connections:
+            product-server:
+              url: ${MCP_SERVER_URL:http://localhost:8081}
+            knowledge-server:
+              url: ${KNOWLEDGE_SERVER_URL:http://localhost:8082}
+
+  # Redis (执行快照热存储 Checkpoint)
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 5000
+
+  # PostgreSQL (执行快照持久化冷存储与 pgvector 共享实例)
+  datasource:
+    url: jdbc:postgresql://${PG_HOST:localhost}:${PG_PORT:5432}/${PG_DB:knowledge_db}?reWriteBatchedInserts=true
+    username: ${PG_USER:postgres}
+    password: ${PG_PASS:postgres}
+    driver-class-name: org.postgresql.Driver
+
+# MCP Server 外部连接（供 SpringAi2ToolAdapter HTTP 兜底使用）
+mcp:
+  product:
+    server-url: ${MCP_SERVER_URL:http://localhost:8081}
+  knowledge:
+    server-url: ${KNOWLEDGE_SERVER_URL:http://localhost:8082}
+
+# 导购 Agent 业务配置
+agent:
+  name: 导购助手 (Spring AI 2.0)
+  role: 你是一个专业的电商导购助手，基于企业商品库与专业知识帮助用户推荐最合适的商品。
+  constraints: 推荐商品必须基于商品库知识，不编造商品信息。不确定的信息说“我不确定”。
+  model:
+    chat: Qwen/Qwen2.5-7B-Instruct
+    reasoning: Qwen/Qwen3-8B

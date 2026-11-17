@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280">
+  <title>防框架套牢（二）：Ports &amp; Adapters 实战与零修改平替验证</title>
+  <script src="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/js/tailwindcss@3.4.17.js"></script>
+  <link href="https://qn.cache.wpscdn.cn/copilot-test/copilot-cdn/css/fontawesome-free@6.4.0.css" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .s { width: 1280px; height: 720px; background: #0B1120; color: #E0E7FF; position: relative; font-family: "Microsoft YaHei", -apple-system, sans-serif; overflow: hidden; padding: 20px 46px; display: flex; flex-direction: column; justify-content: space-between; }
+    .sn { font-size: 13px; color: #00E5FF; letter-spacing: 3px; font-weight: 600; }
+    .code { font-size: 10.6px; color: #E2E8F0; line-height: 1.4; background: rgba(15, 23, 42, 0.9); padding: 9px 11px; border-radius: 6px; font-family: Consolas, monospace; border: 1px solid rgba(255,255,255,0.1); white-space: pre; }
+  </style>
+</head>
+<body>
+<div class="s">
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;" class="mb-1">
+      <span class="sn">PART 3 · 防框架套牢架构（工程落地验证）</span>
+      <span style="font-size:11.5px;color:#38BDF8;background:rgba(56,189,248,0.14);border:1px solid rgba(56,189,248,0.35);padding:2px 9px;border-radius:4px;font-weight:700;">同构零改动 Demo 已覆盖 · ArchUnit CI 守卫仅 PPT 讲解</span>
+    </div>
+    <h1 style="font-size:27px;color:#F8FAFC;font-weight:700;margin-bottom:6px;">
+      工程实战验证：V6 切换至 V7 时，Domain 与 Port 0 行修改
+    </h1>
+    <div style="width:50px;height:3px;background:#FF6B35;margin-bottom:8px;"></div>
+  </div>
+
+  <!-- 上部：两套 Adapter 实现同一 ShoppingAgentPort -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:10px;">
+    <div style="background:rgba(15,23,42,0.68);border:1px solid rgba(56,189,248,0.3);border-radius:8px;padding:10px 14px;">
+      <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700;color:#38BDF8;margin-bottom:5px;">
+        <span>Adapter A · SpringAi2WorkflowAdapter (:8083)</span>
+        <span style="font-size:11px;color:#CBD5E1;">300 行</span>
+      </div>
+      <div class="code"><span style="color:#C084FC">@Service</span>
+<span style="color:#38BDF8">public class</span> <span style="color:#FBBF24">SpringAi2WorkflowAdapter</span> <span style="color:#38BDF8">implements</span> <span style="color:#4ADE80">ShoppingAgentPort</span> {
+  <span style="color:#38BDF8">public</span> WorkflowResponse executeTask(...) {
+    <span style="color:#7CA668">// 内部封装 ChatClient + 手写 driveWorkflowLoop 循环</span>
+    String reply = chatClient.prompt().user(ctx).call().content();
+    checkpointStore.saveSnapshot(...);
+    <span style="color:#38BDF8">return</span> WorkflowResponse.completed(...);
+  }
+}</div>
+    </div>
+
+    <div style="background:rgba(15,23,42,0.68);border:1px solid rgba(192,132,252,0.3);border-radius:8px;padding:10px 14px;">
+      <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700;color:#C084FC;margin-bottom:5px;">
+        <span>Adapter B · AgentScopeWorkflowAdapter (:8084)</span>
+        <span style="font-size:11px;color:#CBD5E1;">~110 行核心</span>
+      </div>
+      <div class="code"><span style="color:#C084FC">@Service</span>
+<span style="color:#38BDF8">public class</span> <span style="color:#FBBF24">AgentScopeWorkflowAdapter</span> <span style="color:#38BDF8">implements</span> <span style="color:#4ADE80">ShoppingAgentPort</span> {
+  <span style="color:#38BDF8">public</span> WorkflowResponse executeTask(...) {
+    <span style="color:#7CA668">// 内部委托 ReActAgent 引擎与 Middleware 自动处理</span>
+    Msg resp = shoppingAgent.call(message, context).block();
+    <span style="color:#38BDF8">return</span> WorkflowResponse.completed(...);
+  }
+}</div>
+    </div>
+  </div>
+
+  <!-- 下部：源码同构树 + ArchUnit 扩展守卫 -->
+  <div style="display:grid;grid-template-columns:1.1fr 0.9fr;gap:16px;flex:1;min-height:0;">
+    <div style="background:rgba(15,23,42,0.72);border:1px solid rgba(74,222,128,0.3);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+      <div style="font-size:14px;color:#4ADE80;font-weight:700;">✅ 实证：两套工程共享 100% 一致的 Domain 与 Port</div>
+      <div class="code"><span style="color:#4ADE80">com.example.agent/</span>
+├── <span style="color:#4ADE80">domain/</span> (8个纯Java类，0行修改) <span style="color:#7CA668">// ShoppingDomainService, ToolOrderRequest...</span>
+├── <span style="color:#38BDF8">port/</span>   (3个抽象接口，0行修改)  <span style="color:#7CA668">// ShoppingAgentPort, CheckpointStorePort, EnterpriseToolPort</span>
+└── <span style="color:#FBBF24">adapter/</span> (唯一按框架切换目录) <span style="color:#7CA668">// springai2/ vs agentscope/</span></div>
+      <div style="font-size:12px;color:#CBD5E1;">Web Controller 仅注入 <code>ShoppingAgentPort</code>，切换底层 AI 框架无需改一行控制器与领域代码。</div>
+    </div>
+
+    <div style="background:rgba(15,23,42,0.72);border:1px solid rgba(251,191,36,0.3);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;justify-content:space-between;">
+      <div style="font-size:14px;color:#FBBF24;font-weight:700;">🛡️ 生产进阶（仅 PPT）：ArchUnit 守卫架构红线</div>
+      <div class="code"><span style="color:#C084FC">@ArchTest</span>
+ArchRule rule = noClasses().that().resideInAPackage(<span style="color:#A7F3D0">"..domain.."</span>)
+  .should().dependOnClassesThat().resideInAnyPackage(
+      <span style="color:#A7F3D0">"org.springframework.ai.."</span>, <span style="color:#A7F3D0">"io.agentscope.."</span>);</div>
+      <div style="font-size:12px;color:#CBD5E1;">把架构约定写进 CI 单元测试，防止团队后续开发不小心在 <code>domain/</code> 引入框架包。</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
